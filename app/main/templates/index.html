@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="keywords" content="CFAC portal"/>
+        <meta name="description" content="CFAC portal" />
+        <title>Home</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"/>
+        <link rel="stylesheet"
+              href="{{ url_for('static', filename='payments.css') }}"/>
+
+    </head>
+
+        <header>
+            <nav class="navbar has-background-primary-light" aria-label="main navigation">
+                <div class="navbar-brand">
+                    <div class="navbar-start">
+                        <div class="navbar-item">
+                            <div class="buttons">
+                                <a class="button is-link" href="{{ url_for('main.index')}}">Index</a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            {% if not current_user.is_authenticated %}
+                                <a class="button is-link" href="{{ url_for('users.login_page') }}"> Login</a>
+                                {% else %}
+
+                                    {{ current_user.username }}
+                                <a class="button is-link" href="{{ url_for('users.logout_page') }}"> Log out</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        </div>
+            </nav>
+        </header>
+        <body>
+<div class="container">
+<div class="tile is-ancestor">
+
+    <div class="tile is-parent">
+     <a href="{{ url_for('coinsurance.home_page') }}">
+    <article class="tile is-child notification is-primary">
+      <div class="content">
+        <p class="title">Coinsurance</p>
+        <p class="subtitle">Upload coinsurance confirmations</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+    </a>
+  </div>
+    <div class="tile is-parent">
+    <a href="{{ url_for('brs.brs_home_page')}}">
+    <article class="tile is-child notification is-warning">
+      <div class="content">
+        <p class="title">BRS</p>
+        <p class="subtitle">Upload BRS</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+    </a>
+  </div>
+      <div class="tile is-parent">
+    <a href="{{ url_for('admin.home_page')}}">
+    <article class="tile is-child notification is-warning">
+      <div class="content">
+        <p class="title">Admin users</p>
+        <p class="subtitle">Reset user password and bulk upload user logins</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+    </a>
+  </div>
+  <!--
+  <div class="tile is-parent">
+    <article class="tile is-child notification is-info">
+      <div class="content">
+        <p class="title">Stationery management</p>
+        <p class="subtitle">Coming soon...</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="tile is-parent">
+    <article class="tile is-child notification is-danger">
+      <div class="content">
+        <p class="title">Admin</p>
+        <p class="subtitle">With even more content</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+  </div>
+  tag before the code and a -->
+</div>
+</div>
+
+        <footer class="footer">
+            <div class="content has-text-centered">
+                <small>United India - LCB Chennai 500200</small><br />
+                <small>Made by 44515</small>
+            </div>
+        </footer>
+    </body>
+</html>

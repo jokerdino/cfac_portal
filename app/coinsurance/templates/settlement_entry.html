@@ -1,0 +1,42 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<h1 class="title">Enter coinsurance settlement details</h1>
+<form action="" method="post" enctype="multipart/form-data" >
+    {{ form.csrf_token }}
+
+    <table class="table is-fullwidth is-hoverable">
+
+       <tr><th>{{ form.coinsurer_name.label }}</th>    <td>{{ form.coinsurer_name }}</td></tr>
+       <tr><th>{{ form.date_of_settlement.label }}</th>    <td>{{ form.date_of_settlement }}</td></tr>
+       <tr><th>{{ form.amount_settled.label }}</th>    <td>{{ form.amount_settled }}</td></tr>
+       <tr><th>{{ form.utr_number.label }}</th>    <td>{{ form.utr_number }}</td></tr>
+       <tr><th>{{ form.settlement_file.label }}</th>    <td>{{ form.settlement_file }}</td></tr>
+       <tr><th>{{ form.type_of_settlement.label }}</th>    <td>{{ form.type_of_settlement }}</td></tr>
+
+    </table>
+    <div class="field is-grouped">
+
+        <button class="button is-primary is-big">Save</button>
+
+    </div>
+
+</form>
+            {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}       {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+            </div>
+</div>
+
+            {% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+           <div class="notification is-danger">
+<p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% endblock content %}

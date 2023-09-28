@@ -1,0 +1,89 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<h1 class="title">Enter coinsurance confirmation details</h1>
+<form action="" method="post" enctype="multipart/form-data" >
+    {{ form.csrf_token }}
+    <table class="table is-fullwidth is-hoverable">
+        <tr> <th>  {{ form.regional_office_code.label }}   </th>
+        <td>
+        {% if current_user.user_type == "admin" %}
+          {{ form.regional_office_code(class='input') }}
+          {% else %}
+          {{ form.regional_office_code.data }}
+          {% endif %}
+        </td>
+        </tr>
+       <tr><th>{{ form.oo_code.label }}</th>    <td>
+       {% if current_user.user_type == "oo_user" %}
+       {{ form.oo_code.data }}
+              {% else %}
+       {{ form.oo_code(class='input')}}
+       {% endif %}
+       </td></tr>
+       <tr><th>{{ form.coinsurer_name.label }}</th>    <td>{{ form.coinsurer_name(class='select') }}</td></tr>
+       <tr><th>{{ form.coinsurer_office_code.label }}</th>    <td>{{ form.coinsurer_office_code(class='input') }}</td></tr>
+       <tr><th>{{ form.payable_amount.label }}</th>    <td>{{ form.payable_amount(class='input') }}</td></tr>
+       <tr><th>{{ form.receivable_amount.label }}</th>    <td>{{ form.receivable_amount(class='input')}}</td></tr>
+       <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
+       <tr><th>{{ form.request_id.label }}</th>    <td>{{ form.request_id(class='input')}}</td></tr>
+
+       <tr><th>{{ form.statement.label }}</th>    <td>{{ form.statement }}</td></tr>
+       <tr><th>{{ form.confirmation.label }}</th>    <td>{{ form.confirmation }}</td></tr>
+
+       <tr><th>{{ form.bool_reinsurance.label }}</th>    <td>{{ form.bool_reinsurance(class='checkbox') }}</td></tr>
+       <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td>{{ form.int_ri_payable_amount(class='input')}}</td></tr>
+       <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td>{{ form.int_ri_receivable_amount(class='input')}}</td></tr>
+       <tr><th>{{ form.ri_confirmation.label }}</th>    <td>{{ form.ri_confirmation }}</td></tr>
+
+        {% if remarks %}
+        <tr><th>Remarks</th> <td>
+                <table class="table is-bordered">
+                    <thead>
+                    <tr>
+                        <th>Time of remarks</th>
+                        <th>User</th>
+                        <th>Remarks</th>
+                    </tr></thead>
+                    <tbody>
+                        {% for remark in remarks %}
+                        <tr>
+                            <td>{{ remark.time_of_remark }}</td>
+                            <td>{{ remark.user }}</td>
+                            <td>{{ remark.remarks }}</td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table></td></tr>
+                {% endif %}
+       <tr><th>{{ form.remarks.label }}</th>    <td>{{ form.remarks(class='textarea') }}</td></tr>
+       {% if change_status %}
+       <tr><th>{{ form.current_status.label }}</th>    <td>{{ form.current_status(class='select')}}</td></tr>
+       {% endif %}
+    </table>
+    <div class="field is-grouped">
+        {% if enable_save_button %}
+        <button class="button is-primary is-big">Save</button>
+        {% endif %}
+    </div>
+
+</form>
+            {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}        {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+            </div>
+</div>
+
+            {% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+           <div class="notification is-danger">
+<p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+{% endblock content %}

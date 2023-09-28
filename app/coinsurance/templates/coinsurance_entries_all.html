@@ -1,0 +1,169 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<h1 class="title"> {{ title }}</h1>
+
+{% if coinsurance_entries %}
+<form action="" method="post" name="coinsurance_list">
+    <table class="table is-striped is-fullwidth" id="payment_table">
+
+        <thead>
+            <tr>
+
+                {% if update_settlement and current_user.user_type == "admin" %}
+                <th>Select</th>
+                {% endif %}
+
+                <th>Entry ID</th>
+                <th>RO code</th>
+                <th>OO code</th>
+                <th>Coinsurer name</th>
+                <th>Coinsurer office code</th>
+                <th>Payable amount</th>
+                <th>Receivable amount</th>
+                <th>Net payable / (Net receivable)</th>
+                <th>Current status</th>
+                <th>View</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in coinsurance_entries %}
+            <tr>
+                {% if update_settlement and current_user.user_type == "admin" %}
+                <td>
+                    <label class="checkbox">
+                        <input type="checkbox" name="coinsurance_keys" value="{{ entry.id }}"/>
+                    </label></td>
+                    {% endif %}
+                    <td>                          {{ entry.id }}</td>
+                    <td>                          {{ entry.uiic_regional_code }}</td>
+                    <td>                          {{ entry.uiic_office_code }}</td>
+                    <td>                          {{ entry.follower_company_name }}</td>
+                    <td>                          {{ entry.follower_office_code }}</td>
+                    <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
+                    <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
+                    <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
+                    <td>{{ entry.current_status or '' }}</td>
+                    <td><a class="button is-info" href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">View</a></td>
+				{% if current_user.user_type != "coinsurance_hub_user" %}
+
+				<td><a class="button is-link" disabled>Edit</a> </td>
+				{% else %}
+				<td><a class="button is-link is-outlined" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=entry.id)}}">Edit</a> </td>
+				{% endif %}
+                                </tr>
+            {% endfor %}
+        </tbody>
+                    <tfoot>
+            <tr>
+                <th colspan="6" class="has-text-left">Total:</th>
+                <th colspan="3"></th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+    {% if update_settlement and current_user.user_type == "admin" %}
+    <div class="field is-grouped">
+        <div class="control">
+            <button class="button is-danger is-small">Update settlement</button>
+        </div>
+    </div>
+</form>
+{% endif %}
+{% endif %}
+
+{% block scripts %}
+        <script>
+            $(document).ready(function () {
+                            $('#payment_table').DataTable({
+                                dom: 'lfBrtip',
+                                fixedHeader: true,
+                                stateSave: true,
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[0,'asc']],
+                                            pagingType: 'full_numbers',
+                                                   footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+            };
+
+            // Total over all pages
+            total = api
+                .column(6)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Total over this page
+            pageTotal = api
+                .column(6, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Update footer
+            $(api.column(6).footer()).html('Rs.' + pageTotal + ' (Rs.' + total + ' total)');
+        },
+                                lengthMenu: [
+                                             [10,25,50,100,-1],
+                                            [10,25,50,100,'All'],]
+                                        });
+                        });
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+  // Functions to open and close a modal
+  function openModal($el) {
+    $el.classList.add('is-active');
+  }
+
+  function closeModal($el) {
+    $el.classList.remove('is-active');
+  }
+
+  function closeAllModals() {
+    (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+      closeModal($modal);
+    });
+  }
+
+  // Add a click event on buttons to open a specific modal
+  (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+    const modal = $trigger.dataset.target;
+    const $target = document.getElementById(modal);
+
+    $trigger.addEventListener('click', () => {
+      openModal($target);
+    });
+  });
+
+  // Add a click event on various child elements to close the parent modal
+  (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+    const $target = $close.closest('.modal');
+
+    $close.addEventListener('click', () => {
+      closeModal($target);
+    });
+  });
+
+  // Add a keyboard event to close all modals
+  document.addEventListener('keydown', (event) => {
+    const e = event || window.event;
+
+    if (e.keyCode === 27) { // Escape key
+      closeAllModals();
+    }
+  });
+});
+        </script>
+{% endblock scripts %}
+{% endblock content %}

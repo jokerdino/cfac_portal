@@ -1,0 +1,6 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<a class="button is-link" href="{{ url_for('coinsurance.add_coinsurance_entry') }}"> Add new entry </a>
+<a class="button is-link" href="{{ url_for('coinsurance.list_coinsurance_entries') }}"> View all entries </a>
+
+{% endblock content %}

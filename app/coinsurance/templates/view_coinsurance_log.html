@@ -1,0 +1,25 @@
+{% extends "coinsurance_layout.html" %}
+
+{% block content %}
+<div class="table-container">
+<table class="table is-striped is-bordered" id="gst_table">
+    <thead>
+        <tr>
+        {% for i in column_names %}
+            <th>{{ i|upper }}</th>
+{% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+        {% for item in log %}
+        {% for i in column_names %}
+        <td>{{ item[i] }}</td>
+        {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+ </table>
+</div>
+
+{% endblock content %}

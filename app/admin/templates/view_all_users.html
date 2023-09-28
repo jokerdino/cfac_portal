@@ -1,0 +1,72 @@
+{% extends "admin_layout.html" %}
+
+{% block content %}
+<h1 class="title"> All the employees</h1>
+
+{% if users %}
+<form action="" method="post" name="user_list">
+    <table class="table is-striped is-fullwidth" id="user_table">
+
+        <thead>
+            <tr>
+                {% if current_user.user_type == "admin" %}
+                <th>Select</th>
+                {% endif %}
+                <th>RO Code</th>
+                <th>OO code</th>
+                <th>Type of user</th>
+                <th>Password reset status</th>
+                <th>Last login</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for user in users %}
+            {% if current_user.user_type == "admin" %}
+            <tr>
+                <td>
+                    <label class="checkbox">
+                        <input type="checkbox" name="user_keys" value="{{ user.id }}"/>
+                    </label></td>
+                    <td> {{ user.ro_code }} </td>
+                    <td> <a href="{{ url_for('admin.view_user_page', user_key=user.id) }}"> {{ user.oo_code }}</a> </td>
+
+                    <td>{{ user.user_type }}</td>
+                    <td>{{ user.reset_password }}</td>
+                    <td>{{ user.time_last_login }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+        {% if current_user.user_type == "admin" %}
+    <div class="field is-grouped">
+        <div class="control">
+            <button class="button is-danger">Delete</button>
+        </div>
+    </div>
+
+    {% endif %}
+</form>
+{% endif %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+            $('#user_table').DataTable({
+                    dom: 'lfBrtip',
+                                buttons: [
+                                             {   extend: 'copyHtml5', className: 'is-danger is-rounded'},
+                                              { extend: 'csvHtml5', className: 'is-info is-rounded'},
+                                               { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
+                    order: [[0,'asc']],
+                    pagingType: 'full_numbers',
+                    lengthMenu: [
+                            [10,25,50,100,-1],
+                            [10,25,50,100,'All'],]
+                });
+        });
+</script>
+{% endblock scripts %}
+{% endblock content %}
