@@ -23,7 +23,7 @@ def signup():
     if request.method == "POST":
         username = form.data["username"]
         password = form.data["password"]
-        password_hash = generate_password_hash(password, method="sha256")
+        password_hash = generate_password_hash(password)
 
         # emp_number = form.data["emp_number"]
 
@@ -115,7 +115,7 @@ def reset_password_page():
             # password = form.data["password"]
             # password_hash =
             user.password = generate_password_hash(
-                form.data["password"], method="sha256"
+                form.data["password"]
             )  # password_hash
             user.reset_password = False
             db.session.add(user)

@@ -1,3 +1,5 @@
+from random import *
+
 import pandas as pd
 from flask import flash, redirect, render_template, request, url_for
 from sqlalchemy import create_engine
@@ -21,7 +23,7 @@ def upload_users():
         df_user_upload = pd.read_csv(upload_file)
         print(df_user_upload.columns.values.tolist())
         df_user_upload["password"] = df_user_upload["password"].apply(
-            generate_password_hash, method="sha256"
+            generate_password_hash
         )
         df_user_upload["reset_password"] = True
         engine = create_engine(
@@ -57,14 +59,17 @@ def view_user_page(user_key):
 
         if form.data["reset_password_page"]:
             user.reset_password = True
-            user.password = generate_password_hash("password_reset", method="sha256")
+            password_string = f"Welcome{str(randint(1,1000))}"
+            user.password = generate_password_hash(password_string)
+
+            flash(f"New password generated: {password_string}")
 
         user.user_type = user_type
         # user.reset_password = reset_password_page
         db.session.add(user)
         db.session.commit()
         admin_check()
-        return redirect(url_for("admin.view_list_users"))
+      #  return redirect(url_for("admin.view_list_users"))
 
     form.change_user_type.data = user.user_type
     form.reset_password_page.data = user.reset_password
@@ -85,7 +90,7 @@ def admin_check():
     if not admin:
         user = User(
             oo_code="cfac_admin",
-            password=generate_password_hash("cfac_admin", method="sha256"),
+            password=generate_password_hash("cfac_admin"),
             user_type="admin",
             reset_password=True,
         )

@@ -32,6 +32,14 @@
     {% endif %}
 </form>
 
+                        {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                        <div class="notification is-danger">
+                            {{ messages[0] }}
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+
 <table class="table" id="user_log_table">
 <thead>
 <tr>
