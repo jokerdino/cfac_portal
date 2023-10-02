@@ -14,15 +14,15 @@
         <tr><th>Receivable amount</th> <td>{{ coinsurance.receivable_amount }}</td></tr>
         <tr><th>Whether RI is involved or not</th> <td>{{ coinsurance.boolean_reinsurance_involved }}</td></tr>
         {% if coinsurance.boolean_reinsurance_involved %}
-        <tr><th>RI payable amount</th> <td>{{ coinsurance.ri_payable_amount }}</td></tr>
-        <tr><th>RI receivable amount</th> <td>{{ coinsurance.ri_receivable_amount }}</td></tr>
+        <tr><th>RI payable amount</th> <td>{{ coinsurance.int_ri_payable_amount }}</td></tr>
+        <tr><th>RI receivable amount</th> <td>{{ coinsurance.int_ri_receivable_amount }}</td></tr>
         {% endif %}
         {% if coinsurance.net_amount > 0 %}
         <tr><th>Net amount payable </th> <td>{{ coinsurance.net_amount }}</td></tr>
         {% else %}
         <tr><th>Net amount receivable</th> <td>{{ coinsurance.net_amount * -1 }}</td></tr>
         {% endif %}
-        <tr><th>Request ID</th> <td></td></tr>
+        <tr><th>Request ID</th> <td>{{ coinsurance.request_id }}</td></tr>
        <tr><th>Download statement</th>    <td><a href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'> Download statement</a></td></tr>
        <tr><th>Download confirmation</th>    <td><a href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'> Download confirmation</a></td></tr>
 
@@ -53,10 +53,37 @@
             </td></tr>
 
             <tr><th>Current status</th><td>{{ coinsurance.current_status }}</td></tr>
-    </table>
+            {% if coinsurance.current_status == "Settled" %}
+            <tr><th>Details of settlement</th><td>
+                  <table class="table is-bordered">
+                    <thead></thead>
+                    <tr>
+                        <th>Date of settlement</th>
+                        <th>Amount settled</th>
+                        <th>Paid / received</th>
+                        <th>UTR number</th>
+                    </tr>
+                    <tbody>
+                        {% for settlement_entry in settlement %}
+                        <tr>
+                            <td>{{ settlement_entry.date_of_settlement }}</td>
+                            <td>{{ settlement_entry.settled_amount }}</td>
+                            <td>{{ settlement_entry.type_of_transaction }}</td>
+                            <td>{{ settlement_entry.utr_number }}</td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </td></tr>
+            {% endif %}
+            </table>
     <div class="field is-grouped">
         {% if enable_edit_button %}
       <a class="button is-link is-outlined" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=coinsurance.id)}}">Edit</a>
+      		{% else %}
+				<a class="button is-link" disabled>Edit</a>
+
       {% endif %}
     </div>
 

@@ -80,8 +80,4 @@ class Coinsurance_log(db.Model):
     ri_confirmation = db.Column(db.String)
 
     current_status = db.Column(db.String)
-
-    date_of_settlement = db.Column(db.Date)
-    settled_amount = db.Column(db.Integer)
-    utr_number = db.Column(db.String)
-    file_settlement_file = db.Column(db.String)
+    settlement_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4)

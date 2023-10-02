@@ -1,0 +1,18 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<h1 class="title">Settlement details</h1>
+    <table class="table is-fullwidth">
+
+        <tr><th>Coinsurer name</th> <td>{{ settlement.name_of_company }} </td></tr>
+        <tr><th>Paid / received</th> <td>{{ settlement.type_of_transaction }}</td></tr>
+        <tr><th>Amount settled</th> <td>{{ settlement.settled_amount }} </td></tr>
+        <tr><th>UTR number</th> <td>{{ settlement.utr_number }}</td></tr>
+        <tr><th>Date of settlement</th> <td>{{ settlement.date_of_settlement }}</td></tr>
+
+        <tr><th>View settled entries</th> <td> <a href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', uuid = settlement.settlement_uuid) }}">View settled entries</a></td></tr>
+        <tr><th>Download settlement summary statement</th> <td> <a href="{{ url_for ('coinsurance.download_settlements', settlement_id = settlement.id) }}">Download settlement statement</a></td></tr>
+
+    </table>
+
+{% endblock content %}

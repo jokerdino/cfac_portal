@@ -7,7 +7,6 @@ from app.main import main_bp
 @main_bp.route("/")
 def index():
     if current_user.is_authenticated:
-        print(current_user.oo_code)
         return render_template("index.html")
     else:
         return redirect(url_for("users.login_page"))

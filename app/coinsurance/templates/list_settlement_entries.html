@@ -1,0 +1,97 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<h1 class="title"> {{ title }}</h1>
+
+{% if settlement_entries %}
+    <table class="table is-striped is-fullwidth" id="settlement_table">
+
+        <thead>
+            <tr>
+
+                <th>Coinsurer name</th>
+                <th>Paid / received</th>
+                <th>Amount settled</th>
+                <th>Date of settlement</th>
+                <th>UTR number</th>
+                <th>View settled entries</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in settlement_entries %}
+            <tr>
+
+                    <td>                          {{ entry.name_of_company }}</td>
+                    <td>                          {{ entry.type_of_transaction }}</td>
+                    {% if entry.type_of_transaction == "Paid" %}
+                    <td class="has-text-right">{{ "{:,}".format(entry.settled_amount|int) }}</td>
+                    {% else %}
+                                   <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
+                    {% endif %}
+                    <td>                          {{ entry.date_of_settlement }}</td>
+                    <td>                          {{ entry.utr_number }}</td>
+                    <td><a class="button is-info" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', uuid = entry.settlement_uuid) }}">View</a></td>
+                               <td><a class="button is-info" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
+
+                                </tr>
+            {% endfor %}
+        </tbody>
+                    <tfoot>
+            <tr>
+                <th colspan="2" class="has-text-left">Total:</th>
+                <th colspan="5"></th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+{% endif %}
+
+{% block scripts %}
+        <script>
+            $(document).ready(function () {
+                            $('#settlement_table').DataTable({
+                                dom: 'lfBrtip',
+                                fixedHeader: true,
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[3,'desc']],
+                                            pagingType: 'full_numbers',
+                                                   footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+            };
+
+            // Total over all pages
+            total = api
+                .column(2)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Total over this page
+            pageTotal = api
+                .column(2, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Update footer
+            $(api.column(2).footer()).html('Rs.' + pageTotal + ' (Rs.' + total + ' total)');
+        },
+                                lengthMenu: [
+                                             [10,25,50,100,-1],
+                                            [10,25,50,100,'All'],]
+                                        });
+                        });
+        </script>
+
+{% endblock scripts %}
+{% endblock content %}

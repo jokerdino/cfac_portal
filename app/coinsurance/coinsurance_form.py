@@ -23,19 +23,19 @@ coinsurer_list = [
 
 
 class CoinsuranceForm(FlaskForm):
-    coinsurer_list = [
-        "New India",
-        "Oriental",
-        "National",
-        "Aditya Birla",
-        "TATA AIG",
-        "Bajaj Allianz",
-        "SBI General",
-        "Royal Sundaram",
-    ]
+#    coinsurer_list = [
+#        "New India",
+#        "Oriental",
+#        "National",
+#        "Aditya Birla",
+#        "TATA AIG",
+#        "Bajaj Allianz",
+#        "SBI General",
+#        "Royal Sundaram",
+#    ]
     status_list = [
         "To be reviewed by coinsurance hub",
-        "Needs clarification from RO/OO",
+        "Needs clarification from RO or OO",
         "To be approved in GC Core",
         "To be considered for settlement",
         "Settled",
@@ -72,44 +72,16 @@ class CoinsuranceForm(FlaskForm):
         "Current status:", choices=status_list, validators=[Optional()]
     )
     settlement = SelectField(
-        "Update settlement details:", choices=status_list, validators=[Optional()]
+        "Update settlement details:", choices=[], validators=[Optional()], validate_choice=False
     )
 
 
 class SettlementForm(FlaskForm):
     coinsurer_name = SelectField("Enter coinsurer name:", choices=coinsurer_list)
-    # coinsurance_keys = StringField()
     date_of_settlement = DateField("Date of settlement:")
     amount_settled = IntegerField("Amount settled")
     utr_number = StringField("UTR number:")
     settlement_file = FileField("Upload summary statement:")
-    settlement_list = ["Paid", "Received"]
     type_of_settlement = SelectField(
-        "Paid or received: ", choices=settlement_list, validators=[Optional()]
+        "Paid or received: ", choices=["Paid","Received"], validators=[Optional()]
     )
-
-
-# class SignupForm(FlaskForm):
-#    username = StringField("Username", validators=[DataRequired()])
-#    password = PasswordField("Password", validators=[DataRequired()])
-#    emp_number = IntegerField(
-#        "Employee number",
-#        validators=[NumberRange(min=10000, max=99999), DataRequired()],
-#    )
-#
-#
-# class LoginForm(FlaskForm):
-#    username = StringField("Username", validators=[DataRequired()])
-#    password = PasswordField("Password", validators=[DataRequired()])
-#
-#
-# class UpdateUserForm(FlaskForm):
-#    is_admin = BooleanField("Make the user admin: ")
-#    reset_password_page = BooleanField("Enable password reset page: ")
-#
-#
-# class ResetPasswordForm(FlaskForm):
-#    username = StringField("Enter username:", validators=[DataRequired()])
-#    emp_number = IntegerField("Enter employee number: ", validators=[DataRequired()])
-#    #  reset_code = IntegerField("Enter reset code received from admin: ", validators=[DataRequired()])
-#    password = PasswordField("Enter new password: ", validators=[DataRequired()])

@@ -1,17 +1,5 @@
 {% extends "admin_layout.html" %}
 {% block content %}
-    <style>
-        #Progress_Status {
-          width: 50%;
-          background-color: #ddd;
-        }
-
-        #myprogressBar {
-          width: 2%;
-          height: 20px;
-          background-color: #00d1b2;
-        }
-        </style>
 <h1 class="title">Bulk upload user login details in csv format</h1>
 
 <form class="mb-5" method="post" enctype="multipart/form-data">
@@ -30,22 +18,4 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-{% block script %}
-        <script>
-        function update() {
-            var element = document.getElementById("myprogressBar");
-            var width = 1;
-            var identity = setInterval(scene, 10);
-            function scene() {
-            if (width >= 100) {
-                clearInterval(identity);
-            } else {
-                width++;
-                element.style.width = width + '%';
-                }
-            }
-        }
-        </script>
-        {% endblock script %}
-
         {% endblock content %}

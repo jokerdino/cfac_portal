@@ -9,14 +9,12 @@
 
         <thead>
             <tr>
-                {% if current_user.user_type == "admin" %}
-                <th>Select</th>
-                {% endif %}
                 <th>RO Code</th>
                 <th>OO code</th>
                 <th>Type of user</th>
                 <th>Password reset status</th>
                 <th>Last login</th>
+                <th>Edit user settings</th>
             </tr>
         </thead>
         <tbody>
@@ -24,30 +22,19 @@
             {% for user in users %}
             {% if current_user.user_type == "admin" %}
             <tr>
-                <td>
-                    <label class="checkbox">
-                        <input type="checkbox" name="user_keys" value="{{ user.id }}"/>
-                    </label></td>
                     <td> {{ user.ro_code }} </td>
-                    <td> <a href="{{ url_for('admin.view_user_page', user_key=user.id) }}"> {{ user.oo_code }}</a> </td>
+                    <td>{{ user.oo_code }}</td>
 
                     <td>{{ user.user_type }}</td>
                     <td>{{ user.reset_password }}</td>
                     <td>{{ user.time_last_login }}</td>
+                         <td> <a href="{{ url_for('admin.view_user_page', user_key=user.id) }}"> Edit</a> </td>
             </tr>
             {% endif %}
             {% endfor %}
         </tbody>
     </table>
 
-        {% if current_user.user_type == "admin" %}
-    <div class="field is-grouped">
-        <div class="control">
-            <button class="button is-danger">Delete</button>
-        </div>
-    </div>
-
-    {% endif %}
 </form>
 {% endif %}
 
@@ -57,10 +44,10 @@
             $('#user_table').DataTable({
                     dom: 'lfBrtip',
                                 buttons: [
-                                             {   extend: 'copyHtml5', className: 'is-danger is-rounded'},
-                                              { extend: 'csvHtml5', className: 'is-info is-rounded'},
-                                               { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
-                    order: [[0,'asc']],
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded'},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded'},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
+                    order: [[3,'asc']],
                     pagingType: 'full_numbers',
                     lengthMenu: [
                             [10,25,50,100,-1],

@@ -2,6 +2,10 @@
 {% block content %}
 <h1 class="title"> {{ title }}</h1>
 
+{% if status == "To be considered for settlement" and current_user.user_type == "admin" %}
+    <a href="{{ url_for('coinsurance.list_coinsurance_entries_to_be_settled') }}" class="button is-success">Mark entries for settlement</a>
+{% endif %}
+
 {% if coinsurance_entries %}
 <form action="" method="post" name="coinsurance_list">
     <table class="table is-striped is-fullwidth" id="payment_table">
@@ -45,11 +49,11 @@
                     <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
                     <td>{{ entry.current_status or '' }}</td>
                     <td><a class="button is-info" href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">View</a></td>
-				{% if current_user.user_type != "coinsurance_hub_user" %}
-
-				<td><a class="button is-link" disabled>Edit</a> </td>
-				{% else %}
+				{% if current_user.user_type == "coinsurance_hub_user" or current_user.user_type == "admin" %}
 				<td><a class="button is-link is-outlined" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=entry.id)}}">Edit</a> </td>
+
+				{% else %}
+					<td><a class="button is-link" disabled>Edit</a> </td>
 				{% endif %}
                                 </tr>
             {% endfor %}
@@ -79,12 +83,11 @@
                             $('#payment_table').DataTable({
                                 dom: 'lfBrtip',
                                 fixedHeader: true,
-                                stateSave: true,
                                 buttons: [
                                              { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
                                              { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
                                              { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[0,'asc']],
+                                order: [[0,'desc']],
                                             pagingType: 'full_numbers',
                                                    footerCallback: function (row, data, start, end, display) {
             var api = this.api();
