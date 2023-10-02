@@ -59,7 +59,7 @@
                     <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
-                      <td>                          {{ entry.boolean_reinsurance_involved }}</td>
+                      <td>                          {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_payable_amount|int) }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_receivable_amount|int) }}</td>
                      <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
@@ -78,7 +78,7 @@
 
     </table>
 
-    {% if update_settlement and current_user.user_type == "admin" %}
+    {% if update_settlement and current_user.user_type in ["admin","coinsurance_hub_user"] %}
     <div class="field is-grouped">
         <div class="control">
             <button class="button is-danger is-small">Update settlement</button>

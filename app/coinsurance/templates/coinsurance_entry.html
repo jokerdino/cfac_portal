@@ -1,4 +1,5 @@
 {% extends "coinsurance_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
 {% block content %}
 
 <h1 class="title">Enter coinsurance confirmation details</h1>
@@ -23,9 +24,12 @@
        </td></tr>
        <tr><th>{{ form.coinsurer_name.label }}</th>    <td>{{ form.coinsurer_name(class='select') }}</td></tr>
        <tr><th>{{ form.coinsurer_office_code.label }}</th>    <td>{{ form.coinsurer_office_code(class='input') }}</td></tr>
-       <tr><th>{{ form.payable_amount.label }}</th>    <td>{{ form.payable_amount(class='input') }}</td></tr>
-       <tr><th>{{ form.receivable_amount.label }}</th>    <td>{{ form.receivable_amount(class='input')}}</td></tr>
-       <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
+              <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
+       <tr><th>{{ form.payable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.payable_amount(class='input') }}</td></tr>
+       <tr><th>{{ form.receivable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input')}}</td></tr>
+
+       <tr><th><label id="label_before_ri">Net payable (excluding RI)</label></th> <td><label id="cal_direct_amount"></label></td></tr>
+
        <tr><th>{{ form.request_id.label }}</th>    <td>{{ form.request_id(class='input')}}</td></tr>
         <tr><th>{{ form.name_of_insured.label }}</th>    <td>{{ form.name_of_insured(class='input')}}</td></tr>
 
@@ -33,10 +37,17 @@
        <tr><th>{{ form.confirmation.label }}</th>    <td>{{ form.confirmation }}</td></tr>
 
        <tr><th>{{ form.bool_reinsurance.label }}</th>    <td>{{ form.bool_reinsurance(class='checkbox') }}</td></tr>
-       <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td>{{ form.int_ri_payable_amount(class='input')}}</td></tr>
-       <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td>{{ form.int_ri_receivable_amount(class='input')}}</td></tr>
+       {% if form.bool_reinsurance.data %}
+       <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input') }}</td></tr>
+       <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input') }}</td></tr>
+       <tr><th><label id="label_after_ri">Net payable (including RI)</label></th> <td ><label id="cal_ri_amount"> </label></td></tr>
        <tr><th>{{ form.ri_confirmation.label }}</th>    <td>{{ form.ri_confirmation }}</td></tr>
-
+       {% else %}
+       <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input', disabled=disabled) }}</td></tr>
+       <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input', disabled=disabled) }}</td></tr>
+       <tr><th><label id="label_after_ri">Net payable (including RI)</label></th> <td ><label id="cal_ri_amount" disabled></label></td></tr>
+       <tr><th>{{ form.ri_confirmation.label }}</th>    <td>{{ form.ri_confirmation(disabled=disabled) }}</td></tr>
+{% endif %}
         {% if remarks %}
         <tr><th>Remarks</th> <td>
                 <table class="table is-bordered">
@@ -92,4 +103,46 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
+{% block scripts %}
+<script>
+
+$(document).ready(function() {
+calculateSum();
+});
+
+
+   function calculateSum() {
+     var direct_payable = parseInt(document.getElementById("payable_amount").value===""?0:document.getElementById("payable_amount").value);
+     var direct_receivable = parseInt(document.getElementById("receivable_amount").value===""?0:document.getElementById("receivable_amount").value);
+     sum_direct = direct_payable - direct_receivable;
+
+    if (sum_direct > 0) {
+    document.getElementById("label_before_ri").innerText = "Net payable (excluding RI)";
+        document.getElementById("cal_direct_amount").innerText = sum_direct;
+    } else {
+     document.getElementById("label_before_ri").innerText = "Net receivable (excluding RI)";
+         document.getElementById("cal_direct_amount").innerText = sum_direct*-1;
+    }
+     var ri_payable = parseInt(document.getElementById("int_ri_payable_amount").value===""?0:document.getElementById("int_ri_payable_amount").value);
+     var ri_receivable = parseInt(document.getElementById("int_ri_receivable_amount").value===""?0:document.getElementById("int_ri_receivable_amount").value);
+    sum_ri = sum_direct + ri_payable - ri_receivable
+
+    if (sum_ri > 0) {
+            document.getElementById("label_after_ri").innerText = "Net payable (including RI)";
+            document.getElementById("cal_ri_amount").innerText = sum_ri;
+    } else {
+            document.getElementById("label_after_ri").innerText = "Net receivable (including RI)";
+            document.getElementById("cal_ri_amount").innerText = sum_ri*-1;
+    }
+}
+     // enable or disable RI related things
+     document.getElementById('bool_reinsurance').onchange = function() {
+        document.getElementById('int_ri_payable_amount').disabled = !this.checked;
+        document.getElementById('int_ri_receivable_amount').disabled = !this.checked;
+        document.getElementById('cal_ri_amount').disabled = !this.checked;
+        document.getElementById('ri_confirmation').disabled = !this.checked;
+};
+
+     </script>
+{% endblock scripts %}
 {% endblock content %}

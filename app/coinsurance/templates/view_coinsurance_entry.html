@@ -13,7 +13,7 @@
         <tr><th>Payable amount</th> <td>{{ coinsurance.payable_amount }}</td></tr>
         <tr><th>Receivable amount</th> <td>{{ coinsurance.receivable_amount }}</td></tr>
        <tr><th>Name of insured</th> <td>{{ coinsurance.insured_name }}</td></tr>
-        <tr><th>Whether RI is involved or not</th> <td>{{ coinsurance.boolean_reinsurance_involved }}</td></tr>
+        <tr><th>Whether RI is involved or not</th> <td>{{ "Yes" if coinsurance.boolean_reinsurance_involved else "No" }}</td></tr>
         {% if coinsurance.boolean_reinsurance_involved %}
         <tr><th>RI payable amount</th> <td>{{ coinsurance.int_ri_payable_amount }}</td></tr>
         <tr><th>RI receivable amount</th> <td>{{ coinsurance.int_ri_receivable_amount }}</td></tr>

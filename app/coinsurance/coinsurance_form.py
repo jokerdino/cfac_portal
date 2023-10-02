@@ -59,12 +59,12 @@ class CoinsuranceForm(FlaskForm):
         "Enter receivable amount:", validators=[Optional()]
     )
 
-    bool_reinsurance = BooleanField("Whether RI is involved: ", validators=[Optional()])
+    bool_reinsurance = BooleanField("Whether Reinsurance is involved: ", validators=[Optional()])
     int_ri_payable_amount = IntegerField(
-        "Enter RI payable amount", validators=[Optional()]
+        "Enter Reinsurance payable amount", validators=[Optional()]
     )
     int_ri_receivable_amount = IntegerField(
-        "Enter RI receivable amount", validators=[Optional()]
+        "Enter Reinsurance receivable amount", validators=[Optional()]
     )
     ri_confirmation = FileField("Upload RI confirmation", validators=[Optional()])
 
