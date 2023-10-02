@@ -7,7 +7,7 @@
     <table class="table is-fullwidth is-hoverable">
         <tr> <th>  {{ form.regional_office_code.label }}   </th>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in ["admin","coinsurance_hub_user"] %}
           {{ form.regional_office_code(class='input') }}
           {% else %}
           {{ form.regional_office_code.data }}
@@ -27,6 +27,7 @@
        <tr><th>{{ form.receivable_amount.label }}</th>    <td>{{ form.receivable_amount(class='input')}}</td></tr>
        <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
        <tr><th>{{ form.request_id.label }}</th>    <td>{{ form.request_id(class='input')}}</td></tr>
+        <tr><th>{{ form.name_of_insured.label }}</th>    <td>{{ form.name_of_insured(class='input')}}</td></tr>
 
        <tr><th>{{ form.statement.label }}</th>    <td>{{ form.statement }}</td></tr>
        <tr><th>{{ form.confirmation.label }}</th>    <td>{{ form.confirmation }}</td></tr>

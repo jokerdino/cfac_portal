@@ -15,7 +15,7 @@
 {% for entry in dashboard %}
 <tr>
     {% if entry[0] == "Needs clarification from RO or OO" and
-    (current_user.user_type == "ro_user" or current_user.user_type == "oo_user") %}
+    (current_user.user_type in ["ro_user", "oo_user"]) %}
 <td class="has-text-danger">{{ entry[0] }}</td>
 <td class="has-text-right"> <a href="{{ url_for('coinsurance.list_coinsurance_entries_by_status', status=entry[0]) }}">{{ entry[1] }}</a></td>
 {% else %}

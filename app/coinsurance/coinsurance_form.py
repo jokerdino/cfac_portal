@@ -50,6 +50,7 @@ class CoinsuranceForm(FlaskForm):
     type_of_transaction = SelectField(
         "Select whether leader or follower:", choices=["Leader", "Follower"]
     )
+    name_of_insured = StringField("Enter name of insured")
     request_id = StringField("Enter Request ID")
     statement = FileField("Upload statement")
     confirmation = FileField("Upload confirmation")

@@ -16,6 +16,7 @@ class Coinsurance(db.Model):
     request_id = db.Column(db.String)
     payable_amount = db.Column(db.Integer)
     receivable_amount = db.Column(db.Integer)
+    insured_name = db.Column(db.String)
 
     boolean_reinsurance_involved = db.Column(db.Boolean)
     int_ri_payable_amount = db.Column(db.Integer)
