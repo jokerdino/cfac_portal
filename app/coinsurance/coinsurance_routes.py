@@ -212,7 +212,7 @@ def view_coinsurance_entry(coinsurance_id):
         if coinsurance.current_status != "Settled":
             enable_edit_button = True
         elif coinsurance.current_status == "Settled":
-            if coinsurance.settlement_uuid:
+            if Settlement.query.filter(Settlement.settlement_uuid == coinsurance.settlement_uuid).first():
                 enable_edit_button = False
             else:
                 enable_edit_button = True
@@ -447,7 +447,8 @@ def edit_coinsurance_entry(coinsurance_id):
             enable_save_button = True
         elif coinsurance.current_status == "Settled":
             change_status = True
-            if coinsurance.settlement_uuid is None:
+           # print(coinsurance.settlement_uuid)
+            if not Settlement.query.filter(Settlement.settlement_uuid == coinsurance.settlement_uuid).first(): # == "314c88eb-fe47-4a1b-a6f8-5e93c141bb7b":
                 update_settlement = True
                 enable_save_button = True
                 form.settlement.choices = [
