@@ -1,0 +1,18 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+<h1 class="title">Bulk upload user login details in csv format</h1>
+
+<form class="mb-5" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <input onclick="update()"type="submit" value="Upload" />
+</form>
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+           <div class="notification is-danger">
+<p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+        {% endblock content %}

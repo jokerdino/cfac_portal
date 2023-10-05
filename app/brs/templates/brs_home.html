@@ -1,0 +1,135 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+
+{% if current_user.user_type == "admin" %}
+<a class="button is-link" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new entries</a>
+{% endif %}
+
+{% if brs_entries %}
+<table class="table" id="brs_table">
+<thead>
+<tr>
+<th>Regional Code</th>
+<th>Operating Office Code</th>
+<th>Financial year</th>
+<th>Period</th>
+
+<th>Cash bank</th>
+<th>Cash BRS status</th>
+
+<th>Cheque Bank</th>
+<th>Cheque BRS status</th>
+
+<th>PG Bank</th>
+<th>PG BRS Status</th>
+
+<th>POS Bank</th>
+<th>POS BRS status</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+{% for entry in brs_entries %}
+
+{% if colour_check(entry.id) %}
+
+<!-- djlint:off -->
+<tr class="has-background-success">
+<!-- djlint:on -->
+{% else %}
+
+<tr>
+{% endif %}
+<td>{{ entry.uiic_regional_code }}</td>
+<td>{{ entry.uiic_office_code }}</td>
+<td>{{ entry.financial_year }}</td>
+<td>{{ entry.month }}</td>
+
+<td>{{ entry.cash_bank }}</td>
+{% if entry.cash_brs_file %}
+<td class="has-background-success">Uploaded</td>
+{% else %}
+
+<td class="has-text-danger">Pending</td>
+{% endif %}
+<td>{{ entry.cheque_bank }}</td>
+{% if entry.cheque_brs_file %}
+<td class="has-background-success">Uploaded</td>
+{% else %}
+
+<td class="has-text-danger">Pending</td>
+{% endif %}
+
+{% if entry.pg_bank %}
+
+    <td>{{ entry.pg_bank }}</td>
+    {% if entry.pg_brs_file %}
+        <td class="has-background-success">Uploaded</td>
+    {% else %}
+        <td class="has-text-danger">Pending</td>
+    {% endif %}
+
+{% else %}
+
+    {% if not colour_check(entry.id) %}
+    <td class="has-background-grey">NA</td>
+    <td class="has-background-grey">NA</td>>
+    {% else %}
+    <td>NA</td>
+    <td>NA</td>
+    {% endif %}
+{% endif %}
+
+{% if entry.pos_bank %}
+<td>{{ entry.pos_bank }}</td>
+{% if entry.pos_brs_file %}
+<td class="has-background-success">Uploaded</td>
+{% else %}
+
+<td class="has-text-danger">Pending</td>
+{% endif %}
+{% else %}
+    {% if not colour_check(entry.id) %}
+     <td class="has-background-grey">NA</td>
+    <td class="has-background-grey">NA</td>
+    {% else %}
+        <td>NA</td>
+     <td>NA</td>
+    {% endif %}
+{% endif %}
+
+<td><a href="{{ url_for('brs.upload_brs', brs_key = entry.id )}} ">Upload BRS</a></td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+{% endif %}
+{% block scripts %}
+        <script>
+            $(document).ready(function () {
+                            $('#brs_table').DataTable({
+                                dom: 'lfBrtip',
+                                fixedHeader: true,
+                                scrollY: true,
+
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[1,'asc']],
+                                            pagingType: 'full_numbers',
+
+                                lengthMenu: [
+                                             [10,25,50,100,-1],
+                                            [10,25,50,100,'All'],]
+                                        });
+                        });
+        </script>
+
+        {% endblock scripts %}
+
+{% endblock content %}

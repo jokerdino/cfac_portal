@@ -1,0 +1,75 @@
+{% extends "brs_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% block content %}
+
+<h1 class="title">Upload BRS</h1>
+<form action="" method="post" enctype="multipart/form-data" >
+    {{ form.csrf_token }}
+    <table class="table is-fullwidth is-hoverable">
+
+        <tr><th>Regional Office code</th><td>{{ brs_entry.uiic_regional_code }}</td></tr>
+          <tr><th>Operating Office Code</th><td>{{ brs_entry.uiic_office_code }}</td></tr>
+            <tr><th>Financial year</th><td>{{ brs_entry.financial_year }}</td></tr>
+              <tr><th>Month</th><td>{{ brs_entry.month }}</td></tr>
+
+        <tr> <th> Upload Cash BRS file for {{ brs_entry.cash_bank }} Bank</th>
+
+        {% if brs_entry.cash_brs_file %}
+        <td> Cash BRS already uploaded </td>
+        {% else %}
+        <td>{{ form.cash_brs_file }}</td>
+        {% endif %}
+        </tr>
+        <tr> <th> Upload Cheque BRS file for {{ brs_entry.cheque_bank }} bank</th>
+               {% if brs_entry.cheque_brs_file %}
+        <td> Cheque BRS already uploaded </td>
+        {% else %}
+        <td>{{ form.cheque_brs_file }}</td>
+          {% endif %}
+        </tr>
+
+        {% if brs_entry.pos_bank %}
+        <tr> <th> Upload POS BRS file for {{ brs_entry.pos_bank }} Bank</th>
+               {% if brs_entry.pos_brs_file %}
+        <td> POS BRS already uploaded </td>
+        {% else %}
+        <td>{{ form.pos_brs_file }}</td>
+          {% endif %}
+        </tr>
+        {% endif %}
+        {% if brs_entry.pg_bank %}
+        <tr> <th> Upload PG BRS file for {{ brs_entry.pg_bank }} Bank </th>
+               {% if brs_entry.pg_brs_file %}
+        <td> PG BRS already uploaded </td>
+        {% else %}
+        <td>{{ form.pg_brs_file }}</td>
+          {% endif %}
+        </tr>
+{% endif %}
+    </table>
+    <div class="field is-grouped">
+
+        <button class="button is-primary is-big">Save</button>
+
+    </div>
+
+</form>
+            {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}        {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+            </div>
+</div>
+
+            {% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+           <div class="notification is-danger">
+<p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+{% endblock content %}
