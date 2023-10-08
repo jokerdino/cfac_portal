@@ -29,11 +29,10 @@
                 <th>Name of insured</th>
                 <th>Payable amount</th>
                 <th>Receivable amount</th>
-                <th>Net payable / (Net receivable)</th>
                 <th>Reinsurance involved</th>
                 <th>RI payable amount</th>
                 <th>RI receivable amount </th>
-                <th>Net payable / (Net receivable)</th>
+                <th>Net payable / (Net receivable) (Including RI) </th>
                 <th>Current status</th>
 
             </tr>
@@ -58,7 +57,6 @@
                          <td>                          {{ entry.insured_name }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
-                    <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
                       <td>                          {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_payable_amount|int) }}</td>
                     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_receivable_amount|int) }}</td>
@@ -71,8 +69,9 @@
         </tbody>
                     <tfoot>
             <tr>
-                <th colspan="15" class="has-text-left">Total:</th>
-                <th colspan="2"></th>
+                <th colspan="8"></th>
+                <th colspan="3" class="has-text-right"></th>
+                <th colspan="2" class="has-text-left"></th>
             </tr>
         </tfoot>
 
@@ -97,7 +96,7 @@
                                 scrollY: true,
                                 columnDefs: [
                                 {
-                                    target:[11,13,14],
+                                    target:[12,13],
                                     visible: false,
                                     searchable: false,
                                 }
@@ -118,7 +117,7 @@
 
             // Total over all pages
             total = api
-                .column(15)
+                .column(14)
                 .data()
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
@@ -126,66 +125,30 @@
 
             // Total over this page
             pageTotal = api
-                .column(15, { page: 'current' })
+                .column(14, { page: 'current' })
                 .data()
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
 
             // Update footer
-            $(api.column(15).footer()).html('Rs.' + pageTotal + ' (Rs.' + total + ' total)');
+
+            const formatter = new Intl.NumberFormat('en-IN', {
+                            style:'currency',
+                            currency:'INR',
+                            minimumFractionDigits:2,
+                            maximumFractionDigits:2,
+                            trailingZeroDisplay: 'stripIfInteger'
+                        });
+
+           $(api.column(9).footer()).html( 'Page total: '+ formatter.format(pageTotal) );
+           $(api.column(11).footer()).html( 'Total: '+formatter.format(total) );
         },
                                 lengthMenu: [
                                              [10,25,50,100,-1],
                                             [10,25,50,100,'All'],]
                                         });
                         });
-        </script>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-  // Functions to open and close a modal
-  function openModal($el) {
-    $el.classList.add('is-active');
-  }
-
-  function closeModal($el) {
-    $el.classList.remove('is-active');
-  }
-
-  function closeAllModals() {
-    (document.querySelectorAll('.modal') || []).forEach(($modal) => {
-      closeModal($modal);
-    });
-  }
-
-  // Add a click event on buttons to open a specific modal
-  (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
-    const modal = $trigger.dataset.target;
-    const $target = document.getElementById(modal);
-
-    $trigger.addEventListener('click', () => {
-      openModal($target);
-    });
-  });
-
-  // Add a click event on various child elements to close the parent modal
-  (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
-    const $target = $close.closest('.modal');
-
-    $close.addEventListener('click', () => {
-      closeModal($target);
-    });
-  });
-
-  // Add a keyboard event to close all modals
-  document.addEventListener('keydown', (event) => {
-    const e = event || window.event;
-
-    if (e.keyCode === 27) { // Escape key
-      closeAllModals();
-    }
-  });
-});
         </script>
 {% endblock scripts %}
 {% endblock content %}

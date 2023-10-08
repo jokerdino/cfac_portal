@@ -38,8 +38,12 @@
         </tbody>
                     <tfoot>
             <tr>
-                <th colspan="2" class="has-text-left">Total:</th>
-                <th colspan="5"></th>
+                <th colspan="1" class="has-text-left"></th>
+                <th colspan="1"></th>
+                <th colspan="1" class="has-text-right"></th>
+                <th colspan="1"></th>
+                <th colspan="1"></th>
+                <th colspan="1"></th>
             </tr>
         </tfoot>
 
@@ -84,7 +88,16 @@
                 }, 0);
 
             // Update footer
-            $(api.column(2).footer()).html('Rs.' + pageTotal + ' (Rs.' + total + ' total)');
+            const formatter = new Intl.NumberFormat('en-IN', {
+                            style:'currency',
+                            currency:'INR',
+                            minimumFractionDigits:2,
+                            maximumFractionDigits:2,
+                            trailingZeroDisplay: 'stripIfInteger'
+                        });
+
+            $(api.column(2).footer()).html('Page Total: ' + formatter.format(pageTotal) );
+            $(api.column(0).footer()).html('Total: ' + formatter.format(total) );
         },
                                 lengthMenu: [
                                              [10,25,50,100,-1],
