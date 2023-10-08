@@ -7,10 +7,8 @@
         <meta name="description" content="CFAC portal" />
         <title>Home</title>
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
-        <link rel="stylesheet"
-              href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"/>
-        <link rel="stylesheet"
-              href="{{ url_for('static', filename='payments.css') }}"/>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}"/>
 
     </head>
 
@@ -34,7 +32,7 @@
                                 <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                                 {% else %}
 
-                                    {{ current_user.oo_code }}
+                                  <a class="button">  {{ current_user.oo_code }} </a>
                                 <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                                 {% endif %}
                             </div>

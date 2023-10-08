@@ -243,6 +243,8 @@ def download_document(requirement, coinsurance_id):
     elif requirement == "ri_confirmation":
         file_extension = coinsurance.ri_confirmation.rsplit(".", 1)[1]
         path = coinsurance.ri_confirmation
+    else:
+        return "No such requirement"
     if coinsurance.net_amount < 0:
         amount_string = f"receivable {coinsurance.net_amount * -1}"
     else:
