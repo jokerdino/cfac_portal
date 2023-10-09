@@ -10,9 +10,10 @@
 <thead>
 <tr>
 <th>Regional Code</th>
-<th>Operating Office Code</th>
+<th>Operating Office</th>
 <th>Financial year</th>
 <th>Period</th>
+<th>%</th>
 
 <th>Cash bank</th>
 <th>Cash BRS status</th>
@@ -40,11 +41,12 @@
 
 <tr>
 {% endif %}
-<td>{{ entry.uiic_regional_code }}</td>
-<td>{{ entry.uiic_office_code }}</td>
-<td>{{ entry.financial_year }}</td>
-<td>{{ entry.month }}</td>
+<td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
+<td class="has-text-centered">{{ entry.uiic_office_code }}</td>
+<td class="has-text-centered">{{ entry.financial_year }}</td>
+<td class="has-text-centered">{{ entry.month }}</td>
 
+<td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
 <td>{{ entry.cash_bank }}</td>
 {% if entry.cash_brs_file %}
 <td class="has-background-success">Uploaded</td>

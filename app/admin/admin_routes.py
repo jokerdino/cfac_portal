@@ -1,7 +1,7 @@
 from random import *
 
 import pandas as pd
-from flask import flash, redirect, render_template, request, url_for
+from flask import current_app, flash, redirect, render_template, request, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
@@ -27,7 +27,7 @@ def upload_users():
         )
         df_user_upload["reset_password"] = True
         engine = create_engine(
-            "postgresql://barneedhar:barneedhar@localhost:5432/coinsurance"
+            current_app.config.get('SQLALCHEMY_DATABASE_URI')
         )
         try:
             df_user_upload.to_sql("user", engine, if_exists="append", index=False)
@@ -97,14 +97,3 @@ def admin_check():
         # user = db.session.query(User).first()
         db.session.add(user)
         db.session.commit()
-    #  if user:  # .query.first()
-    #     user.is_admin = True
-    #    db.session.commit()
-    #   print("user has been made admin")
-
-
-# user_upload = pd.read_csv("user.csv")
-
-
-# engine = create_engine("postgresql://barneedhar:barneedhar@localhost:5432/flask_db")
-# user_upload.to_sql("user", engine, if_exists = "append", index=False)#, index_label='id')

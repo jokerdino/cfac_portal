@@ -11,28 +11,42 @@ from wtforms import (
 from wtforms.validators import Optional
 
 coinsurer_list = [
+    "National",
     "New India",
     "Oriental",
-    "National",
-    "Aditya Birla",
-    "TATA AIG",
+    "Acko",
+    "Aditya Birla Health",
+    "Apollo Munich",
     "Bajaj Allianz",
-    "SBI General",
+    "Bharti AXA",
+    "Chola MS",
+    "Cigna TTK",
+    "Edelweiss",
+    "Future Generali",
+    "Government Insurance Fund",
+    "Go Digit",
+    "HDFC Ergo",
+    "ICICI Lombard",
+    "Iffco Tokio",
+    "Kerala State Insurance Department",
+    "Kotak Mahindra",
+    "L&T",
+    "Liberty Videocon",
+    "Magma",
+    "Max Bupa",
+    "Raheja QBE",
+    "Reliance General",
+    "Religare",
     "Royal Sundaram",
+    "SBI General",
+    "Shriram General",
+    "Star Health",
+    "TATA AIG",
+    "Universal Sompo",
 ]
 
 
 class CoinsuranceForm(FlaskForm):
-#    coinsurer_list = [
-#        "New India",
-#        "Oriental",
-#        "National",
-#        "Aditya Birla",
-#        "TATA AIG",
-#        "Bajaj Allianz",
-#        "SBI General",
-#        "Royal Sundaram",
-#    ]
     status_list = [
         "To be reviewed by coinsurance hub",
         "Needs clarification from RO or OO",

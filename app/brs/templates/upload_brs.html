@@ -7,42 +7,65 @@
     {{ form.csrf_token }}
     <table class="table is-fullwidth is-hoverable">
 
-        <tr><th>Regional Office code</th><td>{{ brs_entry.uiic_regional_code }}</td></tr>
-          <tr><th>Operating Office Code</th><td>{{ brs_entry.uiic_office_code }}</td></tr>
-            <tr><th>Financial year</th><td>{{ brs_entry.financial_year }}</td></tr>
-              <tr><th>Month</th><td>{{ brs_entry.month }}</td></tr>
+        <tr><th>Regional Office code</th><td>{{ brs_entry.uiic_regional_code }}</td><td></td></tr>
+          <tr><th>Operating Office Code</th><td>{{ brs_entry.uiic_office_code }}</td><td></td></tr>
+            <tr><th>Financial year</th><td>{{ brs_entry.financial_year }}</td><td></td></tr>
+              <tr><th>Month</th><td>{{ brs_entry.month }}</td><td></td></tr>
 
         <tr> <th> Upload Cash BRS file for {{ brs_entry.cash_bank }} Bank</th>
 
         {% if brs_entry.cash_brs_file %}
-        <td> Cash BRS already uploaded </td>
+        <td>  <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="cash", brs_id = brs_entry.id ) }}'>Download cash BRS</a>
+        </td>
+        <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_cash_brs }}  {{ form.delete_cash_brs.label }}
+        {% endif %}
+        </td>
         {% else %}
         <td>{{ form.cash_brs_file }}</td>
+        <td></td>
         {% endif %}
         </tr>
         <tr> <th> Upload Cheque BRS file for {{ brs_entry.cheque_bank }} bank</th>
                {% if brs_entry.cheque_brs_file %}
-        <td> Cheque BRS already uploaded </td>
+        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="cheque", brs_id = brs_entry.id ) }}'>Download cheque BRS</a>  </td>        <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_cheque_brs }}  {{ form.delete_cheque_brs.label }}
+        {% endif %}
+        </td>
         {% else %}
         <td>{{ form.cheque_brs_file }}</td>
+        <td></td>
           {% endif %}
         </tr>
 
         {% if brs_entry.pos_bank %}
         <tr> <th> Upload POS BRS file for {{ brs_entry.pos_bank }} Bank</th>
                {% if brs_entry.pos_brs_file %}
-        <td> POS BRS already uploaded </td>
+        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="pos", brs_id = brs_entry.id ) }}'>Download POS BRS</a> </td>
+             <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_pos_brs }}  {{ form.delete_pos_brs.label }}
+        {% endif %}
+        </td>
         {% else %}
         <td>{{ form.pos_brs_file }}</td>
+        <td></td>
           {% endif %}
         </tr>
         {% endif %}
         {% if brs_entry.pg_bank %}
         <tr> <th> Upload PG BRS file for {{ brs_entry.pg_bank }} Bank </th>
                {% if brs_entry.pg_brs_file %}
-        <td> PG BRS already uploaded </td>
+        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="pg", brs_id = brs_entry.id ) }}'>Download PG BRS</a>  </td>
+              <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_pg_brs }}  {{ form.delete_pg_brs.label }}
+        {% endif %}
+        </td>
         {% else %}
-        <td>{{ form.pg_brs_file }}</td>
+        <td>{{ form.pg_brs_file }}</td><td></td>
           {% endif %}
         </tr>
 {% endif %}
