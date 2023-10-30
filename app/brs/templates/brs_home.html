@@ -44,28 +44,52 @@
 <td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
 <td class="has-text-centered">{{ entry.uiic_office_code }}</td>
 <td class="has-text-centered">{{ entry.financial_year }}</td>
-<td class="has-text-centered">{{ entry.month }}</td>
+<td class="has-text-left" data-sort="{{ entry.month|datetime_format("%B-%Y") }}">{{ entry.month }}</td>
 
 <td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
-<td>{{ entry.cash_bank }}</td>
-{% if entry.cash_brs_file %}
-<td class="has-background-success">Uploaded</td>
+{% if entry.cash_bank %}
+
+    <td>{{ entry.cash_bank }}</td>
+    {% if entry.cash_brs_id %}
+        <td class="has-background-success">Uploaded</td>
+    {% else %}
+        <td class="has-text-danger">Pending</td>
+    {% endif %}
+
 {% else %}
 
-<td class="has-text-danger">Pending</td>
+    {% if not colour_check(entry.id) %}
+    <td class="has-background-grey">NA</td>
+    <td class="has-background-grey">NA</td>
+    {% else %}
+    <td>NA</td>
+    <td>NA</td>
+    {% endif %}
 {% endif %}
-<td>{{ entry.cheque_bank }}</td>
-{% if entry.cheque_brs_file %}
-<td class="has-background-success">Uploaded</td>
+
+{% if entry.cheque_bank %}
+
+    <td>{{ entry.cheque_bank }}</td>
+    {% if entry.cheque_brs_id %}
+        <td class="has-background-success">Uploaded</td>
+    {% else %}
+        <td class="has-text-danger">Pending</td>
+    {% endif %}
+
 {% else %}
 
-<td class="has-text-danger">Pending</td>
+    {% if not colour_check(entry.id) %}
+    <td class="has-background-grey">NA</td>
+    <td class="has-background-grey">NA</td>
+    {% else %}
+    <td>NA</td>
+    <td>NA</td>
+    {% endif %}
 {% endif %}
-
 {% if entry.pg_bank %}
 
     <td>{{ entry.pg_bank }}</td>
-    {% if entry.pg_brs_file %}
+    {% if entry.pg_brs_id %}
         <td class="has-background-success">Uploaded</td>
     {% else %}
         <td class="has-text-danger">Pending</td>
@@ -84,7 +108,7 @@
 
 {% if entry.pos_bank %}
 <td>{{ entry.pos_bank }}</td>
-{% if entry.pos_brs_file %}
+{% if entry.pos_brs_id %}
 <td class="has-background-success">Uploaded</td>
 {% else %}
 
@@ -100,7 +124,7 @@
     {% endif %}
 {% endif %}
 
-<td><a href="{{ url_for('brs.upload_brs', brs_key = entry.id )}} ">Upload BRS</a></td>
+<td><a class="button is-small is-link is-outlined" href="{{ url_for('brs.upload_brs', brs_key = entry.id )}} ">Open</a></td>
 </tr>
 
 {% endfor %}
@@ -117,7 +141,6 @@
                                 dom: 'lfBrtip',
                                 fixedHeader: true,
                                 scrollY: true,
-
                                 buttons: [
                                              { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
                                              { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},

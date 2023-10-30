@@ -2,6 +2,7 @@
 {% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
 {% block content %}
 
+<div class="container">
 <h1 class="title">Upload BRS</h1>
 <form action="" method="post" enctype="multipart/form-data" >
     {{ form.csrf_token }}
@@ -12,69 +13,87 @@
             <tr><th>Financial year</th><td>{{ brs_entry.financial_year }}</td><td></td></tr>
               <tr><th>Month</th><td>{{ brs_entry.month }}</td><td></td></tr>
 
-        <tr> <th> Upload Cash BRS file for {{ brs_entry.cash_bank }} Bank</th>
+{% if brs_entry.cash_bank %}
+<tr><th>Cash BRS</th>
+<td>
 
-        {% if brs_entry.cash_brs_file %}
-        <td>  <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="cash", brs_id = brs_entry.id ) }}'>Download cash BRS</a>
-        </td>
+{% if brs_entry.cash_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cash_brs_id) }}' >View Cash BRS</a>
         <td>
         {% if current_user.user_type == "admin" %}
       {{ form.delete_cash_brs }}  {{ form.delete_cash_brs.label }}
         {% endif %}
         </td>
-        {% else %}
-        <td>{{ form.cash_brs_file }}</td>
-        <td></td>
-        {% endif %}
-        </tr>
-        <tr> <th> Upload Cheque BRS file for {{ brs_entry.cheque_bank }} bank</th>
-               {% if brs_entry.cheque_brs_file %}
-        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="cheque", brs_id = brs_entry.id ) }}'>Download cheque BRS</a>  </td>        <td>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="cash", brs_id = brs_entry.id) }}' > Enter Cash BRS</a>
+</td><td></td>
+</tr>
+{% endif %}
+{% endif %}
+
+{% if brs_entry.cheque_bank %}
+<tr><th>Cheque BRS</th>
+<td>
+
+{% if brs_entry.cheque_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cheque_brs_id) }}' >View Cheque BRS</a>
+        <td>
         {% if current_user.user_type == "admin" %}
       {{ form.delete_cheque_brs }}  {{ form.delete_cheque_brs.label }}
         {% endif %}
         </td>
-        {% else %}
-        <td>{{ form.cheque_brs_file }}</td>
-        <td></td>
-          {% endif %}
-        </tr>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="cheque", brs_id = brs_entry.id) }}' > Enter Cheque BRS</a>
+</td><td></td>
+</tr>
+{% endif %}
+{% endif %}
 
-        {% if brs_entry.pos_bank %}
-        <tr> <th> Upload POS BRS file for {{ brs_entry.pos_bank }} Bank</th>
-               {% if brs_entry.pos_brs_file %}
-        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="pos", brs_id = brs_entry.id ) }}'>Download POS BRS</a> </td>
-             <td>
-        {% if current_user.user_type == "admin" %}
-      {{ form.delete_pos_brs }}  {{ form.delete_pos_brs.label }}
-        {% endif %}
-        </td>
-        {% else %}
-        <td>{{ form.pos_brs_file }}</td>
-        <td></td>
-          {% endif %}
-        </tr>
-        {% endif %}
-        {% if brs_entry.pg_bank %}
-        <tr> <th> Upload PG BRS file for {{ brs_entry.pg_bank }} Bank </th>
-               {% if brs_entry.pg_brs_file %}
-        <td> <a class="button is-success is-outlined is-light" href='{{ url_for("brs.download_document", requirement="pg", brs_id = brs_entry.id ) }}'>Download PG BRS</a>  </td>
-              <td>
+{% if brs_entry.pg_bank %}
+<tr><th>Payment Gateway BRS</th>
+<td>
+
+{% if brs_entry.pg_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pg_brs_id) }}' >View Payment Gateway BRS</a>
+        <td>
         {% if current_user.user_type == "admin" %}
       {{ form.delete_pg_brs }}  {{ form.delete_pg_brs.label }}
         {% endif %}
         </td>
-        {% else %}
-        <td>{{ form.pg_brs_file }}</td><td></td>
-          {% endif %}
-        </tr>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="pg", brs_id = brs_entry.id) }}' > Enter Payment Gateway BRS</a>
+</td><td></td>
+</tr>
 {% endif %}
+{% endif %}
+
+{% if brs_entry.pos_bank %}
+<tr><th>POS BRS</th>
+<td>
+
+{% if brs_entry.pos_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pos_brs_id) }}' >View POS BRS</a>
+        <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_pos_brs }}  {{ form.delete_pos_brs.label }}
+        {% endif %}
+        </td>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="pos", brs_id = brs_entry.id) }}' > Enter POS BRS</a>
+</td><td></td>
+</tr>
+{% endif %}
+{% endif %}
+
     </table>
+
+     {% if current_user.user_type == "admin" %}
     <div class="field is-grouped">
 
         <button class="button is-primary is-big">Save</button>
 
     </div>
+    {% endif %}
 
 </form>
             {% for field, errors in form.errors.items() %}
@@ -94,5 +113,5 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-
+</div>
 {% endblock content %}

@@ -1,0 +1,91 @@
+{% extends "brs_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% block content %}
+<div class="container">
+<h1 class="title">View {{ brs_entry.brs_type.capitalize() }} BRS</h1>
+
+    <table class="table is-bordered is-hoverable">
+
+        <tr><th>Regional Office code</th>
+               <th>Operating Office Code</th>
+                  <th>Financial year</th>
+                  <th>Month</th>
+                    <th>BRS type</th>
+                    <th>Bank</th>
+        </tr>
+        <tr>
+        <td>{{ brs_month.uiic_regional_code }}</td>
+
+          <td>{{ brs_month.uiic_office_code }}</td>
+            <td>{{ brs_month.financial_year }}</td>
+              <td>{{ brs_month.month }}</td>
+              <td>{{ brs_entry.brs_type.capitalize() }}</td>
+<td>
+
+{% if brs_entry.brs_type == "cash" %}
+{{ brs_month.cash_bank }}
+{% elif brs_entry.brs_type == "cheque" %}
+{{ brs_month.cheque_bank }}
+{% elif brs_entry.brs_type == "pos" %}
+{{ brs_month.pos_bank }}
+{% elif brs_entry.brs_type == "pg" %}
+{{ brs_month.pg_bank }}
+{% endif %}
+</td>
+
+  </tr>
+</table>
+
+<table class="table is-bordered is-hoverable">
+
+<tr><th>Opening balance</th>
+
+        <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td></tr>
+<tr><th>Add: On hand</th>
+        <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td></tr>
+<tr><th>Add: Collections during the month</th>
+        <td>{{ brs_month.month }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_transactions) }}</td></tr>
+<tr><th>Less: Cancellations / cheque dishonours during the month</th>
+        <td>{{ brs_month.month }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td></tr>
+<tr><th>Less: Fund transfer</th>
+        <td>{{ brs_month.month }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td></tr>
+<tr><th>Less: Bank charges</th>
+        <td>{{ brs_month.month }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td></tr>
+<tr><th>Less: On hand</th>
+        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td></tr>
+<tr><th>Closing balance</th>
+        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+        <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
+    </table>
+    {% if brs_entry.brs_type == "cheque" and brs_entry.int_closing_balance > 0 %}
+    {% if outstanding %}
+    <h3 class="title is-5">
+        Details of cheques not yet cleared:</h3>
+    <table class="table is-bordered">
+        <thead>
+        <tr> <th>Cheque number</th><th>Cheque date</th><th>Cheque amount</th></tr>
+        </thead>
+        <tbody>
+        <tr>
+            {% for item in outstanding %}
+            <td class="has-text-centered" >{{ item.cheque_number }}</td>
+            <td class="has-text-centered" >{{ item.cheque_date.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(item.cheque_amount) }}</td>
+        </tr> </tbody>
+            {% endfor %}
+            <tfoot><tr><td class="has-text-right has-text-weight-bold" colspan="2">Total: </td><td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(outstanding | sum(attribute="cheque_amount")) }}</td>
+            </tr></tfoot>
+    </table>
+    {% endif %}
+    {% endif %}
+
+<a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}'>Go back</a>
+</div>
+{% endblock content %}

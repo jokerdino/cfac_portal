@@ -1,3 +1,5 @@
+from datetime import datetime
+import calendar
 from flask import Flask
 from waitress import serve
 
@@ -11,15 +13,32 @@ from extensions import db, lm, migrate
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+def datetime_format(value, format="%H:%M %d-%m-%y",result="default"):
+    return_value = datetime.strptime(value, format)
+    if result == "default":
+        return return_value
+    elif result == "current":
+        res = calendar.monthrange(return_value.year, return_value.month)
+        date_string = f"{res[1]}/{return_value.month}/{return_value.year}"
+        return date_string
+    elif result == "previous":
+        if return_value.month - 1 == 0:
+            res = calendar.monthrange(return_value.year - 1, 12)
+            date_string = f"{res[1]}/12/{return_value.year-1}"
+        else:
 
+            res = calendar.monthrange(return_value.year, return_value.month - 1)
+            date_string = f"{res[1]}/{return_value.month - 1}/{return_value.year}"
+        return date_string
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    app.jinja_env.filters["datetime_format"] = datetime_format
     # Initialize Flask extensions here
 
     lm.init_app(app)
-    lm.login_view = "login_page"
+    lm.login_view = "users.login_page"
     db.init_app(app)
     migrate.init_app(app, db)
 

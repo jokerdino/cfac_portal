@@ -1,0 +1,76 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+
+<table class="table is-bordered" id="brs_table"><thead>
+<tr class="has-text-centered">
+<th class="is-vcentered" rowspan="2">Regional office</th>
+<th class="is-vcentered" rowspan="2">Month</th>
+<th colspan="3">Cash</th>
+<th colspan="3">Cheque</th>
+<th colspan="3">POS</th>
+<th colspan="3">PG</th>
+</tr>
+<tr class="has-text-centered">
+<th>Total</th>
+<th>Completed</th>
+<th>Pending</th>
+<th>Total</th>
+<th>Completed</th>
+<th>Pending</th>
+<th>Total</th>
+<th>Completed</th>
+<th>Pending</th>
+<th>Total</th>
+<th>Completed</th>
+<th>Pending</th>
+
+</tr>
+</thead>
+<tbody>
+{% for entry in query %}
+<tr>
+<td>{{ entry[0] }} </td>
+<td data-sort="{{ entry.month|datetime_format("%B-%Y") }}" >{{ entry[1] }} </td>
+<td class="has-text-right">{{ entry[2] }} </td>
+<td class="has-text-right">{{ entry[3] }} </td>
+<td class="has-text-right">{{ entry[2] - entry[3] }} </td>
+<td class="has-text-right">{{ entry[4] }} </td>
+<td class="has-text-right">{{ entry[5] }} </td>
+<td class="has-text-right">{{ entry[4] - entry[5] }} </td>
+<td class="has-text-right">{{ entry[6] }} </td>
+<td class="has-text-right">{{ entry[7] }} </td>
+<td class="has-text-right">{{ entry[6] - entry[7] }} </td>
+<td class="has-text-right">{{ entry[8] }} </td>
+<td class="has-text-right">{{ entry[9] }} </td>
+<td class="has-text-right">{{ entry[8] - entry[9] }} </td>
+
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% block scripts %}
+        <script>
+            $(document).ready(function () {
+                            $('#brs_table').DataTable({
+                                dom: 'lfBrtip',
+                                fixedHeader: true,
+                                pageLength: 35,
+                                scrollY: true,
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[1,'asc'], [0, 'asc']],
+                                            pagingType: 'full_numbers',
+
+                                lengthMenu: [
+                                             [35,70,105,140,-1],
+                                            [35,70,105,140,'All'],]
+                                        });
+                        });
+        </script>
+
+        {% endblock scripts %}
+
+{% endblock content %}

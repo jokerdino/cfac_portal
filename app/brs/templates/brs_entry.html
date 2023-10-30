@@ -1,0 +1,137 @@
+{% extends "brs_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% block content %}
+{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
+    (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
+    (current_user.user_type == "admin") %}
+<div class="container">
+<h1 class="title">BRS</h1>
+<form action="" method="post" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to submit?');">
+    {{ form.csrf_token }}
+<table class="table is-fullwidth is-bordered is-hoverable">
+
+        <tr>
+        <th>Regional Office code</th>
+        <th>Operating Office Code</th>
+        <th>Financial year</th>
+        <th>Month</th>
+        <th>BRS type</th>
+        <th>BRS bank</th></tr>
+        <tr>
+            <td>{{ brs_entry.uiic_regional_code }}</td>
+              <td>{{ brs_entry.uiic_office_code }}</td>
+                <td>{{ brs_entry.financial_year }}</td>
+                  <td>{{ brs_entry.month }}</td>
+
+{% if requirement == "cash" %}
+<td>Cash</td>
+<td>{{ brs_entry.cash_bank }}
+</td>
+{% elif requirement == "cheque" %}
+<td>Cheque</td>
+<td>{{ brs_entry.cheque_bank }}
+</td>
+{% elif requirement == "pos" %}
+<td>POS</td>
+<td>{{ brs_entry.pos_bank }}
+</td>
+{% elif requirement == "pg" %}
+<td>Payment gateway</td>
+<td>{{ brs_entry.pg_bank }}
+</td>
+{% endif %}
+        </tr>
+</table>
+
+{% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}        {{ ', '.join(errors) }}
+    </div>
+{% endfor %}
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+{% for message in messages %}
+   <div class="notification is-danger">
+<p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+    <table class="table is-bordered is-fullwidth is-hoverable">
+        <tr><th>{{ form.opening_balance.label }}</th>
+            <td>{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_balance(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.opening_on_hand.label }}</th>
+            <td>{{ brs_entry.month|datetime_format("%B-%Y", "previous") }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_on_hand(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.transactions.label }}</th>
+            <td>{{ brs_entry.month }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.transactions(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.cancellations.label }}</th>
+            <td>{{ brs_entry.month }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.cancellations(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.fund_transfer.label }}</th>
+            <td>{{ brs_entry.month }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.fund_transfer(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.bank_charges.label }}</th>
+            <td>{{ brs_entry.month }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.bank_charges(class='input is-small') }}</td></tr>
+        <tr><th>{{ form.closing_on_hand.label }}</th>
+            <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+            <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.closing_on_hand(class='input is-small') }}</td></tr>
+        <tr><th>Closing balance</th>
+            <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right"><label id="cal_closing_balance"></label></td></tr>
+        {% if requirement == "cheque" %}
+        <tr><th>{{ form.outstanding_entries.label }}</th> <td><a href="{{ url_for('brs.download_format') }}">Upload Format</a></td><td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
+        {% endif %}
+    </table>
+    <div class="buttons is-centered">
+    <a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}'>Go back</a>
+
+        <button class="button is-primary is-big">Submit</button>
+
+    </div>
+    </div>
+
+</form>
+
+{% endif %}
+{% block scripts %}
+<script>
+
+$(document).ready(function() {
+calculateSum();
+});
+
+   function calculateSum() {
+     var opening_balance = parseFloat(document.getElementById("opening_balance").value===""?0:document.getElementById("opening_balance").value);
+     var opening_on_hand = parseFloat(document.getElementById("opening_on_hand").value===""?0:document.getElementById("opening_on_hand").value);
+     var transactions = parseFloat(document.getElementById("transactions").value===""?0:document.getElementById("transactions").value);
+     var cancellations = parseFloat(document.getElementById("cancellations").value===""?0:document.getElementById("cancellations").value);
+     var fund_transfer = parseFloat(document.getElementById("fund_transfer").value===""?0:document.getElementById("fund_transfer").value);
+     var bank_charges = parseFloat(document.getElementById("bank_charges").value===""?0:document.getElementById("bank_charges").value);
+     var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value===""?0:document.getElementById("closing_on_hand").value);
+    closing_balance = opening_balance +  opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
+
+            const formatter = new Intl.NumberFormat('en-IN', {
+                            style:'currency',
+                            currency:'INR',
+                            minimumFractionDigits:2,
+                            maximumFractionDigits:2,
+                            trailingZeroDisplay: 'stripIfInteger'
+                        });
+        document.getElementById("cal_closing_balance").innerText = formatter.format(closing_balance);
+
+   if (closing_balance > 0) {
+    document.getElementById("outstanding_entries").disabled = false;
+       }
+   else {
+    document.getElementById("outstanding_entries").disabled = true;
+   }
+}
+
+     </script>
+{% endblock scripts %}
+{% endblock content %}

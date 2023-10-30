@@ -1,0 +1,96 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+
+{% if brs_entries %}
+<div class="table-container">
+<table class="table" id="brs_table">
+<thead>
+<tr>
+<th>Regional Code</th>
+<th>Operating Office</th>
+<th>Financial year</th>
+<th>Period</th>
+<th>BRS type</th>
+<th>Bank</th>
+<th>Opening balance</th>
+<th>On hand</th>
+<th>Collections</th>
+<th>Cancellations</th>
+<th>Fund transfer</th>
+
+<th>Bank charges</th>
+<th>On hand</th>
+<th>Closing balance</th>
+<th>Time stamp</th>
+<th>Status</th>
+
+</tr>
+</thead>
+<tbody>
+{% for entry in brs_entries %}
+<tr>
+<td class="has-text-centered">{{ entry.brs.uiic_regional_code }}</td>
+<td class="has-text-centered">{{ entry.brs.uiic_office_code }}</td>
+<td class="has-text-centered">{{ entry.brs.financial_year }}</td>
+<td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}' >{{ entry.brs.month }}</td>
+<td>{{ entry.brs_type | upper }}</td>
+<td>
+{% if entry.brs_type == "cash" %}
+
+{{ entry.brs.cash_bank }}
+
+{% elif entry.brs_type == "cheque" %}
+{{ entry.brs.cheque_bank }}
+
+{% elif entry.brs_type == "pos" %}
+{{ entry.brs.pos_bank }}
+
+{% elif entry.brs_type == "pg" %}
+{{ entry.brs.pg_bank }}
+
+{% endif %}
+</td>
+<td class="has-text-right">{{ entry.int_opening_balance }}</td>
+<td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
+<td class="has-text-right">{{ entry.int_transactions }}</td>
+<td class="has-text-right">{{ entry.int_cancellations }}</td>
+<td class="has-text-right">{{ entry.int_fund_transfer }}</td>
+<td class="has-text-right">{{ entry.int_bank_charges }}</td>
+<td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
+<td class="has-text-right">{{ entry.int_closing_balance }}</td>
+<td>{{ entry.timestamp }}</td>
+<td>{{ entry.status }}</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+</div>
+
+{% endif %}
+{% block scripts %}
+        <script>
+            $(document).ready(function () {
+                            $('#brs_table').DataTable({
+                                dom: 'lfBrtip',
+
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[1,'asc']],
+                                            pagingType: 'full_numbers',
+
+                                lengthMenu: [
+                                             [10,25,50,100,-1],
+                                            [10,25,50,100,'All'],]
+                                        });
+                        });
+        </script>
+
+        {% endblock scripts %}
+
+{% endblock content %}
