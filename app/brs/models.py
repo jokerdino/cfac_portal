@@ -12,11 +12,14 @@ class BRS(db.Model):
     cheque_bank = db.Column(db.String)
     pos_bank = db.Column(db.String)
     pg_bank = db.Column(db.String)
+    bbps_bank = db.Column(db.String)
 
     cash_brs_id = db.Column(db.Integer)
     cheque_brs_id = db.Column(db.Integer)
     pos_brs_id = db.Column(db.Integer)
     pg_brs_id = db.Column(db.Integer)
+    bbps_brs_id = db.Column(db.Integer)
+
     brs_month = db.relationship('BRS_month', backref='brs', lazy='dynamic')
     timestamp = db.Column(db.DateTime)
 

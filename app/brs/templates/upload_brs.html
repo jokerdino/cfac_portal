@@ -1,6 +1,9 @@
 {% extends "brs_layout.html" %}
 {% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
 {% block content %}
+{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
+    (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
+    (current_user.user_type == "admin") %}
 
 <div class="container">
 <h1 class="title">Upload BRS</h1>
@@ -85,6 +88,24 @@
 {% endif %}
 {% endif %}
 
+{% if brs_entry.bbps_bank %}
+<tr><th>BBPS BRS</th>
+<td>
+
+{% if brs_entry.bbps_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.bbps_brs_id) }}' >View BBPS BRS</a>
+        <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_bbps_brs }}  {{ form.delete_bbps_brs.label }}
+        {% endif %}
+        </td>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="bbps", brs_id = brs_entry.id) }}' > Enter BBPS BRS</a>
+</td><td></td>
+</tr>
+{% endif %}
+{% endif %}
+
     </table>
 
      {% if current_user.user_type == "admin" %}
@@ -114,4 +135,5 @@
 {% endif %}
 {% endwith %}
 </div>
+{% endif %}
 {% endblock content %}

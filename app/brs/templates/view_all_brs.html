@@ -1,6 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 
+{% if current_user.user_type == "admin" %}
 {% if brs_entries %}
 <div class="table-container">
 <table class="table" id="brs_table">
@@ -48,6 +49,9 @@
 {% elif entry.brs_type == "pg" %}
 {{ entry.brs.pg_bank }}
 
+{% elif entry.brs_type == "bbps" %}
+{{ entry.brs.bbps_bank }}
+
 {% endif %}
 </td>
 <td class="has-text-right">{{ entry.int_opening_balance }}</td>
@@ -70,6 +74,7 @@
 </table>
 </div>
 
+{% endif %}
 {% endif %}
 {% block scripts %}
         <script>

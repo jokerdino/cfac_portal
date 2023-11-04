@@ -1,10 +1,6 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 
-{% if current_user.user_type == "admin" %}
-<a class="button is-link" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new entries</a>
-{% endif %}
-
 {% if brs_entries %}
 <table class="table" id="brs_table">
 <thead>
@@ -15,17 +11,12 @@
 <th>Period</th>
 <th>%</th>
 
-<th>Cash bank</th>
 <th>Cash BRS status</th>
-
-<th>Cheque Bank</th>
 <th>Cheque BRS status</th>
-
-<th>PG Bank</th>
 <th>PG BRS Status</th>
-
-<th>POS Bank</th>
 <th>POS BRS status</th>
+<th>BBPS BRS status</th>
+
 <th></th>
 </tr>
 </thead>
@@ -48,8 +39,6 @@
 
 <td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
 {% if entry.cash_bank %}
-
-    <td>{{ entry.cash_bank }}</td>
     {% if entry.cash_brs_id %}
         <td class="has-background-success">Uploaded</td>
     {% else %}
@@ -60,16 +49,13 @@
 
     {% if not colour_check(entry.id) %}
     <td class="has-background-grey">NA</td>
-    <td class="has-background-grey">NA</td>
     {% else %}
-    <td>NA</td>
     <td>NA</td>
     {% endif %}
 {% endif %}
 
 {% if entry.cheque_bank %}
 
-    <td>{{ entry.cheque_bank }}</td>
     {% if entry.cheque_brs_id %}
         <td class="has-background-success">Uploaded</td>
     {% else %}
@@ -80,15 +66,12 @@
 
     {% if not colour_check(entry.id) %}
     <td class="has-background-grey">NA</td>
-    <td class="has-background-grey">NA</td>
     {% else %}
-    <td>NA</td>
     <td>NA</td>
     {% endif %}
 {% endif %}
 {% if entry.pg_bank %}
 
-    <td>{{ entry.pg_bank }}</td>
     {% if entry.pg_brs_id %}
         <td class="has-background-success">Uploaded</td>
     {% else %}
@@ -99,15 +82,13 @@
 
     {% if not colour_check(entry.id) %}
     <td class="has-background-grey">NA</td>
-    <td class="has-background-grey">NA</td>
     {% else %}
-    <td>NA</td>
+
     <td>NA</td>
     {% endif %}
 {% endif %}
-
 {% if entry.pos_bank %}
-<td>{{ entry.pos_bank }}</td>
+
 {% if entry.pos_brs_id %}
 <td class="has-background-success">Uploaded</td>
 {% else %}
@@ -116,10 +97,25 @@
 {% endif %}
 {% else %}
     {% if not colour_check(entry.id) %}
-     <td class="has-background-grey">NA</td>
     <td class="has-background-grey">NA</td>
     {% else %}
-        <td>NA</td>
+     <td>NA</td>
+    {% endif %}
+{% endif %}
+
+{% if entry.bbps_bank %}
+
+{% if entry.bbps_brs_id %}
+<td class="has-background-success">Uploaded</td>
+{% else %}
+
+<td class="has-text-danger">Pending</td>
+{% endif %}
+{% else %}
+    {% if not colour_check(entry.id) %}
+
+    <td class="has-background-grey">NA</td>
+    {% else %}
      <td>NA</td>
     {% endif %}
 {% endif %}

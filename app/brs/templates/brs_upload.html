@@ -1,6 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
-<h1 class="title">Bulk upload user login details in csv format</h1>
+{% if current_user.user_type == "admin" %}
+<h1 class="title">Bulk upload BRS details in CSV format</h1>
 
 <form class="mb-5" method="post" enctype="multipart/form-data">
     <input type="file" name="file" />
@@ -9,10 +10,12 @@
 {% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}
-           <div class="notification is-danger">
+           <div class="notification is-success">
 <p>{{ message }}</p>
 </div>
+
 {% endfor %}
 {% endif %}
 {% endwith %}
+{% endif %}
         {% endblock content %}

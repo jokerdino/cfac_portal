@@ -62,7 +62,7 @@ def login_page():
     from extensions import db
 
     if form.validate_on_submit():
-        username = form.data["username"]
+        username = form.data["username"].lower()
         user = db.session.query(User).filter(User.oo_code == username).first()
         if user is not None:
             password = form.data["password"]

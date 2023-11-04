@@ -20,6 +20,9 @@
                             <div class="buttons">
                                 <a class="button is-link" href="{{ url_for('main.index')}}">Index</a>
                                  <a class="button is-link" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
+                                 {% if current_user.user_type == "admin" %}
+                                 <a class="button is-link" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new entries</a>
+                                 {% endif %}
 
                             </div>
                         </div>

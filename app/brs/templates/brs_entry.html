@@ -39,6 +39,10 @@
 <td>Payment gateway</td>
 <td>{{ brs_entry.pg_bank }}
 </td>
+{% elif requirement == "bbps" %}
+<td>BBPS</td>
+<td>{{ brs_entry.bbps_bank }}
+</td>
 {% endif %}
         </tr>
 </table>
