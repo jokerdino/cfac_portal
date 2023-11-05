@@ -57,6 +57,7 @@
     </article>
     </a>
   </div>
+  {% if current_user.user_type != "coinsurance_hub_user" %}
     <div class="tile is-parent">
     <a href="{{ url_for('brs.brs_home_page')}}">
     <article class="tile is-child notification is-warning">
@@ -69,6 +70,7 @@
       </div>
     </article>
     </a>
+    {% endif %}
     </div>
     {% if current_user.user_type == "admin" %}
       <div class="tile is-parent">

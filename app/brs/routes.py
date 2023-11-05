@@ -46,7 +46,7 @@ def brs_ro_wise(ro_code, month):
             BRS.uiic_regional_code == ro_code, BRS.month == month
         )
     else:
-        return "Not permitted"
+        abort(404)
     return render_template(
         "brs_home.html",
         brs_entries=brs_entries,

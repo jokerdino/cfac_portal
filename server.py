@@ -8,7 +8,6 @@ from app.users.user_model import User
 from config import Config
 from extensions import db, lm, migrate
 
-
 @lm.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
@@ -26,10 +25,10 @@ def datetime_format(value, format="%H:%M %d-%m-%y",result="default"):
             res = calendar.monthrange(return_value.year - 1, 12)
             date_string = f"{res[1]}/12/{return_value.year-1}"
         else:
-
             res = calendar.monthrange(return_value.year, return_value.month - 1)
             date_string = f"{res[1]}/{return_value.month - 1}/{return_value.year}"
         return date_string
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -63,12 +62,11 @@ def create_app(config_class=Config):
 
     app.register_blueprint(brs_bp, url_prefix="/brs")
 
-    #    @app.route('/test/')
-    #    def test_page():
-    #        return "Hello"
+    from app.errors import errors_bp
+
+    app.register_blueprint(errors_bp, url_prefix="/error")
 
     return app
-
 
 if __name__ == "__main__":
     app = create_app()
