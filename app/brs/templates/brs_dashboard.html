@@ -1,7 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 
-{% if current_user.user_type == "admin" %}
+{% if current_user.user_type in ["admin","ro_user"] %}
 
 <form class="mb-5" method="post" enctype="multipart/form-data">
     {{ form.csrf_token }}

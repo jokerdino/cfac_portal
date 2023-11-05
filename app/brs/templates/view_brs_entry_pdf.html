@@ -1,8 +1,8 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
 
 {% block content %}
-{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
-    (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
+{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_month.uiic_regional_code) or
+    (current_user.user_type == "oo_user" and current_user.oo_code == brs_month.uiic_office_code) or
     (current_user.user_type == "admin") %}
 <div class="container">
 <h1 class="title is-4">{{ brs_entry.brs_type.upper() }} BRS</h1>

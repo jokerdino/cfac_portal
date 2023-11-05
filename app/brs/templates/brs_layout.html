@@ -22,6 +22,7 @@
                                  <a class="button is-link" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
                                  {% if current_user.user_type == "admin" %}
                                  <a class="button is-link" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new entries</a>
+                                 <a class="button is-link" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
                                  {% endif %}
 
                             </div>
@@ -58,11 +59,5 @@
 
         {% endblock scripts %}
 
-        <footer class="footer">
-            <div class="content has-text-centered">
-                <small>United India - HO CFAC</small><br />
-                <small>Made by 44515</small>
-            </div>
-        </footer>
     </body>
 </html>

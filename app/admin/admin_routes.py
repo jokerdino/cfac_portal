@@ -20,16 +20,16 @@ def home_page():
 def upload_users():
     if request.method == "POST":
         upload_file = request.files.get("file")
-        df_user_upload_chunk = pd.read_csv(upload_file, chunksize=1)
+        df_user_upload_chunk = pd.read_csv(upload_file, chunksize=100)
+        password_hash = generate_password_hash("password")
         #print(df_user_upload.columns.values.tolist())
         for df_user_upload in df_user_upload_chunk:
-            df_user_upload["password"] = df_user_upload["password"].apply(
-                generate_password_hash
-            )
+          #  df_user_upload["password"] = df_user_upload["password"].apply(
+           #     generate_password_hash
+           # )
+            df_user_upload["password"] = password_hash
             df_user_upload["reset_password"] = True
-            engine = create_engine(
-                current_app.config.get('SQLALCHEMY_DATABASE_URI')
-            )
+            engine = create_engine(current_app.config.get('SQLALCHEMY_DATABASE_URI'))
 
             try:
                 df_user_upload.to_sql("user", engine, if_exists="append", index=False)

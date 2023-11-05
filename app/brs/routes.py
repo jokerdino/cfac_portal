@@ -9,13 +9,11 @@ from flask import (
     render_template,
     request,
     send_file,
-#    send_from_directory,
     url_for,
 )
 from flask_weasyprint import HTML, render_pdf
 from flask_login import current_user, login_required
 from sqlalchemy import create_engine, func
-#from werkzeug.utils import secure_filename
 
 from app.brs import brs_bp
 from app.brs.models import BRS, BRS_month, Outstanding
@@ -25,14 +23,11 @@ from app.brs.forms import BRSForm, BRS_entry, DashboardForm
 @brs_bp.route("/home", methods=["POST", "GET"])
 @login_required
 def brs_home_page():
-    if current_user.user_type == "ro_user":
-        brs_entries = BRS.query.filter(BRS.uiic_regional_code == current_user.ro_code)
-    elif current_user.user_type == "oo_user":
 
+    if current_user.user_type == "oo_user":
         brs_entries = BRS.query.filter(BRS.uiic_office_code == current_user.oo_code)
-    elif current_user.user_type == "admin":
-        return redirect(url_for('brs.brs_dashboard'))
-        #brs_entries = BRS.query.all()
+    elif current_user.user_type in ["admin","ro_user"]:
+        return redirect(url_for("brs.brs_dashboard"))
     else:
         return "No permission"
     return render_template(
@@ -42,11 +37,14 @@ def brs_home_page():
         percent_completed=percent_completed,
     )
 
-@brs_bp.route("/home/<string:ro_code>/<string:month>", methods=["POST", "GET"])
+
+@brs_bp.route("/<string:ro_code>/<string:month>", methods=["POST", "GET"])
 @login_required
 def brs_ro_wise(ro_code, month):
-    if current_user.user_type == "admin":
-        brs_entries = BRS.query.filter(BRS.uiic_regional_code == ro_code, BRS.month == month)
+    if current_user.user_type == "admin" or (current_user.user_type =="ro_user" and current_user.ro_code == ro_code):
+        brs_entries = BRS.query.filter(
+            BRS.uiic_regional_code == ro_code, BRS.month == month
+        )
     else:
         return "Not permitted"
     return render_template(
@@ -56,6 +54,7 @@ def brs_ro_wise(ro_code, month):
         percent_completed=percent_completed,
     )
 
+
 @brs_bp.route("/dashboard", methods=["POST", "GET"])
 @login_required
 def brs_dashboard():
@@ -63,24 +62,34 @@ def brs_dashboard():
     form = DashboardForm()
 
     month_choices = BRS.query.with_entities(BRS.month).distinct()
-    form.month.choices = ['View all'] + [x.month for x in month_choices]
+    form.month.choices = ["View all"] + [x.month for x in month_choices]
+
+    query = BRS.query.with_entities(
+        BRS.uiic_regional_code,
+        BRS.month,
+        func.count(BRS.cash_bank),
+        func.count(BRS.cash_brs_id),
+        func.count(BRS.cheque_bank),
+        func.count(BRS.cheque_brs_id),
+        func.count(BRS.pos_bank),
+        func.count(BRS.pos_brs_id),
+        func.count(BRS.pg_bank),
+        func.count(BRS.pg_brs_id),
+        func.count(BRS.bbps_bank),
+        func.count(BRS.bbps_brs_id),
+    ).group_by(BRS.uiic_regional_code, BRS.month)
+
+    if current_user.user_type == "ro_user":
+        query = query.filter(BRS.uiic_regional_code == current_user.ro_code)
 
     if form.validate_on_submit():
-        month = form.data['month']
-        #print(month)
+        month = form.data["month"]
         if month != "View all":
-       # print(month)
-            query = BRS.query.filter(BRS.month == month).with_entities(BRS.uiic_regional_code, BRS.month, func.count(BRS.cash_bank), func.count(BRS.cash_brs_id),
-            func.count(BRS.cheque_bank), func.count(BRS.cheque_brs_id), func.count(BRS.pos_bank), func.count(BRS.pos_brs_id), func.count(BRS.pg_bank), func.count(BRS.pg_brs_id), func.count(BRS.bbps_bank), func.count(BRS.bbps_brs_id)).group_by(BRS.uiic_regional_code, BRS.month).all()
-        elif month == "View all":
-            query = BRS.query.with_entities(BRS.uiic_regional_code, BRS.month, func.count(BRS.cash_bank), func.count(BRS.cash_brs_id),
-            func.count(BRS.cheque_bank), func.count(BRS.cheque_brs_id), func.count(BRS.pos_bank), func.count(BRS.pos_brs_id), func.count(BRS.pg_bank), func.count(BRS.pg_brs_id), func.count(BRS.bbps_bank), func.count(BRS.bbps_brs_id)).group_by(BRS.uiic_regional_code, BRS.month).all()
+            query = query.filter(BRS.month == month)
         return render_template("brs_dashboard.html", query=query, form=form)
 
-    query = BRS.query.with_entities(BRS.uiic_regional_code, BRS.month, func.count(BRS.cash_bank), func.count(BRS.cash_brs_id),
-            func.count(BRS.cheque_bank), func.count(BRS.cheque_brs_id), func.count(BRS.pos_bank), func.count(BRS.pos_brs_id), func.count(BRS.pg_bank), func.count(BRS.pg_brs_id), func.count(BRS.bbps_bank), func.count(BRS.bbps_brs_id)).group_by(BRS.uiic_regional_code, BRS.month).all()
-
     return render_template("brs_dashboard.html", query=query, form=form)
+
 
 def colour_check(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
@@ -127,14 +136,13 @@ def percent_completed(brs_key):
             numerator += 1
     try:
         return (numerator / denom) * 100
-    except ZeroDivisionError: # as e:
+    except ZeroDivisionError:
         return 100
 
-@brs_bp.route("/upload", methods=["POST", "GET"])
+
+@brs_bp.route("/bulk_upload", methods=["POST", "GET"])
 @login_required
 def bulk_upload_brs():
-
-    #from config import Config
 
     if request.method == "POST":
         upload_file = request.files.get("file")
@@ -143,19 +151,8 @@ def bulk_upload_brs():
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_user_upload.to_sql("brs", engine, if_exists="append", index=False)
         flash("BRS records have been uploaded to database.")
-    # except IntegrityError:
-    #    flash("Upload unique oo_code only.")
-    #        convert_input(upload_file)
-    # flash("GST invoice data has been received. Processing the input file..")
-    # await upload_details(upload_file)
 
     return render_template("brs_upload.html")
-
-
-#def generate_brs_filenames(office_code, period, brs_type, bank, filename):
-#    file_extension = filename.rsplit(".", 1)[1]
-#    generated_filename = f"{office_code} - {period} - {brs_type} - {bank} - {datetime.now()}.{file_extension}"
-#    return generated_filename
 
 
 @brs_bp.route("/upload_brs/<int:brs_key>", methods=["POST", "GET"])
@@ -166,46 +163,7 @@ def upload_brs(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
     form = BRSForm()
     if form.validate_on_submit():
-        #        if form.data["cash_brs_file"]:
-        #            filename = generate_brs_filenames(
-        #                brs_entry.uiic_office_code,
-        #                brs_entry.month,
-        #                "Cash",
-        #                brs_entry.cash_bank,
-        #                secure_filename(form.data["cash_brs_file"].filename),
-        #            )
-        #            form.cash_brs_file.data.save("brs/cash/" + filename)
-        #            brs_entry.cash_brs_file = filename
-        #        if form.data["cheque_brs_file"]:
-        #            filename = generate_brs_filenames(
-        #                brs_entry.uiic_office_code,
-        #                brs_entry.month,
-        #                "Cheque",
-        #                brs_entry.cheque_bank,
-        #                secure_filename(form.data["cheque_brs_file"].filename),
-        #            )
-        #            form.cheque_brs_file.data.save("brs/cheque/" + filename)
-        #            brs_entry.cheque_brs_file = filename
-        #        if form.data["pg_brs_file"]:
-        #            filename = generate_brs_filenames(
-        #                brs_entry.uiic_office_code,
-        #                brs_entry.month,
-        #                "PG",
-        #                brs_entry.pg_bank,
-        #                secure_filename(form.data["pg_brs_file"].filename),
-        #            )
-        #            form.pg_brs_file.data.save("brs/pg/" + filename)
-        #            brs_entry.pg_brs_file = filename
-        #        if form.data["pos_brs_file"]:
-        #            filename = generate_brs_filenames(
-        #                brs_entry.uiic_office_code,
-        #                brs_entry.month,
-        #                "POS",
-        #                brs_entry.pos_bank,
-        #                secure_filename(form.data["pos_brs_file"].filename),
-        #            )
-        #            form.pos_brs_file.data.save("brs/pos/" + filename)
-        #            brs_entry.pos_brs_file = filename
+
         if form.data["delete_cash_brs"]:
             current_id = brs_entry.cash_brs_id
             brs_entry.cash_brs_id = None
@@ -224,64 +182,47 @@ def upload_brs(brs_key):
         brs_month = BRS_month.query.get_or_404(current_id)
         brs_month.status = "Deleted"
         db.session.commit()
-        return redirect(url_for("brs.upload_brs", brs_key=brs_key))#brs_home_page"))
+        return redirect(url_for("brs.upload_brs", brs_key=brs_key))
     return render_template("upload_brs.html", brs_entry=brs_entry, form=form)
-
-
-#@brs_bp.route("/<string:requirement>/<int:brs_id>", methods=["POST", "GET"])
-#def download_document(requirement, brs_id):
-#    brs_entry = BRS.query.get_or_404(brs_id)
-#
-#    if requirement == "cash":
-#        #   file_extension = brs_entry.cash_brs_file.rsplit(".", 1)[1]
-#        path = brs_entry.cash_brs_file
-#    elif requirement == "cheque":
-#        #  file_extension = brs_entry.statement.rsplit(".", 1)[1]
-#        path = brs_entry.cheque_brs_file
-#    elif requirement == "pg":
-#        # file_extension = brs_entry.ri_confirmation.rsplit(".", 1)[1]
-#        path = brs_entry.pg_brs_file
-#    elif requirement == "pos":
-#        path = brs_entry.pos_brs_file
-#    else:
-#        return "No such requirement"
-#
-#    return send_from_directory(
-#        directory=f"brs/{requirement}/",
-#        path=path,
-#        as_attachment=True,
-#    )
 
 
 @brs_bp.route("/download_format")
 @login_required
 def download_format():
-    return send_file(
-            "outstanding_cheques_upload_format.csv"
-            #path=path,
-            )
+    return send_file("outstanding_cheques_upload_format.csv")
+
 
 @brs_bp.route("/view/<int:brs_key>")
 @login_required
 def view_brs(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
     brs_month = BRS.query.get_or_404(brs_entry.brs_id)
-    brs_outstanding_entries = Outstanding.query.filter(Outstanding.brs_month_id == brs_key)
-    #total = brs_outstanding_entries
+    brs_outstanding_entries = Outstanding.query.filter(
+        Outstanding.brs_month_id == brs_key
+    )
     return render_template(
-        "view_brs_entry.html", brs_month=brs_month, brs_entry=brs_entry, outstanding = brs_outstanding_entries
+        "view_brs_entry.html",
+        brs_month=brs_month,
+        brs_entry=brs_entry,
+        outstanding=brs_outstanding_entries,
     )
 
 
-@brs_bp.route("/view_pdf/<int:brs_key>")
+@brs_bp.route("/pdf/<int:brs_key>")
 @login_required
 def view_brs_pdf(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
     brs_month = BRS.query.get_or_404(brs_entry.brs_id)
-    brs_outstanding_entries = Outstanding.query.filter(Outstanding.brs_month_id == brs_key)
-    html = render_template('view_brs_entry_pdf.html', brs_month=brs_month, brs_entry=brs_entry, outstanding = brs_outstanding_entries)
+    brs_outstanding_entries = Outstanding.query.filter(
+        Outstanding.brs_month_id == brs_key
+    )
+    html = render_template(
+        "view_brs_entry_pdf.html",
+        brs_month=brs_month,
+        brs_entry=brs_entry,
+        outstanding=brs_outstanding_entries,
+    )
     return render_pdf(HTML(string=html))
-
 
 
 def get_prev_month_amount(requirement, brs_id):
@@ -360,33 +301,40 @@ def enter_brs(requirement, brs_id):
                 int_closing_on_hand=closing_on_hand,
                 int_closing_balance=closing_balance,
                 timestamp=datetime.now(),
-                )
+            )
 
             if requirement == "cheque" and closing_balance > 0:
                 try:
-                    df_outstanding_entries = pd.read_csv(form.data['outstanding_entries'])
+                    df_outstanding_entries = pd.read_csv(
+                        form.data["outstanding_entries"]
+                    )
                     try:
-                        sum_os_entries = df_outstanding_entries['cheque_amount'].sum()
+                        sum_os_entries = df_outstanding_entries["cheque_amount"].sum()
                         if not sum_os_entries == closing_balance:
-                            flash(f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}.")
+                            flash(
+                                f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
+                            )
                         else:
                             db.session.add(brs)
                             db.session.commit()
                             brs_entry.cheque_brs_id = brs.id
 
-                            df_outstanding_entries['brs_month_id'] = brs.id
-                            engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+                            df_outstanding_entries["brs_month_id"] = brs.id
+                            engine = create_engine(
+                                current_app.config.get("SQLALCHEMY_DATABASE_URI")
+                            )
 
-                            df_outstanding_entries.to_sql("outstanding", engine, if_exists="append", index=False)
+                            df_outstanding_entries.to_sql(
+                                "outstanding", engine, if_exists="append", index=False
+                            )
                             db.session.commit()
                             return redirect(url_for("brs.upload_brs", brs_key=brs_id))
-                   # else:
                     except Exception as e:
 
                         flash(f"Please upload in prescribed format.")
                 except pd.errors.EmptyDataError:
                     flash("Please upload details of outstanding cheque entries.")
-                except Exception as e: #KeyError:
+                except Exception as e:
                     flash(f"Please upload in prescribed format.")
             else:
                 db.session.add(brs)
@@ -415,7 +363,7 @@ def enter_brs(requirement, brs_id):
     )
 
 
-@brs_bp.route("/view_all")
+@brs_bp.route("/dashboard/view_all")
 @login_required
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()

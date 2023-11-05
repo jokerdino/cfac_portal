@@ -2,6 +2,7 @@
 {% block content %}
 
 {% if brs_entries %}
+
 <table class="table" id="brs_table">
 <thead>
 <tr>
@@ -136,6 +137,7 @@
                             $('#brs_table').DataTable({
                                 dom: 'lfBrtip',
                                 fixedHeader: true,
+                                pageLength: 50,
                                 scrollY: true,
                                 buttons: [
                                              { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
@@ -145,8 +147,8 @@
                                             pagingType: 'full_numbers',
 
                                 lengthMenu: [
-                                             [10,25,50,100,-1],
-                                            [10,25,50,100,'All'],]
+                                             [50,100,150,200,-1],
+                                            [50,100,150,200,'All'],]
                                         });
                         });
         </script>
