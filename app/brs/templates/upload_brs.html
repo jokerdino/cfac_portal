@@ -106,6 +106,24 @@
 {% endif %}
 {% endif %}
 
+        {% if brs_entry.local_collection_bank %}
+<tr><th>Local collection BRS</th>
+<td>
+
+{% if brs_entry.local_collection_brs_id %}
+<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.local_collection_brs_id) }}' >View Local Collection BRS</a>
+        <td>
+        {% if current_user.user_type == "admin" %}
+      {{ form.delete_local_collection_brs }}  {{ form.delete_local_collection_brs.label }}
+        {% endif %}
+        </td>
+{% else %}
+<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="local_collection", brs_id = brs_entry.id) }}' > Enter Local Collection BRS</a>
+</td><td></td>
+</tr>
+{% endif %}
+{% endif %}
+
     </table>
 
      {% if current_user.user_type == "admin" %}

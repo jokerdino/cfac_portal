@@ -43,6 +43,10 @@
 <td>BBPS</td>
 <td>{{ brs_entry.bbps_bank }}
 </td>
+{% elif requirement == "local_collection" %}
+<td>Local Collection</td>
+<td>{{ brs_entry.local_collection_bank }}
+</td>
 {% endif %}
         </tr>
 </table>
@@ -87,9 +91,12 @@
         <tr><th>Closing balance</th>
             <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
             <td class="has-text-right"><label id="cal_closing_balance"></label></td></tr>
-        {% if requirement == "cheque" %}
+      <tr><th>Remarks</th>
+          <td></td>
+          <td> {{ form.remarks(class='textarea') }} </td>
+      </tr>
         <tr><th>{{ form.outstanding_entries.label }}</th> <td><a href="{{ url_for('brs.download_format') }}">Upload Format</a></td><td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
-        {% endif %}
+
     </table>
     <div class="buttons is-centered">
     <a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}'>Go back</a>

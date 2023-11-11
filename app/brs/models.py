@@ -13,12 +13,14 @@ class BRS(db.Model):
     pos_bank = db.Column(db.String)
     pg_bank = db.Column(db.String)
     bbps_bank = db.Column(db.String)
+    local_collection_bank = db.Column(db.String)
 
     cash_brs_id = db.Column(db.Integer)
     cheque_brs_id = db.Column(db.Integer)
     pos_brs_id = db.Column(db.Integer)
     pg_brs_id = db.Column(db.Integer)
     bbps_brs_id = db.Column(db.Integer)
+    local_collection_brs_id = db.Column(db.Integer)
 
     brs_month = db.relationship('BRS_month', backref='brs', lazy='dynamic')
     timestamp = db.Column(db.DateTime)
@@ -40,11 +42,15 @@ class BRS_month(db.Model):
     timestamp = db.Column(db.DateTime)
     status = db.Column(db.String)
     brs_outstanding = db.relationship('Outstanding', backref='brs_month', lazy='dynamic')
+    remarks = db.Column(db.Text)
 
 class Outstanding(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     brs_month_id = db.Column(db.Integer, db.ForeignKey('brs_month.id'))
 
-    cheque_number = db.Column(db.String)
-    cheque_amount = db.Column(db.Numeric(10,2))
-    cheque_date = db.Column(db.Date)
+    # instrument number and date of instrument is optional for cash alone.
+    # other modes of collection must provide all the columns
+    instrument_number = db.Column(db.String)
+    instrument_amount = db.Column(db.Numeric(10,2))
+    date_of_instrument = db.Column(db.Date)
+    date_of_collection = db.Column(db.Date)

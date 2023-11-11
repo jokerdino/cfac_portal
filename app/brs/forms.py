@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, FileField, DecimalField, IntegerField, SelectField
+from wtforms import BooleanField, FileField, DecimalField, TextAreaField, SelectField
 from wtforms.validators import Optional
 
 class BRSForm(FlaskForm):
@@ -10,6 +10,7 @@ class BRSForm(FlaskForm):
     delete_pos_brs = BooleanField("Delete POS BRS")
     delete_pg_brs = BooleanField("Delete PG BRS")
     delete_bbps_brs = BooleanField("Delete BBPS BRS")
+    delete_local_collection_brs = BooleanField("Delete local collection BRS")
 
 class BRS_entry(FlaskForm):
     opening_balance = DecimalField("Enter opening balance", validators=[Optional()])
@@ -19,7 +20,8 @@ class BRS_entry(FlaskForm):
     fund_transfer = DecimalField("Less: Fund transfer", validators=[Optional()])
     bank_charges = DecimalField("Less: Bank charges", validators=[Optional()])
     closing_on_hand = DecimalField("Less: Enter cash/cheques on hand", validators=[Optional()])
-    outstanding_entries = FileField("Upload outstanding cheque entries:", validators=[Optional()])
+    outstanding_entries = FileField("Upload details of closing balance in prescribed format:", validators=[Optional()])
+    remarks = TextAreaField("Enter remarks:", validators=[Optional()])
 
 class DashboardForm(FlaskForm):
-    month = SelectField("Select month")#, choices=["All"])
+    month = SelectField("Select month")

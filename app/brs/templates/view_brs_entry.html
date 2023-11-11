@@ -1,5 +1,8 @@
+{% if not pdf %}
 {% extends "brs_layout.html" %}
-{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% else %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+{% endif %}
 {% block content %}
 
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_month.uiic_regional_code) or
@@ -36,6 +39,8 @@
 {{ brs_month.pg_bank }}
 {% elif brs_entry.brs_type == "bbps" %}
 {{ brs_month.bbps_bank }}
+    {% elif brs_entry.brs_type == "local_collection" %}
+{{ brs_month.local_collection_bank }}
 {% endif %}
 </td>
 
@@ -69,31 +74,48 @@
 <tr><th>Closing balance</th>
         <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
         <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
+    {% if brs_entry.remarks %}
+    <tr><th>Remarks</th><td colspan="2">{{ brs_entry.remarks }}</td></tr>
+    {% endif %}
     </table>
-    {% if brs_entry.brs_type == "cheque" and brs_entry.int_closing_balance > 0 %}
+    {% if brs_entry.int_closing_balance > 0 %}
     {% if outstanding %}
     <h3 class="title is-5">
-        Details of cheques not yet cleared:</h3>
+        Details of closing balance:</h3>
     <table class="table is-bordered">
         <thead>
-        <tr> <th>Cheque number</th><th>Cheque date</th><th>Cheque amount</th></tr>
+        <tr>
+            <th>Date of collection</th>
+            <th>Instrument number</th>
+
+            <th>Date of instrument</th>
+            <th>Instrument amount</th>
+        </tr>
         </thead>
         <tbody>
         <tr>
             {% for item in outstanding %}
-            <td class="has-text-centered" >{{ item.cheque_number }}</td>
-            <td class="has-text-centered" >{{ item.cheque_date.strftime("%d/%m/%Y") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(item.cheque_amount) }}</td>
+            <td class="has-text-centered" >{{ item.date_of_collection.strftime("%d/%m/%Y") }}</td>
+
+            <td class="has-text-centered" >{{ item.instrument_number }}</td>
+
+            <td class="has-text-centered" >{{ item.date_of_instrument.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+
         </tr> </tbody>
             {% endfor %}
-            <tfoot><tr><td class="has-text-right has-text-weight-bold" colspan="2">Total: </td><td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(outstanding | sum(attribute="cheque_amount")) }}</td>
+            <tfoot><tr><td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ "{:,.2f}".format(outstanding | sum(attribute="instrument_amount")) }}</td>
             </tr></tfoot>
     </table>
     {% endif %}
     {% endif %}
 
+    {% if not pdf %}
 <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
 <a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}">Print as PDF</a>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock content %}

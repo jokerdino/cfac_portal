@@ -17,6 +17,7 @@
 <th>PG BRS Status</th>
 <th>POS BRS status</th>
 <th>BBPS BRS status</th>
+    <th>Local collection BRS status</th>
 
 <th></th>
 </tr>
@@ -107,6 +108,23 @@
 {% if entry.bbps_bank %}
 
 {% if entry.bbps_brs_id %}
+<td class="has-background-success">Uploaded</td>
+{% else %}
+
+<td class="has-text-danger">Pending</td>
+{% endif %}
+{% else %}
+    {% if not colour_check(entry.id) %}
+
+    <td class="has-background-grey">NA</td>
+    {% else %}
+     <td>NA</td>
+    {% endif %}
+{% endif %}
+
+    {% if entry.local_collection_bank %}
+
+{% if entry.local_collection_brs_id %}
 <td class="has-background-success">Uploaded</td>
 {% else %}
 

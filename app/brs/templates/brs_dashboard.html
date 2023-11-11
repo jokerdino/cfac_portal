@@ -19,6 +19,7 @@
 <th colspan="3">POS</th>
 <th colspan="3">PG</th>
 <th colspan="3">BBPS</th>
+<th colspan="3">Local collection</th>
 </tr>
 <tr class="has-text-centered">
 <th>Total</th>
@@ -34,6 +35,9 @@
 <th>Completed</th>
 <th>Pending</th>
 <th>Total</th>
+<th>Completed</th>
+<th>Pending</th>
+ <th>Total</th>
 <th>Completed</th>
 <th>Pending</th>
 </tr>
@@ -98,6 +102,15 @@
 <td class="has-text-right">{{ entry[10] }} </td>
 <td class="has-text-right">{{ entry[11] }} </td>
 <td class="has-text-right">{{ entry[10] - entry[11] }} </td>
+{% endif %}
+    {% if entry[12] - entry[13] == 0 %}
+<td class="is-success has-text-right">{{ entry[12] }} </td>
+<td class="is-success has-text-right">{{ entry[13] }} </td>
+<td class="is-success has-text-right">{{ entry[12] - entry[13] }} </td>
+{% else %}
+<td class="has-text-right">{{ entry[12] }} </td>
+<td class="has-text-right">{{ entry[13] }} </td>
+<td class="has-text-right">{{ entry[12] - entry[13] }} </td>
 {% endif %}
 </tr>
 {% endfor %}

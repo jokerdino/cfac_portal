@@ -1,5 +1,7 @@
 from datetime import datetime
 import calendar
+from typing import List, Any
+
 import pandas as pd
 
 from flask import (
@@ -77,6 +79,8 @@ def brs_dashboard():
         func.count(BRS.pg_brs_id),
         func.count(BRS.bbps_bank),
         func.count(BRS.bbps_brs_id),
+        func.count(BRS.local_collection_bank),
+        func.count(BRS.local_collection_brs_id),
     ).group_by(BRS.uiic_regional_code, BRS.month)
 
     if current_user.user_type == "ro_user":
@@ -99,8 +103,9 @@ def colour_check(brs_key):
     bool_pg = bool(brs_entry.pg_brs_id) if brs_entry.pg_bank else True
     bool_pos = bool(brs_entry.pos_brs_id) if brs_entry.pos_bank else True
     bool_bbps = bool(brs_entry.bbps_brs_id) if brs_entry.bbps_bank else True
+    bool_local_collection = bool(brs_entry.local_collection_brs_id) if brs_entry.local_collection_bank else True
 
-    colour_code = all([bool_cash, bool_cheque, bool_pg, bool_pos, bool_bbps])
+    colour_code = all([bool_cash, bool_cheque, bool_pg, bool_pos, bool_bbps, bool_local_collection])
     return colour_code
 
 
@@ -134,6 +139,12 @@ def percent_completed(brs_key):
         denom += 1
         if brs_entry.bbps_brs_id:
             numerator += 1
+
+    if brs_entry.local_collection_bank:
+        denom += 1
+        if brs_entry.local_collection_brs_id:
+            numerator += 1
+
     try:
         return (numerator / denom) * 100
     except ZeroDivisionError:
@@ -179,6 +190,9 @@ def upload_brs(brs_key):
         if form.data["delete_bbps_brs"]:
             current_id = brs_entry.bbps_brs_id
             brs_entry.bbps_brs_id = None
+        if form.data["delete_local_collection_brs"]:
+            current_id = brs_entry.local_collection_brs_id
+            brs_entry.local_collection_brs_id = None
         brs_month = BRS_month.query.get_or_404(current_id)
         brs_month.status = "Deleted"
         db.session.commit()
@@ -205,6 +219,7 @@ def view_brs(brs_key):
         brs_month=brs_month,
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
+        pdf=False
     )
 
 
@@ -217,10 +232,11 @@ def view_brs_pdf(brs_key):
         Outstanding.brs_month_id == brs_key
     )
     html = render_template(
-        "view_brs_entry_pdf.html",
+        "view_brs_entry.html",
         brs_month=brs_month,
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
+        pdf=True
     )
     return render_pdf(HTML(string=html))
 
@@ -252,6 +268,8 @@ def get_prev_month_amount(requirement, brs_id):
             brs_entry_id = prev_brs_entry.pos_brs_id
         elif requirement == "bbps":
             brs_entry_id = prev_brs_entry.bbps_brs_id
+        elif requirement == "local_collection":
+            brs_entry_id = prev_brs_entry.local_collection_brs_id
         if brs_entry_id:
             prev_brs = BRS_month.query.get_or_404(brs_entry_id)
             return (prev_brs.int_closing_balance, prev_brs.int_closing_on_hand)
@@ -285,7 +303,7 @@ def enter_brs(requirement, brs_id):
             - bank_charges
             - closing_on_hand
         )
-
+        brs_remarks = form.data["remarks"] or None
         if closing_balance < 0:
             flash("Closing balance cannot be less than 0.")
         else:
@@ -300,16 +318,17 @@ def enter_brs(requirement, brs_id):
                 int_bank_charges=bank_charges,
                 int_closing_on_hand=closing_on_hand,
                 int_closing_balance=closing_balance,
+                remarks = brs_remarks,
                 timestamp=datetime.now(),
             )
 
-            if requirement == "cheque" and closing_balance > 0:
+            if closing_balance > 0:
                 try:
                     df_outstanding_entries = pd.read_csv(
                         form.data["outstanding_entries"]
                     )
                     try:
-                        sum_os_entries = df_outstanding_entries["cheque_amount"].sum()
+                        sum_os_entries = df_outstanding_entries["instrument_amount"].sum()
                         if not sum_os_entries == closing_balance:
                             flash(
                                 f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
@@ -317,7 +336,18 @@ def enter_brs(requirement, brs_id):
                         else:
                             db.session.add(brs)
                             db.session.commit()
-                            brs_entry.cheque_brs_id = brs.id
+                            if requirement == "cash":
+                                brs_entry.cash_brs_id = brs.id
+                            elif requirement == "cheque":
+                                brs_entry.cheque_brs_id = brs.id
+                            elif requirement == "pg":
+                                brs_entry.pg_brs_id = brs.id
+                            elif requirement == "pos":
+                                brs_entry.pos_brs_id = brs.id
+                            elif requirement == "bbps":
+                                brs_entry.bbps_brs_id = brs.id
+                            elif requirement == "local_collection":
+                                brs_entry.local_collection_brs_id = brs.id
 
                             df_outstanding_entries["brs_month_id"] = brs.id
                             engine = create_engine(
@@ -333,7 +363,7 @@ def enter_brs(requirement, brs_id):
 
                         flash(f"Please upload in prescribed format.")
                 except pd.errors.EmptyDataError:
-                    flash("Please upload details of outstanding cheque entries.")
+                    flash("Please upload details of Closing balance in prescribed format.")
                 except Exception as e:
                     flash(f"Please upload in prescribed format.")
             else:
@@ -350,6 +380,8 @@ def enter_brs(requirement, brs_id):
                     brs_entry.pos_brs_id = brs.id
                 elif requirement == "bbps":
                     brs_entry.bbps_brs_id = brs.id
+                elif requirement == "local_collection":
+                    brs_entry.local_collection_brs_id = brs.id
 
                 db.session.commit()
 
@@ -368,3 +400,30 @@ def enter_brs(requirement, brs_id):
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()
     return render_template("view_all_brs.html", brs_entries=list_all_brs_entries)
+
+
+@brs_bp.route("/dashboard/outstanding")
+@login_required
+def list_outstanding_entries():
+    outstanding_entries = (Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id).
+                           join(BRS, BRS_month.brs_id == BRS.id).
+                           filter(BRS_month.status == None))
+    print(outstanding_entries.all())
+    return render_template("view_outstanding_entries.html",
+                           outstanding= outstanding_entries,
+                           get_brs_bank = get_brs_bank)
+
+def get_brs_bank(brs_id, requirement):
+    brs_entry = BRS.query.get_or_404(brs_id)
+    if requirement == "cash":
+        return brs_entry.cash_bank
+    elif requirement == "cheque":
+        return brs_entry.cheque_bank
+    elif requirement == "pos":
+        return brs_entry.pos_bank
+    elif requirement == "pg":
+        return brs_entry.pg_bank
+    elif requirement == "bbps":
+        return brs_entry.bbps_bank
+    elif requirement == "local_collection":
+        return brs_entry.local_collection_bank
