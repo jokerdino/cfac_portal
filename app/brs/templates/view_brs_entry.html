@@ -29,19 +29,8 @@
               <td>{{ brs_entry.brs_type.upper() }}</td>
 <td>
 
-{% if brs_entry.brs_type == "cash" %}
-{{ brs_month.cash_bank }}
-{% elif brs_entry.brs_type == "cheque" %}
-{{ brs_month.cheque_bank }}
-{% elif brs_entry.brs_type == "pos" %}
-{{ brs_month.pos_bank }}
-{% elif brs_entry.brs_type == "pg" %}
-{{ brs_month.pg_bank }}
-{% elif brs_entry.brs_type == "bbps" %}
-{{ brs_month.bbps_bank }}
-    {% elif brs_entry.brs_type == "local_collection" %}
-{{ brs_month.local_collection_bank }}
-{% endif %}
+    {{ get_brs_bank (brs_month.id, brs_entry.brs_type) }}
+
 </td>
 
   </tr>

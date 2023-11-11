@@ -9,7 +9,6 @@
 <form action="" method="post" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to submit?');">
     {{ form.csrf_token }}
 <table class="table is-fullwidth is-bordered is-hoverable">
-
         <tr>
         <th>Regional Office code</th>
         <th>Operating Office Code</th>
@@ -19,35 +18,11 @@
         <th>BRS bank</th></tr>
         <tr>
             <td>{{ brs_entry.uiic_regional_code }}</td>
-              <td>{{ brs_entry.uiic_office_code }}</td>
-                <td>{{ brs_entry.financial_year }}</td>
-                  <td>{{ brs_entry.month }}</td>
-
-{% if requirement == "cash" %}
-<td>Cash</td>
-<td>{{ brs_entry.cash_bank }}
-</td>
-{% elif requirement == "cheque" %}
-<td>Cheque</td>
-<td>{{ brs_entry.cheque_bank }}
-</td>
-{% elif requirement == "pos" %}
-<td>POS</td>
-<td>{{ brs_entry.pos_bank }}
-</td>
-{% elif requirement == "pg" %}
-<td>Payment gateway</td>
-<td>{{ brs_entry.pg_bank }}
-</td>
-{% elif requirement == "bbps" %}
-<td>BBPS</td>
-<td>{{ brs_entry.bbps_bank }}
-</td>
-{% elif requirement == "local_collection" %}
-<td>Local Collection</td>
-<td>{{ brs_entry.local_collection_bank }}
-</td>
-{% endif %}
+            <td>{{ brs_entry.uiic_office_code }}</td>
+            <td>{{ brs_entry.financial_year }}</td>
+            <td>{{ brs_entry.month }}</td>
+            <td>{{ requirement | upper() }}</td>
+            <td>{{ get_brs_bank(brs_entry.id, requirement) }}</td>
         </tr>
 </table>
 
@@ -96,16 +71,12 @@
           <td> {{ form.remarks(class='textarea') }} </td>
       </tr>
         <tr><th>{{ form.outstanding_entries.label }}</th> <td><a href="{{ url_for('brs.download_format') }}">Upload Format</a></td><td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
-
     </table>
     <div class="buttons is-centered">
     <a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}'>Go back</a>
-
-        <button class="button is-primary is-big">Submit</button>
-
+    <button class="button is-primary is-big">Submit</button>
     </div>
-    </div>
-
+</div>
 </form>
 
 {% endif %}

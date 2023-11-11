@@ -90,9 +90,13 @@ def brs_dashboard():
         month = form.data["month"]
         if month != "View all":
             query = query.filter(BRS.month == month)
-        return render_template("brs_dashboard.html", query=query, form=form)
+        return render_template("brs_dashboard.html",
+                               query=query,
+                               form=form)
 
-    return render_template("brs_dashboard.html", query=query, form=form)
+    return render_template("brs_dashboard.html",
+                           query=query,
+                           form=form)
 
 
 def colour_check(brs_key):
@@ -219,6 +223,7 @@ def view_brs(brs_key):
         brs_month=brs_month,
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
+        get_brs_bank=get_brs_bank,
         pdf=False
     )
 
@@ -236,6 +241,7 @@ def view_brs_pdf(brs_key):
         brs_month=brs_month,
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
+        get_brs_bank=get_brs_bank,
         pdf=True
     )
     return render_pdf(HTML(string=html))
@@ -272,11 +278,11 @@ def get_prev_month_amount(requirement, brs_id):
             brs_entry_id = prev_brs_entry.local_collection_brs_id
         if brs_entry_id:
             prev_brs = BRS_month.query.get_or_404(brs_entry_id)
-            return (prev_brs.int_closing_balance, prev_brs.int_closing_on_hand)
+            return prev_brs.int_closing_balance, prev_brs.int_closing_on_hand
         else:
-            return (0, 0)
+            return 0, 0
     else:
-        return (0, 0)
+        return 0, 0
 
 
 @brs_bp.route("/<int:brs_id>/<string:requirement>/add_brs", methods=["POST", "GET"])
@@ -360,7 +366,6 @@ def enter_brs(requirement, brs_id):
                             db.session.commit()
                             return redirect(url_for("brs.upload_brs", brs_key=brs_id))
                     except Exception as e:
-
                         flash(f"Please upload in prescribed format.")
                 except pd.errors.EmptyDataError:
                     flash("Please upload details of Closing balance in prescribed format.")
@@ -391,7 +396,11 @@ def enter_brs(requirement, brs_id):
     form.opening_on_hand.data = get_prev_month_amount(requirement, brs_id)[1]
 
     return render_template(
-        "brs_entry.html", form=form, brs_entry=brs_entry, requirement=requirement
+        "brs_entry.html",
+        form=form,
+        brs_entry=brs_entry,
+        requirement=requirement,
+        get_brs_bank=get_brs_bank,
     )
 
 
@@ -399,7 +408,9 @@ def enter_brs(requirement, brs_id):
 @login_required
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()
-    return render_template("view_all_brs.html", brs_entries=list_all_brs_entries)
+    return render_template("view_all_brs.html",
+                           brs_entries=list_all_brs_entries,
+                           get_brs_bank=get_brs_bank)
 
 
 @brs_bp.route("/dashboard/outstanding")
@@ -408,10 +419,10 @@ def list_outstanding_entries():
     outstanding_entries = (Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id).
                            join(BRS, BRS_month.brs_id == BRS.id).
                            filter(BRS_month.status == None))
-    print(outstanding_entries.all())
     return render_template("view_outstanding_entries.html",
-                           outstanding= outstanding_entries,
-                           get_brs_bank = get_brs_bank)
+                           outstanding=outstanding_entries,
+                           get_brs_bank=get_brs_bank)
+
 
 def get_brs_bank(brs_id, requirement):
     brs_entry = BRS.query.get_or_404(brs_id)

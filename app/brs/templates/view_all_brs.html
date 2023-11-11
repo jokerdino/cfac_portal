@@ -36,27 +36,7 @@
 <td class="has-text-centered">{{ entry.brs.financial_year }}</td>
 <td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}' >{{ entry.brs.month }}</td>
 <td>{{ entry.brs_type | upper }}</td>
-<td>
-{% if entry.brs_type == "cash" %}
-
-{{ entry.brs.cash_bank }}
-
-{% elif entry.brs_type == "cheque" %}
-{{ entry.brs.cheque_bank }}
-
-{% elif entry.brs_type == "pos" %}
-{{ entry.brs.pos_bank }}
-
-{% elif entry.brs_type == "pg" %}
-{{ entry.brs.pg_bank }}
-
-{% elif entry.brs_type == "bbps" %}
-{{ entry.brs.bbps_bank }}
-    {% elif entry.brs_type == "local_collection" %}
-{{ entry.brs.local_collection_bank }}
-
-{% endif %}
-</td>
+<td>{{ get_brs_bank(entry.brs.id, entry.brs_type) }}</td>
 <td class="has-text-right">{{ entry.int_opening_balance }}</td>
 <td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
 <td class="has-text-right">{{ entry.int_transactions }}</td>
@@ -65,7 +45,7 @@
 <td class="has-text-right">{{ entry.int_bank_charges }}</td>
 <td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
 <td class="has-text-right">{{ entry.int_closing_balance }}</td>
-    <td>{{ entry.remarks }}</td>
+<td>{{ entry.remarks }}</td>
 <td><a href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ entry.timestamp }}</a></td>
 <td>{{ entry.status }}</td>
 
