@@ -30,7 +30,7 @@
                     {% endif %}
                     <td>                          {{ entry.date_of_settlement }}</td>
                     <td>                          {{ entry.utr_number }}</td>
-                    <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', uuid = entry.settlement_uuid) }}">View</a></td>
+                    <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">View</a></td>
                                <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
 
                                 </tr>

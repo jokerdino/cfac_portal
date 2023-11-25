@@ -10,7 +10,7 @@
         <tr><th>UTR number</th> <td>{{ settlement.utr_number }}</td></tr>
         <tr><th>Date of settlement</th> <td>{{ settlement.date_of_settlement }}</td></tr>
 
-        <tr><th>View settled entries</th> <td> <a href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', uuid = settlement.settlement_uuid) }}">View settled entries</a></td></tr>
+        <tr><th>View settled entries</th> <td> <a href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = settlement.utr_number) }}">View settled entries</a></td></tr>
         <tr><th>Download settlement summary statement</th> <td> <a href="{{ url_for ('coinsurance.download_settlements', settlement_id = settlement.id) }}">Download settlement statement</a></td></tr>
 
     </table>

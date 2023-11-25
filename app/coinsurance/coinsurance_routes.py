@@ -1,4 +1,4 @@
-import uuid
+# import uuid
 from datetime import datetime
 from sqlalchemy import func, distinct, select
 
@@ -7,7 +7,11 @@ from flask_login import current_user
 from werkzeug.utils import secure_filename
 
 from app.coinsurance import coinsurance_bp
-from app.coinsurance.coinsurance_form import CoinsuranceForm, SettlementForm
+from app.coinsurance.coinsurance_form import (
+    CoinsuranceForm,
+    SettlementForm,
+    SettlementUTRForm,
+)
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
     Coinsurance_log,
@@ -76,7 +80,7 @@ def add_coinsurance_entry():
         request_id = form.data["request_id"]
         payable_amount = form.data["payable_amount"] or 0
         receivable_amount = form.data["receivable_amount"] or 0
-        name_of_insured = form.data['name_of_insured']
+        name_of_insured = form.data["name_of_insured"]
 
         bool_ri_involved = form.data["bool_reinsurance"]
         ri_payable_amount = form.data["int_ri_payable_amount"] or 0
@@ -89,26 +93,32 @@ def add_coinsurance_entry():
             - ri_receivable_amount
         )
 
-        statement_filename_data = secure_filename(form.data["statement"].filename)
-        statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
-        statement_filename = (
-            "statement"
-            + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
-            + statement_file_extension
-        )
-        form.statement.data.save("statements/" + statement_filename)
-
-        confirmation_filename_data = secure_filename(form.data["confirmation"].filename)
-        confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
-        confirmation_filename = (
-            "confirmation"
-            + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
-            + confirmation_file_extension
-        )
-        form.confirmation.data.save("confirmations/" + confirmation_filename)
-
+        if form.data["statement"]:
+            statement_filename_data = secure_filename(form.data["statement"].filename)
+            statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
+            statement_filename = (
+                "statement"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + statement_file_extension
+            )
+            form.statement.data.save("statements/" + statement_filename)
+        else:
+            statement_filename = None
+        if form.data["confirmation"]:
+            confirmation_filename_data = secure_filename(
+                form.data["confirmation"].filename
+            )
+            confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
+            confirmation_filename = (
+                "confirmation"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + confirmation_file_extension
+            )
+            form.confirmation.data.save("confirmations/" + confirmation_filename)
+        else:
+            confirmation_filename = None
         if bool_ri_involved:
             ri_confirmation_filename_data = secure_filename(
                 form.data["ri_confirmation"].filename
@@ -127,9 +137,7 @@ def add_coinsurance_entry():
             )
         else:
             ri_confirmation_filename = None
-        current_status = (
-            "To be reviewed by coinsurance hub"
-        )
+        current_status = "To be reviewed by coinsurance hub"
         form_remarks = form.data["remarks"]
         coinsurance = Coinsurance(
             uiic_regional_code=regional_office_code,
@@ -148,7 +156,7 @@ def add_coinsurance_entry():
             boolean_reinsurance_involved=bool_ri_involved,
             int_ri_payable_amount=ri_payable_amount,
             int_ri_receivable_amount=ri_receivable_amount,
-            insured_name = name_of_insured,
+            insured_name=name_of_insured,
         )
         db.session.add(coinsurance)
         db.session.commit()
@@ -192,7 +200,7 @@ def add_coinsurance_entry():
     elif current_user.user_type == "ro_user":
         form.regional_office_code.data = current_user.ro_code
     return render_template(
-        "coinsurance_entry.html",
+        "edit_coinsurance_entry.html",
         form=form,
         change_status=False,
         enable_save_button=True,
@@ -205,14 +213,16 @@ def view_coinsurance_entry(coinsurance_id):
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
     remarks = Remarks.query.filter(Remarks.coinsurance_id == coinsurance_id)
     settlement = Settlement.query.filter(
-        Settlement.settlement_uuid == coinsurance.settlement_uuid
+        Settlement.utr_number == coinsurance.utr_number
     ).all()
     enable_edit_button = False
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
         if coinsurance.current_status != "Settled":
             enable_edit_button = True
         elif coinsurance.current_status == "Settled":
-            if Settlement.query.filter(Settlement.settlement_uuid == coinsurance.settlement_uuid).first():
+            if Settlement.query.filter(
+                Settlement.utr_number == coinsurance.utr_number
+            ).first():
                 enable_edit_button = False
             else:
                 enable_edit_button = True
@@ -257,7 +267,8 @@ def download_document(requirement, coinsurance_id):
         download_name=filename,
     )
 
-@coinsurance_bp.route("/settlements/<int:settlement_id>", methods=['POST','GET'])
+
+@coinsurance_bp.route("/settlements/<int:settlement_id>", methods=["POST", "GET"])
 def download_settlements(settlement_id):
     settlement = Settlement.query.get_or_404(settlement_id)
 
@@ -265,11 +276,12 @@ def download_settlements(settlement_id):
     path = settlement.file_settlement_file
     filename = f"{settlement.name_of_company} - {settlement.type_of_transaction} - {settlement.utr_number}.{file_extension}"
     return send_from_directory(
-            directory = "settlements/",
-            path = path,
-            as_attachment=True,
-            download_name=filename,
-            )
+        directory="settlements/",
+        path=path,
+        as_attachment=True,
+        download_name=filename,
+    )
+
 
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
 def edit_coinsurance_entry(coinsurance_id):
@@ -299,7 +311,7 @@ def edit_coinsurance_entry(coinsurance_id):
             current_status = form.data["current_status"]
 
         type_of_transaction = form.data["type_of_transaction"]
-        name_of_insured = form.data['name_of_insured']
+        name_of_insured = form.data["name_of_insured"]
 
         bool_ri_involved = form.data["bool_reinsurance"]
         ri_payable_amount = form.data["int_ri_payable_amount"] or 0
@@ -361,8 +373,8 @@ def edit_coinsurance_entry(coinsurance_id):
             coinsurance.ri_confirmation = ri_confirmation_filename
 
         if form.data["current_status"] == "Settled" and form.data["settlement"]:
-            settlement_uuid = form.data["settlement"]
-            coinsurance.settlement_uuid = settlement_uuid
+            utr_number = form.data["settlement"]
+            coinsurance.utr_number = utr_number
 
         coinsurance.uiic_regional_code = regional_office_code
         coinsurance.uiic_office_code = oo_code
@@ -443,33 +455,45 @@ def edit_coinsurance_entry(coinsurance_id):
     change_status = False
     update_settlement = False
 
-    if current_user.user_type in ["admin","coinsurance_hub_user"]:
+    if current_user.user_type in ["admin", "coinsurance_hub_user"]:
         if coinsurance.current_status != "Settled":
             change_status = True
             enable_save_button = True
         elif coinsurance.current_status == "Settled":
             change_status = True
-           # print(coinsurance.settlement_uuid)
-            if not Settlement.query.filter(Settlement.settlement_uuid == coinsurance.settlement_uuid).first(): # == "314c88eb-fe47-4a1b-a6f8-5e93c141bb7b":
+
+            if not Settlement.query.filter(
+                Settlement.utr_number == coinsurance.utr_number
+            ).first():
                 update_settlement = True
                 enable_save_button = True
-                form.settlement.choices = [
-                    (g.settlement_uuid, g.utr_number)
-                    for g in Settlement.query.filter(
-                        Settlement.name_of_company == coinsurance.follower_company_name
+                utr_list = (
+                    Settlement.query.filter(
+                        coinsurance.follower_company_name == Settlement.name_of_company
                     )
+                    .with_entities(
+                        Settlement.name_of_company,
+                        Settlement.utr_number,
+                        Settlement.settled_amount,
+                    )
+                    .distinct()
+                )
+                form.settlement.choices = [
+                    (utr_number, f"{name_of_company}-{utr_number}: {settled_amount}")
+                    for name_of_company, utr_number, settled_amount in utr_list
                 ]
-            else:
-                update_settlement = False
-                enable_save_button = False
-        else:
-            enable_save_button = False
+
+            # else:
+            #     update_settlement = False
+            #     enable_save_button = False
+        # else:
+        #     enable_save_button = False
     elif current_user.user_type in ["oo_user", "ro_user"]:
         if coinsurance.current_status == "Needs clarification from RO or OO":
             enable_save_button = True
 
     return render_template(
-        "coinsurance_entry.html",
+        "edit_coinsurance_entry.html",
         form=form,
         coinsurance=coinsurance,
         remarks=remarks,
@@ -481,8 +505,6 @@ def edit_coinsurance_entry(coinsurance_id):
 
 @coinsurance_bp.route("/list/all")
 def list_coinsurance_entries():
-
-    # db.session.scalars(select(Coinsurance)).all() #Coinsurance.query.all()
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -494,15 +516,14 @@ def list_coinsurance_entries():
     else:
         coinsurance_entries = Coinsurance.query.all()
     return render_template(
-        "coinsurance_entries_all.html",
+        "view_all_coinsurance_entries.html",
         coinsurance_entries=coinsurance_entries,
         update_settlement=False,
     )
 
 
-@coinsurance_bp.route("/list/<string:status>")
+@coinsurance_bp.route("/list/<string:status>", methods=["POST", "GET"])
 def list_coinsurance_entries_by_status(status):
-
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -511,56 +532,129 @@ def list_coinsurance_entries_by_status(status):
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_office_code == current_user.oo_code
         ).filter(Coinsurance.current_status == status)
-    else:
+    elif current_user.user_type in ["admin", "coinsurance_hub_user"]:
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.current_status == status
         ).all()
-    return render_template(
-        "coinsurance_entries_all.html",
-        coinsurance_entries=coinsurance_entries,
-        update_settlement=False,
-        status = status
-    )
 
+    # update_settlement = False
+    if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+        if status in ["To be settled"]:  # , "To be considered for settlement"]:
+            # update_settlement = True
+            from server import db
 
-@coinsurance_bp.route("/list/mark_as_settled", methods=["POST", "GET"])
-def list_coinsurance_entries_to_be_settled():
-    from server import db
+            form = SettlementUTRForm()
+            # print(type(form))
+            utr_list = Settlement.query.with_entities(
+                Settlement.name_of_company,
+                Settlement.utr_number,
+                Settlement.settled_amount,
+            ).distinct()
+            form.utr_number.choices = [
+                (utr_number, f"{name_of_company}-{utr_number}: {settled_amount}")
+                for name_of_company, utr_number, settled_amount in utr_list
+            ]
+            # print(form.utr_number.choices)
+            coinsurance_entries = Coinsurance.query.filter(
+                Coinsurance.current_status == "To be settled"
+            )
+            # update_settlement = True
+            if request.method == "POST":
+                # uuid_value = str(uuid.uuid4())
+                form_coinsurance_keys = request.form.getlist("coinsurance_keys")
+                form_utr_number = form.data["utr_number"]
+                settlement_company_check = Settlement.query.filter(
+                    Settlement.utr_number == form_utr_number
+                ).first()
+                for key in form_coinsurance_keys:
+                    coinsurance = Coinsurance.query.get_or_404(key)
+                    # coinsurance.settlement_utr = # last id of settlement table + 1
+                    #  coinsurance.settlement_uuid = uuid_value
+                    if (
+                        coinsurance.follower_company_name
+                        == settlement_company_check.name_of_company
+                    ):
+                        coinsurance.utr_number = form_utr_number
+                        coinsurance.current_status = "Settled"
+                db.session.commit()
+                return redirect(
+                    url_for(
+                        "coinsurance.list_settled_coinsurance_entries",
+                        utr_number=form_utr_number,
+                    )
+                )
 
-    coinsurance_entries = Coinsurance.query.filter(
-        Coinsurance.current_status == "To be considered for settlement"
-    )
-    update_settlement = True
-    if request.method == "POST":
-        uuid_value = str(uuid.uuid4())
-        form_coinsurance_keys = request.form.getlist("coinsurance_keys")
-
-        for key in form_coinsurance_keys:
-            coinsurance = Coinsurance.query.get_or_404(key)
-            coinsurance.settlement_uuid = uuid_value
-            coinsurance.current_status = "Settled"
-        db.session.commit()
-        return redirect(
-            url_for("coinsurance.add_settlement_data", uuid_value=uuid_value)
+            return render_template(
+                "view_all_coinsurance_entries.html",
+                coinsurance_entries=coinsurance_entries,
+                update_settlement=True,
+                status=status,
+                form=form,
+            )
+        else:
+            return render_template(
+                "view_all_coinsurance_entries.html",
+                coinsurance_entries=coinsurance_entries,
+                update_settlement=True,
+                status=status,
+                #        form=form,
+            )
+    else:
+        return render_template(
+            "view_all_coinsurance_entries.html",
+            coinsurance_entries=coinsurance_entries,
+            update_settlement=False,
+            status=status,
+            #        form=form,
         )
-    return render_template(
-        "coinsurance_entries_all.html",
-        coinsurance_entries=coinsurance_entries,
-        update_settlement=update_settlement,
-    )
 
 
-@coinsurance_bp.route(
-    "/list/settlements/<uuid:uuid>"
-)
-def list_settled_coinsurance_entries(uuid):
+# @coinsurance_bp.route("/list/mark_as_settled", methods=["POST", "GET"])
+# def list_coinsurance_entries_to_be_settled():
+#     from server import db
+#
+#     form = SettlementUTRForm()
+#     # print(type(form))
+#     form.utr_number.choices = Settlement.query.distinct(Settlement.utr_number).all()
+#     # print(form.utr_number.choices)
+#     coinsurance_entries = Coinsurance.query.filter(
+#         Coinsurance.current_status == "To be considered for settlement"
+#     )
+#     update_settlement = True
+#     if request.method == "POST":
+#         # uuid_value = str(uuid.uuid4())
+#         form_coinsurance_keys = request.form.getlist("coinsurance_keys")
+#         form_utr_number = form.data["utr_number"]
+#         for key in form_coinsurance_keys:
+#             coinsurance = Coinsurance.query.get_or_404(key)
+#             # coinsurance.settlement_utr = # last id of settlement table + 1
+#             #  coinsurance.settlement_uuid = uuid_value
+#             coinsurance.utr_number = form_utr_number
+#             coinsurance.current_status = "Settled"
+#         db.session.commit()
+#         return redirect(
+#             url_for(
+#                 "coinsurance.list_coinsurance_entries_to_be_settled"
+#             )  # , uuid_value=uuid_value)
+#         )
+#     return render_template(
+#         "view_all_coinsurance_entries.html",
+#         coinsurance_entries=coinsurance_entries,
+#         update_settlement=update_settlement,
+#         form=form,
+#     )
+
+
+@coinsurance_bp.route("/list/settlements/<string:utr_number>")
+def list_settled_coinsurance_entries(utr_number):
     return render_template(
-        "coinsurance_entries_all.html",
+        "view_all_coinsurance_entries.html",
         coinsurance_entries=Coinsurance.query.filter(
-            Coinsurance.settlement_uuid == uuid
+            Coinsurance.utr_number == utr_number
         ),
         update_settlement=False,
     )
+
 
 @coinsurance_bp.route("/settlements/list")
 def list_settlement_entries():
@@ -577,8 +671,8 @@ def view_settlement_entry(settlement_id):
     return render_template("view_settlement_entry.html", settlement=settlement)
 
 
-@coinsurance_bp.route("/settlements/add_settlement_data/<uuid:uuid_value>", methods=["POST", "GET"])
-def add_settlement_data(uuid_value):
+@coinsurance_bp.route("/settlements/add_settlement_data", methods=["POST", "GET"])
+def add_settlement_data():
     from server import db
 
     form = SettlementForm()
@@ -589,7 +683,9 @@ def add_settlement_data(uuid_value):
         utr_number = form.data["utr_number"]
         type_of_settlement = form.data["type_of_settlement"]
 
-        settlement_filename_data = secure_filename(form.data["settlement_file"].filename)
+        settlement_filename_data = secure_filename(
+            form.data["settlement_file"].filename
+        )
         settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
         settlement_filename = (
             "settlement"
@@ -603,20 +699,20 @@ def add_settlement_data(uuid_value):
             name_of_company=name_of_company,
             date_of_settlement=date_of_settlement,
             settled_amount=amount_settled,
-            file_settlement_file = settlement_filename,
+            file_settlement_file=settlement_filename,
             utr_number=utr_number,
             type_of_transaction=type_of_settlement,
-            settlement_uuid=uuid_value,
+            # settlement_uuid=uuid_value,
         )
 
         db.session.add(settlement)
-
         db.session.commit()
 
         return redirect(
-            url_for("coinsurance.list_coinsurance_entries_to_be_settled")
+            url_for("coinsurance.view_settlement_entry", settlement_id=settlement.id)
         )
-    return render_template("settlement_entry.html", form=form)
+    return render_template("add_settlement_entry.html", form=form)
+
 
 @coinsurance_bp.route("/log/<int:coinsurance_id>")
 def view_coinsurance_log(coinsurance_id):

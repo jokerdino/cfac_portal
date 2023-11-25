@@ -8,7 +8,7 @@ from wtforms import (
     StringField,
     TextAreaField,
 )
-from wtforms.validators import Optional
+from wtforms.validators import DataRequired, Optional
 
 coinsurer_list = [
     "National",
@@ -51,7 +51,7 @@ class CoinsuranceForm(FlaskForm):
         "To be reviewed by coinsurance hub",
         "Needs clarification from RO or OO",
         "To be approved in GC Core",
-        "To be considered for settlement",
+        "To be settled",
         "Settled",
         "No longer valid",
     ]
@@ -66,14 +66,16 @@ class CoinsuranceForm(FlaskForm):
     )
     name_of_insured = StringField("Enter name of insured")
     request_id = StringField("Enter Request ID")
-    statement = FileField("Upload statement")
-    confirmation = FileField("Upload confirmation")
+    statement = FileField("Upload statement", validators=[Optional()])
+    confirmation = FileField("Upload confirmation", validators=[Optional()])
     payable_amount = IntegerField("Enter payable amount:", validators=[Optional()])
     receivable_amount = IntegerField(
         "Enter receivable amount:", validators=[Optional()]
     )
 
-    bool_reinsurance = BooleanField("Whether Reinsurance is involved: ", validators=[Optional()])
+    bool_reinsurance = BooleanField(
+        "Whether Reinsurance is involved: ", validators=[Optional()]
+    )
     int_ri_payable_amount = IntegerField(
         "Enter Reinsurance payable amount", validators=[Optional()]
     )
@@ -87,7 +89,10 @@ class CoinsuranceForm(FlaskForm):
         "Current status:", choices=status_list, validators=[Optional()]
     )
     settlement = SelectField(
-        "Update settlement details:", choices=[], validators=[Optional()], validate_choice=False
+        "Update settlement details:",
+        choices=[],
+        validators=[Optional()],
+        validate_choice=False,
     )
 
 
@@ -98,5 +103,9 @@ class SettlementForm(FlaskForm):
     utr_number = StringField("UTR number:")
     settlement_file = FileField("Upload summary statement:")
     type_of_settlement = SelectField(
-        "Paid or received: ", choices=["Paid","Received"], validators=[Optional()]
+        "Paid or received: ", choices=["Paid", "Received"], validators=[Optional()]
     )
+
+
+class SettlementUTRForm(FlaskForm):
+    utr_number = SelectField("UTR number: ", validators=[DataRequired()])

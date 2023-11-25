@@ -30,6 +30,7 @@
                 <th>Name of insured</th>
                 <th>Payable amount</th>
                 <th>Receivable amount</th>
+                <th>Net payable / (Net receivable) (Excluding RI)</th>
                 <th>Reinsurance involved</th>
                 <th>RI payable amount</th>
                 <th>RI receivable amount </th>
@@ -61,6 +62,7 @@
 <td>                          {{ entry.insured_name }}</td>
     <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
     <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
+      <td class="has-text-right">{{ "{:,}".format(entry.payable_amount - entry.receivable_amount|int) }}</td>
       <td>                          {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_payable_amount|int) }}</td>
     <td class="has-text-right">{{ "{:,}".format(entry.int_ri_receivable_amount|int) }}</td>
@@ -96,11 +98,11 @@
             $(document).ready(function () {
                             $('#coinsurance_table').DataTable({
                                 dom: 'lfBrtip',
-                                fixedHeader: true,
+                                fixedHeader: false,
                                 scrollY: true,
                                 columnDefs: [
                                 {
-                                    target:[12,13],
+                                    target:[13,14],
                                     visible: false,
                                     searchable: false,
                                 }
