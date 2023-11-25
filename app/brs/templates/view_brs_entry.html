@@ -100,6 +100,9 @@
     </table>
     {% endif %}
     {% endif %}
+<div class="pb-5">
+    Prepared by {{ brs_entry.prepared_by }} (Employee Number: {{ brs_entry.prepared_by_employee_number }}) on {{ brs_entry.timestamp.strftime("%d/%m/%Y %H:%M") }}.
+</div>
 
     {% if not pdf %}
 <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>

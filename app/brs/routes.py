@@ -25,10 +25,9 @@ from app.brs.forms import BRSForm, BRS_entry, DashboardForm
 @brs_bp.route("/home", methods=["POST", "GET"])
 @login_required
 def brs_home_page():
-
     if current_user.user_type == "oo_user":
         brs_entries = BRS.query.filter(BRS.uiic_office_code == current_user.oo_code)
-    elif current_user.user_type in ["admin","ro_user"]:
+    elif current_user.user_type in ["admin", "ro_user"]:
         return redirect(url_for("brs.brs_dashboard"))
     else:
         return "No permission"
@@ -43,7 +42,9 @@ def brs_home_page():
 @brs_bp.route("/<string:ro_code>/<string:month>", methods=["POST", "GET"])
 @login_required
 def brs_ro_wise(ro_code, month):
-    if current_user.user_type == "admin" or (current_user.user_type =="ro_user" and current_user.ro_code == ro_code):
+    if current_user.user_type == "admin" or (
+        current_user.user_type == "ro_user" and current_user.ro_code == ro_code
+    ):
         brs_entries = BRS.query.filter(
             BRS.uiic_regional_code == ro_code, BRS.month == month
         )
@@ -60,7 +61,6 @@ def brs_ro_wise(ro_code, month):
 @brs_bp.route("/dashboard", methods=["POST", "GET"])
 @login_required
 def brs_dashboard():
-
     form = DashboardForm()
 
     month_choices = BRS.query.with_entities(BRS.month).distinct()
@@ -90,13 +90,9 @@ def brs_dashboard():
         month = form.data["month"]
         if month != "View all":
             query = query.filter(BRS.month == month)
-        return render_template("brs_dashboard.html",
-                               query=query,
-                               form=form)
+        return render_template("brs_dashboard.html", query=query, form=form)
 
-    return render_template("brs_dashboard.html",
-                           query=query,
-                           form=form)
+    return render_template("brs_dashboard.html", query=query, form=form)
 
 
 def colour_check(brs_key):
@@ -107,9 +103,15 @@ def colour_check(brs_key):
     bool_pg = bool(brs_entry.pg_brs_id) if brs_entry.pg_bank else True
     bool_pos = bool(brs_entry.pos_brs_id) if brs_entry.pos_bank else True
     bool_bbps = bool(brs_entry.bbps_brs_id) if brs_entry.bbps_bank else True
-    bool_local_collection = bool(brs_entry.local_collection_brs_id) if brs_entry.local_collection_bank else True
+    bool_local_collection = (
+        bool(brs_entry.local_collection_brs_id)
+        if brs_entry.local_collection_bank
+        else True
+    )
 
-    colour_code = all([bool_cash, bool_cheque, bool_pg, bool_pos, bool_bbps, bool_local_collection])
+    colour_code = all(
+        [bool_cash, bool_cheque, bool_pg, bool_pos, bool_bbps, bool_local_collection]
+    )
     return colour_code
 
 
@@ -158,7 +160,6 @@ def percent_completed(brs_key):
 @brs_bp.route("/bulk_upload", methods=["POST", "GET"])
 @login_required
 def bulk_upload_brs():
-
     if request.method == "POST":
         upload_file = request.files.get("file")
         df_user_upload = pd.read_csv(upload_file)
@@ -178,7 +179,6 @@ def upload_brs(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
     form = BRSForm()
     if form.validate_on_submit():
-
         if form.data["delete_cash_brs"]:
             current_id = brs_entry.cash_brs_id
             brs_entry.cash_brs_id = None
@@ -224,7 +224,7 @@ def view_brs(brs_key):
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
-        pdf=False
+        pdf=False,
     )
 
 
@@ -242,7 +242,7 @@ def view_brs_pdf(brs_key):
         brs_entry=brs_entry,
         outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
-        pdf=True
+        pdf=True,
     )
     return render_pdf(HTML(string=html))
 
@@ -293,6 +293,8 @@ def enter_brs(requirement, brs_id):
     from server import db
 
     if form.validate_on_submit():
+        prepared_by = form.data["prepared_by"]
+        prepared_by_employee_number = form.data["prepared_by_employee_number"]
         opening_balance = form.data["opening_balance"] or 0
         opening_on_hand = form.data["opening_on_hand"] or 0
         transactions = form.data["transactions"] or 0
@@ -324,8 +326,10 @@ def enter_brs(requirement, brs_id):
                 int_bank_charges=bank_charges,
                 int_closing_on_hand=closing_on_hand,
                 int_closing_balance=closing_balance,
-                remarks = brs_remarks,
+                remarks=brs_remarks,
                 timestamp=datetime.now(),
+                prepared_by=prepared_by,
+                prepared_by_employee_number=prepared_by_employee_number,
             )
 
             if closing_balance > 0:
@@ -334,7 +338,9 @@ def enter_brs(requirement, brs_id):
                         form.data["outstanding_entries"]
                     )
                     try:
-                        sum_os_entries = df_outstanding_entries["instrument_amount"].sum()
+                        sum_os_entries = df_outstanding_entries[
+                            "instrument_amount"
+                        ].sum()
                         if not sum_os_entries == closing_balance:
                             flash(
                                 f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
@@ -368,7 +374,9 @@ def enter_brs(requirement, brs_id):
                     except Exception as e:
                         flash(f"Please upload in prescribed format.")
                 except pd.errors.EmptyDataError:
-                    flash("Please upload details of Closing balance in prescribed format.")
+                    flash(
+                        "Please upload details of Closing balance in prescribed format."
+                    )
                 except Exception as e:
                     flash(f"Please upload in prescribed format.")
             else:
@@ -408,20 +416,24 @@ def enter_brs(requirement, brs_id):
 @login_required
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()
-    return render_template("view_all_brs.html",
-                           brs_entries=list_all_brs_entries,
-                           get_brs_bank=get_brs_bank)
+    return render_template(
+        "view_all_brs.html", brs_entries=list_all_brs_entries, get_brs_bank=get_brs_bank
+    )
 
 
 @brs_bp.route("/dashboard/outstanding")
 @login_required
 def list_outstanding_entries():
-    outstanding_entries = (Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id).
-                           join(BRS, BRS_month.brs_id == BRS.id).
-                           filter(BRS_month.status == None))
-    return render_template("view_outstanding_entries.html",
-                           outstanding=outstanding_entries,
-                           get_brs_bank=get_brs_bank)
+    outstanding_entries = (
+        Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id)
+        .join(BRS, BRS_month.brs_id == BRS.id)
+        .filter(BRS_month.status == None)
+    )
+    return render_template(
+        "view_outstanding_entries.html",
+        outstanding=outstanding_entries,
+        get_brs_bank=get_brs_bank,
+    )
 
 
 def get_brs_bank(brs_id, requirement):

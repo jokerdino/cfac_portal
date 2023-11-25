@@ -43,6 +43,8 @@ class BRS_month(db.Model):
     status = db.Column(db.String)
     brs_outstanding = db.relationship('Outstanding', backref='brs_month', lazy='dynamic')
     remarks = db.Column(db.Text)
+    prepared_by = db.Column(db.String)
+    prepared_by_employee_number = db.Column(db.String)
 
 class Outstanding(db.Model):
     id = db.Column(db.Integer, primary_key = True)

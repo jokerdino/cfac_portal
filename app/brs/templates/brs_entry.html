@@ -42,6 +42,12 @@
 {% endif %}
 {% endwith %}
     <table class="table is-bordered is-fullwidth is-hoverable">
+        <tr><th>{{ form.prepared_by.label }}</th>
+            <td></td>
+            <td>{{ form.prepared_by(class="input") }}</td></tr>
+        <tr><th>{{ form.prepared_by_employee_number.label }}</th>
+            <td></td>
+            <td>{{ form.prepared_by_employee_number(class="input") }}</td></tr>
         <tr><th>{{ form.opening_balance.label }}</th>
             <td>{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
             <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_balance(class='input is-small') }}</td></tr>
