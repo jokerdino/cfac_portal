@@ -72,6 +72,21 @@
     </a>
     {% endif %}
     </div>
+              {% if current_user.user_type == "admin" %}
+      <div class="tile is-parent">
+    <a href="{{ url_for('contracts.view_contracts', status='active') }}">
+    <article class="tile is-child notification is-info">
+      <div class="content">
+        <p class="title">Contracts</p>
+        <p class="subtitle">Add contract details</p>
+        <div class="content">
+
+        </div>
+        {% endif %}
+      </div>
+    </article>
+    </a>
+  </div>
     {% if current_user.user_type == "admin" %}
       <div class="tile is-parent">
     <a href="{{ url_for('admin.home_page')}}">
@@ -83,10 +98,11 @@
 
         </div>
         {% endif %}
-      </div>
+               </div>
     </article>
     </a>
-  </div>
+      </div>
+
   <!--
   <div class="tile is-parent">
     <article class="tile is-child notification is-info">

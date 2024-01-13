@@ -65,6 +65,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(brs_bp, url_prefix="/brs")
 
+    from app.contracts import contracts_bp
+
+    app.register_blueprint(contracts_bp, url_prefix="/contracts")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")
@@ -79,5 +83,5 @@ if __name__ == "__main__":
         db.create_all()
         admin_check()
     #    app.run(debug=True)
-#    serve(app, host="0.0.0.0", port=8080)
+    #  serve(app, host="0.0.0.0", port=8080)
     app.run(debug=True, port=8080)
