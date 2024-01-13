@@ -20,7 +20,11 @@ def home_page():
 def upload_users():
     if request.method == "POST":
         upload_file = request.files.get("file")
-        df_user_upload_chunk = pd.read_csv(upload_file, chunksize=100)
+        df_user_upload_chunk = pd.read_csv(upload_file, chunksize=100,
+        dtype={
+        "ro_code": str,
+        "oo_code": str,}
+        )
         password_hash = generate_password_hash("password")
         #print(df_user_upload.columns.values.tolist())
         for df_user_upload in df_user_upload_chunk:
