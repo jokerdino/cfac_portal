@@ -1,0 +1,23 @@
+{% extends "contacts_layout.html" %}
+{% block content %}
+<div class="container">
+{% if contact %}
+<table class="table is-fullwidth">
+
+    <tr>    <th>Office Code</th><td>{{ contact.office_code }}</td></tr>
+    <tr>    <th>Office name</th><td>{{ contact.office_name }}</td></tr>
+        <tr>    <th>Name</th><td>{{ contact.name }}</td></tr>
+        <tr>    <th>Employee number</th><td>{{ contact.employee_number }}</td></tr>
+    <tr>    <th>Designation</th><td>{{ contact.designation }}</td></tr>
+    <tr>    <th>Role</th><td>{{ contact.role }}</td></tr>
+    <tr>    <th>Email address</th><td>{{ contact.email_address }}</td></tr>
+    <tr>    <th>Zone</th><td>{{ contact.zone }}</td></tr>
+    <tr>    <th>Mobile number</th><td>{{ contact.mobile_number }}</td></tr>
+</table>
+<div class="container has-text-centered">
+<a class="button is-link" href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a>
+</div>
+
+    {% endif %}
+</div>
+{% endblock content %}

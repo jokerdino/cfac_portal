@@ -69,6 +69,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(contracts_bp, url_prefix="/contracts")
 
+    from app.contacts import contacts_bp
+
+    app.register_blueprint(contacts_bp, url_prefix="/contacts")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")
