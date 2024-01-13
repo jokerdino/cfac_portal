@@ -1,0 +1,58 @@
+{% extends "tickets_layout.html" %}
+{% block content %}
+{% if tickets %}
+
+<table class="table is-bordered is-hoverable is-fullwidth" id="tickets_table">
+
+    <thead>
+    <tr class="has-text-centered">
+        <th>Regional Office</th>
+        <th>Office Code</th>
+        <th>Ticket number</th>
+        <th>Contact person</th>
+        <th>Email address</th>
+        <th>Mobile number</th>
+        <th>Department</th>
+        <th>Status</th>
+        <th>Date of creation</th>
+        <th>View</th>
+        <th>Edit</th>
+    </tr></thead>
+    <tbody>
+    {% for ticket in tickets %}
+    <tr>
+        <td>{{ ticket.regional_office_code }}</td>
+        <td>{{ ticket.office_code }}</td>
+        <td>{{ ticket.ticket_number }}</td>
+        <td>{{ ticket.contact_person }}</td>
+        <td>{{ ticket.contact_email_address }}</td>
+        <td>{{ ticket.contact_mobile_number }}</td>
+        <td>{{ ticket.department }}</td>
+        <td>{{ ticket.status }}</td>
+        <td title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td>
+        <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}">View</a></td>
+        <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}">Edit</a></td>
+        {% endfor %}
+    </tr>
+    </tbody>
+</table>
+
+{% endif %}
+{% block scripts %}
+<script>
+        $(document).ready(function () {
+                     $('#tickets_table').DataTable({
+                                dom: 'lfBrtip',
+
+                                        buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[8,'desc']],
+                                            pagingType: 'full_numbers',
+        })
+        });
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

@@ -73,6 +73,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(contacts_bp, url_prefix="/contacts")
 
+    from app.tickets import tickets_bp
+
+    app.register_blueprint(tickets_bp, url_prefix="/tickets")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

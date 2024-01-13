@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="keywords" content="Accounts"/>
+        <meta name="description" content="Accounts" />
+        <title>CFAC Portal</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+    </head>
+
+    <body {% block body_attrs %}{% endblock body_attrs %}>
+        <header>
+            <nav class="navbar is-info has-shadow" aria-label="main navigation">
+                <div class="navbar-brand">
+                    <div class="navbar-start">
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Index</a>
+             <a class="navbar-item" href="{{ url_for('tickets.tickets_homepage') }}">Tickets home</a>
+
+                 <a class="navbar-item" href="{{ url_for('tickets.add_ticket') }}">Add ticket details</a>
+
+                    </div>
+             </div>
+        </div>
+    </div>
+
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            {% if not current_user.is_authenticated %}
+
+                            <div>
+                                <a class="button is-link" href="{{ url_for('users.login_page') }}"> Login</a>
+                                {% else %}
+                                  <a class="button">  {{ current_user.oo_code }} </a>
+                                <a class="button is-link" href="{{ url_for('users.logout_page') }}"> Log out</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <div class="container is-fluid">
+            <hr />
+            {% if current_user.is_authenticated %}
+            {% block content %}{% endblock content %}
+            {% endif %}
+        </div>
+        <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+        {% block scripts %}
+
+        {% endblock scripts %}
+
+    </body>
+</html>

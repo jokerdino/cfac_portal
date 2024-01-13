@@ -1,0 +1,46 @@
+{% extends "tickets_layout.html" %}
+{% block content %}
+{% if ticket %}
+<div class="container">
+<table class="table is-fullwidth">
+    <tr><th>Regional Office Code</th><td>{{ ticket.regional_office_code }}</td></tr>
+    <tr><th>Office Code</th><td>{{ ticket.office_code }}</td></tr>
+    <tr><th>Ticket number</th><td>{{ ticket.ticket_number }}</td></tr>
+    <tr><th>Contact person</th><td>{{ ticket.contact_person }}</td></tr>
+    <tr><th>Contact email address</th><td>{{ ticket.contact_email_address }}</td></tr>
+    <tr><th>Contact mobile number</th><td>{{ ticket.contact_mobile_number }}</td></tr>
+    <tr><th>Department</th><td>{{ ticket.department }}</td></tr>
+    <tr><th>Current status</th><td>{{ ticket.status }}</td></tr>
+    {% if remarks %}
+    <tr><th>Remarks</th><td>
+<table class="table is-bordered">
+    <thead>
+    <tr>
+        <th>Time of remark</th>
+        <th>User</th>
+        <th>Remarks</th>
+    </tr></thead>
+    <tbody>
+      {% for item in remarks %}
+    <tr>
+
+        <td title="{{ item.time_of_remark }}">{{ humanize_datetime(item.time_of_remark) }}</td>
+        <td>{{ item.user }}</td>
+        <td>{{ item.remarks }}</td>
+        {% endfor %}
+    </tr>
+    </tbody>
+
+</table>
+
+    </td>
+    </tr>
+    {% endif %}
+    <tr><th>Date of creation</th><td title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td></tr>
+</table>
+    <div class="has-text-centered">
+    <a class="button is-outlined is-success" href="{{ url_for('tickets.edit_ticket', ticket_id = ticket.id) }}">Edit</a>
+    </div>
+    </div>
+{% endif %}
+{% endblock content %}

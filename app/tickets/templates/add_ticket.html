@@ -1,0 +1,75 @@
+{% extends "tickets_layout.html" %}
+{% block content %}
+<div class="containers">
+<h1 class="title">{{ title }}</h1>
+    <form method="post" action="">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth">
+    <tr><th>{{ form.regional_office_code.label }}</th>
+        <td>
+            {% if current_user.user_type in ["ro_user", "oo_user"] %}
+            {{ current_user.ro_code }}
+            {% elif current_user.user_type == "coinsurance_hub_user" %}
+            {{ current_user.oo_code }}
+            {% else %}
+            {{ form.regional_office_code(class="input") }}
+            {% endif %}
+        </td></tr>
+    <tr><th>{{ form.office_code.label }}</th>
+            <td>
+            {% if current_user.user_type in ["oo_user","coinsurance_hub_user"] %}
+            {{ current_user.oo_code }}
+            {% else %}
+            {{ form.office_code(class="input") }}
+                {% endif %}
+            </td></tr>
+            <tr><th>{{ form.ticket_number.label }}</th><td>{{ form.ticket_number(class="input") }}</td></tr>
+            <tr><th>{{ form.contact_person.label }}</th><td>{{ form.contact_person(class="input") }}</td></tr>
+            <tr><th>{{ form.contact_email_address.label }}</th><td>{{ form.contact_email_address(class="input") }}</td></tr>
+            <tr><th>{{ form.contact_mobile_number.label }}</th><td>{{ form.contact_mobile_number(class="input") }}</td></tr>
+            <tr><th>{{ form.department.label }}</th><td>{{ form.department(class="select") }}</td></tr>
+    <tr><th>{{ form.status.label }}</th>
+            <td>
+
+            {{ form.status(class="select") }}
+
+            </td></tr>
+
+    <tr><th>{{ form.remarks.label }}</th>
+            <td>
+                {% if remarks %}
+                <table class="table is-bordered">
+                    <thead>
+    <tr>
+        <th>Time of remark</th>
+        <th>User</th>
+        <th>Remarks</th>
+    </tr></thead>
+    <tbody>
+     {% for item in remarks %}
+    <tr>
+
+        <td title="{{ item.time_of_remark }}">{{ humanize_datetime(item.time_of_remark) }}</td>
+        <td>{{ item.user }}</td>
+        <td>{{ item.remarks }}</td>
+        {% endfor %}
+    </tr>
+    </tbody>
+
+</table>
+                {% endif %}
+
+            {{ form.remarks(class="textarea") }}
+            </td></tr>
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Save</button>
+        </div>
+    </form>
+                  {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}       {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
