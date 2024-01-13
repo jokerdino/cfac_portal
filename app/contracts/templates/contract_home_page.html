@@ -1,0 +1,77 @@
+{% extends "contracts_layout.html" %}
+{% block content %}
+<h1 class="title">List of {{ status }} contracts</h1>
+
+<table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" id="contracts_table">
+    <thead>
+    <tr>
+        <th>Name of vendor</th>
+        <th>Purpose</th>
+        <th>Start date</th>
+        <th>End date</th>
+        <th>EMD</th>
+        <th>Status</th>
+        <th>Notice</th>
+        <th>Renewal terms</th>
+
+        <th>Contract file</th>
+                <th>View</th>
+                <th>Edit</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for entry in query %}
+
+    {% if entry['end_date'] < today %}
+    <!-- djlint:off -->
+        <tr class="has-text-danger">
+    <!-- djlint:on -->
+    {% else %}
+    <tr>
+    {% endif %}
+
+        <td>{{ entry['vendor'] }}</td>
+          <td>{{ entry['purpose'] }}</td>
+          <td class="has-text-centered">{{ entry['start_date'] }}</td>
+          <td class="has-text-centered">{{ entry['end_date'] }}</td>
+          <td class="has-text-right">{{ entry['emd'] }}</td>
+          <td>
+          {% if entry['end_date'] %}
+              {{ compare_end_date(entry['end_date']) }}
+          {% endif %}
+          </td>
+          <td>{{ entry['notice_period'] }}</td>
+          <td>{{ entry['renewal'] }}</td>
+
+          <td>
+              {% if entry['contract_file'] %}
+    <a  href="{{ url_for("contracts.download_contract_document", contract_id=entry.id) }}">Download</a>
+              {% else %}
+              No documents uploaded
+              {% endif %}
+          </td>
+        <td><a href="{{ url_for("contracts.view_contract", contract_id = entry.id)}}">View</a></td>
+                 <td><a href="{{ url_for("contracts.edit_contract", contract_id= entry.id )}}">Edit</a></td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+          $('#contracts_table').DataTable({
+            dom: 'lfBrtip',
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[3,'asc']],
+                                            pagingType: 'full_numbers',
+                      });
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}

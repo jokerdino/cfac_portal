@@ -1,0 +1,34 @@
+{% extends "contracts_layout.html" %}
+{% block content %}
+{% if contract %}
+<div class="container">
+<table class="table is-striped is-hoverable is-fullwidth">
+    <tr><th>Name of vendor</th><td>{{ contract.vendor }}</td></tr>
+    <tr><th>Purpose</th><td>{{ contract.purpose }}</td></tr>
+    <tr><th>Start date</th><td>{{ contract.start_date }}</td></tr>
+    <tr><th>End date</th><td>{{ contract.end_date }}</td></tr>
+    <tr><th>EMD</th><td>{{ contract.emd }}</td></tr>
+    <tr><th>Notice period</th><td>{{ contract.notice_period }}</td></tr>
+    <tr><th>Status</th><td>{% if contract.end_date %}
+    {{ compare_end_date(contract.end_date) }}
+        {% endif %}
+    </td></tr>
+    <tr><th>Renewal terms</th><td>{{ contract.renewal }}</td></tr>
+    <tr><th>Remarks</th><td>{{ contract.remarks }}</td></tr>
+    <tr><th>Contract file</th><td>
+        {% if contract.contract_file %}
+        <a href="{{ url_for("contracts.download_contract_document", contract_id=contract.id) }}">Download documents</a>
+        {% else %}
+        No documents uploaded
+        {% endif %}
+    </td></tr>
+    <tr><th></th><td></td></tr>
+
+</table>
+<div class="has-text-centered">
+
+<a class="button is-success is-outlined" href="{{ url_for("contracts.edit_contract", contract_id=contract.id) }}">Edit Details</a>
+    </div>
+{% endif %}
+</div>
+{% endblock content %}
