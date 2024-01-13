@@ -13,18 +13,21 @@
 
     <body {% block body_attrs %}{% endblock body_attrs %}>
         <header>
-            <nav class="navbar has-background-primary-light" aria-label="main navigation">
+            <nav class="navbar is-dark" aria-label="main navigation">
                 <div class="navbar-brand">
                     <div class="navbar-start">
-                        <div class="navbar-item">
-                            <div class="buttons">
-                                <a class="button is-link" href="{{ url_for('main.index')}}">Index</a>
-                                 <a class="button is-link" href="{{ url_for('coinsurance.home_page')}}">Coinsurance home</a>
-
-                            </div>
-                        </div>
+                    <a class="navbar-item" href="{{ url_for('main.index')}}">Index</a>
+                     <a class="navbar-item" href="{{ url_for('coinsurance.home_page')}}">Coinsurance home</a>
+                        <a class="navbar-item" href="{{ url_for('coinsurance.list_coinsurance_entries') }}">View all entries</a>
+                    <a class="navbar-item" href="{{ url_for('coinsurance.list_settlement_entries') }}">View settlements</a>
+                    <a class="navbar-item" href="{{ url_for('coinsurance.add_coinsurance_entry') }}">Add new confirmation</a>
+ {% if current_user.user_type == "admin" %}
+                 <a class="navbar-item" href="{{ url_for('coinsurance.add_settlement_data') }}">Add new settlement</a>
+{% endif %}
                     </div>
-                </div>
+             </div>
+        </div>
+    </div>
 
                 <div class="navbar-end">
                     <div class="navbar-item">
