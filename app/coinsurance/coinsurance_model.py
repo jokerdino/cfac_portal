@@ -1,5 +1,5 @@
 # import uuid
-#from sqlalchemy.dialects.postgresql import UUID
+# from sqlalchemy.dialects.postgresql import UUID
 
 from extensions import db
 
@@ -91,3 +91,17 @@ class Coinsurance_log(db.Model):
 
 
 #    settlement_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4)
+
+
+class CoinsuranceBalances(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    office_code = db.Column(db.String)
+    company_name = db.Column(db.String)
+    period = db.Column(db.String)
+    hub_due_to_claims = db.Column(db.Float)
+    hub_due_to_premium = db.Column(db.Float)
+    hub_due_from_claims = db.Column(db.Float)
+    hub_due_from_premium = db.Column(db.Float)
+    oo_due_to = db.Column(db.Float)
+    oo_due_from = db.Column(db.Float)
+    net_amount = db.Column(db.Float)

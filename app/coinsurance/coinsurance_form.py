@@ -109,3 +109,7 @@ class SettlementForm(FlaskForm):
 
 class SettlementUTRForm(FlaskForm):
     utr_number = SelectField("UTR number: ", validators=[DataRequired()])
+
+
+class CoinsuranceBalanceQueryForm(FlaskForm):
+    period = SelectField("Select Period", validators=[DataRequired()])

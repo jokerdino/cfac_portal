@@ -1,0 +1,103 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+{% if coinsurance_balance %}
+
+<h1 class="title">{{ period }}</h1>
+<table class="table is-fullwidth is-bordered" id="coinsurance_balance_table">
+    <thead><tr>
+        <th>Office Code</th>
+            <th>Company name</th>
+        <th>Period</th>
+        <th>Hub Due to premium</th>
+            <th>Hub Due to claims</th>
+            <th>Hub Due from premium</th>
+            <th>Hub Due from claims</th>
+            <th>OO Due to</th>
+            <th>OO Due from</th>
+            <th>Net amount</th>
+
+    </tr></thead>
+    <tbody>
+    {% for entry in coinsurance_balance %}
+    <tr>
+        <td>{{ entry.office_code }}</td>
+        <td>{{ entry.company_name }}</td>
+        <td>{{ entry.period }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.hub_due_to_premium|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.hub_due_to_claims|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.hub_due_from_premium|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.hub_due_from_claims|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.oo_due_to|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.oo_due_from|int) }}</td>
+        <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
+
+        {% endfor %}
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+        <th class="has-text-right" colspan="9"></th>
+
+        <th></th>
+    </tr>
+    </tfoot>
+</table>
+{% endif %}
+
+{% block scripts %}
+
+<script>
+               $(document).ready(function () {
+                            $('#coinsurance_balance_table').DataTable({
+                                dom: 'lfBrtip',
+                                fixedHeader: true,
+                                buttons: [
+                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+                                order: [[9,'asc']],
+                                            pagingType: 'full_numbers',
+                                                   footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+            };
+
+            // Total over all pages
+            total = api
+                .column(9)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Total over this page
+            pageTotal = api
+                .column(9, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Update footer
+            const formatter = new Intl.NumberFormat('en-IN', {
+                            style:'currency',
+                            currency:'INR',
+                            minimumFractionDigits:2,
+                            maximumFractionDigits:2,
+                            trailingZeroDisplay: 'stripIfInteger'
+                        });
+
+            $(api.column(9).footer()).html('Page Total: ' + formatter.format(pageTotal) );
+            $(api.column(0).footer()).html('Total: ' + formatter.format(total) );
+        },
+                                lengthMenu: [
+                                             [10,25,50,100,-1],
+                                            [10,25,50,100,'All'],]
+                                        });
+                        });
+    </script>
+{% endblock scripts %}
+{% endblock content %}

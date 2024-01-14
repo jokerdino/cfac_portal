@@ -1,8 +1,17 @@
 # import uuid
 from datetime import datetime
-from sqlalchemy import func, distinct, select
+import pandas as pd
+from sqlalchemy import func, distinct, select, create_engine
 
-from flask import redirect, render_template, request, send_from_directory, url_for
+from flask import (
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 
@@ -11,12 +20,14 @@ from app.coinsurance.coinsurance_form import (
     CoinsuranceForm,
     SettlementForm,
     SettlementUTRForm,
+    CoinsuranceBalanceQueryForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
     Coinsurance_log,
     Remarks,
     Settlement,
+    CoinsuranceBalances,
 )
 
 
@@ -720,4 +731,72 @@ def view_coinsurance_log(coinsurance_id):
     column_names = Coinsurance_log.query.statement.columns.keys()
     return render_template(
         "view_coinsurance_log.html", log=log, column_names=column_names
+    )
+
+
+@coinsurance_bp.route("/upload_balances", methods=["POST", "GET"])
+def upload_coinsurance_balance():
+    if request.method == "POST":
+        file_upload_coinsurance_balance = request.files.get("file")
+        df_coinsurance_balance = pd.read_excel(
+            file_upload_coinsurance_balance,
+            sheet_name="office_wise",
+            dtype={
+                "Office Code": str,
+                "Company name": str,
+                "Hub Due from Claims": float,
+                "Hub Due from Premium": float,
+                "Hub Due to Claims": float,
+                "Hub Due to Premium": float,
+                "OO Due to": float,
+                "OO Due from": float,
+                "Net": float,
+                "Period": str,
+            },
+        )
+        df_coinsurance_balance.rename(
+            columns={
+                "Office Code": "office_code",
+                "Company name": "company_name",
+                "Hub Due from Claims": "hub_due_from_claims",
+                "Hub Due from Premium": "hub_due_from_premium",
+                "Hub Due to Claims": "hub_due_to_claims",
+                "Hub Due to Premium": "hub_due_to_premium",
+                "OO Due to": "oo_due_to",
+                "OO Due from": "oo_due_from",
+                "Net": "net_amount",
+                "Period": "period",
+            },
+            inplace=True,
+        )
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        df_coinsurance_balance.to_sql(
+            "coinsurance_balances", engine, if_exists="append", index=False
+        )
+        flash("Coinsurance balance has been uploaded to database.")
+    return render_template("coinsurance_balance_upload.html")
+
+
+@coinsurance_bp.route("/view_coinsurance_balance", methods=["POST", "GET"])
+def query_view_coinsurance_balance():
+    form = CoinsuranceBalanceQueryForm()
+    period_list = CoinsuranceBalances.query.with_entities(
+        CoinsuranceBalances.period
+    ).distinct()
+    form.period.choices = [(item[0], item[0]) for item in period_list]
+    if form.validate_on_submit():
+        period = form.data["period"]
+        return redirect(url_for("coinsurance.view_coinsurance_balance", period=period))
+    return render_template("query_coinsurance_balance.html", form=form)
+
+
+@coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
+def view_coinsurance_balance(period):
+    coinsurance_balance = CoinsuranceBalances.query.filter(
+        CoinsuranceBalances.period == period
+    )
+    return render_template(
+        "view_coinsurance_balance.html",
+        coinsurance_balance=coinsurance_balance,
+        period=period,
     )
