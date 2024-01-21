@@ -6,8 +6,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 
-from app.admin import admin_bp
-from app.admin.admin_forms import UpdateUserForm
+from app.portal_admin import admin_bp
+from app.portal_admin.admin_forms import UpdateUserForm
 from app.users.user_model import Log_user, User
 
 
@@ -20,20 +20,23 @@ def home_page():
 def upload_users():
     if request.method == "POST":
         upload_file = request.files.get("file")
-        df_user_upload_chunk = pd.read_csv(upload_file, chunksize=100,
-        dtype={
-        "ro_code": str,
-        "oo_code": str,}
+        df_user_upload_chunk = pd.read_csv(
+            upload_file,
+            chunksize=100,
+            dtype={
+                "ro_code": str,
+                "oo_code": str,
+            },
         )
         password_hash = generate_password_hash("password")
-        #print(df_user_upload.columns.values.tolist())
+        # print(df_user_upload.columns.values.tolist())
         for df_user_upload in df_user_upload_chunk:
-          #  df_user_upload["password"] = df_user_upload["password"].apply(
-           #     generate_password_hash
-           # )
+            #  df_user_upload["password"] = df_user_upload["password"].apply(
+            #     generate_password_hash
+            # )
             df_user_upload["password"] = password_hash
             df_user_upload["reset_password"] = True
-            engine = create_engine(current_app.config.get('SQLALCHEMY_DATABASE_URI'))
+            engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
             try:
                 df_user_upload.to_sql("user", engine, if_exists="append", index=False)
@@ -75,7 +78,7 @@ def view_user_page(user_key):
         db.session.add(user)
         db.session.commit()
         admin_check()
-      #  return redirect(url_for("admin.view_list_users"))
+    #  return redirect(url_for("portal_admin.view_list_users"))
 
     form.change_user_type.data = user.user_type
     form.reset_password_page.data = user.reset_password

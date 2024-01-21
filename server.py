@@ -3,7 +3,7 @@ import calendar
 from flask import Flask
 from waitress import serve
 
-from app.admin.admin_routes import admin_check
+from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
 from config import Config
 from extensions import db, lm, migrate
@@ -53,9 +53,9 @@ def create_app(config_class=Config):
 
     app.register_blueprint(user_bp, url_prefix="/user")
 
-    from app.admin import admin_bp
+    from app.portal_admin import admin_bp
 
-    app.register_blueprint(admin_bp, url_prefix="/admin")
+    app.register_blueprint(admin_bp, url_prefix="/portal_admin")
 
     from app.coinsurance import coinsurance_bp
 
