@@ -28,7 +28,7 @@ def signup():
         # emp_number = form.data["emp_number"]
 
         user = User.query.filter(
-            or_(User.oo_code == username)  # , User.emp_number == emp_number)
+            or_(User.username == username)  # , User.emp_number == emp_number)
         ).first()
         if user:
             flash("Username or employee number already exists.")
@@ -42,7 +42,7 @@ def signup():
             #   new_employee = Employee(name=username, emp_number=emp_number)
             #  db.session.add(new_employee)
             user = User(
-                oo_code=username, password=password_hash
+                username=username, password=password_hash
             )  # , emp_number=emp_number
             # )
             db.session.add(user)
@@ -63,7 +63,7 @@ def login_page():
 
     if form.validate_on_submit():
         username = form.data["username"].lower()
-        user = db.session.query(User).filter(User.oo_code == username).first()
+        user = db.session.query(User).filter(User.username == username).first()
         if user is not None:
             password = form.data["password"]
 
@@ -71,7 +71,7 @@ def login_page():
                 login_user(user)
                 user.time_last_login = datetime.now()
                 db.session.commit()
-                logger_user_actions(username, "Logged in", datetime.now())
+                logger_user_actions(current_user.username, "Logged in", datetime.now())
                 if user.reset_password:
                     return redirect(url_for("users.reset_password_page"))
 
@@ -86,7 +86,7 @@ def login_page():
 
 @user_bp.route("/logout", methods=["POST", "GET"])
 def logout_page():
-    logger_user_actions(current_user.oo_code, "Logged out", datetime.now())
+    logger_user_actions(current_user.username, "Logged out", datetime.now())
     logout_user()
 
     # flash("You have logged out.")
@@ -107,8 +107,8 @@ def reset_password_page():
         #        emp_number = form.data["emp_number"]
 
         user = User.query.filter(
-            User.oo_code
-            == current_user.oo_code  # username #, User.emp_number == emp_number
+            User.username
+            == current_user.username  # username #, User.emp_number == emp_number
         ).first()
         #        if user:
         if current_user.reset_password:
@@ -120,7 +120,7 @@ def reset_password_page():
             user.reset_password = False
             db.session.add(user)
             db.session.commit()
-            logger_user_actions(current_user.oo_code, "Password reset", datetime.now())
+            logger_user_actions(current_user.username, "Password reset", datetime.now())
             return redirect(url_for("main.index"))
         else:
             flash("Password reset page is not enabled for this user. Contact admin.")

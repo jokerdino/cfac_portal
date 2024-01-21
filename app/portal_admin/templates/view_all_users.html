@@ -11,6 +11,7 @@
             <tr>
                 <th>RO Code</th>
                 <th>OO code</th>
+                <th>Username</th>
                 <th>Type of user</th>
                 <th>Password reset status</th>
                 <th>Last login</th>
@@ -24,11 +25,11 @@
             <tr>
                     <td> {{ user.ro_code }} </td>
                     <td>{{ user.oo_code }}</td>
-
+                    <td>{{ user.username }}</td>
                     <td>{{ user.user_type }}</td>
                     <td>{{ user.reset_password }}</td>
                     <td>{{ user.time_last_login }}</td>
-                         <td> <a href="{{ url_for('admin.view_user_page', user_key=user.id) }}"> Edit</a> </td>
+                         <td> <a href="{{ url_for('portal_admin.view_user_page', user_key=user.id) }}"> Edit</a> </td>
             </tr>
             {% endif %}
             {% endfor %}

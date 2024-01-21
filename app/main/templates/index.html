@@ -32,7 +32,7 @@
                                 <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                                 {% else %}
 
-                                  <a class="button">  {{ current_user.oo_code }} </a>
+                                  <a class="button">  {{ current_user.username }} </a>
                                 <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                                 {% endif %}
                             </div>
@@ -133,7 +133,7 @@
   </div>
     {% if current_user.user_type == "admin" %}
       <div class="tile is-parent">
-    <a href="{{ url_for('admin.home_page')}}">
+    <a href="{{ url_for('portal_admin.home_page')}}">
     <article class="tile is-child notification is-danger">
       <div class="content">
         <p class="title">Admin users</p>

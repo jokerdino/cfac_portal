@@ -7,6 +7,7 @@
     <table class="table is-fullwidth">
             <tr> <th>RO code:</th> <td>{{ user.ro_code }}</td> </tr>
         <tr> <th>OO code:</th> <td>{{ user.oo_code }}</td> </tr>
+        <tr> <th>Username:</th> <td>{{ user.username }}</td> </tr>
         <tr> <th>Last login time:</th> <td>{{ user.time_last_login }}</td> </tr>
 
   {% if current_user.user_type == "admin" %}
@@ -25,7 +26,7 @@
 
 {% if current_user.user_type == "admin" %}
 
-    <div class="mt-5 field is-grouped">
+    <div class="mt-5 has-text-centered">
         <button class="button is-primary is-big">Save</button>
     </div>
 
@@ -44,7 +45,7 @@
 <thead>
 <tr>
 
-    <th>OO Code</th>
+    <th>Username</th>
                 <th>Type of action</th>
                 <th>Time of action</th></tr>
                 </thead>
@@ -59,7 +60,7 @@
 </table>
 
 {% endif %}
-<a class="button is-link" href="{{ url_for('admin.view_list_users') }}">Go back</a>
+<a class="button is-link" href="{{ url_for('portal_admin.view_list_users') }}">Go back</a>
 
 {% block scripts %}
 <script>

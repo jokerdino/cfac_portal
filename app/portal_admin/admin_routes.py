@@ -26,6 +26,7 @@ def upload_users():
             dtype={
                 "ro_code": str,
                 "oo_code": str,
+                "username": str,
             },
         )
         password_hash = generate_password_hash("password")
@@ -42,7 +43,7 @@ def upload_users():
                 df_user_upload.to_sql("user", engine, if_exists="append", index=False)
                 flash("User details have been uploaded to database.")
             except IntegrityError:
-                flash("Upload unique oo_code only.")
+                flash("Upload unique username only.")
     #        convert_input(upload_file)
     # flash("GST invoice data has been received. Processing the input file..")
     # await upload_details(upload_file)
@@ -58,7 +59,9 @@ def view_user_page(user_key):
     # return render_template("user_page.html")
 
     user = User.query.get_or_404(user_key)
-    user_log = db.session.query(Log_user).filter(Log_user.user_id == user.oo_code).all()
+    user_log = (
+        db.session.query(Log_user).filter(Log_user.user_id == user.username).all()
+    )
 
     if form.validate_on_submit():
         # change type of user based on selectfield
@@ -98,7 +101,7 @@ def admin_check():
     admin = db.session.query(User).filter(User.user_type == "admin").first()
     if not admin:
         user = User(
-            oo_code="cfac_admin",
+            username="cfac_admin",
             password=generate_password_hash("cfac_admin"),
             user_type="admin",
             reset_password=True,

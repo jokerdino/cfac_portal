@@ -27,7 +27,7 @@ from app.brs.forms import BRSForm, BRS_entry, DashboardForm
 def brs_home_page():
     if current_user.user_type == "oo_user":
         brs_entries = BRS.query.filter(BRS.uiic_office_code == current_user.oo_code)
-    elif current_user.user_type in ["portal_admin", "ro_user"]:
+    elif current_user.user_type in ["admin", "ro_user"]:
         return redirect(url_for("brs.brs_dashboard"))
     else:
         return "No permission"
