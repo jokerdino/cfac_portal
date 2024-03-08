@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, IntegerField, EmailField, StringField, TextAreaField
+from wtforms import SelectField, BooleanField, EmailField, StringField, TextAreaField
 from wtforms.validators import DataRequired, Optional
 
 
@@ -41,3 +41,6 @@ class TicketsForm(FlaskForm):
         ],
     )
     remarks = TextAreaField("Enter remarks")
+    regional_incharge_approval = BooleanField(
+        "Regional Incharge approval is available", validators=[DataRequired()]
+    )
