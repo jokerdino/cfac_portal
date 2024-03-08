@@ -1,12 +1,13 @@
 from datetime import datetime
 import calendar
 from flask import Flask
+
 from waitress import serve
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
 from config import Config
-from extensions import db, lm, migrate
+from extensions import db, lm, migrate, admin
 
 
 @lm.user_loader
@@ -37,12 +38,17 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     app.jinja_env.filters["datetime_format"] = datetime_format
+
     # Initialize Flask extensions here
 
     lm.init_app(app)
     lm.login_view = "users.login_page"
     db.init_app(app)
     migrate.init_app(app, db)
+
+    app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
+
+    admin.init_app(app)
 
     # Register blueprints here
     from app.main import main_bp
@@ -80,6 +86,10 @@ def create_app(config_class=Config):
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")
+
+    from app.cfac_flask_admin import flask_admin_bp
+
+    app.register_blueprint(flask_admin_bp, url_prefix="/admin")
 
     return app
 

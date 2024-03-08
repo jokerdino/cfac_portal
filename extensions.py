@@ -1,7 +1,10 @@
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
 from sqlalchemy import MetaData
+
+from flask_admin_models import MyAdminIndexView
 
 migrate = Migrate()
 lm = LoginManager()
@@ -17,3 +20,9 @@ convention = {
 metadata = MetaData(naming_convention=convention)
 
 db = SQLAlchemy(metadata=metadata)
+
+admin = Admin(
+    name="CFAC portal",
+    template_mode="bootstrap3",
+    index_view=MyAdminIndexView(),
+)
