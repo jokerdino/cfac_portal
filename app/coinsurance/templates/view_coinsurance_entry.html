@@ -54,7 +54,7 @@
                     <tbody>
                         {% for remark in remarks %}
                         <tr>
-                            <td>{{ remark.time_of_remark }}</td>
+                            <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark) }}</td>
                             <td>{{ remark.user }}</td>
                             <td>{{ remark.remarks }}</td>
 

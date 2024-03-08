@@ -30,6 +30,8 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceBalances,
 )
 
+from app.tickets.tickets_routes import humanize_datetime
+
 
 @coinsurance_bp.route("/")
 def home_page():
@@ -246,6 +248,7 @@ def view_coinsurance_entry(coinsurance_id):
         remarks=remarks,
         settlement=settlement,
         enable_edit_button=enable_edit_button,
+        humanize_datetime=humanize_datetime,
     )
 
 
@@ -511,6 +514,7 @@ def edit_coinsurance_entry(coinsurance_id):
         change_status=change_status,
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
+        humanize_datetime=humanize_datetime,
     )
 
 

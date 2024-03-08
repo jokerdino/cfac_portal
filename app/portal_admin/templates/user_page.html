@@ -8,7 +8,14 @@
             <tr> <th>RO code:</th> <td>{{ user.ro_code }}</td> </tr>
         <tr> <th>OO code:</th> <td>{{ user.oo_code }}</td> </tr>
         <tr> <th>Username:</th> <td>{{ user.username }}</td> </tr>
-        <tr> <th>Last login time:</th> <td>{{ user.time_last_login }}</td> </tr>
+        <tr> <th>Last login time:</th>
+
+            {% if user.time_last_login %}
+            <td title="{{ user.time_last_login }}">{{ humanize_datetime(user.time_last_login) }}</td>
+            {% else %}
+            <td>{{ user.time_last_login }}</td>
+            {% endif %}
+        </tr>
 
   {% if current_user.user_type == "admin" %}
 
@@ -53,7 +60,7 @@
                 <tr>
                       <td>{{ item.user_id }}</td>
                     <td>{{ item.type_of_action }}</td>
-                    <td>{{ item.time_of_action }}</td>
+                    <td title="{{ item.time_of_action }}">{{ humanize_datetime(item.time_of_action) }}</td>
             </tr>
 
 {% endfor %}
