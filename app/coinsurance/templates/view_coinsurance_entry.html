@@ -91,11 +91,11 @@
             </td></tr>
             {% endif %}
             </table>
-    <div class="field is-grouped">
+    <div class="mt-5 has-text-centered">
         {% if enable_edit_button %}
-      <a class="button is-link is-outlined" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=coinsurance.id)}}">Edit</a>
+      <a class="button is-link is-outlined is-large" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=coinsurance.id)}}">Edit</a>
       		{% else %}
-				<a class="button is-link" disabled>Edit</a>
+				<a class="button is-link is-large" disabled>Edit</a>
 
       {% endif %}
     </div>

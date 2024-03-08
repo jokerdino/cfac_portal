@@ -176,7 +176,7 @@ def add_coinsurance_entry():
         if form_remarks:
             remarks = Remarks(
                 coinsurance_id=coinsurance.id,
-                user=current_user.oo_code,
+                user=current_user.username,
                 remarks=form_remarks,
                 time_of_remark=datetime.now(),
             )
@@ -184,7 +184,7 @@ def add_coinsurance_entry():
             db.session.commit()
         coinsurance_log = Coinsurance_log(
             coinsurance_id=coinsurance.id,
-            user=current_user.oo_code,
+            user=current_user.username,
             time_of_update=datetime.now(),
             uiic_regional_code=regional_office_code,
             uiic_office_code=oo_code,
@@ -205,7 +205,9 @@ def add_coinsurance_entry():
         )
         db.session.add(coinsurance_log)
         db.session.commit()
-        return redirect(url_for("coinsurance.list_coinsurance_entries"))
+        return redirect(
+            url_for("coinsurance.view_coinsurance_entry", coinsurance_id=coinsurance.id)
+        )
 
     if current_user.user_type == "oo_user":
         form.regional_office_code.data = current_user.ro_code
@@ -413,7 +415,7 @@ def edit_coinsurance_entry(coinsurance_id):
         if form.data["remarks"]:
             remarks = Remarks(
                 coinsurance_id=coinsurance.id,
-                user=current_user.oo_code,
+                user=current_user.username,
                 remarks=form.data["remarks"],
                 time_of_remark=datetime.now(),
             )
@@ -422,7 +424,7 @@ def edit_coinsurance_entry(coinsurance_id):
 
         coinsurance_log = Coinsurance_log(
             coinsurance_id=coinsurance.id,
-            user=current_user.oo_code,
+            user=current_user.username,
             time_of_update=datetime.now(),
             uiic_regional_code=regional_office_code,
             uiic_office_code=oo_code,
@@ -444,7 +446,9 @@ def edit_coinsurance_entry(coinsurance_id):
         db.session.add(coinsurance_log)
         db.session.commit()
 
-        return redirect(url_for("coinsurance.list_coinsurance_entries"))
+        return redirect(
+            url_for("coinsurance.view_coinsurance_entry", coinsurance_id=coinsurance_id)
+        )
     remarks = Remarks.query.filter(Remarks.coinsurance_id == coinsurance_id)
 
     form.regional_office_code.data = coinsurance.uiic_regional_code
