@@ -38,11 +38,11 @@
 
 <table class="table is-bordered is-hoverable">
 
-<tr><th>Opening balance</th>
+<tr><th>Opening balance as per GL</th>
 
         <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td></tr>
-<tr><th>Add: On hand</th>
+<tr><th>Add: Opening On hand</th>
         <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td></tr>
 <tr><th>Add: Collections during the month</th>
@@ -51,16 +51,20 @@
 <tr><th>Less: Cancellations / cheque dishonours during the month</th>
         <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td></tr>
-<tr><th>Less: Fund transfer</th>
+<tr><th>Balance before fund transfer</th>
+        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+        <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td></tr>
+
+    <tr><th>Less: Fund transfer</th>
         <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td></tr>
 <tr><th>Less: Bank charges</th>
         <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td></tr>
-<tr><th>Less: On hand</th>
+<tr><th>Less: Closing On hand</th>
         <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td></tr>
-<tr><th>Closing balance</th>
+<tr><th>Closing balance as per GL</th>
         <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
         <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
     {% if brs_entry.remarks %}
@@ -106,7 +110,7 @@
 
     {% if not pdf %}
 <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
-<a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}">Print as PDF</a>
+<a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}" target="_blank">Print as PDF</a>
     {% endif %}
 </div>
 {% endif %}

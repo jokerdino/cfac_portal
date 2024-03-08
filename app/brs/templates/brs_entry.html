@@ -60,6 +60,9 @@
         <tr><th>{{ form.cancellations.label }}</th>
             <td>{{ brs_entry.month }}</td>
             <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.cancellations(class='input is-small') }}</td></tr>
+        <tr><th>Balance before fund transfer</th>
+            <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right"><label id="cal_balance_before_fund_transfer"></label></td></tr>
         <tr><th>{{ form.fund_transfer.label }}</th>
             <td>{{ brs_entry.month }}</td>
             <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.fund_transfer(class='input is-small') }}</td></tr>
@@ -69,7 +72,7 @@
         <tr><th>{{ form.closing_on_hand.label }}</th>
             <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
             <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.closing_on_hand(class='input is-small') }}</td></tr>
-        <tr><th>Closing balance</th>
+        <tr><th>Closing balance as per GL</th>
             <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
             <td class="has-text-right"><label id="cal_closing_balance"></label></td></tr>
       <tr><th>Remarks</th>
@@ -102,7 +105,7 @@ calculateSum();
      var bank_charges = parseFloat(document.getElementById("bank_charges").value===""?0:document.getElementById("bank_charges").value);
      var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value===""?0:document.getElementById("closing_on_hand").value);
     closing_balance = opening_balance +  opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
-
+    balance_before_fund_transfer = opening_balance + opening_on_hand + transactions - cancellations
             const formatter = new Intl.NumberFormat('en-IN', {
                             style:'currency',
                             currency:'INR',
@@ -111,7 +114,7 @@ calculateSum();
                             trailingZeroDisplay: 'stripIfInteger'
                         });
         document.getElementById("cal_closing_balance").innerText = formatter.format(closing_balance);
-
+        document.getElementById("cal_balance_before_fund_transfer").innerText = formatter.format(balance_before_fund_transfer);
    if (closing_balance > 0) {
     document.getElementById("outstanding_entries").disabled = false;
        }

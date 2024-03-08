@@ -162,7 +162,9 @@ def percent_completed(brs_key):
 def bulk_upload_brs():
     if request.method == "POST":
         upload_file = request.files.get("file")
-        df_user_upload = pd.read_csv(upload_file)
+        df_user_upload = pd.read_csv(
+            upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
+        )
         df_user_upload["timestamp"] = datetime.now()
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_user_upload.to_sql("brs", engine, if_exists="append", index=False)

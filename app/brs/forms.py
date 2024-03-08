@@ -21,12 +21,12 @@ class BRSForm(FlaskForm):
 
 
 class BRS_entry(FlaskForm):
-    opening_balance = DecimalField("Enter opening balance", validators=[Optional()])
+    opening_balance = DecimalField("Opening balance as per GL", validators=[Optional()])
     opening_on_hand = DecimalField(
-        "Add: Enter cash/cheques on hand", validators=[Optional()]
+        "Add: Opening cash/cheques on hand", validators=[Optional()]
     )
     transactions = DecimalField(
-        "Add: Enter collections during the month", validators=[Optional()]
+        "Add: Collections during the month", validators=[Optional()]
     )
     cancellations = DecimalField(
         "Less: Cancellations / dishonours during the month", validators=[Optional()]
@@ -34,7 +34,7 @@ class BRS_entry(FlaskForm):
     fund_transfer = DecimalField("Less: Fund transfer", validators=[Optional()])
     bank_charges = DecimalField("Less: Bank charges", validators=[Optional()])
     closing_on_hand = DecimalField(
-        "Less: Enter cash/cheques on hand", validators=[Optional()]
+        "Less: Closing cash/cheques on hand", validators=[Optional()]
     )
     outstanding_entries = FileField(
         "Upload details of closing balance in prescribed format:",
