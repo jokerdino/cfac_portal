@@ -19,7 +19,8 @@
                         <div class="navbar-item">
                             <div class="buttons">
                                 <a class="button is-link" href="{{ url_for('main.index')}}">Index</a>
-                                 <a class="button is-link" href="{{ url_for('portal_admin.home_page')}}">Admin home</a>
+                                <a class="button is-link" href="{{ url_for('portal_admin.view_list_users') }}">Admin home</a>
+                                <a class="button is-link" href="{{ url_for('portal_admin.upload_users') }}">Bulk upload users</a>
 
                             </div>
                         </div>
@@ -44,7 +45,7 @@
             </nav>
         </header>
 
-        <div class="container is-max-desktop">
+        <div class="container is-fluid is-max-desktop">
             <hr />
             {% if current_user.user_type == "admin" %}
             {% block content %}{% endblock content %}
