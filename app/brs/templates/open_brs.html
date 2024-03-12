@@ -23,7 +23,7 @@
 {% if brs_entry.cash_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cash_brs_id) }}' >View Cash BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_cash_brs }}  {{ form.delete_cash_brs.label }}
         {% endif %}
         </td>
@@ -41,7 +41,7 @@
 {% if brs_entry.cheque_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cheque_brs_id) }}' >View Cheque BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_cheque_brs }}  {{ form.delete_cheque_brs.label }}
         {% endif %}
         </td>
@@ -59,7 +59,7 @@
 {% if brs_entry.pg_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pg_brs_id) }}' >View Payment Gateway BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_pg_brs }}  {{ form.delete_pg_brs.label }}
         {% endif %}
         </td>
@@ -77,7 +77,7 @@
 {% if brs_entry.pos_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pos_brs_id) }}' >View POS BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_pos_brs }}  {{ form.delete_pos_brs.label }}
         {% endif %}
         </td>
@@ -95,7 +95,7 @@
 {% if brs_entry.bbps_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.bbps_brs_id) }}' >View BBPS BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_bbps_brs }}  {{ form.delete_bbps_brs.label }}
         {% endif %}
         </td>
@@ -113,7 +113,7 @@
 {% if brs_entry.local_collection_brs_id %}
 <a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.local_collection_brs_id) }}' >View Local Collection BRS</a>
         <td>
-        {% if current_user.user_type == "admin" %}
+        {% if current_user.user_type in list_delete_brs %}
       {{ form.delete_local_collection_brs }}  {{ form.delete_local_collection_brs.label }}
         {% endif %}
         </td>

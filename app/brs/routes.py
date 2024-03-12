@@ -170,7 +170,7 @@ def bulk_upload_brs():
         df_user_upload.to_sql("brs", engine, if_exists="append", index=False)
         flash("BRS records have been uploaded to database.")
 
-    return render_template("brs_upload.html")
+    return render_template("bulk_brs_upload.html")
 
 
 @brs_bp.route("/upload_brs/<int:brs_key>", methods=["POST", "GET"])
@@ -178,6 +178,9 @@ def bulk_upload_brs():
 def upload_brs(brs_key):
     from server import db
 
+    # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
+    # As per requirement, both HO user and RO user can soft delete the BRS data.
+    list_delete_brs = ["admin", "ro_user"]
     brs_entry = BRS.query.get_or_404(brs_key)
     form = BRSForm()
     if form.validate_on_submit():
@@ -203,7 +206,9 @@ def upload_brs(brs_key):
         brs_month.status = "Deleted"
         db.session.commit()
         return redirect(url_for("brs.upload_brs", brs_key=brs_key))
-    return render_template("upload_brs.html", brs_entry=brs_entry, form=form)
+    return render_template(
+        "open_brs.html", brs_entry=brs_entry, form=form, list_delete_brs=list_delete_brs
+    )
 
 
 @brs_bp.route("/download_format")
@@ -253,7 +258,7 @@ def get_prev_month_amount(requirement, brs_id):
     brs_entry = BRS.query.get_or_404(brs_id)
 
     datetime_object = datetime.strptime(brs_entry.month, "%B-%Y")
-    if datetime_object.month - 1 > 1:
+    if datetime_object.month - 1 > 0:
         month_number = datetime_object.month - 1
         year = datetime_object.year
     else:
@@ -336,8 +341,10 @@ def enter_brs(requirement, brs_id):
 
             if closing_balance > 0:
                 try:
+                    date_columns = ["date_of_instrument", "date_of_collection"]
                     df_outstanding_entries = pd.read_csv(
-                        form.data["outstanding_entries"]
+                        form.data["outstanding_entries"],
+                        parse_dates=date_columns,
                     )
                     try:
                         sum_os_entries = df_outstanding_entries[
@@ -406,7 +413,7 @@ def enter_brs(requirement, brs_id):
     form.opening_on_hand.data = get_prev_month_amount(requirement, brs_id)[1]
 
     return render_template(
-        "brs_entry.html",
+        "add_brs_entry.html",
         form=form,
         brs_entry=brs_entry,
         requirement=requirement,
@@ -419,7 +426,9 @@ def enter_brs(requirement, brs_id):
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()
     return render_template(
-        "view_all_brs.html", brs_entries=list_all_brs_entries, get_brs_bank=get_brs_bank
+        "view_brs_raw_data.html",
+        brs_entries=list_all_brs_entries,
+        get_brs_bank=get_brs_bank,
     )
 
 
