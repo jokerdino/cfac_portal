@@ -3,9 +3,16 @@
 <h1 class="title"> {{ title }}{{ status }}</h1>
 
 {% if coinsurance_entries %}
-<form action="" method="post" name="coinsurance_list">
-    {% if status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"] %}
 
+    <form action="" class="mb-5" method="post" enctype="multipart/form-data">
+    {{ form_select_coinsurer.csrf_token }}
+  {{ form_select_coinsurer.coinsurer_name.label }}:  {{ form_select_coinsurer.coinsurer_name(class='select') }}
+    <button class="is-success is-outlined is-hoverable button is-small ">Refresh</button>
+</form>
+
+<form action="" method="post" name="coinsurance_list" enctype="multipart/form-data">
+    {% if status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"] %}
+    {{ form.csrf_token }}
   {{ form.utr_number.label }}  {{ form.utr_number(class='select') }}
 
 {% endif %}
@@ -90,6 +97,14 @@
         </div>
     </div>
 </form>
+         {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }}       {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+            </div>
+</div>
+
 {% endif %}
 {% endif %}
 
@@ -121,6 +136,25 @@
                 return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
             };
 
+    {% if status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"] %}
+            // Total over all pages
+            total = api
+                .column(16)
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            // Total over this page
+            pageTotal = api
+                .column(16, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+
+{% else %}
             // Total over all pages
             total = api
                 .column(15)
@@ -136,7 +170,7 @@
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
-
+{% endif %}
             // Update footer
 
             const formatter = new Intl.NumberFormat('en-IN', {

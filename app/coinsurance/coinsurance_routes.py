@@ -21,6 +21,7 @@ from app.coinsurance.coinsurance_form import (
     SettlementForm,
     SettlementUTRForm,
     CoinsuranceBalanceQueryForm,
+    CoinsurerSelectForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -522,27 +523,55 @@ def edit_coinsurance_entry(coinsurance_id):
     )
 
 
-@coinsurance_bp.route("/list/all")
+def select_coinsurers(query, form):
+    coinsurer_choices = query.distinct(Coinsurance.follower_company_name)
+    form.coinsurer_name.choices = ["View all"] + [
+        x.follower_company_name for x in coinsurer_choices
+    ]
+
+    if form.validate_on_submit():
+        coinsurer_choice = form.data["coinsurer_name"]
+        if coinsurer_choice != "View all":
+            query = query.filter(Coinsurance.follower_company_name == coinsurer_choice)
+            return query
+        else:
+            return query
+    return query
+
+
+@coinsurance_bp.route("/list/all", methods=["POST", "GET"])
 def list_coinsurance_entries():
+    form_select_coinsurer = CoinsurerSelectForm()
+
+    coinsurance_entries = Coinsurance.query.order_by(
+        Coinsurance.follower_company_name.desc()
+    )
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
         )
+
     elif current_user.user_type == "oo_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_office_code == current_user.oo_code
         )
-    else:
-        coinsurance_entries = Coinsurance.query.all()
+
+    coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
+
     return render_template(
         "view_all_coinsurance_entries.html",
         coinsurance_entries=coinsurance_entries,
         update_settlement=False,
+        form_select_coinsurer=form_select_coinsurer,
     )
 
 
 @coinsurance_bp.route("/list/<string:status>", methods=["POST", "GET"])
 def list_coinsurance_entries_by_status(status):
+    form_select_coinsurer = CoinsurerSelectForm()
+
+    coinsurance_entries = Coinsurance.query.filter(Coinsurance.current_status == status)
+
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -551,35 +580,40 @@ def list_coinsurance_entries_by_status(status):
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_office_code == current_user.oo_code
         ).filter(Coinsurance.current_status == status)
-    elif current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        coinsurance_entries = Coinsurance.query.filter(
-            Coinsurance.current_status == status
-        ).all()
 
     # update_settlement = False
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
         if status in ["To be settled"]:  # , "To be considered for settlement"]:
             # update_settlement = True
+            coinsurance_entries = select_coinsurers(
+                coinsurance_entries, form_select_coinsurer
+            )
+            coinsurer_choices = coinsurance_entries.distinct(
+                Coinsurance.follower_company_name
+            )
+            list_coinsurer_choices = [
+                x.follower_company_name for x in coinsurer_choices
+            ]
+
             from server import db
 
             form = SettlementUTRForm()
-            # print(type(form))
+
             utr_list = Settlement.query.with_entities(
                 Settlement.name_of_company,
                 Settlement.utr_number,
                 Settlement.settled_amount,
             ).distinct()
+
             form.utr_number.choices = [
                 (utr_number, f"{name_of_company}-{utr_number}: {settled_amount}")
+                if name_of_company in list_coinsurer_choices
+                else ("None", "None")
                 for name_of_company, utr_number, settled_amount in utr_list
             ]
-            # print(form.utr_number.choices)
-            coinsurance_entries = Coinsurance.query.filter(
-                Coinsurance.current_status == "To be settled"
-            )
+
             # update_settlement = True
-            if request.method == "POST":
-                # uuid_value = str(uuid.uuid4())
+            if form.validate_on_submit():  # request.method == "POST":
                 form_coinsurance_keys = request.form.getlist("coinsurance_keys")
                 form_utr_number = form.data["utr_number"]
                 settlement_company_check = Settlement.query.filter(
@@ -587,8 +621,6 @@ def list_coinsurance_entries_by_status(status):
                 ).first()
                 for key in form_coinsurance_keys:
                     coinsurance = Coinsurance.query.get_or_404(key)
-                    # coinsurance.settlement_utr = # last id of settlement table + 1
-                    #  coinsurance.settlement_uuid = uuid_value
                     if (
                         coinsurance.follower_company_name
                         == settlement_company_check.name_of_company
@@ -609,22 +641,31 @@ def list_coinsurance_entries_by_status(status):
                 update_settlement=True,
                 status=status,
                 form=form,
+                form_select_coinsurer=form_select_coinsurer,
             )
         else:
+            coinsurance_entries = select_coinsurers(
+                coinsurance_entries, form_select_coinsurer
+            )
             return render_template(
                 "view_all_coinsurance_entries.html",
                 coinsurance_entries=coinsurance_entries,
                 update_settlement=True,
                 status=status,
                 #        form=form,
+                form_select_coinsurer=form_select_coinsurer,
             )
     else:
+        coinsurance_entries = select_coinsurers(
+            coinsurance_entries, form_select_coinsurer
+        )
         return render_template(
             "view_all_coinsurance_entries.html",
             coinsurance_entries=coinsurance_entries,
             update_settlement=False,
             status=status,
             #        form=form,
+            form_select_coinsurer=form_select_coinsurer,
         )
 
 
@@ -664,14 +705,19 @@ def list_coinsurance_entries_by_status(status):
 #     )
 
 
-@coinsurance_bp.route("/list/settlements/<string:utr_number>")
+@coinsurance_bp.route("/list/settlements/<string:utr_number>", methods=["POST", "GET"])
 def list_settled_coinsurance_entries(utr_number):
+    form_select_coinsurer = CoinsurerSelectForm()
+
+    coinsurance_entries = Coinsurance.query.filter(Coinsurance.utr_number == utr_number)
+
+    coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
+
     return render_template(
         "view_all_coinsurance_entries.html",
-        coinsurance_entries=Coinsurance.query.filter(
-            Coinsurance.utr_number == utr_number
-        ),
+        coinsurance_entries=coinsurance_entries,
         update_settlement=False,
+        form_select_coinsurer=form_select_coinsurer,
     )
 
 
@@ -702,17 +748,20 @@ def add_settlement_data():
         utr_number = form.data["utr_number"]
         type_of_settlement = form.data["type_of_settlement"]
 
-        settlement_filename_data = secure_filename(
-            form.data["settlement_file"].filename
-        )
-        settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
-        settlement_filename = (
-            "settlement"
-            + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
-            + settlement_file_extension
-        )
-        form.settlement_file.data.save("settlements/" + settlement_filename)
+        if form.data["settlement_file"]:
+            settlement_filename_data = secure_filename(
+                form.data["settlement_file"].filename
+            )
+            settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
+            settlement_filename = (
+                "settlement"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + settlement_file_extension
+            )
+            form.settlement_file.data.save("settlements/" + settlement_filename)
+        else:
+            settlement_filename = None
 
         settlement = Settlement(
             name_of_company=name_of_company,

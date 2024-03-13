@@ -113,3 +113,7 @@ class SettlementUTRForm(FlaskForm):
 
 class CoinsuranceBalanceQueryForm(FlaskForm):
     period = SelectField("Select Period", validators=[DataRequired()])
+
+
+class CoinsurerSelectForm(FlaskForm):
+    coinsurer_name = SelectField("Select coinsurer")
