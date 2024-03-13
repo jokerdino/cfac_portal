@@ -376,7 +376,7 @@ def enter_brs(requirement, brs_id):
                                 current_app.config.get("SQLALCHEMY_DATABASE_URI")
                             )
 
-                            df_outstanding_entries.to_sql(
+                            df_outstanding_entries.dropna(how="all").to_sql(
                                 "outstanding", engine, if_exists="append", index=False
                             )
                             db.session.commit()

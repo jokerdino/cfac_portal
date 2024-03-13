@@ -3,9 +3,11 @@ from flask_wtf.file import FileField
 from wtforms import (
     BooleanField,
     DateField,
+    DecimalField,
     IntegerField,
     SelectField,
     StringField,
+    SubmitField,
     TextAreaField,
 )
 from wtforms.validators import DataRequired, Optional
@@ -97,18 +99,21 @@ class CoinsuranceForm(FlaskForm):
 
 
 class SettlementForm(FlaskForm):
-    coinsurer_name = SelectField("Enter coinsurer name:", choices=coinsurer_list)
-    date_of_settlement = DateField("Date of settlement:")
-    amount_settled = IntegerField("Amount settled")
-    utr_number = StringField("UTR number:")
+    coinsurer_name = SelectField(
+        "Enter coinsurer name:", choices=coinsurer_list, validators=[DataRequired()]
+    )
+    date_of_settlement = DateField("Date of settlement:", validators=[DataRequired()])
+    amount_settled = DecimalField("Amount settled", validators=[DataRequired()])
+    utr_number = StringField("UTR number:", validators=[DataRequired()])
     settlement_file = FileField("Upload summary statement:")
     type_of_settlement = SelectField(
-        "Paid or received: ", choices=["Paid", "Received"], validators=[Optional()]
+        "Paid or received: ", choices=["Paid", "Received"], validators=[DataRequired()]
     )
 
 
 class SettlementUTRForm(FlaskForm):
-    utr_number = SelectField("UTR number: ", validators=[DataRequired()])
+    utr_number = SelectField("UTR number: ", validators=[Optional()])
+    update_settlement = SubmitField("Update settlement")
 
 
 class CoinsuranceBalanceQueryForm(FlaskForm):
@@ -117,3 +122,4 @@ class CoinsuranceBalanceQueryForm(FlaskForm):
 
 class CoinsurerSelectForm(FlaskForm):
     coinsurer_name = SelectField("Select coinsurer")
+    filter_coinsurer = SubmitField("Refresh")

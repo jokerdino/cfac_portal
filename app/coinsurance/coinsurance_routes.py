@@ -529,7 +529,7 @@ def select_coinsurers(query, form):
         x.follower_company_name for x in coinsurer_choices
     ]
 
-    if form.validate_on_submit():
+    if form.validate_on_submit() and form.filter_coinsurer.data:
         coinsurer_choice = form.data["coinsurer_name"]
         if coinsurer_choice != "View all":
             query = query.filter(Coinsurance.follower_company_name == coinsurer_choice)
@@ -603,17 +603,21 @@ def list_coinsurance_entries_by_status(status):
                 Settlement.name_of_company,
                 Settlement.utr_number,
                 Settlement.settled_amount,
+                Settlement.date_of_settlement,
             ).distinct()
-
             form.utr_number.choices = [
-                (utr_number, f"{name_of_company}-{utr_number}: {settled_amount}")
+                (
+                    utr_number,
+                    f"{name_of_company}-{utr_number}: Rs. {settled_amount} on {date_of_settlement.strftime('%d/%m/%Y')}",
+                )
+                for name_of_company, utr_number, settled_amount, date_of_settlement in utr_list
                 if name_of_company in list_coinsurer_choices
-                else ("None", "None")
-                for name_of_company, utr_number, settled_amount in utr_list
             ]
 
             # update_settlement = True
-            if form.validate_on_submit():  # request.method == "POST":
+            if (
+                form.validate_on_submit() and form.update_settlement.data
+            ):  # request.method == "POST":
                 form_coinsurance_keys = request.form.getlist("coinsurance_keys")
                 form_utr_number = form.data["utr_number"]
                 settlement_company_check = Settlement.query.filter(
@@ -667,42 +671,6 @@ def list_coinsurance_entries_by_status(status):
             #        form=form,
             form_select_coinsurer=form_select_coinsurer,
         )
-
-
-# @coinsurance_bp.route("/list/mark_as_settled", methods=["POST", "GET"])
-# def list_coinsurance_entries_to_be_settled():
-#     from server import db
-#
-#     form = SettlementUTRForm()
-#     # print(type(form))
-#     form.utr_number.choices = Settlement.query.distinct(Settlement.utr_number).all()
-#     # print(form.utr_number.choices)
-#     coinsurance_entries = Coinsurance.query.filter(
-#         Coinsurance.current_status == "To be considered for settlement"
-#     )
-#     update_settlement = True
-#     if request.method == "POST":
-#         # uuid_value = str(uuid.uuid4())
-#         form_coinsurance_keys = request.form.getlist("coinsurance_keys")
-#         form_utr_number = form.data["utr_number"]
-#         for key in form_coinsurance_keys:
-#             coinsurance = Coinsurance.query.get_or_404(key)
-#             # coinsurance.settlement_utr = # last id of settlement table + 1
-#             #  coinsurance.settlement_uuid = uuid_value
-#             coinsurance.utr_number = form_utr_number
-#             coinsurance.current_status = "Settled"
-#         db.session.commit()
-#         return redirect(
-#             url_for(
-#                 "coinsurance.list_coinsurance_entries_to_be_settled"
-#             )  # , uuid_value=uuid_value)
-#         )
-#     return render_template(
-#         "view_all_coinsurance_entries.html",
-#         coinsurance_entries=coinsurance_entries,
-#         update_settlement=update_settlement,
-#         form=form,
-#     )
 
 
 @coinsurance_bp.route("/list/settlements/<string:utr_number>", methods=["POST", "GET"])

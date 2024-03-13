@@ -1,6 +1,3 @@
-# import uuid
-# from sqlalchemy.dialects.postgresql import UUID
-
 from extensions import db
 
 
@@ -29,8 +26,6 @@ class Coinsurance(db.Model):
 
     current_status = db.Column(db.String)
 
-    # settlement_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4)
-    # settlement_id = db.Column(db.Integer, db.ForeignKey("settlement.id"))
     utr_number = db.Column(db.String)
 
 
@@ -43,12 +38,6 @@ class Settlement(db.Model):
     utr_number = db.Column(db.String)
     file_settlement_file = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
-
-
-#    coinsurance_entries = db.relationship(
-#       "coinsurance_entries", backref="settlement", lazy="dynamic"
-#  )
-# settlement_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4)
 
 
 class Remarks(db.Model):
@@ -88,9 +77,6 @@ class Coinsurance_log(db.Model):
 
     current_status = db.Column(db.String)
     utr_number = db.Column(db.String)
-
-
-#    settlement_uuid = db.Column(UUID(as_uuid=True), default=uuid.uuid4)
 
 
 class CoinsuranceBalances(db.Model):
