@@ -1,7 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 
-{% if current_user.user_type == "admin" %}
+{% if current_user.user_type in ["admin","ro_user"] %}
 {% if brs_entries %}
 <div class="table-container">
 <table class="table" id="brs_table">

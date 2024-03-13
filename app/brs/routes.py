@@ -345,6 +345,7 @@ def enter_brs(requirement, brs_id):
                     df_outstanding_entries = pd.read_csv(
                         form.data["outstanding_entries"],
                         parse_dates=date_columns,
+                        dtype={"instrument_amount": float, "instrument_number": str},
                     )
                     try:
                         sum_os_entries = df_outstanding_entries[
@@ -424,7 +425,11 @@ def enter_brs(requirement, brs_id):
 @brs_bp.route("/dashboard/view_all")
 @login_required
 def list_brs_entries():
-    list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).all()
+    list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id)
+    if current_user.user_type == "ro_user":
+        list_all_brs_entries = list_all_brs_entries.filter(
+            BRS.uiic_regional_code == current_user.ro_code
+        ).filter(BRS_month.status == None)
     return render_template(
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
