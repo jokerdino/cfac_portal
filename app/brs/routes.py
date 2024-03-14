@@ -224,7 +224,7 @@ def view_brs(brs_key):
     brs_month = BRS.query.get_or_404(brs_entry.brs_id)
     brs_outstanding_entries = Outstanding.query.filter(
         Outstanding.brs_month_id == brs_key
-    )
+    ).filter(Outstanding.instrument_amount.is_not(None))
     return render_template(
         "view_brs_entry.html",
         brs_month=brs_month,
@@ -242,7 +242,7 @@ def view_brs_pdf(brs_key):
     brs_month = BRS.query.get_or_404(brs_entry.brs_id)
     brs_outstanding_entries = Outstanding.query.filter(
         Outstanding.brs_month_id == brs_key
-    )
+    ).filter(Outstanding.instrument_amount.is_not(None))
     html = render_template(
         "view_brs_entry.html",
         brs_month=brs_month,
@@ -376,7 +376,9 @@ def enter_brs(requirement, brs_id):
                                 current_app.config.get("SQLALCHEMY_DATABASE_URI")
                             )
 
-                            df_outstanding_entries.dropna(how="all").to_sql(
+                            df_outstanding_entries.dropna(
+                                subset=["instrument_amount"]
+                            ).to_sql(
                                 "outstanding", engine, if_exists="append", index=False
                             )
                             db.session.commit()

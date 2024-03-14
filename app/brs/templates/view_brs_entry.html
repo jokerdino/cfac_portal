@@ -88,11 +88,24 @@
         <tbody>
         <tr>
             {% for item in outstanding %}
-            <td class="has-text-centered" >{{ item.date_of_collection.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-centered">
 
-            <td class="has-text-centered" >{{ item.instrument_number }}</td>
+                {% if item.date_of_collection %}
+                {{ item.date_of_collection.strftime("%d/%m/%Y") }}
+                {% else %}
+                No date of collection available
+                {% endif %}
+            </td>
 
-            <td class="has-text-centered" >{{ item.date_of_instrument.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-centered">{{ item.instrument_number }}</td>
+
+            <td class="has-text-centered">
+                {% if item.date_of_instrument %}
+                {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
+                {% else %}
+                No date of instrument available
+                {% endif %}
+            </td>
             <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
 
         </tr> </tbody>
