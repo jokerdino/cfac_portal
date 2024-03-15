@@ -2,7 +2,7 @@
 {% block content %}
 
 {% if dashboard %}
-<div class="container is-size-4">
+<div class="container is-size-6">
 <table class="table is-bordered">
 <thead>
 <tr><th>Current status</th>
@@ -27,5 +27,28 @@
 </table>
 
 {% endif %}
+    {% if current_user.user_type == "admin" %}
+<h1 class="title">Summary of settlements</h1>
+<div class="mt-5 is-centered">
+<table class="table is-bordered">
+    <thead>
+    <tr>
+        <th>Period</th>
+        <th>Type of transaction</th>
+        <th>Settled amount</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for entry in settlement_query %}
+    <tr>
+        <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
+        <td>{{ entry[2] }}</td>
+        <td class="has-text-right">{{ "{:,.2f}".format(entry[3]) }}</td>
+{% endfor %}
+</tr>
+    </tbody>
+</table>
 </div>
+    {% endif %}
+    </div>
 {% endblock content %}

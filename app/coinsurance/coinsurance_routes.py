@@ -69,7 +69,26 @@ def home_page():
             .all()
         )
 
-    return render_template("coinsurance_home.html", dashboard=query)
+    settlement_query = (
+        db.session.query(
+            func.date_trunc("month", Settlement.date_of_settlement),
+            func.date_trunc("year", Settlement.date_of_settlement),
+            Settlement.type_of_transaction,
+            func.sum(Settlement.settled_amount),
+        )
+        .group_by(
+            Settlement.type_of_transaction,
+            func.date_trunc("month", Settlement.date_of_settlement),
+            func.date_trunc("year", Settlement.date_of_settlement),
+        )
+        .order_by(
+            func.date_trunc("month", Settlement.date_of_settlement).desc(),
+            func.date_trunc("year", Settlement.date_of_settlement).desc(),
+        )
+    )
+    return render_template(
+        "coinsurance_home.html", dashboard=query, settlement_query=settlement_query
+    )
 
 
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
