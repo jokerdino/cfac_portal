@@ -824,10 +824,21 @@ def upload_coinsurance_balance():
 @coinsurance_bp.route("/view_coinsurance_balance", methods=["POST", "GET"])
 def query_view_coinsurance_balance():
     form = CoinsuranceBalanceQueryForm()
-    period_list = CoinsuranceBalances.query.with_entities(
+    # Querying distinct list of periods from the table
+    period_list_query = CoinsuranceBalances.query.with_entities(
         CoinsuranceBalances.period
     ).distinct()
-    form.period.choices = [(item[0], item[0]) for item in period_list]
+    # converting the period from string to datetime object
+    list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.period.choices = [
+        (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
+    ]
+
     if form.validate_on_submit():
         period = form.data["period"]
         return redirect(url_for("coinsurance.view_coinsurance_balance", period=period))
