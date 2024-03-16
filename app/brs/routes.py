@@ -211,6 +211,101 @@ def upload_brs(brs_key):
     )
 
 
+@brs_bp.route("/view_consolidated/<int:brs_key>")
+@login_required
+def view_consolidated_brs(brs_key):
+    brs_entry = BRS.query.get_or_404(brs_key)
+
+    cash_brs = (
+        BRS_month.query.get_or_404(brs_entry.cash_brs_id)
+        if brs_entry.cash_brs_id
+        else None
+    )
+
+    cheque_brs = (
+        BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
+        if brs_entry.cheque_brs_id
+        else None
+    )
+    pg_brs = (
+        BRS_month.query.get_or_404(brs_entry.pg_brs_id) if brs_entry.pg_brs_id else None
+    )
+    pos_brs = (
+        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        if brs_entry.pos_brs_id
+        else None
+    )
+    bbps_brs = (
+        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        if brs_entry.bbps_brs_id
+        else None
+    )
+    local_collection_brs = (
+        BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
+        if brs_entry.local_collection_brs_id
+        else None
+    )
+    return render_template(
+        "view_consolidated_brs.html",
+        brs_month=brs_entry,
+        cash_brs=cash_brs,
+        cheque_brs=cheque_brs,
+        pg_brs=pg_brs,
+        pos_brs=pos_brs,
+        bbps_brs=bbps_brs,
+        local_collection_brs=local_collection_brs,
+        pdf=False,
+    )
+
+
+@brs_bp.route("/pdf_consolidated/<int:brs_key>")
+@login_required
+def view_consolidated_brs_pdf(brs_key):
+    brs_entry = BRS.query.get_or_404(brs_key)
+
+    cash_brs = (
+        BRS_month.query.get_or_404(brs_entry.cash_brs_id)
+        if brs_entry.cash_brs_id
+        else None
+    )
+
+    cheque_brs = (
+        BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
+        if brs_entry.cheque_brs_id
+        else None
+    )
+    pg_brs = (
+        BRS_month.query.get_or_404(brs_entry.pg_brs_id) if brs_entry.pg_brs_id else None
+    )
+    pos_brs = (
+        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        if brs_entry.pos_brs_id
+        else None
+    )
+    bbps_brs = (
+        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        if brs_entry.bbps_brs_id
+        else None
+    )
+    local_collection_brs = (
+        BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
+        if brs_entry.local_collection_brs_id
+        else None
+    )
+    html = render_template(
+        "view_consolidated_brs.html",
+        brs_month=brs_entry,
+        cash_brs=cash_brs,
+        cheque_brs=cheque_brs,
+        pg_brs=pg_brs,
+        pos_brs=pos_brs,
+        bbps_brs=bbps_brs,
+        local_collection_brs=local_collection_brs,
+        pdf=True,
+    )
+    return render_pdf(HTML(string=html))
+
+
 @brs_bp.route("/download_format")
 @login_required
 def download_format():

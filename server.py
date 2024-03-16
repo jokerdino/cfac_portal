@@ -21,7 +21,7 @@ def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
         return return_value
     elif result == "current":
         res = calendar.monthrange(return_value.year, return_value.month)
-        date_string = f"{res[1]}/{return_value.month}/{return_value.year}"
+        date_string = f"{res[1]}/{return_value.month:02}/{return_value.year}"
         return date_string
     elif result == "previous":
         if return_value.month - 1 == 0:
@@ -29,7 +29,7 @@ def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
             date_string = f"{res[1]}/12/{return_value.year-1}"
         else:
             res = calendar.monthrange(return_value.year, return_value.month - 1)
-            date_string = f"{res[1]}/{return_value.month - 1}/{return_value.year}"
+            date_string = f"{res[1]}/{return_value.month - 1:02}/{return_value.year}"
         return date_string
 
 
