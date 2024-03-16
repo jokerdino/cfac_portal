@@ -180,10 +180,21 @@ def bulk_upload_brs():
 def upload_brs(brs_key):
     from server import db
 
+    # list_months_delete contains list of months that are enabled for soft deletion.
+    # If the month is not mentioned in the list,
+    # the months will not be available for deletion by admin or RO user.
+    # When a new month base file is uploaded, the month has to be manually added to the list right now.
+    # TODO: Build a frontend for the same to enable or disable?
+    brs_entry = BRS.query.get_or_404(brs_key)
+    list_months_delete = ["January-2024", "February-2024"]
+
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
-    list_delete_brs = ["admin", "ro_user"]
-    brs_entry = BRS.query.get_or_404(brs_key)
+
+    list_delete_brs = []
+    if brs_entry.month in list_months_delete:
+        list_delete_brs = ["admin", "ro_user"]
+
     form = BRSForm()
     if form.validate_on_submit():
         if form.data["delete_cash_brs"]:
