@@ -38,6 +38,7 @@ class Settlement(db.Model):
     utr_number = db.Column(db.String)
     file_settlement_file = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
+    notes = db.Column(db.Text)
 
 
 class Remarks(db.Model):

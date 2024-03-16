@@ -109,6 +109,7 @@ class SettlementForm(FlaskForm):
     type_of_settlement = SelectField(
         "Paid or received: ", choices=["Paid", "Received"], validators=[DataRequired()]
     )
+    notes = TextAreaField("Notes", validators=[Optional()])
 
 
 class SettlementUTRForm(FlaskForm):

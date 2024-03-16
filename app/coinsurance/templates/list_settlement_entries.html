@@ -1,4 +1,5 @@
 {% extends "coinsurance_layout.html" %}
+
 {% block content %}
 <h1 class="title"> {{ title }}</h1>
 
@@ -13,6 +14,7 @@
                 <th>Amount settled</th>
                 <th>Date of settlement</th>
                 <th>UTR number</th>
+                <th>Notes</th>
                 <th>View settled entries</th>
                 <th>View</th>
             </tr>
@@ -30,6 +32,11 @@
                     {% endif %}
                     <td>                          {{ entry.date_of_settlement }}</td>
                     <td>                          {{ entry.utr_number }}</td>
+                <td>
+                    {% if entry.notes %}
+                    {{ entry.notes[:30] }}
+{% endif %}
+                </td>
                     <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">View</a></td>
                                <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
 

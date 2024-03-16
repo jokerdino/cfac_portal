@@ -734,7 +734,7 @@ def add_settlement_data():
         amount_settled = form.data["amount_settled"]
         utr_number = form.data["utr_number"]
         type_of_settlement = form.data["type_of_settlement"]
-
+        notes = form.data["notes"]
         if form.data["settlement_file"]:
             settlement_filename_data = secure_filename(
                 form.data["settlement_file"].filename
@@ -757,6 +757,7 @@ def add_settlement_data():
             file_settlement_file=settlement_filename,
             utr_number=utr_number,
             type_of_transaction=type_of_settlement,
+            notes=notes,
             # settlement_uuid=uuid_value,
         )
 
