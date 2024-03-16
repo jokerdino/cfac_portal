@@ -23,13 +23,13 @@
             {% for user in users %}
             {% if current_user.user_type == "admin" %}
             <tr>
-                    <td> {{ user.ro_code }} </td>
+                    <td>{{ user.ro_code }} </td>
                     <td>{{ user.oo_code }}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.user_type }}</td>
                     <td>{{ user.reset_password }}</td>
                  {% if user.time_last_login %}
-                    <td title="{{ user.time_last_login }}">
+                    <td data-sort="{{ user.time_last_login }}" title="{{ user.time_last_login }}">
                                                 {{ humanize_datetime(user.time_last_login) }}</td>
                 {% else %}
                 <td> {{ user.time_last_login }} </td>

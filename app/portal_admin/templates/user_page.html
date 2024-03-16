@@ -60,7 +60,7 @@
                 <tr>
                       <td>{{ item.user_id }}</td>
                     <td>{{ item.type_of_action }}</td>
-                    <td title="{{ item.time_of_action }}">{{ humanize_datetime(item.time_of_action) }}</td>
+                    <td data-sort="{{ item.time_of_action }}" title="{{ item.time_of_action }}">{{ humanize_datetime(item.time_of_action) }}</td>
             </tr>
 
 {% endfor %}

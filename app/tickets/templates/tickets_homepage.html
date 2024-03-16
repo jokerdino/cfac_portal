@@ -29,7 +29,7 @@
         <td>{{ ticket.contact_mobile_number }}</td>
         <td>{{ ticket.department }}</td>
         <td>{{ ticket.status }}</td>
-        <td title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td>
+        <td data-sort="{{ ticket.date_of_creation }}" title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td>
         <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}">View</a></td>
         <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}">Edit</a></td>
         {% endfor %}
