@@ -249,7 +249,7 @@ def view_consolidated_brs(brs_key):
         else None
     )
     bbps_brs = (
-        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
         if brs_entry.bbps_brs_id
         else None
     )
@@ -296,7 +296,7 @@ def view_consolidated_brs_pdf(brs_key):
         else None
     )
     bbps_brs = (
-        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+        BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
         if brs_entry.bbps_brs_id
         else None
     )
