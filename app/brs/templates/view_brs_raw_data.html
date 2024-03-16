@@ -4,7 +4,7 @@
 {% if current_user.user_type in ["admin","ro_user"] %}
 {% if brs_entries %}
 <div class="table-container">
-<table class="table" id="brs_table">
+<table class="table is-bordered is-hoverable" id="brs_table">
 <thead>
 <tr>
 <th>Regional Code</th>
@@ -46,7 +46,7 @@
 <td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
 <td class="has-text-right">{{ entry.int_closing_balance }}</td>
 <td>{{ entry.remarks }}</td>
-<td><a href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ entry.timestamp }}</a></td>
+<td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}" href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ humanize_datetime(entry.timestamp) }}</a></td>
 <td>{{ entry.status }}</td>
 
 </tr>

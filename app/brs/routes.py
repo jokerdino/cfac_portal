@@ -21,6 +21,8 @@ from app.brs import brs_bp
 from app.brs.models import BRS, BRS_month, Outstanding
 from app.brs.forms import BRSForm, BRS_entry, DashboardForm
 
+from app.tickets.tickets_routes import humanize_datetime
+
 
 @brs_bp.route("/home", methods=["POST", "GET"])
 @login_required
@@ -522,7 +524,9 @@ def enter_brs(requirement, brs_id):
 @brs_bp.route("/dashboard/view_all")
 @login_required
 def list_brs_entries():
-    list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id)
+    list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).filter(
+        BRS_month.status == None
+    )
     if current_user.user_type == "ro_user":
         list_all_brs_entries = list_all_brs_entries.filter(
             BRS.uiic_regional_code == current_user.ro_code
@@ -531,6 +535,7 @@ def list_brs_entries():
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
         get_brs_bank=get_brs_bank,
+        humanize_datetime=humanize_datetime,
     )
 
 
