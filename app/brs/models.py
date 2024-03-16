@@ -1,7 +1,8 @@
 from extensions import db
 
+
 class BRS(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     uiic_regional_code = db.Column(db.String)
     uiic_office_code = db.Column(db.String)
 
@@ -22,37 +23,41 @@ class BRS(db.Model):
     bbps_brs_id = db.Column(db.Integer)
     local_collection_brs_id = db.Column(db.Integer)
 
-    brs_month = db.relationship('BRS_month', backref='brs', lazy='dynamic')
+    brs_month = db.relationship("BRS_month", backref="brs", lazy="dynamic")
     timestamp = db.Column(db.DateTime)
 
+
 class BRS_month(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    brs_id = db.Column(db.Integer, db.ForeignKey('brs.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    brs_id = db.Column(db.Integer, db.ForeignKey("brs.id"))
     brs_type = db.Column(db.String)
 
-    int_opening_balance = db.Column(db.Numeric(10,2))
-    int_opening_on_hand = db.Column(db.Numeric(10,2))
-    int_transactions = db.Column(db.Numeric(10,2))
-    int_cancellations = db.Column(db.Numeric(10,2))
-    int_fund_transfer = db.Column(db.Numeric(10,2))
-    int_bank_charges = db.Column(db.Numeric(10,2))
-    int_closing_on_hand = db.Column(db.Numeric(10,2))
-    int_closing_balance = db.Column(db.Numeric(10,2))
+    int_opening_balance = db.Column(db.Numeric(15, 2))
+    int_opening_on_hand = db.Column(db.Numeric(15, 2))
+    int_transactions = db.Column(db.Numeric(15, 2))
+    int_cancellations = db.Column(db.Numeric(15, 2))
+    int_fund_transfer = db.Column(db.Numeric(15, 2))
+    int_bank_charges = db.Column(db.Numeric(15, 2))
+    int_closing_on_hand = db.Column(db.Numeric(15, 2))
+    int_closing_balance = db.Column(db.Numeric(15, 2))
     file_outstanding_entries = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
     status = db.Column(db.String)
-    brs_outstanding = db.relationship('Outstanding', backref='brs_month', lazy='dynamic')
+    brs_outstanding = db.relationship(
+        "Outstanding", backref="brs_month", lazy="dynamic"
+    )
     remarks = db.Column(db.Text)
     prepared_by = db.Column(db.String)
     prepared_by_employee_number = db.Column(db.String)
 
+
 class Outstanding(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    brs_month_id = db.Column(db.Integer, db.ForeignKey('brs_month.id'))
+    id = db.Column(db.Integer, primary_key=True)
+    brs_month_id = db.Column(db.Integer, db.ForeignKey("brs_month.id"))
 
     # instrument number and date of instrument is optional for cash alone.
     # other modes of collection must provide all the columns
     instrument_number = db.Column(db.String)
-    instrument_amount = db.Column(db.Numeric(10,2))
+    instrument_amount = db.Column(db.Numeric(15, 2))
     date_of_instrument = db.Column(db.Date)
     date_of_collection = db.Column(db.Date)

@@ -6,7 +6,7 @@ from sqlalchemy import MetaData
 
 from flask_admin_models import MyAdminIndexView
 
-migrate = Migrate()
+migrate = Migrate(compare_type=True)
 lm = LoginManager()
 
 convention = {
