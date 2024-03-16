@@ -11,120 +11,115 @@
 <div class="container">
 <h1 class="title">View {{ brs_entry.brs_type.upper() }} BRS</h1>
 
-    <table class="table is-bordered is-hoverable">
-
-        <tr class="has-text-centered"><th>Regional office code</th>
-               <th>Operating office code</th>
-                  <th>Financial year</th>
-                  <th>Month</th>
-                    <th>BRS type</th>
-                    <th>Bank</th>
-        </tr>
-        <tr>
+<table class="table is-bordered is-hoverable">
+    <tr class="has-text-centered"><th>Regional office code</th>
+        <th>Operating office code</th>
+        <th>Financial year</th>
+        <th>Month</th>
+        <th>BRS type</th>
+        <th>Bank</th>
+    </tr>
+   <tr>
         <td>{{ brs_month.uiic_regional_code }}</td>
-
-          <td>{{ brs_month.uiic_office_code }}</td>
-            <td>{{ brs_month.financial_year }}</td>
-              <td>{{ brs_month.month }}</td>
-              <td>{{ brs_entry.brs_type.upper() }}</td>
+        <td>{{ brs_month.uiic_office_code }}</td>
+        <td>{{ brs_month.financial_year }}</td>
+        <td>{{ brs_month.month }}</td>
+        <td>{{ brs_entry.brs_type.upper() }}</td>
 <td>
-
     {{ get_brs_bank (brs_month.id, brs_entry.brs_type) }}
-
 </td>
-
-  </tr>
+   </tr>
 </table>
 
 <table class="table is-bordered is-hoverable">
 
 <tr><th>Opening balance as per GL</th>
-
-        <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td></tr>
 <tr><th>Add: Opening On hand</th>
-        <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td></tr>
 <tr><th>Add: Collections during the month</th>
-        <td>{{ brs_month.month }}</td>
+    <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_transactions) }}</td></tr>
 <tr><th>Less: Cancellations / cheque dishonours during the month</th>
-        <td>{{ brs_month.month }}</td>
+    <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td></tr>
 <tr><th>Balance before fund transfer</th>
-        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-        <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td></tr>
+    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td></tr>
 
-    <tr><th>Less: Fund transfer</th>
-        <td>{{ brs_month.month }}</td>
+<tr><th>Less: Fund transfer</th>
+    <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td></tr>
 <tr><th>Less: Bank charges</th>
-        <td>{{ brs_month.month }}</td>
+    <td>{{ brs_month.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td></tr>
 <tr><th>Less: Closing On hand</th>
-        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td></tr>
 <tr><th>Closing balance as per GL</th>
-        <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-        <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
-    {% if brs_entry.remarks %}
-    <tr><th>Remarks</th><td colspan="2">{{ brs_entry.remarks }}</td></tr>
-    {% endif %}
-    </table>
-    {% if brs_entry.int_closing_balance > 0 %}
-    {% if outstanding %}
-    <h3 class="title is-5">
-        Details of closing balance:</h3>
-    <table class="table is-bordered">
-        <thead>
-        <tr>
-            <th>Date of collection</th>
-            <th>Instrument number</th>
+    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
+{% if brs_entry.remarks %}
+<tr><th>Remarks</th><td colspan="2">{{ brs_entry.remarks }}</td></tr>
+{% endif %}
+</table>
 
-            <th>Date of instrument</th>
-            <th>Instrument amount</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-            {% for item in outstanding %}
-            <td class="has-text-centered">
+{% if brs_entry.int_closing_balance > 0 %}
+{% if outstanding %}
+<h3 class="title is-5">Details of closing balance:</h3>
+<table class="table is-bordered">
+<thead>
+    <tr>
+        <th>Date of collection</th>
+        <th>Instrument number</th>
+        <th>Date of instrument</th>
+        <th>Instrument amount</th>
+    </tr>
+</thead>
+<tbody>
+    <tr>
+        {% for item in outstanding %}
+        <td class="has-text-centered">
+         {% if item.date_of_collection %}
+            {{ item.date_of_collection.strftime("%d/%m/%Y") }}
+        {% else %}
+            No date of collection available
+        {% endif %}
+        </td>
 
-                {% if item.date_of_collection %}
-                {{ item.date_of_collection.strftime("%d/%m/%Y") }}
-                {% else %}
-                No date of collection available
-                {% endif %}
-            </td>
+        <td class="has-text-centered">{{ item.instrument_number }}</td>
+        <td class="has-text-centered">
+        {% if item.date_of_instrument %}
+            {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
+        {% else %}
+            No date of instrument available
+        {% endif %}
+        </td>
+        <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+    </tr>
+</tbody>
+    {% endfor %}
+<tfoot>
+<tr>
+    <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
+    <td class="has-text-right has-text-weight-bold">
+        {{ "{:,.2f}".format(outstanding | sum(attribute="instrument_amount")) }}</td>
+</tr></tfoot>
+</table>
+{% endif %}
+{% endif %}
 
-            <td class="has-text-centered">{{ item.instrument_number }}</td>
-
-            <td class="has-text-centered">
-                {% if item.date_of_instrument %}
-                {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
-                {% else %}
-                No date of instrument available
-                {% endif %}
-            </td>
-            <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
-
-        </tr> </tbody>
-            {% endfor %}
-            <tfoot><tr><td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
-                <td class="has-text-right has-text-weight-bold">
-                    {{ "{:,.2f}".format(outstanding | sum(attribute="instrument_amount")) }}</td>
-            </tr></tfoot>
-    </table>
-    {% endif %}
-    {% endif %}
 <div class="pb-5">
     Prepared by {{ brs_entry.prepared_by }} (Employee Number: {{ brs_entry.prepared_by_employee_number }}) on {{ brs_entry.timestamp.strftime("%d/%m/%Y %H:%M") }}.
 </div>
 
-    {% if not pdf %}
-<a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
-<a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}" target="_blank">Print as PDF</a>
-    {% endif %}
+{% if not pdf %}
+    <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
+    <a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}" target="_blank">Print as PDF</a>
+{% endif %}
 </div>
+
 {% endif %}
 {% endblock content %}
