@@ -16,7 +16,7 @@
             <nav class="navbar is-info has-shadow" aria-label="main navigation">
                 <div class="navbar-brand">
                     <div class="navbar-start">
-                    <a class="navbar-item" href="{{ url_for('main.index') }}">Index</a>
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                      <a class="navbar-item" href="{{ url_for('contacts.contacts_homepage') }}">Contacts home</a>
                      {% if current_user.user_type == "admin" %}
                  <a class="navbar-item" href="{{ url_for('contacts.add_contact') }}">Add new contact</a>
