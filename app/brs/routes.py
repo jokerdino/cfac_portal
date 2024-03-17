@@ -362,7 +362,7 @@ def view_brs_pdf(brs_key):
     return render_pdf(HTML(string=html))
 
 
-def get_prev_month_amount(requirement, brs_id):
+def get_prev_month_amount(requirement: str, brs_id: int) -> (float, float):
     brs_entry = BRS.query.get_or_404(brs_id)
 
     datetime_object = datetime.strptime(brs_entry.month, "%B-%Y")
@@ -372,8 +372,8 @@ def get_prev_month_amount(requirement, brs_id):
     else:
         month_number = 12
         year = datetime_object.year - 1
-    prev_month = f"{calendar.month_name[month_number]}-{year}"
-    prev_brs_entry = (
+    prev_month: str = f"{calendar.month_name[month_number]}-{year}"
+    prev_brs_entry: bool = (
         BRS.query.filter(BRS.uiic_office_code == brs_entry.uiic_office_code)
         .filter(BRS.month == prev_month)
         .first()
@@ -400,6 +400,26 @@ def get_prev_month_amount(requirement, brs_id):
         return 0, 0
 
 
+def prevent_duplicate_brs(requirement: str, brs_id: int) -> bool:
+    brs_entry = BRS.query.get_or_404(brs_id)
+
+    brs_available: bool = False
+    if requirement == "cash":
+        brs_available = True if brs_entry.cash_brs_id else False
+    elif requirement == "cheque":
+        brs_available = True if brs_entry.cheque_brs_id else False
+    elif requirement == "pg":
+        brs_available = True if brs_entry.pg_brs_id else False
+    elif requirement == "pos":
+        brs_available = True if brs_entry.pos_brs_id else False
+    elif requirement == "bbps":
+        brs_available = True if brs_entry.bbps_brs_id else False
+    elif requirement == "local_collection":
+        brs_available = True if brs_entry.local_collection_brs_id else False
+
+    return brs_available
+
+
 @brs_bp.route("/<int:brs_id>/<string:requirement>/add_brs", methods=["POST", "GET"])
 @login_required
 def enter_brs(requirement, brs_id):
@@ -407,7 +427,9 @@ def enter_brs(requirement, brs_id):
     form = BRS_entry()
     from server import db
 
-    if form.validate_on_submit():
+    if prevent_duplicate_brs(requirement, brs_id):
+        flash("BRS has already been submitted.")
+    elif form.validate_on_submit():
         prepared_by = form.data["prepared_by"]
         prepared_by_employee_number = form.data["prepared_by_employee_number"]
         opening_balance = form.data["opening_balance"] or 0
@@ -455,14 +477,16 @@ def enter_brs(requirement, brs_id):
                         parse_dates=date_columns,
                         dtype={"instrument_amount": float, "instrument_number": str},
                     )
+
                     try:
                         sum_os_entries = df_outstanding_entries[
                             "instrument_amount"
                         ].sum()
-                        if not sum_os_entries == closing_balance:
+                        if not float(sum_os_entries) == float(closing_balance):
                             flash(
                                 f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
                             )
+
                         else:
                             db.session.add(brs)
                             db.session.commit()
@@ -520,8 +544,8 @@ def enter_brs(requirement, brs_id):
 
                 return redirect(url_for("brs.upload_brs", brs_key=brs_id))
 
-    form.opening_balance.data = get_prev_month_amount(requirement, brs_id)[0]
-    form.opening_on_hand.data = get_prev_month_amount(requirement, brs_id)[1]
+    form.opening_balance.data: float = get_prev_month_amount(requirement, brs_id)[0]
+    form.opening_on_hand.data: float = get_prev_month_amount(requirement, brs_id)[1]
 
     return render_template(
         "add_brs_entry.html",
