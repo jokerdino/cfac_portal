@@ -237,10 +237,28 @@ def add_coinsurance_entry():
     return render_template(
         "edit_coinsurance_entry.html",
         form=form,
-        change_status=False,
+        #  change_status=False,
         enable_save_button=True,
-        update_settlement=False,
+        # update_settlement=False,
     )
+
+
+def enable_button(current_user, coinsurance_entry) -> bool:
+    bool_enable_button: bool = False
+    settlement = Settlement.query.filter(
+        Settlement.utr_number == coinsurance_entry.utr_number
+    ).first()
+
+    if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+        if not coinsurance_entry.current_status == "Settled":
+            bool_enable_button = True
+        elif not settlement:
+            bool_enable_button = True
+
+    elif current_user.user_type in ["ro_user", "oo_user"]:
+        if coinsurance_entry.current_status == "Needs clarification from RO or OO":
+            bool_enable_button = True
+    return bool_enable_button
 
 
 @coinsurance_bp.route("/view/<int:coinsurance_id>")
@@ -250,20 +268,23 @@ def view_coinsurance_entry(coinsurance_id):
     settlement = Settlement.query.filter(
         Settlement.utr_number == coinsurance.utr_number
     ).all()
-    enable_edit_button = False
-    if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        if coinsurance.current_status != "Settled":
-            enable_edit_button = True
-        elif coinsurance.current_status == "Settled":
-            if Settlement.query.filter(
-                Settlement.utr_number == coinsurance.utr_number
-            ).first():
-                enable_edit_button = False
-            else:
-                enable_edit_button = True
-    elif current_user.user_type in ("oo_user", "ro_user"):
-        if coinsurance.current_status == "Needs clarification from RO or OO":
-            enable_edit_button = True
+
+    enable_edit_button = enable_button(current_user, coinsurance)
+    # commented out and code moved to function enable_button on 17.03.2024
+    # enable_edit_button = False
+    # if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+    #     if coinsurance.current_status != "Settled":
+    #         enable_edit_button = True
+    #     elif coinsurance.current_status == "Settled":
+    #         if Settlement.query.filter(
+    #             Settlement.utr_number == coinsurance.utr_number
+    #         ).first():
+    #             enable_edit_button = False
+    #         else:
+    #             enable_edit_button = True
+    # elif current_user.user_type in ["oo_user", "ro_user"]:
+    #     if coinsurance.current_status == "Needs clarification from RO or OO":
+    #         enable_edit_button = True
     return render_template(
         "view_coinsurance_entry.html",
         coinsurance=coinsurance,
@@ -319,6 +340,28 @@ def download_settlements(settlement_id):
     )
 
 
+def update_utr_choices(coinsurance, form):
+    utr_list = (
+        Settlement.query.filter(
+            coinsurance.follower_company_name == Settlement.name_of_company
+        )
+        .with_entities(
+            Settlement.name_of_company,
+            Settlement.utr_number,
+            Settlement.date_of_settlement,
+            Settlement.settled_amount,
+        )
+        .distinct()
+    )
+    form.settlement.choices = [
+        (
+            utr_number,
+            f"{name_of_company}-{utr_number} Rs. {settled_amount} on {date_of_settlement.strftime('%d/%m/%Y')}",
+        )
+        for name_of_company, utr_number, date_of_settlement, settled_amount in utr_list
+    ]
+
+
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
 def edit_coinsurance_entry(coinsurance_id):
     from server import db
@@ -326,7 +369,7 @@ def edit_coinsurance_entry(coinsurance_id):
     form = CoinsuranceForm()
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
 
-    if form.validate_on_submit():
+    if enable_button(current_user, coinsurance) and form.validate_on_submit():
         if current_user.user_type == "oo_user":
             regional_office_code = current_user.ro_code
             oo_code = current_user.oo_code
@@ -343,7 +386,7 @@ def edit_coinsurance_entry(coinsurance_id):
 
         request_id = form.data["request_id"]
         current_status = "To be reviewed by coinsurance hub"
-        if current_user.user_type in ("coinsurance_hub_user", "admin"):
+        if current_user.user_type in ["coinsurance_hub_user", "admin"]:
             current_status = form.data["current_status"]
 
         type_of_transaction = form.data["type_of_transaction"]
@@ -462,6 +505,7 @@ def edit_coinsurance_entry(coinsurance_id):
             boolean_reinsurance_involved=bool_ri_involved,
             int_ri_payable_amount=ri_payable_amount,
             int_ri_receivable_amount=ri_receivable_amount,
+            utr_number=form.data["settlement"],
         )
         db.session.add(coinsurance_log)
         db.session.commit()
@@ -489,46 +533,59 @@ def edit_coinsurance_entry(coinsurance_id):
         form.int_ri_payable_amount.data = coinsurance.int_ri_payable_amount
         form.int_ri_receivable_amount.data = coinsurance.int_ri_receivable_amount
 
-    enable_save_button = False
-    change_status = False
+    change_status = (
+        True if current_user.user_type in ["admin", "coinsurance_hub_user"] else False
+    )
     update_settlement = False
 
+    enable_save_button = enable_button(current_user, coinsurance)
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        if coinsurance.current_status != "Settled":
-            change_status = True
-            enable_save_button = True
-        elif coinsurance.current_status == "Settled":
-            change_status = True
-
+        if coinsurance.current_status == "Settled":
             if not Settlement.query.filter(
                 Settlement.utr_number == coinsurance.utr_number
             ).first():
                 update_settlement = True
-                enable_save_button = True
-                utr_list = (
-                    Settlement.query.filter(
-                        coinsurance.follower_company_name == Settlement.name_of_company
-                    )
-                    .with_entities(
-                        Settlement.name_of_company,
-                        Settlement.utr_number,
-                        Settlement.settled_amount,
-                    )
-                    .distinct()
-                )
-                form.settlement.choices = [
-                    (utr_number, f"{name_of_company}-{utr_number}: {settled_amount}")
-                    for name_of_company, utr_number, settled_amount in utr_list
-                ]
+                update_utr_choices(coinsurance, form)
 
-            # else:
-            #     update_settlement = False
-            #     enable_save_button = False
-        # else:
-        #     enable_save_button = False
-    elif current_user.user_type in ["oo_user", "ro_user"]:
-        if coinsurance.current_status == "Needs clarification from RO or OO":
-            enable_save_button = True
+    #        commented out since code moved to function enable_button on 17.03.2024
+    # enable_save_button = False
+    # if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+    #     if coinsurance.current_status != "Settled":
+    #         # change_status = True
+    #         enable_save_button = True
+    #     elif coinsurance.current_status == "Settled":
+    #         # change_status = True
+    #
+    #         if not Settlement.query.filter(
+    #             Settlement.utr_number == coinsurance.utr_number
+    #         ).first():
+    #             update_settlement = True
+    #             enable_save_button = True
+    #             update_utr_choices(coinsurance, form)
+    #             # commented out since code moved to function update_utr_choices on 17.03.2024
+    #             # utr_list = (
+    #             #     Settlement.query.filter(
+    #             #         coinsurance.follower_company_name == Settlement.name_of_company
+    #             #     )
+    #             #     .with_entities(
+    #             #         Settlement.name_of_company,
+    #             #         Settlement.utr_number,
+    #             #         Settlement.date_of_settlement,
+    #             #         Settlement.settled_amount,
+    #             #     )
+    #             #     .distinct()
+    #             # )
+    #             # form.settlement.choices = [
+    #             #     (
+    #             #         utr_number,
+    #             #         f"{name_of_company}-{utr_number} on {date_of_settlement.strftime('%d/%m/%Y')} {settled_amount}",
+    #             #     )
+    #             #     for name_of_company, utr_number, date_of_settlement, settled_amount in utr_list
+    #             # ]
+    #
+    # elif current_user.user_type in ["oo_user", "ro_user"]:
+    #     if coinsurance.current_status == "Needs clarification from RO or OO":
+    #         enable_save_button = True
 
     return render_template(
         "edit_coinsurance_entry.html",
@@ -544,17 +601,17 @@ def edit_coinsurance_entry(coinsurance_id):
 
 def select_coinsurers(query, form):
     coinsurer_choices = query.distinct(Coinsurance.follower_company_name)
-    form.coinsurer_name.choices = ["View all"] + [
+    form.coinsurer_name.choices: list[str] = ["View all"] + [
         x.follower_company_name for x in coinsurer_choices
     ]
 
     if form.validate_on_submit() and form.filter_coinsurer.data:
-        coinsurer_choice = form.data["coinsurer_name"]
+        coinsurer_choice: str = form.data["coinsurer_name"]
         if coinsurer_choice != "View all":
             query = query.filter(Coinsurance.follower_company_name == coinsurer_choice)
-            return query
-        else:
-            return query
+        return query
+        # else:
+        #   return query
     return query
 
 
@@ -577,11 +634,19 @@ def list_coinsurance_entries():
 
     coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
 
+    if current_user.user_type == "ro_user":
+        custom_title = f" uploaded by RO {current_user.ro_code}"
+    elif current_user.user_type == "oo_user":
+        custom_title = f" uploaded by OO {current_user.oo_code}"
+    else:
+        custom_title = ""
+
     return render_template(
         "view_all_coinsurance_entries.html",
         coinsurance_entries=coinsurance_entries,
         update_settlement=False,
         form_select_coinsurer=form_select_coinsurer,
+        title=f"List of all coinsurance confirmations{custom_title}",
     )
 
 
@@ -590,23 +655,31 @@ def list_coinsurance_entries_by_status(status):
     form_select_coinsurer = CoinsurerSelectForm()
 
     coinsurance_entries = Coinsurance.query.filter(Coinsurance.current_status == status)
-
     if current_user.user_type == "ro_user":
-        coinsurance_entries = Coinsurance.query.filter(
+        coinsurance_entries = coinsurance_entries.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
-        ).filter(Coinsurance.current_status == status)
+        )
+        # coinsurance_entries = Coinsurance.query.filter(
+        #     Coinsurance.uiic_regional_code == current_user.ro_code
+        # ).filter(Coinsurance.current_status == status)
     elif current_user.user_type == "oo_user":
-        coinsurance_entries = Coinsurance.query.filter(
+        coinsurance_entries = coinsurance_entries.filter(
             Coinsurance.uiic_office_code == current_user.oo_code
-        ).filter(Coinsurance.current_status == status)
+        )
+        # coinsurance_entries = Coinsurance.query.filter(
+        #     Coinsurance.uiic_office_code == current_user.oo_code
+        # ).filter(Coinsurance.current_status == status)
+
+    coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
 
     # update_settlement = False
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
         if status in ["To be settled"]:  # , "To be considered for settlement"]:
             # update_settlement = True
-            coinsurance_entries = select_coinsurers(
-                coinsurance_entries, form_select_coinsurer
-            )
+            # coinsurance_entries = select_coinsurers(
+            #     coinsurance_entries, form_select_coinsurer
+            # )
+
             coinsurer_choices = coinsurance_entries.distinct(
                 Coinsurance.follower_company_name
             )
@@ -650,6 +723,30 @@ def list_coinsurance_entries_by_status(status):
                     ):
                         coinsurance.utr_number = form_utr_number
                         coinsurance.current_status = "Settled"
+
+                        coinsurance_log = Coinsurance_log(
+                            coinsurance_id=coinsurance.id,
+                            user=current_user.username,
+                            time_of_update=datetime.now(),
+                            uiic_regional_code=coinsurance.uiic_regional_code,
+                            uiic_office_code=coinsurance.uiic_office_code,
+                            follower_company_name=coinsurance.follower_company_name,
+                            follower_office_code=coinsurance.follower_office_code,
+                            payable_amount=coinsurance.payable_amount,
+                            receivable_amount=coinsurance.receivable_amount,
+                            request_id=coinsurance.request_id,
+                            current_status="Settled",
+                            type_of_transaction=coinsurance.type_of_transaction,
+                            statement=coinsurance.statement,
+                            confirmation=coinsurance.confirmation,
+                            net_amount=coinsurance.net_amount,
+                            ri_confirmation=coinsurance.ri_confirmation,
+                            boolean_reinsurance_involved=coinsurance.boolean_reinsurance_involved,
+                            int_ri_payable_amount=coinsurance.int_ri_payable_amount,
+                            int_ri_receivable_amount=coinsurance.int_ri_receivable_amount,
+                            utr_number=form_utr_number,
+                        )
+                        db.session.add(coinsurance_log)
                 db.session.commit()
                 return redirect(
                     url_for(
@@ -667,9 +764,9 @@ def list_coinsurance_entries_by_status(status):
                 form_select_coinsurer=form_select_coinsurer,
             )
         else:
-            coinsurance_entries = select_coinsurers(
-                coinsurance_entries, form_select_coinsurer
-            )
+            # coinsurance_entries = select_coinsurers(
+            #     coinsurance_entries, form_select_coinsurer
+            # )
             return render_template(
                 "view_all_coinsurance_entries.html",
                 coinsurance_entries=coinsurance_entries,
@@ -679,9 +776,9 @@ def list_coinsurance_entries_by_status(status):
                 form_select_coinsurer=form_select_coinsurer,
             )
     else:
-        coinsurance_entries = select_coinsurers(
-            coinsurance_entries, form_select_coinsurer
-        )
+        # coinsurance_entries = select_coinsurers(
+        #     coinsurance_entries, form_select_coinsurer
+        # )
         return render_template(
             "view_all_coinsurance_entries.html",
             coinsurance_entries=coinsurance_entries,
@@ -695,9 +792,7 @@ def list_coinsurance_entries_by_status(status):
 @coinsurance_bp.route("/list/settlements/<string:utr_number>", methods=["POST", "GET"])
 def list_settled_coinsurance_entries(utr_number):
     form_select_coinsurer = CoinsurerSelectForm()
-
     coinsurance_entries = Coinsurance.query.filter(Coinsurance.utr_number == utr_number)
-
     coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
 
     return render_template(
@@ -758,7 +853,6 @@ def add_settlement_data():
             utr_number=utr_number,
             type_of_transaction=type_of_settlement,
             notes=notes,
-            # settlement_uuid=uuid_value,
         )
 
         db.session.add(settlement)

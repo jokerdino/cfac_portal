@@ -11,7 +11,7 @@
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
     </head>
 
-    <body> {% block body_attrs %}{% endblock body_attrs %}
+    <body {% block body_attrs %}{% endblock body_attrs %}>
         <header>
             <nav class="navbar is-dark" aria-label="main navigation">
                 <div class="navbar-brand">

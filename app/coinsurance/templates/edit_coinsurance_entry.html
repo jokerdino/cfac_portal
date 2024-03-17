@@ -26,7 +26,7 @@
        <tr><th>{{ form.coinsurer_office_code.label }}</th>    <td>{{ form.coinsurer_office_code(class='input') }}</td></tr>
         <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
        <tr><th>{{ form.payable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.payable_amount(class='input') }}</td></tr>
-       <tr><th>{{ form.receivable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input')}}</td></tr>
+       <tr><th>{{ form.receivable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input') }}</td></tr>
 
        <tr><th><label id="label_before_ri">Net payable (excluding RI)</label></th> <td><label id="cal_direct_amount"></label></td></tr>
 
@@ -92,13 +92,13 @@
     </div>
     {% endfor %}
             </div>
-</div>
 
             {% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}
            <div class="notification is-danger">
 <p>{{ message }}</p>
+</div>
 </div>
 {% endfor %}
 {% endif %}

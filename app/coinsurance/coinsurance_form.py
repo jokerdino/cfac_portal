@@ -5,6 +5,7 @@ from wtforms import (
     DateField,
     DecimalField,
     IntegerField,
+    RadioField,
     SelectField,
     StringField,
     SubmitField,
@@ -106,7 +107,7 @@ class SettlementForm(FlaskForm):
     amount_settled = DecimalField("Amount settled", validators=[DataRequired()])
     utr_number = StringField("UTR number:", validators=[DataRequired()])
     settlement_file = FileField("Upload summary statement:")
-    type_of_settlement = SelectField(
+    type_of_settlement = RadioField(
         "Paid or received: ", choices=["Paid", "Received"], validators=[DataRequired()]
     )
     notes = TextAreaField("Notes", validators=[Optional()])
