@@ -1,7 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 {% if outstanding %}
-<table class="table" id="outstanding">
+<table class="table is-fullwidth" id="outstanding">
     <thead>
     <tr>
         <th>Regional office</th>
@@ -29,7 +29,7 @@
         <td>{{ entries.date_of_collection }}</td>
         <td>{{ entries.instrument_number }}</td>
         <td>{{ entries.date_of_instrument }}</td>
-        <td>{{ entries.instrument_amount }}</td>
+        <td class="has-text-right">{{ entries.instrument_amount }}</td>
         <td><a href="{{ url_for('brs.view_brs', brs_key = entries.brs_month.id) }}">View</a></td>
           </tr>
         {% endfor %}

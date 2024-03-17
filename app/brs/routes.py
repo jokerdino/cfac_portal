@@ -556,7 +556,7 @@ def enter_brs(requirement, brs_id):
     )
 
 
-@brs_bp.route("/dashboard/view_all")
+@brs_bp.route("/dashboard/view_raw_data")
 @login_required
 def list_brs_entries():
     list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).filter(

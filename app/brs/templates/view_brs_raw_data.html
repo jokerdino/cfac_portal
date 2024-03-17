@@ -6,25 +6,25 @@
 <div class="table-container">
 <table class="table is-bordered is-hoverable" id="brs_table">
 <thead>
-<tr>
-<th>Regional Code</th>
-<th>Operating Office</th>
-<th>Financial year</th>
-<th>Period</th>
-<th>BRS type</th>
-<th>Bank</th>
-<th>Opening balance</th>
-<th>On hand</th>
-<th>Collections</th>
-<th>Cancellations</th>
-<th>Fund transfer</th>
+<tr class="has-text-centered">
+<th class="is-vcentered">Regional Code</th>
+<th class="is-vcentered">Operating Office</th>
+<th class="is-vcentered">Financial year</th>
+<th class="is-vcentered">Period</th>
+<th class="is-vcentered">BRS type</th>
+<th class="is-vcentered">Bank</th>
+<th class="is-vcentered">Opening balance</th>
+<th class="is-vcentered">On hand</th>
+<th class="is-vcentered">Collections</th>
+<th class="is-vcentered">Cancellations</th>
+<th class="is-vcentered">Fund transfer</th>
 
-<th>Bank charges</th>
-<th>On hand</th>
-<th>Closing balance</th>
-    <th>Remarks</th>
-<th>Time stamp</th>
-<th>Status</th>
+<th class="is-vcentered">Bank charges</th>
+<th class="is-vcentered">On hand</th>
+<th class="is-vcentered">Closing balance</th>
+<th class="is-vcentered">Remarks</th>
+<th class="is-vcentered">Time stamp</th>
+<th class="is-vcentered">Status</th>
 
 </tr>
 </thead>
@@ -35,7 +35,7 @@
 <td class="has-text-centered">{{ entry.brs.uiic_office_code }}</td>
 <td class="has-text-centered">{{ entry.brs.financial_year }}</td>
 <td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}' >{{ entry.brs.month }}</td>
-<td>{{ entry.brs_type | upper }}</td>
+<td>{{ entry.brs_type.replace("_", " ") | upper }}</td>
 <td>{{ get_brs_bank(entry.brs.id, entry.brs_type) }}</td>
 <td class="has-text-right">{{ entry.int_opening_balance }}</td>
 <td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
@@ -60,24 +60,21 @@
 {% endif %}
 {% endif %}
 {% block scripts %}
-        <script>
-            $(document).ready(function () {
-                            $('#brs_table').DataTable({
-                                dom: 'lfBrtip',
+<script>
+new DataTable('#brs_table', {
+    dom: 'lfBrtip',
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[15,'desc']],
+    pagingType: 'full_numbers',
+    lengthMenu: [
+         [10,25,50,100,-1],
+         [10,25,50,100,'All'],]
+});
 
-                                buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[1,'asc']],
-                                            pagingType: 'full_numbers',
-
-                                lengthMenu: [
-                                             [10,25,50,100,-1],
-                                            [10,25,50,100,'All'],]
-                                        });
-                        });
-        </script>
+</script>
 
         {% endblock scripts %}
 
