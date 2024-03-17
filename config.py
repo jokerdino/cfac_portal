@@ -2,8 +2,8 @@ import os
 
 
 class Config:
-    # SECRET_KEY = os.urandom(32)
-    SECRET_KEY = "secret"
+    SECRET_KEY = os.urandom(32)
+    # SECRET_KEY = "secret"
 
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = (
