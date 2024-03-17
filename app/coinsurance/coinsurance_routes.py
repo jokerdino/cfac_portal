@@ -369,7 +369,9 @@ def edit_coinsurance_entry(coinsurance_id):
     form = CoinsuranceForm()
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
 
-    if enable_button(current_user, coinsurance) and form.validate_on_submit():
+    if not enable_button(current_user, coinsurance):
+        flash("Unable to submit data. Please try again later.")
+    elif form.validate_on_submit():
         if current_user.user_type == "oo_user":
             regional_office_code = current_user.ro_code
             oo_code = current_user.oo_code
