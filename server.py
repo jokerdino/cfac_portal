@@ -83,6 +83,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(tickets_bp, url_prefix="/tickets")
 
+    from app.knowledge_base import knowledge_base_bp
+
+    app.register_blueprint(knowledge_base_bp, url_prefix="/knowledge_base")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

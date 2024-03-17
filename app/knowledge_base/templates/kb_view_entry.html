@@ -1,0 +1,26 @@
+{% extends "kb_layout.html" %}
+{% block content %}
+{% if (current_user.user_type == "admin" ) or
+(current_user.user_type != "admin" and kb.is_visible and kb.status) %}
+<div class="container">
+<h1 class="title">View document</h1>
+<table class="table is-fullwidth">
+<tbody>
+<tr><th>Topic</th><td>{{ kb.topic }}</td></tr>
+<tr><th>Title</th><td>{{ kb.title }}</td></tr>
+<tr><th>View document</th><td><a href="{{ url_for('knowledge_base.download_kb_document', kb_id = kb.id)}}">Download document</a></td></tr>
+<tr><th>Visible to</th><td>{{ "Everyone" if kb.is_visible else "Only Head Office" }}</td></tr>
+<tr><th>Current status</th><td>{{ "Relevant" if kb.status else "No longer relevant" }}</td></tr>
+<tr><th>Created by</th><td>{{ kb.created_by }}</td></tr>
+<tr><th>Created on</th><td title="{{ kb.created_on }}">{{ humanize_datetime(kb.created_on) }}</td></tr>
+</tbody>
+</table>
+
+<div class="has-text-centered">
+    {% if current_user.user_type =="admin" %}
+        <a class="button is-link" href="{{ url_for('knowledge_base.edit_knowledge_base_entry', key=kb.id) }}">Edit</a>
+    {% endif %}
+</div>
+</div>
+{% endif %}
+{% endblock content %}

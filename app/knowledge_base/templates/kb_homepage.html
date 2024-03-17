@@ -1,0 +1,47 @@
+{% extends "kb_layout.html" %}
+
+{% block content %}
+<div class="container"></div>
+<table class="table is-fullwidth is-bordered" id="kb_table">
+
+<thead>
+<tr class="has-text-centered">
+    <th>Topic</th>
+    <th>Title</th>
+    <th>Uploaded on</th>
+{% if current_user.user_type == "admin" %}
+    <th>Can be accessed by</th>
+    <th>View</th>
+    <th>Edit</th>
+{% endif %}
+</tr>
+</thead>
+<tbody>
+{% for entry in kb_query %}
+    <tr>
+        <td class="is-vcentered">{{ entry.topic }}</td>
+        <td class="is-vcentered"><a href="{{ url_for('knowledge_base.download_kb_document', kb_id = entry.id)}}">{{ entry.title }}</a></td>
+        <td class="is-vcentered" data-sort="{{ entry.created_on }}" title="{{ entry.created_on }}">{{ humanize_datetime(entry.created_on) }}</td>
+    {% if current_user.user_type == "admin" %}
+        <td class="is-vcentered">{{ "Everyone" if entry.is_visible else "Only Head Office" }}</td>
+        <td class="has-text-centered"><a class="button is-small" href="{{ url_for('knowledge_base.view_knowledge_base_entry', key=entry.id) }}">View</a></td>
+        <td class="has-text-centered"><a class="button is-small" href="{{ url_for('knowledge_base.edit_knowledge_base_entry', key=entry.id) }}">Edit</a></td>
+    {% endif %}
+    </tr>
+{% endfor %}
+</tbody>
+</table>
+{% block scripts %}
+<script>
+new DataTable('#kb_table',{
+    order: [[2, 'desc']],
+    pageLength: 50,
+    stateSave: true,
+    lengthMenu: [
+        [10, 25, 50, -1],
+        [10, 25, 50, 'All']
+    ],
+});
+</script>
+{% endblock scripts %}
+{% endblock content %}
