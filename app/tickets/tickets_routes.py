@@ -46,7 +46,7 @@ def add_ticket():
         if form.data["remarks"]:
             remarks = TicketRemarks(
                 ticket_id=ticket.id,
-                user=current_user.oo_code,
+                user=current_user.username,
                 remarks=form.data["remarks"],
                 time_of_remark=datetime.now(),
             )
@@ -77,6 +77,9 @@ def edit_ticket(ticket_id):
     from server import db
 
     form = TicketsForm()
+
+    if current_user.user_type == "admin":
+        form.regional_incharge_approval.data = "True"
     if form.validate_on_submit():
         if current_user.user_type == "admin":
             ticket.regional_office_code = form.data["regional_office_code"]
@@ -103,7 +106,7 @@ def edit_ticket(ticket_id):
                 ticket_id=ticket.id,
                 remarks=form.data["remarks"],
                 time_of_remark=datetime.now(),
-                user=current_user.oo_code,
+                user=current_user.username,
             )
             db.session.add(remark)
         db.session.commit()
@@ -129,14 +132,13 @@ def edit_ticket(ticket_id):
 
 @tickets_bp.route("/")
 def tickets_homepage():
+    tickets = Tickets.query.order_by(Tickets.id.desc())
     if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
-        tickets = Tickets.query.filter(Tickets.office_code == current_user.oo_code)
+        tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
     elif current_user.user_type == "ro_user":
-        tickets = Tickets.query.filter(
-            Tickets.regional_office_code == current_user.ro_code
-        )
-    elif current_user.user_type == "admin":
-        tickets = Tickets.query.all()
+        tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
+    # elif current_user.user_type == "admin":
+
     return render_template(
         "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime
     )
