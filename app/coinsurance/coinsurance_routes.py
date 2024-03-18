@@ -1,4 +1,3 @@
-# import uuid
 from datetime import datetime
 import pandas as pd
 from sqlalchemy import func, distinct, select, create_engine
@@ -47,6 +46,7 @@ def home_page():
                 Coinsurance.current_status, func.count(Coinsurance.current_status)
             )
             .group_by(Coinsurance.current_status)
+            .order_by(Coinsurance.current_status)
             .all()
         )
     elif current_user.user_type == "oo_user":
@@ -58,6 +58,7 @@ def home_page():
                 Coinsurance.current_status, func.count(Coinsurance.current_status)
             )
             .group_by(Coinsurance.current_status)
+            .order_by(Coinsurance.current_status)
             .all()
         )
     else:
@@ -66,6 +67,7 @@ def home_page():
                 Coinsurance.current_status, func.count(Coinsurance.current_status)
             )
             .group_by(Coinsurance.current_status)
+            .order_by(Coinsurance.current_status)
             .all()
         )
 
