@@ -630,6 +630,33 @@ def select_coinsurers(query, form):
     return query
 
 
+@coinsurance_bp.route("/list/Settled/exception")
+def list_settled_entries_without_utr():
+    form_select_coinsurer = CoinsurerSelectForm()
+    coinsurance_entries = Coinsurance.query.order_by(
+        Coinsurance.follower_company_name.desc()
+    ).filter(Coinsurance.utr_number.is_(None))
+    if current_user.user_type == "ro_user":
+        coinsurance_entries = Coinsurance.query.filter(
+            Coinsurance.uiic_regional_code == current_user.ro_code
+        )
+
+    elif current_user.user_type == "oo_user":
+        coinsurance_entries = Coinsurance.query.filter(
+            Coinsurance.uiic_office_code == current_user.oo_code
+        )
+
+    coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
+
+    return render_template(
+        "view_all_coinsurance_entries.html",
+        coinsurance_entries=coinsurance_entries,
+        update_settlement=False,
+        form_select_coinsurer=form_select_coinsurer,
+        title="Settled entries without UTR number",
+    )
+
+
 @coinsurance_bp.route("/list/all", methods=["POST", "GET"])
 def list_coinsurance_entries():
     form_select_coinsurer = CoinsurerSelectForm()
