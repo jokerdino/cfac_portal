@@ -610,6 +610,7 @@ def edit_coinsurance_entry(coinsurance_id):
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
         humanize_datetime=humanize_datetime,
+        edit=True,
     )
 
 
