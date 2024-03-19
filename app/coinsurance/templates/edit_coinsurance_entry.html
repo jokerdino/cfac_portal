@@ -86,11 +86,15 @@
     </div>
 
 </form>
-            {% for field, errors in form.errors.items() %}
-    <div class="notification is-danger">
-        {{ field }}        {{ ', '.join(errors) }}
-    </div>
-    {% endfor %}
+
+  {% for field in form %}
+      {% if field.errors %}
+  <div class="notification is-danger">
+        {{ field.label }} field is to be completed.
+       </div>
+        {% endif %}
+ {% endfor %}
+
             </div>
 
             {% with messages = get_flashed_messages() %}
@@ -117,7 +121,6 @@
 $(document).ready(function() {
 calculateSum();
 });
-
 
    function calculateSum() {
      var direct_payable = parseInt(document.getElementById("payable_amount").value===""?0:document.getElementById("payable_amount").value);

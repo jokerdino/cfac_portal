@@ -98,6 +98,11 @@ def add_coinsurance_entry():
     from server import db
 
     form = CoinsuranceForm()
+    if form.data["bool_reinsurance"]:
+        from wtforms.validators import DataRequired
+
+        form.ri_confirmation.validators = [DataRequired()]
+
     if form.validate_on_submit():
         if current_user.user_type == "oo_user":
             regional_office_code = current_user.ro_code
@@ -370,6 +375,11 @@ def edit_coinsurance_entry(coinsurance_id):
 
     form = CoinsuranceForm()
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
+    if form.data["bool_reinsurance"]:
+        from wtforms.validators import DataRequired
+
+        if not coinsurance.ri_confirmation:
+            form.ri_confirmation.validators = [DataRequired()]
 
     if not enable_button(current_user, coinsurance):
         flash("Unable to submit data. Please try again later.")
