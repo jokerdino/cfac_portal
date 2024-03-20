@@ -25,7 +25,7 @@
 <th class="is-vcentered">Remarks</th>
 <th class="is-vcentered">Time stamp</th>
 <th class="is-vcentered">Status</th>
-
+<th class="is-vcentered">No. of outstanding entries</th>
 </tr>
 </thead>
 <tbody>
@@ -48,6 +48,7 @@
 <td>{{ entry.remarks }}</td>
 <td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}" href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ humanize_datetime(entry.timestamp) }}</a></td>
 <td>{{ entry.status }}</td>
+        <td>{{ entry.brs_outstanding.count() }}</td>
 
 </tr>
 

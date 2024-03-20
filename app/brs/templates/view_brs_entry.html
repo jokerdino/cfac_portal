@@ -20,13 +20,13 @@
         <th>Bank</th>
     </tr>
    <tr>
-        <td>{{ brs_month.uiic_regional_code }}</td>
-        <td>{{ brs_month.uiic_office_code }}</td>
-        <td>{{ brs_month.financial_year }}</td>
-        <td>{{ brs_month.month }}</td>
+        <td>{{ brs_entry.brs.uiic_regional_code }}</td>
+        <td>{{ brs_entry.brs.uiic_office_code }}</td>
+        <td>{{ brs_entry.brs.financial_year }}</td>
+        <td>{{ brs_entry.brs.month }}</td>
         <td>{{ brs_entry.brs_type.upper() }}</td>
 <td>
-    {{ get_brs_bank (brs_month.id, brs_entry.brs_type) }}
+    {{ get_brs_bank (brs_entry.brs.id, brs_entry.brs_type) }}
 </td>
    </tr>
 </table>
@@ -34,32 +34,32 @@
 <table class="table is-bordered is-hoverable">
 
 <tr><th>Opening balance as per GL</th>
-    <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td></tr>
 <tr><th>Add: Opening On hand</th>
-    <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
+    <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "previous") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td></tr>
 <tr><th>Add: Collections during the month</th>
-    <td>{{ brs_month.month }}</td>
+    <td>{{ brs_entry.brs.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_transactions) }}</td></tr>
 <tr><th>Less: Cancellations / cheque dishonours during the month</th>
-    <td>{{ brs_month.month }}</td>
+    <td>{{ brs_entry.brs.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td></tr>
 <tr><th>Balance before fund transfer</th>
-    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td></tr>
 
 <tr><th>Less: Fund transfer</th>
-    <td>{{ brs_month.month }}</td>
+    <td>{{ brs_entry.brs.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td></tr>
 <tr><th>Less: Bank charges</th>
-    <td>{{ brs_month.month }}</td>
+    <td>{{ brs_entry.brs.month }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td></tr>
 <tr><th>Less: Closing On hand</th>
-    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td></tr>
 <tr><th>Closing balance as per GL</th>
-    <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+    <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
     <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td></tr>
 {% if brs_entry.remarks %}
 <tr><th>Remarks</th><td colspan="2">{{ brs_entry.remarks }}</td></tr>
@@ -67,7 +67,7 @@
 </table>
 
 {% if brs_entry.int_closing_balance > 0 %}
-{% if outstanding %}
+{% if brs_entry.brs_outstanding %}
 <h3 class="title is-5">Details of closing balance:</h3>
 <table class="table is-bordered">
 <thead>
@@ -80,7 +80,7 @@
 </thead>
 <tbody>
     <tr>
-        {% for item in outstanding %}
+        {% for item in brs_entry.brs_outstanding %}
         <td class="has-text-centered">
          {% if item.date_of_collection %}
             {{ item.date_of_collection.strftime("%d/%m/%Y") }}
@@ -105,7 +105,7 @@
 <tr>
     <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
     <td class="has-text-right has-text-weight-bold">
-        {{ "{:,.2f}".format(outstanding | sum(attribute="instrument_amount")) }}</td>
+        {{ "{:,.2f}".format(brs_entry.brs_outstanding | sum(attribute="instrument_amount")) }}</td>
 </tr></tfoot>
 </table>
 {% endif %}

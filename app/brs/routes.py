@@ -1,5 +1,6 @@
 from datetime import datetime
 import calendar
+from sqlalchemy.sql import exists
 from typing import List, Any
 
 import pandas as pd
@@ -329,15 +330,15 @@ def download_format():
 @login_required
 def view_brs(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
-    brs_month = BRS.query.get_or_404(brs_entry.brs_id)
-    brs_outstanding_entries = Outstanding.query.filter(
-        Outstanding.brs_month_id == brs_key
-    ).filter(Outstanding.instrument_amount.is_not(None))
+    # brs = BRS.query.get_or_404(brs_entry.brs_id)
+    # brs_outstanding_entries = Outstanding.query.filter(
+    #   Outstanding.brs_month_id == brs_key
+    # ).filter(Outstanding.instrument_amount.is_not(None))
     return render_template(
         "view_brs_entry.html",
-        brs_month=brs_month,
+        #     brs=brs,
         brs_entry=brs_entry,
-        outstanding=brs_outstanding_entries,
+        #    outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
         pdf=False,
     )
@@ -347,15 +348,15 @@ def view_brs(brs_key):
 @login_required
 def view_brs_pdf(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
-    brs_month = BRS.query.get_or_404(brs_entry.brs_id)
-    brs_outstanding_entries = Outstanding.query.filter(
-        Outstanding.brs_month_id == brs_key
-    ).filter(Outstanding.instrument_amount.is_not(None))
+    # brs_month = BRS.query.get_or_404(brs_entry.brs_id)
+    # brs_outstanding_entries = Outstanding.query.filter(
+    #     Outstanding.brs_month_id == brs_key
+    # ).filter(Outstanding.instrument_amount.is_not(None))
     html = render_template(
         "view_brs_entry.html",
-        brs_month=brs_month,
+        #        brs_month=brs_month,
         brs_entry=brs_entry,
-        outstanding=brs_outstanding_entries,
+        #       outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
         pdf=True,
     )
@@ -559,13 +560,51 @@ def enter_brs(requirement, brs_id):
 @brs_bp.route("/dashboard/view_raw_data")
 @login_required
 def list_brs_entries():
-    list_all_brs_entries = BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id).filter(
-        BRS_month.status == None
-    )
+    """Function to return genuine BRS entries to be considered for passing JV
+    a. Entries which are not deleted AND
+    b. Entries which have no closing balance AND
+    c. Entries which have closing balance and corresponding outstanding entries."""
+    list_all_brs_entries = BRS_month.query.filter(BRS_month.status.is_(None))
+
     if current_user.user_type == "ro_user":
         list_all_brs_entries = list_all_brs_entries.filter(
             BRS.uiic_regional_code == current_user.ro_code
-        ).filter(BRS_month.status == None)
+        )
+
+    list_all_brs_entries = list_all_brs_entries.filter(
+        (BRS_month.int_closing_balance == 0)
+        | (
+            (BRS_month.int_closing_balance > 0)
+            & (Outstanding.brs_month_id == BRS_month.id)
+        )
+    )
+    return render_template(
+        "view_brs_raw_data.html",
+        brs_entries=list_all_brs_entries,
+        get_brs_bank=get_brs_bank,
+        humanize_datetime=humanize_datetime,
+    )
+
+
+@brs_bp.route("/dashboard/view_raw_data/exceptions")
+@login_required
+def list_brs_entries_exceptions():
+    """Function to return exceptions - BRS monthly records for the following conditions
+    1. The BRS monthly record is deleted OR
+    2.
+        a. The BRS monthly record is not deleted AND
+        b. Closing balance is greater than zero AND
+        c. Outstanding entries are not present for the BRS monthly record."""
+
+    list_all_brs_entries = BRS_month.query.filter(
+        (BRS_month.status == "Deleted")
+        | (BRS_month.status.is_(None))
+        & (
+            (BRS_month.int_closing_balance > 0)
+            & (~exists().where(Outstanding.brs_month_id == BRS_month.id))
+        )
+    )
+
     return render_template(
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
@@ -580,7 +619,7 @@ def list_outstanding_entries():
     outstanding_entries = (
         Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id)
         .join(BRS, BRS_month.brs_id == BRS.id)
-        .filter(BRS_month.status == None)
+        .filter(BRS_month.status.is_(None))
     )
     return render_template(
         "view_outstanding_entries.html",
