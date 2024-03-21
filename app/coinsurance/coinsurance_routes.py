@@ -633,9 +633,12 @@ def select_coinsurers(query, form):
 @coinsurance_bp.route("/list/Settled/exception")
 def list_settled_entries_without_utr():
     form_select_coinsurer = CoinsurerSelectForm()
-    coinsurance_entries = Coinsurance.query.order_by(
-        Coinsurance.follower_company_name.desc()
-    ).filter(Coinsurance.utr_number.is_(None))
+    coinsurance_entries = (
+        Coinsurance.query.order_by(Coinsurance.follower_company_name.desc())
+        .filter(Coinsurance.utr_number.is_(None))
+        .filter(Coinsurance.current_status == "Settled")
+    )
+
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -661,9 +664,9 @@ def list_settled_entries_without_utr():
 def list_coinsurance_entries():
     form_select_coinsurer = CoinsurerSelectForm()
 
-    coinsurance_entries = Coinsurance.query.order_by(
-        Coinsurance.follower_company_name.desc()
-    )
+    coinsurance_entries = Coinsurance.query.filter(
+        Coinsurance.current_status != "No longer valid"
+    ).order_by(Coinsurance.follower_company_name.desc())
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -908,7 +911,9 @@ def add_settlement_data():
 
 @coinsurance_bp.route("/log/<int:coinsurance_id>")
 def view_coinsurance_log(coinsurance_id):
-    log = Coinsurance_log.query.filter(Coinsurance_log.coinsurance_id == coinsurance_id)
+    log = Coinsurance_log.query.filter(
+        Coinsurance_log.coinsurance_id == coinsurance_id
+    ).order_by(Coinsurance_log.id)
     column_names = Coinsurance_log.query.statement.columns.keys()
     return render_template(
         "view_coinsurance_log.html", log=log, column_names=column_names
