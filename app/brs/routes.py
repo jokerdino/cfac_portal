@@ -20,7 +20,7 @@ from sqlalchemy import create_engine, func
 
 from app.brs import brs_bp
 from app.brs.models import BRS, BRS_month, Outstanding
-from app.brs.forms import BRSForm, BRS_entry, DashboardForm
+from app.brs.forms import BRSForm, BRS_entry, DashboardForm, RawDataForm
 
 from app.tickets.tickets_routes import humanize_datetime
 
@@ -76,10 +76,10 @@ def brs_dashboard():
         func.count(BRS.cash_brs_id),
         func.count(BRS.cheque_bank),
         func.count(BRS.cheque_brs_id),
-        func.count(BRS.pos_bank),
-        func.count(BRS.pos_brs_id),
         func.count(BRS.pg_bank),
         func.count(BRS.pg_brs_id),
+        func.count(BRS.pos_bank),
+        func.count(BRS.pos_brs_id),
         func.count(BRS.bbps_bank),
         func.count(BRS.bbps_brs_id),
         func.count(BRS.local_collection_bank),
@@ -557,33 +557,59 @@ def enter_brs(requirement, brs_id):
     )
 
 
-@brs_bp.route("/dashboard/view_raw_data")
+@brs_bp.route("/dashboard/view_raw_data", methods=["GET", "POST"])
 @login_required
 def list_brs_entries():
     """Function to return genuine BRS entries to be considered for passing JV
     a. Entries which are not deleted AND
     b. Entries which have no closing balance AND
     c. Entries which have closing balance and corresponding outstanding entries."""
-    list_all_brs_entries = BRS_month.query.filter(BRS_month.status.is_(None))
+    form = RawDataForm()
 
-    if current_user.user_type == "ro_user":
+    month_choices = BRS.query.with_entities(BRS.month).distinct()
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.month.choices = [item.strftime("%B-%Y") for item in list_period]
+
+    if form.validate_on_submit():
+        month = form.data["month"]
+        brs_type = form.data["brs_type"]
+
+        list_all_brs_entries = (
+            BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id)
+            #   .join(Outstanding, Outstanding.brs_month_id == BRS_month.id)
+            .filter(
+                (BRS_month.status.is_(None))
+                & (BRS.month == month)
+                & (BRS_month.brs_type == brs_type)
+            )
+        )
+
         list_all_brs_entries = list_all_brs_entries.filter(
-            BRS.uiic_regional_code == current_user.ro_code
+            (BRS_month.int_closing_balance == 0)
+            | (
+                (BRS_month.int_closing_balance > 0)
+                & (Outstanding.brs_month_id == BRS_month.id)
+            )
         )
 
-    list_all_brs_entries = list_all_brs_entries.filter(
-        (BRS_month.int_closing_balance == 0)
-        | (
-            (BRS_month.int_closing_balance > 0)
-            & (Outstanding.brs_month_id == BRS_month.id)
+        if current_user.user_type == "ro_user":
+            list_all_brs_entries = list_all_brs_entries.filter(
+                BRS.uiic_regional_code == current_user.ro_code
+            )
+
+        return render_template(
+            "view_brs_raw_data.html",
+            brs_entries=list_all_brs_entries,
+            get_brs_bank=get_brs_bank,
+            humanize_datetime=humanize_datetime,
         )
-    )
-    return render_template(
-        "view_brs_raw_data.html",
-        brs_entries=list_all_brs_entries,
-        get_brs_bank=get_brs_bank,
-        humanize_datetime=humanize_datetime,
-    )
+    return render_template("brs_raw_data_form.html", form=form)
 
 
 @brs_bp.route("/dashboard/view_raw_data/exceptions")

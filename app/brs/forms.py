@@ -50,3 +50,18 @@ class BRS_entry(FlaskForm):
 
 class DashboardForm(FlaskForm):
     month = SelectField("Select month")
+
+
+class RawDataForm(FlaskForm):
+    month = SelectField("Select month")
+    brs_type = SelectField(
+        "Select BRS type",
+        choices=[
+            ("cash", "Cash"),
+            ("cheque", "Cheque"),
+            ("pg", "PG"),
+            ("pos", "POS"),
+            ("bbps", "BBPS"),
+            ("local_collection", "Local collection"),
+        ],
+    )
