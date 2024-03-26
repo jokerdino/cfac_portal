@@ -370,6 +370,56 @@ def update_utr_choices(coinsurance, form):
     ]
 
 
+def show_zones(ro_code):
+    if ro_code in [
+        "020000",
+        "060000",
+        "120000",
+        "160000",
+        "180000",
+        "190000",
+        "230000",
+        "270000",
+        "500100",
+        "020051",
+    ]:
+        return "West"
+    elif ro_code in [
+        "010000",
+        "050000",
+        "070000",
+        "090000",
+        "100000",
+        "150000",
+        "170000",
+        "240000",
+        "280000",
+        "300000",
+        "500200",
+        "500400",
+        "500500",
+        "050051",
+    ]:
+        return "South"
+    elif ro_code in [
+        "040000",
+        "080000",
+        "110000",
+        "140000",
+        "200000",
+        "220000",
+        "250000",
+        "290000",
+        "500400",
+        "040051",
+    ]:
+        return "North"
+    elif ro_code in ["030000", "130000", "210000", "260000", "500700", "030051"]:
+        return "East"
+    else:
+        return "NA"
+
+
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
 def edit_coinsurance_entry(coinsurance_id):
     from server import db
@@ -659,6 +709,7 @@ def list_settled_entries_without_utr():
         update_settlement=False,
         form_select_coinsurer=form_select_coinsurer,
         title="Settled entries without UTR number",
+        show_zones=show_zones,
     )
 
 
@@ -695,6 +746,7 @@ def list_coinsurance_entries():
         update_settlement=False,
         form_select_coinsurer=form_select_coinsurer,
         title=f"List of all coinsurance confirmations{custom_title}",
+        show_zones=show_zones,
     )
 
 
@@ -811,6 +863,7 @@ def list_coinsurance_entries_by_status(status):
                 status=status,
                 form=form,
                 form_select_coinsurer=form_select_coinsurer,
+                show_zones=show_zones,
             )
         else:
             # coinsurance_entries = select_coinsurers(
@@ -823,6 +876,7 @@ def list_coinsurance_entries_by_status(status):
                 status=status,
                 #        form=form,
                 form_select_coinsurer=form_select_coinsurer,
+                show_zones=show_zones,
             )
     else:
         # coinsurance_entries = select_coinsurers(
@@ -835,6 +889,7 @@ def list_coinsurance_entries_by_status(status):
             status=status,
             #        form=form,
             form_select_coinsurer=form_select_coinsurer,
+            show_zones=show_zones,
         )
 
 
@@ -849,6 +904,7 @@ def list_settled_coinsurance_entries(utr_number):
         coinsurance_entries=coinsurance_entries,
         update_settlement=False,
         form_select_coinsurer=form_select_coinsurer,
+        show_zones=show_zones,
     )
 
 
