@@ -40,7 +40,7 @@ def home_page():
     if current_user.user_type == "ro_user":
         query = (
             Coinsurance.query.filter(
-                Coinsurance.uiic_regional_code == current_user.oo_code
+                Coinsurance.uiic_regional_code == current_user.ro_code
             )
             .with_entities(
                 Coinsurance.current_status, func.count(Coinsurance.current_status)
@@ -52,7 +52,8 @@ def home_page():
     elif current_user.user_type == "oo_user":
         query = (
             Coinsurance.query.filter(
-                Coinsurance.uiic_office_code == current_user.oo_code
+                (Coinsurance.uiic_office_code == current_user.oo_code)
+                & (Coinsurance.uiic_regional_code == current_user.ro_code)
             )
             .with_entities(
                 Coinsurance.current_status, func.count(Coinsurance.current_status)
@@ -646,7 +647,8 @@ def list_settled_entries_without_utr():
 
     elif current_user.user_type == "oo_user":
         coinsurance_entries = Coinsurance.query.filter(
-            Coinsurance.uiic_office_code == current_user.oo_code
+            (Coinsurance.uiic_office_code == current_user.oo_code)
+            & (Coinsurance.uiic_regional_code == current_user.ro_code)
         )
 
     coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
@@ -674,7 +676,8 @@ def list_coinsurance_entries():
 
     elif current_user.user_type == "oo_user":
         coinsurance_entries = Coinsurance.query.filter(
-            Coinsurance.uiic_office_code == current_user.oo_code
+            (Coinsurance.uiic_office_code == current_user.oo_code)
+            & (Coinsurance.uiic_regional_code == current_user.ro_code)
         )
 
     coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
@@ -709,7 +712,8 @@ def list_coinsurance_entries_by_status(status):
         # ).filter(Coinsurance.current_status == status)
     elif current_user.user_type == "oo_user":
         coinsurance_entries = coinsurance_entries.filter(
-            Coinsurance.uiic_office_code == current_user.oo_code
+            (Coinsurance.uiic_office_code == current_user.oo_code)
+            & (Coinsurance.uiic_regional_code == current_user.ro_code)
         )
         # coinsurance_entries = Coinsurance.query.filter(
         #     Coinsurance.uiic_office_code == current_user.oo_code

@@ -69,11 +69,11 @@
         View</a>
 </td>
 <td>                          {{ entry.uiic_regional_code }}</td>
-<td>                          {{ entry.uiic_office_code }}</td>
+<td>                          {{ entry.uiic_office_code | replace(",",", ") | replace("/","/ ") }}</td>
 <td>                          {{ entry.follower_company_name }}</td>
-<td>                          {{ entry.follower_office_code }}</td>
+<td>                          {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
 <td>                          {{ entry.type_of_transaction }}</td>
-<td>                          {{ entry.request_id }}</td>
+<td>                          {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
 <td>                          {{ entry.insured_name }}</td>
 <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
 <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
@@ -127,13 +127,18 @@
 
 {% block scripts %}
 <script>
+
+var column_number = 13
+{% if status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"] %}
+column_number+=1
+{% endif %}
 new DataTable('#coinsurance_table', {
     dom: 'lfBrtip',
     fixedHeader: false,
     scrollY: true,
     columnDefs: [
         {
-            target:[13,14],
+            target:[column_number,column_number+1],
             visible: false,
             searchable: false,
         }],
@@ -143,6 +148,7 @@ new DataTable('#coinsurance_table', {
      { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
     order: [[0,'desc']],
     pagingType: 'full_numbers',
+    pageLength: 100,
     lengthMenu: [
          [10,25,50,100,-1],
          [10,25,50,100,'All'],
