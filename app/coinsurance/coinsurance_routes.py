@@ -410,7 +410,7 @@ def show_zones(ro_code):
         "220000",
         "250000",
         "290000",
-        "500400",
+        "500300",
         "040051",
     ]:
         return "North"
@@ -446,8 +446,8 @@ def edit_coinsurance_entry(coinsurance_id):
             oo_code = form.data["oo_code"]
         coinsurer_name = form.data["coinsurer_name"]
         coinsurer_office_code = form.data["coinsurer_office_code"]
-        payable_amount = form.data["payable_amount"]
-        receivable_amount = form.data["receivable_amount"]
+        payable_amount = form.data["payable_amount"] or 0
+        receivable_amount = form.data["receivable_amount"] or 0
 
         request_id = form.data["request_id"]
         current_status = "To be reviewed by coinsurance hub"

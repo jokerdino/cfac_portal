@@ -59,25 +59,24 @@ class CoinsuranceForm(FlaskForm):
         "No longer valid",
     ]
 
-    regional_office_code = StringField("Enter Regional Office Code:")
-    oo_code = StringField("Enter operating office code:")
-    coinsurer_name = SelectField("Enter coinsurer name:", choices=coinsurer_list)
-    coinsurer_office_code = StringField("Enter Coinsurer office code:")
+    regional_office_code = StringField("Enter Regional Office Code")
+    oo_code = StringField("Enter Operating Office Code")
+    coinsurer_name = SelectField("Enter Coinsurer name", choices=coinsurer_list)
+    coinsurer_office_code = StringField("Enter Coinsurer Office Code")
 
     type_of_transaction = SelectField(
-        "Select whether leader or follower:", choices=["Leader", "Follower"]
+        "Select whether United India is leader or follower",
+        choices=["Leader", "Follower"],
     )
     name_of_insured = StringField("Enter name of insured")
     request_id = StringField("Enter Request ID")
     statement = FileField("Upload statement", validators=[Optional()])
     confirmation = FileField("Upload confirmation", validators=[Optional()])
-    payable_amount = IntegerField("Enter payable amount:", validators=[Optional()])
-    receivable_amount = IntegerField(
-        "Enter receivable amount:", validators=[Optional()]
-    )
+    payable_amount = IntegerField("Enter payable amount", validators=[Optional()])
+    receivable_amount = IntegerField("Enter receivable amount", validators=[Optional()])
 
     bool_reinsurance = BooleanField(
-        "Whether Reinsurance is involved: ", validators=[Optional()]
+        "Whether Reinsurance is involved", validators=[Optional()]
     )
     int_ri_payable_amount = IntegerField(
         "Enter Reinsurance payable amount", validators=[Optional()]
@@ -89,10 +88,10 @@ class CoinsuranceForm(FlaskForm):
 
     remarks = TextAreaField("Enter remarks")
     current_status = SelectField(
-        "Current status:", choices=status_list, validators=[Optional()]
+        "Current status", choices=status_list, validators=[Optional()]
     )
     settlement = SelectField(
-        "Update settlement details:",
+        "Update settlement details",
         choices=[],
         validators=[Optional()],
         validate_choice=False,
