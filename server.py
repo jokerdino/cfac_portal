@@ -24,12 +24,13 @@ def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
         date_string = f"{res[1]}/{return_value.month:02}/{return_value.year}"
         return date_string
     elif result == "previous":
-        if return_value.month - 1 == 0:
-            res = calendar.monthrange(return_value.year - 1, 12)
-            date_string = f"{res[1]}/12/{return_value.year-1}"
-        else:
-            res = calendar.monthrange(return_value.year, return_value.month - 1)
-            date_string = f"{res[1]}/{return_value.month - 1:02}/{return_value.year}"
+        date_string = f"01/{return_value.month:02}/{return_value.year}"
+        # if return_value.month - 1 == 0:
+        #     res = calendar.monthrange(return_value.year - 1, 12)
+        #     date_string = f"{res[1]}/12/{return_value.year-1}"
+        # else:
+        #     res = calendar.monthrange(return_value.year, return_value.month - 1)
+        #     date_string = f"{res[1]}/{return_value.month - 1:02}/{return_value.year}"
         return date_string
 
 

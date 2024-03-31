@@ -73,9 +73,12 @@
 <thead>
     <tr>
         <th>Date of collection</th>
+        {% if not brs_entry.brs_type == "cash" %}
         <th>Instrument number</th>
         <th>Date of instrument</th>
+         {% endif %}
         <th>Instrument amount</th>
+
     </tr>
 </thead>
 <tbody>
@@ -89,6 +92,7 @@
         {% endif %}
         </td>
 
+    {% if not brs_entry.brs_type == "cash" %}
         <td class="has-text-centered">{{ item.instrument_number }}</td>
         <td class="has-text-centered">
         {% if item.date_of_instrument %}
@@ -96,6 +100,7 @@
         {% else %}
             No date of instrument available
         {% endif %}
+    {% endif %}
         </td>
         <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
     </tr>
@@ -103,7 +108,12 @@
     {% endfor %}
 <tfoot>
 <tr>
+
+      {% if not brs_entry.brs_type == "cash" %}
     <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
+    {% else %}
+    <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
+    {% endif %}
     <td class="has-text-right has-text-weight-bold">
         {{ "{:,.2f}".format(brs_entry.brs_outstanding | sum(attribute="instrument_amount")) }}</td>
 </tr></tfoot>

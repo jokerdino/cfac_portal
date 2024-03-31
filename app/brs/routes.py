@@ -320,10 +320,13 @@ def view_consolidated_brs_pdf(brs_key):
     return render_pdf(HTML(string=html))
 
 
-@brs_bp.route("/download_format")
+@brs_bp.route("/download_format/<string:requirement>")
 @login_required
-def download_format():
-    return send_file("outstanding_cheques_upload_format.csv")
+def download_format(requirement):
+    if requirement == "cash":
+        return send_file("outstanding_cash_upload_format.csv")
+    else:
+        return send_file("outstanding_cheques_upload_format.csv")
 
 
 @brs_bp.route("/view/<int:brs_key>")
@@ -472,12 +475,23 @@ def enter_brs(requirement, brs_id):
 
             if closing_balance > 0:
                 try:
-                    date_columns = ["date_of_instrument", "date_of_collection"]
-                    df_outstanding_entries = pd.read_csv(
-                        form.data["outstanding_entries"],
-                        parse_dates=date_columns,
-                        dtype={"instrument_amount": float, "instrument_number": str},
-                    )
+                    if requirement == "cash":
+                        date_columns = ["date_of_collection"]
+                        df_outstanding_entries = pd.read_csv(
+                            form.data["outstanding_entries"],
+                            parse_dates=date_columns,
+                            dtype={"instrument_amount": float},
+                        )
+                    else:
+                        date_columns = ["date_of_instrument", "date_of_collection"]
+                        df_outstanding_entries = pd.read_csv(
+                            form.data["outstanding_entries"],
+                            parse_dates=date_columns,
+                            dtype={
+                                "instrument_amount": float,
+                                "instrument_number": str,
+                            },
+                        )
 
                     try:
                         sum_os_entries = df_outstanding_entries[

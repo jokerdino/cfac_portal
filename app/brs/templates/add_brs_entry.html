@@ -79,7 +79,9 @@
           <td></td>
           <td> {{ form.remarks(class='textarea') }} </td>
       </tr>
-        <tr><th>{{ form.outstanding_entries.label }}</th> <td><a href="{{ url_for('brs.download_format') }}">Upload Format</a></td><td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
+        <tr><th>{{ form.outstanding_entries.label }}</th>
+            <td><a href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
+            <td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
     </table>
     <div class="buttons is-centered">
     <a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}'>Go back</a>
