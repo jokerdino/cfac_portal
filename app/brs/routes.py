@@ -61,6 +61,43 @@ def brs_ro_wise(ro_code, month):
     )
 
 
+@brs_bp.route("/percentage", methods=["POST", "GET"])
+@login_required
+def brs_percentage():
+    form = DashboardForm()
+
+    month_choices = BRS.query.with_entities(BRS.month).distinct()
+    form.month.choices = ["View all"] + [x.month for x in month_choices]
+
+    query = BRS.query.with_entities(
+        BRS.uiic_regional_code,
+        BRS.month,
+        func.count(BRS.cash_bank),
+        func.count(BRS.cash_brs_id),
+        func.count(BRS.cheque_bank),
+        func.count(BRS.cheque_brs_id),
+        func.count(BRS.pg_bank),
+        func.count(BRS.pg_brs_id),
+        func.count(BRS.pos_bank),
+        func.count(BRS.pos_brs_id),
+        func.count(BRS.bbps_bank),
+        func.count(BRS.bbps_brs_id),
+        func.count(BRS.local_collection_bank),
+        func.count(BRS.local_collection_brs_id),
+    ).group_by(BRS.uiic_regional_code, BRS.month)
+
+    # if current_user.user_type == "ro_user":
+    #     query = query.filter(BRS.uiic_regional_code == current_user.ro_code)
+
+    if form.validate_on_submit():
+        month = form.data["month"]
+        if month != "View all":
+            query = query.filter(BRS.month == month)
+        return render_template("brs_dashboard_percentage.html", query=query, form=form)
+
+    return render_template("brs_dashboard_percentage.html", query=query, form=form)
+
+
 @brs_bp.route("/dashboard", methods=["POST", "GET"])
 @login_required
 def brs_dashboard():
