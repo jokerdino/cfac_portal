@@ -697,19 +697,40 @@ def list_brs_entries_exceptions():
     )
 
 
-@brs_bp.route("/dashboard/outstanding")
+@brs_bp.route("/dashboard/outstanding", methods=["POST", "GET"])
 @login_required
 def list_outstanding_entries():
-    outstanding_entries = (
-        Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id)
-        .join(BRS, BRS_month.brs_id == BRS.id)
-        .filter(BRS_month.status.is_(None))
-    )
-    return render_template(
-        "view_outstanding_entries.html",
-        outstanding=outstanding_entries,
-        get_brs_bank=get_brs_bank,
-    )
+    form = RawDataForm()
+
+    month_choices = BRS.query.with_entities(BRS.month).distinct()
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.month.choices = [item.strftime("%B-%Y") for item in list_period]
+
+    if form.validate_on_submit():
+        month = form.data["month"]
+        brs_type = form.data["brs_type"]
+
+        outstanding_entries = (
+            Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id)
+            .join(BRS, BRS_month.brs_id == BRS.id)
+            .filter(
+                BRS_month.status.is_(None)
+                & (BRS.month == month)
+                & (BRS_month.brs_type == brs_type)
+            )
+        )
+        return render_template(
+            "view_outstanding_entries.html",
+            outstanding=outstanding_entries,
+            get_brs_bank=get_brs_bank,
+        )
+    return render_template("brs_raw_data_form.html", form=form)
 
 
 def get_brs_bank(brs_id, requirement):

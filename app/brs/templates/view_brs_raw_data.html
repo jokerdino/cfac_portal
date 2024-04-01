@@ -45,9 +45,9 @@
 <td class="has-text-right">{{ entry.int_bank_charges }}</td>
 <td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
 <td class="has-text-right">{{ entry.int_closing_balance }}</td>
-<td>{{ entry.remarks }}</td>
+<td>{{ entry.remarks or "" }}</td>
 <td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}" href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ humanize_datetime(entry.timestamp) }}</a></td>
-<td>{{ entry.status }}</td>
+<td>{{ entry.status or "Submitted" }}</td>
         <td>{{ entry.brs_outstanding.count() }}</td>
 
 </tr>
