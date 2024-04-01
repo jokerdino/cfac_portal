@@ -1,6 +1,6 @@
 from datetime import datetime
 import calendar
-from sqlalchemy.sql import exists
+from sqlalchemy.sql import exists, select
 from typing import List, Any
 
 import pandas as pd
@@ -604,11 +604,18 @@ def list_brs_entries():
             )
         )
 
+        subquery = (
+            Outstanding.query.with_entities(Outstanding.brs_month_id)
+            .distinct()
+            .subquery()
+        )
+
         list_all_brs_entries = list_all_brs_entries.filter(
             (BRS_month.int_closing_balance == 0)
             | (
                 (BRS_month.int_closing_balance > 0)
-                & (Outstanding.brs_month_id == BRS_month.id)
+                # & (Outstanding.brs_month_id == BRS_month.id)
+                & (BRS_month.id.in_(select(subquery)))
             )
         )
 
