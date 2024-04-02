@@ -17,14 +17,21 @@
                 <div class="navbar-brand">
                     <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-             <a class="navbar-item" href="{{ url_for('tickets.tickets_homepage') }}">Tickets home</a>
+  <div class="navbar-item has-dropdown is-hoverable">
+     <a class="navbar-link" href="{{ url_for('tickets.tickets_homepage') }}">Tickets home</a>
+      <div class="navbar-dropdown">
+           <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval') }}">Pending for CFAC approval</a>
+           <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Clarification to be provided by RO or OO') }}">Needs clarification</a>
+           <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Approval provided by CFAC') }}">Approved</a>
+           <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Resolved') }}">Resolved</a>
+           <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='No longer relevant') }}">No longer relevant</a>
 
-                 <a class="navbar-item" href="{{ url_for('tickets.add_ticket') }}">Add ticket details</a>
+      </div>
+      </div>
+      <a class="navbar-item" href="{{ url_for('tickets.add_ticket') }}">Add ticket details</a>
 
                     </div>
              </div>
-        </div>
-    </div>
 
                 <div class="navbar-end">
                     <div class="navbar-item">

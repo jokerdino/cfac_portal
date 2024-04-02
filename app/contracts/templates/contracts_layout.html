@@ -20,9 +20,9 @@
                         <div class="navbar-item has-dropdown is-hoverable">
                      <a class="navbar-link">List of contracts</a>
                     <div class="navbar-dropdown">
-                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status="active")}}">Active contracts</a>
-                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status="expired")}}">Expired contracts</a>
-                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status="all")}}">All contracts</a>
+                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status='active') }}">Active contracts</a>
+                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status='expired') }}">Expired contracts</a>
+                        <a class="navbar-item" href="{{ url_for('contracts.view_contracts', status='all') }}">All contracts</a>
                     </div>
                         </div>
                     <a class="navbar-item" href="{{ url_for('contracts.add_contract_entry') }}">Add new contract</a>

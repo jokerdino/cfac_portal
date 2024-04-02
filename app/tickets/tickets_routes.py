@@ -3,7 +3,7 @@ from datetime import datetime
 import humanize
 
 from flask import flash, redirect, render_template, url_for
-from flask_login import current_user
+from flask_login import current_user, login_required
 
 from app.tickets import tickets_bp
 from app.tickets.tickets_model import Tickets, TicketRemarks
@@ -11,6 +11,7 @@ from app.tickets.tickets_form import TicketsForm
 
 
 @tickets_bp.route("/add", methods=["POST", "GET"])
+@login_required
 def add_ticket():
     from server import db
 
@@ -59,6 +60,7 @@ def add_ticket():
 
 
 @tickets_bp.route("/view/<int:ticket_id>")
+@login_required
 def view_ticket(ticket_id):
     ticket = Tickets.query.get_or_404(ticket_id)
     remarks = TicketRemarks.query.filter(TicketRemarks.ticket_id == ticket_id)
@@ -71,6 +73,7 @@ def view_ticket(ticket_id):
 
 
 @tickets_bp.route("/edit/<int:ticket_id>", methods=["POST", "GET"])
+@login_required
 def edit_ticket(ticket_id):
     ticket = Tickets.query.get_or_404(ticket_id)
     remarks = TicketRemarks.query.filter(TicketRemarks.ticket_id == ticket_id)
@@ -130,7 +133,8 @@ def edit_ticket(ticket_id):
     )
 
 
-@tickets_bp.route("/")
+@tickets_bp.route("/status/all")
+@login_required
 def tickets_homepage():
     tickets = Tickets.query.order_by(Tickets.id.desc())
     if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
@@ -139,6 +143,19 @@ def tickets_homepage():
         tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
     # elif current_user.user_type == "admin":
 
+    return render_template(
+        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime
+    )
+
+
+@tickets_bp.route("/status/<string:status>")
+@login_required
+def filter_by_status(status):
+    tickets = Tickets.query.filter(Tickets.status == status)
+    if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
+        tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
+    elif current_user.user_type == "ro_user":
+        tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
     return render_template(
         "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime
     )
