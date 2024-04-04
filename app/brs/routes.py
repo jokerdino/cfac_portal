@@ -236,25 +236,31 @@ def upload_brs(brs_key):
     form = BRSForm()
     if form.validate_on_submit():
         if form.data["delete_cash_brs"]:
-            current_id = brs_entry.cash_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.cash_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.cash_brs_id = None
         if form.data["delete_cheque_brs"]:
-            current_id = brs_entry.cheque_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.cheque_brs_id = None
         if form.data["delete_pos_brs"]:
-            current_id = brs_entry.pos_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.pos_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.pos_brs_id = None
         if form.data["delete_pg_brs"]:
-            current_id = brs_entry.pg_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.pg_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.pg_brs_id = None
         if form.data["delete_bbps_brs"]:
-            current_id = brs_entry.bbps_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.bbps_brs_id = None
         if form.data["delete_local_collection_brs"]:
-            current_id = brs_entry.local_collection_brs_id
+            brs_month = BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
+            brs_month.status = "Deleted"
             brs_entry.local_collection_brs_id = None
-        brs_month = BRS_month.query.get_or_404(current_id)
-        brs_month.status = "Deleted"
+        # brs_month = BRS_month.query.get_or_404(current_id)
+        # brs_month.status = "Deleted"
         db.session.commit()
         return redirect(url_for("brs.upload_brs", brs_key=brs_key))
     return render_template(
@@ -605,6 +611,7 @@ def enter_brs(requirement, brs_id):
         brs_entry=brs_entry,
         requirement=requirement,
         get_brs_bank=get_brs_bank,
+        prevent_duplicate_brs=prevent_duplicate_brs,
     )
 
 

@@ -84,8 +84,12 @@
             <td>{{ form.outstanding_entries(disabled="disabled") }}</td></tr>
     </table>
     <div class="buttons is-centered">
-    <a class="button is-link" href='{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}'>Go back</a>
-    <button class="button is-primary is-big">Submit</button>
+    <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.id) }}">Go back</a>
+    {% if not prevent_duplicate_brs(requirement, brs_entry.id) %}
+        <button class="button is-primary is-big">Submit</button>
+    {% else %}
+        <button class="button is-primary is-big" disabled>Submit</button>
+        {% endif %}
     </div>
 </div>
 </form>
