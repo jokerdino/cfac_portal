@@ -1,0 +1,63 @@
+{% extends "bg_layout.html" %}
+{% block content %}
+<h1 class="title">Bank guarantee entries</h1>
+{% if bg_query.count() > 0 %}
+<table class="table is-bordered is-fullwidth" id="bg_table">
+    <thead><tr>
+        <th>RO Code</th>
+        <th>Office Code</th>
+        <th>Customer Name</th>
+        <th>Customer ID</th>
+        <th>Debit Amount</th>
+        <th>Credit Amount</th>
+        <th>Payment ID</th>
+        <th>Date of payment</th>
+        <th>Reason</th>
+        <th>Course of action</th>
+        <th>View</th>
+        <th>Edit</th>
+    </tr></thead>
+
+    <tbody><tr>
+{% for entry in bg_query %}
+
+        <td>{{ entry['ro_code'] }}</td>
+        <td>{{ entry['oo_code'] }}</td>
+        <td>{{ entry['customer_name'] }}</td>
+        <td>{{ entry['customer_id'] }}</td>
+        <td>{{ entry['debit_amount'] }}</td>
+        <td>{{ entry['credit_amount'] }}</td>
+        <td>{{ entry['payment_id'] }}</td>
+        <td>{{ entry['date_of_payment'] }}</td>
+         <td>{{ entry['reason'] }}</td>
+         <td>{{ entry['course_of_action'] }}</td>
+        <td><a class="button is-link is-small is-outlined" href="{{ url_for('bg.view_bg_entry', bg_key = entry['id']) }}">View</a></td>
+        <td><a class="button is-link is-small is-outlined" href="{{ url_for('bg.edit_bg_entry', bg_key = entry['id']) }}">Edit</a></td>
+</tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% block scripts %}
+<script>
+new DataTable('#bg_table', {
+dom: 'lfBrtip',
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[1,'asc']],
+    pagingType: 'full_numbers',
+    columnDefs: [
+        {
+            target: [8,9],
+            visible: false,
+            searchable: false
+        },
+
+    ]
+});
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

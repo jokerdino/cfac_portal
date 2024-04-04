@@ -88,6 +88,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(knowledge_base_bp, url_prefix="/knowledge_base")
 
+    from app.bank_guarantee import bg_bp
+
+    app.register_blueprint(bg_bp, url_prefix="/bg")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

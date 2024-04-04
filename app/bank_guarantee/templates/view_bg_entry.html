@@ -1,0 +1,19 @@
+{% extends "bg_layout.html" %}
+{% block content %}
+<table class="table is-fullwidth">
+<tr><th>Regional Office Code</th><td>{{ bg.ro_code }}</td></tr>
+    <tr><th>Operating Office Code</th><td>{{ bg.oo_code }}</td></tr>
+    <tr><th>Customer Name</th><td>{{ bg.customer_name }}</td></tr>
+    <tr><th>Customer ID</th><td>{{ bg.customer_id }}</td></tr>
+    <tr><th>Debit Amount</th><td>{{ bg.debit_amount }}</td></tr>
+    <tr><th>Credit Amount</th><td>{{ bg.credit_amount }}</td></tr>
+    <tr><th>Payment ID</th><td>{{ bg.payment_id }}</td></tr>
+    <tr><th>Date of payment </th><td>{{ bg.date_of_payment }}</td></tr>
+    <tr><th>Reason</th><td>{{ bg.reason }}</td></tr>
+    <tr><th>Course of action</th><td>{{ bg.course_of_action }}</td></tr>
+
+</table>
+<div class="has-text-centered">
+    <a class="button is-link" href="{{ url_for('bg.edit_bg_entry', bg_key=bg.id) }}">Edit</a>
+</div>
+{% endblock content %}
