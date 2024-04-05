@@ -46,13 +46,13 @@
 
           <td>
               {% if entry['contract_file'] %}
-    <a  href="{{ url_for("contracts.download_contract_document", contract_id=entry.id) }}">Download</a>
+    <a  href="{{ url_for('contracts.download_contract_document', contract_id=entry.id) }}">Download</a>
               {% else %}
               No documents uploaded
               {% endif %}
           </td>
-        <td><a href="{{ url_for("contracts.view_contract", contract_id = entry.id)}}">View</a></td>
-                 <td><a href="{{ url_for("contracts.edit_contract", contract_id= entry.id )}}">Edit</a></td>
+        <td><a href="{{ url_for('contracts.view_contract', contract_id = entry.id) }}">View</a></td>
+                 <td><a href="{{ url_for('contracts.edit_contract', contract_id= entry.id ) }}">Edit</a></td>
 
     </tr>
     {% endfor %}
