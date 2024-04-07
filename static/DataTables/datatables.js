@@ -4,10 +4,10 @@
  *
  * To rebuild or modify this file with the latest versions of the included
  * software please visit:
- *   https://datatables.net/download/#bm-0.9.2/jq-3.7.0/jszip-3.10.1/dt-2.0.2/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1
+ *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.0.3/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1
  *
  * Included libraries:
- *   Bulma 0.9.2, jQuery 3 3.7.0, JSZip 3.10.1, DataTables 2.0.2, Buttons 3.0.1, HTML5 export 3.0.1, FixedColumns 5.0.0, FixedHeader 4.0.1
+ *   jQuery 3 3.7.0, JSZip 3.10.1, DataTables 2.0.3, Buttons 3.0.1, HTML5 export 3.0.1, FixedColumns 5.0.0, FixedHeader 4.0.1
  */
 
 /*!
@@ -22294,14 +22294,14 @@ module.exports = ZStream;
 },{}]},{},[10])(10)
 });
 
-/*! DataTables 2.0.2
+/*! DataTables 2.0.3
  * © SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     DataTables
  * @description Paginate, search and order HTML tables
- * @version     2.0.2
+ * @version     2.0.3
  * @author      SpryMedia Ltd
  * @contact     www.datatables.net
  * @copyright   SpryMedia Ltd.
@@ -22847,7 +22847,7 @@ module.exports = ZStream;
 		 *
 		 *  @type string
 		 */
-		build:"bm-0.9.2/jq-3.7.0/jszip-3.10.1/dt-2.0.2/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1",
+		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.0.3/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1",
 
 
 		/**
@@ -25713,8 +25713,15 @@ module.exports = ZStream;
 		_fnCallbackFire( oSettings, 'aoFooterCallback', 'footer', [ $(oSettings.nTFoot).children('tr')[0],
 			_fnGetDataMaster( oSettings ), iDisplayStart, iDisplayEnd, aiDisplay ] );
 
-		body.children().detach();
-		body.append( $(anRows) );
+		// replaceChildren is faster, but only became widespread in 2020,
+		// so a fall back in jQuery is provided for older browsers.
+		if (body[0].replaceChildren) {
+			body[0].replaceChildren.apply(body[0], anRows);
+		}
+		else {
+			body.children().detach();
+			body.append( $(anRows) );
+		}
 
 		// Empty table needs a specific class
 		$(oSettings.nTableWrapper).toggleClass('dt-empty-footer', $('tr', oSettings.nTFoot).length === 0);
@@ -25982,15 +25989,15 @@ module.exports = ZStream;
 
 		settings.nTableWrapper = insert[0];
 
-		var top = _layoutArray( settings, settings.layout, 'top' );
-		var bottom = _layoutArray( settings, settings.layout, 'bottom' );
-		var renderer = _fnRenderer( settings, 'layout' );
-
 		if (settings.sDom) {
 			// Legacy
 			_fnLayoutDom(settings, settings.sDom, insert);
 		}
 		else {
+			var top = _layoutArray( settings, settings.layout, 'top' );
+			var bottom = _layoutArray( settings, settings.layout, 'bottom' );
+			var renderer = _fnRenderer( settings, 'layout' );
+
 			// Everything above - the renderer will actually insert the contents into the document
 			top.forEach(function (item) {
 				renderer( settings, insert, item );
@@ -27750,9 +27757,12 @@ module.exports = ZStream;
 					// Allow the processing display to show
 					setTimeout( function () {
 						_fnSort( settings );
-						_fnSortDisplay( settings );
-						_fnReDraw( settings, false, false );
+						_fnSortDisplay( settings, settings.aiDisplay );
+
+						// Sort processing done - redraw has its own processing display
 						_fnProcessingDisplay( settings, false );
+
+						_fnReDraw( settings, false, false );
 
 						if (callback) {
 							callback();
@@ -27767,8 +27777,7 @@ module.exports = ZStream;
 	 * Sort the display array to match the master's order
 	 * @param {*} settings
 	 */
-	function _fnSortDisplay(settings) {
-		var display = settings.aiDisplay;
+	function _fnSortDisplay(settings, display) {
 		var master = settings.aiDisplayMaster;
 		var masterMap = {};
 		var map = {};
@@ -29989,11 +29998,7 @@ module.exports = ZStream;
 		var matched = _selector_run( 'row', selector, run, settings, opts );
 
 		if (opts.order === 'current' || opts.order === 'applied') {
-			var master = settings.aiDisplayMaster;
-
-			matched.sort(function(a, b) {
-				return master.indexOf(a) - master.indexOf(b);
-			});
+			_fnSortDisplay(settings, matched);
 		}
 
 		return matched;
@@ -31854,7 +31859,7 @@ module.exports = ZStream;
 	 *  @type string
 	 *  @default Version number
 	 */
-	DataTable.version = "2.0.2";
+	DataTable.version = "2.0.3";
 
 	/**
 	 * Private data store, containing all of the settings objects that are
@@ -33994,7 +33999,7 @@ module.exports = ZStream;
 		 *
 		 *  @type string
 		 */
-		build:"bm-0.9.2/jq-3.7.0/jszip-3.10.1/dt-2.0.2/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1",
+		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.0.3/b-3.0.1/b-html5-3.0.1/fc-5.0.0/fh-4.0.1",
 
 
 		/**
@@ -35256,9 +35261,9 @@ module.exports = ZStream;
 					var ariaType = '';
 					var indexes = columns.indexes();
 					var sortDirs = columns.orderable(true).flatten();
-					var orderedColumns = sorting.map( function (val) {
+					var orderedColumns = ',' + sorting.map( function (val) {
 						return val.col;
-					} ).join(',');
+					} ).join(',') + ',';
 
 					cell
 						.removeClass(
@@ -35269,7 +35274,7 @@ module.exports = ZStream;
 						.toggleClass( orderClasses.canAsc, orderable && sortDirs.includes('asc') )
 						.toggleClass( orderClasses.canDesc, orderable && sortDirs.includes('desc') );
 
-					var sortIdx = orderedColumns.indexOf( indexes.toArray().join(',') );
+					var sortIdx = orderedColumns.indexOf( ',' + indexes.toArray().join(',') + ',' );
 
 					if ( sortIdx !== -1 ) {
 						// Get the ordering direction for the columns under this cell
@@ -35284,7 +35289,7 @@ module.exports = ZStream;
 					}
 
 					// The ARIA spec says that only one column should be marked with aria-sort
-					if ( sortIdx === 0 && orderedColumns.length === indexes.count() ) {
+					if ( sortIdx === 0 ) {
 						var firstSort = sorting[0];
 						var sortOrder = col.asSorting;
 
