@@ -43,11 +43,11 @@
         </header>
         <body>
 <div class="container">
-<div class="tile is-ancestor">
+<div class="grid box">
 
-    <div class="tile is-parent">
+    <div class="cell">
      <a href="{{ url_for('coinsurance.home_page') }}">
-    <article class="tile is-child notification is-primary">
+    <article class="box notification is-primary">
       <div class="content">
         <p class="title">Coinsurance</p>
         <p class="subtitle">Upload coinsurance confirmations</p>
@@ -59,9 +59,9 @@
     </a>
   </div>
   {% if current_user.user_type != "coinsurance_hub_user" %}
-    <div class="tile is-parent">
+    <div class="cell">
     <a href="{{ url_for('brs.brs_home_page')}}">
-    <article class="tile is-child notification is-warning">
+    <article class="box notification is-warning">
       <div class="content">
         <p class="title">BRS</p>
         <p class="subtitle">Enter BRS and outstanding entries</p>
@@ -73,9 +73,9 @@
     </a>
     </div>
     {% endif %}
-  <div class="tile is-parent">
+  <div class="cell">
       <a href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval') }}">
-    <article class="tile is-child notification is-link">
+    <article class="box notification is-info">
       <div class="content">
         <p class="title">Tickets</p>
         <p class="subtitle">HPSM tickets pending for CFAC approval</p>
@@ -87,9 +87,9 @@
       </a>
   </div>
 
-  <div class="tile is-parent">
+  <div class="cell">
         <a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">
-    <article class="tile is-child notification is-success">
+    <article class="box notification is-success">
       <div class="content">
         <p class="title">Knowledge base</p>
         <p class="subtitle">Everything you need to know about</p>
@@ -104,10 +104,10 @@
 </div>
 </div>
 <div class="container">
-    <div class="tile is-ancestor">
-  <div class="tile is-parent">
+    <div class="grid box">
+  <div class="cell">
       <a href="{{ url_for('contacts.contacts_homepage') }}">
-    <article class="tile is-child notification is-success">
+    <article class="box notification is-success">
       <div class="content">
         <p class="title">Contacts</p>
         <p class="subtitle">Head Office, Regional Office and Coinsurance hub</p>
@@ -118,12 +118,13 @@
     </article>
           </a>
   </div>
-          <div class="tile is-parent">
+          {% if current_user.user_type != "coinsurance_hub_user" %}
+          <div class="cell">
       <a href="{{ url_for('bg.bg_homepage') }}">
-    <article class="tile is-child notification is-link">
+    <article class="box notification is-info">
       <div class="content">
         <p class="title">Bank guarantee</p>
-        <p class="subtitle">Details of bank guarantee balance </p>
+        <p class="subtitle">Details of bank guarantee balance - as on March 2024</p>
         <div class="content">
 
         </div>
@@ -131,39 +132,61 @@
     </article>
           </a>
   </div>
+        {% endif %}
+          {% if current_user.user_type != "coinsurance_hub_user" %}
+              <div class="cell">
+      <a href="{{ url_for('outstanding_expenses.os_homepage') }}">
+    <article class="box notification is-warning">
+      <div class="content">
+        <p class="title">Outstanding expenses</p>
+        <p class="subtitle">Outstanding expenses as on March 2024</p>
+        <div class="content">
 
-    {% if current_user.user_type == "admin" %}
-      <div class="tile is-parent">
+        </div>
+      </div>
+    </article>
+          </a>
+  </div>
+        {% endif %}
+    </div>
+</div>
+
+ {% if current_user.user_type == "admin" %}
+        <div class="container">
+<div class="grid box">
+
+      <div class="cell">
     <a href="{{ url_for('contracts.view_contracts', status='active') }}">
-    <article class="tile is-child notification is-info">
+    <article class="box notification is-warning">
       <div class="content">
         <p class="title">Contracts</p>
         <p class="subtitle">Details of Active and expired contracts</p>
         <div class="content">
 
         </div>
-        {% endif %}
+
       </div>
     </article>
     </a>
   </div>
-    {% if current_user.user_type == "admin" %}
-      <div class="tile is-parent">
+
+  <div class="cell">
     <a href="{{ url_for('portal_admin.view_list_users') }}">
-    <article class="tile is-child notification is-danger">
+    <article class="box notification is-danger">
       <div class="content">
         <p class="title">Admin users</p>
         <p class="subtitle">Reset user password and bulk upload user logins</p>
         <div class="content">
 
         </div>
-        {% endif %}
-               </div>
+
+       </div>
     </article>
     </a>
-      </div>
+  </div>
 
 </div>
 </div>
+ {% endif %}
     </body>
 </html>
