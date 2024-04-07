@@ -92,6 +92,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(bg_bp, url_prefix="/bg")
 
+    from app.outstanding_expenses import os_bp
+
+    app.register_blueprint(os_bp, url_prefix="/os")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

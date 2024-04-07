@@ -1,0 +1,35 @@
+{% extends "os_layout.html" %}
+
+{% block content %}
+<div class="container">
+   <div class="columns is-centered">
+
+    <div class="column">
+<table class="table">
+    <tr><th>Regional Office</th><td>{{ os.str_regional_office_code }}</td></tr>
+    <tr><th>Operating Office</th><td>{{ os.str_operating_office_code }}</td></tr>
+
+    <tr><th>Party type</th><td>{{ os.str_party_type }}</td></tr>
+    <tr><th>Name of party</th><td>{{ os.str_party_name }}</td></tr>
+    <tr><th>Party ID</th><td>{{ os.str_party_id }}</td></tr>
+    <tr><th>Nature of payment</th><td>{{ os.str_nature_of_payment }}</td></tr>
+    <tr><th>Narration</th><td>{{ os.str_narration }}</td></tr>
+</table>
+    </div>
+
+<div class="column">
+    <table class="table">
+        <tr><th>Gross outstanding amount</th><td>{{ os.float_gross_amount }}</td></tr>
+        <tr><th>Whether TDS is involved</th><td>{{ os.bool_tds_involved }}</td></tr>
+        <tr><th>Section</th><td>{{ os.str_section }}</td></tr>
+        <tr><th>TDS amount</th><td>{{ os.float_tds_amount }}</td></tr>
+        <tr><th>PAN Number</th><td>{{ os.str_pan_number }}</td></tr>
+        <tr><th>Net amount</th><td>{{ os.float_net_amount }}</td></tr>
+   </table>
+</div>
+</div>
+</div>
+<div class="has-text-centered">
+<a class="button is-link" href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=os.id) }}">Edit</a>
+</div>
+    {% endblock content %}

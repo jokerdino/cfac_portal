@@ -1,0 +1,60 @@
+{% extends "os_layout.html" %}
+
+{% block content %}
+<table class="table is-bordered" id="os_table">
+    <thead><tr class="has-text-centered">
+        <th>Regional Office</th>
+        <th>Operating Office</th>
+        <th>Party type</th>
+        <th>Party ID</th>
+        <th>Party name</th>
+        <th>Nature of payment</th>
+        <th>Gross outstanding amount</th>
+        <th>TDS involved</th>
+        <th>TDS amount</th>
+        <th>Net amount</th>
+        <th>Section</th>
+        <th>PAN Number</th>
+        <th>Narration</th>
+        <th>View</th>
+        <th>Edit</th>
+    </tr></thead>
+    <tbody>
+    <tr>
+    {% for entry in list_os_entries %}
+        <td>{{ entry['str_regional_office_code'] }}</td>
+        <td>{{ entry['str_operating_office_code'] }}</td>
+        <td>{{ entry['str_party_type'] }}</td>
+        <td>{{ entry['str_party_id'] }}</td>
+        <td>{{ entry['str_party_name'] }}</td>
+        <td>{{ entry['str_nature_of_payment'] }}</td>
+        <td class="has-text-right">{{ entry['float_gross_amount'] }}</td>
+        <td>{{ "Yes" if entry['bool_tds_involved'] else "No" }}</td>
+        <td class="has-text-right">{{ entry['float_tds_amount'] or "" }}</td>
+        <td class="has-text-right">{{ entry['float_net_amount'] }}</td>
+        <td>{{ entry['str_section'] or "" }}</td>
+        <td>{{ entry['str_pan_number'] or "" }}</td>
+        <td>{{ entry['str_narration'] }}</td>
+        <td><a class="button is-link is-small is-outlined" href="{{ url_for('outstanding_expenses.view_os_entry', os_key=entry.id) }}">View</a></td>
+        <td><a class="button is-link is-small is-outlined" href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=entry.id) }}">Edit</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{% block scripts %}
+<script>
+new DataTable('#os_table', {
+dom: 'lfBrtip',
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[1,'asc']],
+    pagingType: 'full_numbers',
+
+});
+
+</script>
+{% endblock scripts %}
+{% endblock content %}
