@@ -7,7 +7,8 @@
   {% for field in form %}
       {% if field.errors %}
     <div class="notification is-danger">
-        {{ field.label }} field is to be completed.
+<button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
     </div>
       {% endif %}
  {% endfor %}
@@ -30,8 +31,8 @@
             <div class="column is-half">
         <table class="table">
 
-                 <tr><th>{{ form.regional_office_code.label }}</th>
-        <td>
+            <tr><th>{{ form.regional_office_code.label }}</th>
+            <td>
             {% if current_user.user_type in ["ro_user", "oo_user"] %}
             {{ current_user.ro_code }}
             {% elif current_user.user_type == "coinsurance_hub_user" %}
@@ -39,8 +40,8 @@
             {% else %}
             {{ form.regional_office_code(class="input") }}
             {% endif %}
-        </td></tr>
-    <tr><th>{{ form.operating_office_code.label }}</th>
+            </td></tr>
+            <tr><th>{{ form.operating_office_code.label }}</th>
             <td>
             {% if current_user.user_type in ["oo_user","coinsurance_hub_user"] %}
             {{ current_user.oo_code }}
@@ -72,7 +73,7 @@
            {% endif %}
 
             <tr><th>Net amount</th><td><label id="net_amount"></label></td></tr>
-            <tr><th></th><td></td></tr>
+            <tr><th class="is-vcentered">{{ form.payment_date.label }}</th><td>{{ form.payment_date(class="input", min="2024-04-01") }}</td></tr>
         </table>
             </div>
             </div>
@@ -104,6 +105,15 @@ function calculateSum() {
         document.getElementById('tds_amount').disabled = !this.checked;
         document.getElementById('pan_number').disabled = !this.checked;
 };
+document.addEventListener('DOMContentLoaded', () => {
+  (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+    const $notification = $delete.parentNode;
+
+    $delete.addEventListener('click', () => {
+      $notification.parentNode.removeChild($notification);
+    });
+  });
+});
 
  </script>
 {% endblock scripts %}

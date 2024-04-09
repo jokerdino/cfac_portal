@@ -1,6 +1,8 @@
 {% extends "os_layout.html" %}
 
 {% block content %}
+
+{% if list_os_entries.count() > 0 %}
 <table class="table is-bordered" id="os_table">
     <thead><tr class="has-text-centered">
         <th>Regional Office</th>
@@ -16,11 +18,13 @@
         <th>Section</th>
         <th>PAN Number</th>
         <th>Narration</th>
+        <th>Date of payment</th>
         <th>View</th>
         <th>Edit</th>
     </tr></thead>
     <tbody>
     <tr>
+
     {% for entry in list_os_entries %}
         <td>{{ entry['str_regional_office_code'] }}</td>
         <td>{{ entry['str_operating_office_code'] }}</td>
@@ -35,13 +39,15 @@
         <td>{{ entry['str_section'] or "" }}</td>
         <td>{{ entry['str_pan_number'] or "" }}</td>
         <td>{{ entry['str_narration'] }}</td>
+        <td>{{ entry['date_payment_date'].strftime('%d/%m/%Y') if entry['date_payment_date'] else "Not paid" }}</td>
         <td><a class="button is-link is-small is-outlined" href="{{ url_for('outstanding_expenses.view_os_entry', os_key=entry.id) }}">View</a></td>
         <td><a class="button is-link is-small is-outlined" href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=entry.id) }}">Edit</a></td>
     </tr>
     {% endfor %}
+
     </tbody>
 </table>
-
+{% endif %}
 {% block scripts %}
 <script>
 new DataTable('#os_table', {

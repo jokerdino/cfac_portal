@@ -22,6 +22,8 @@ class OutstandingExpenses(db.Model):
     str_nature_of_payment = db.Column(db.String)
     str_narration = db.Column(db.Text)
 
+    date_payment_date = db.Column(db.Date)
+
     date_date_of_creation = db.Column(db.DateTime)
 
     # os_jv = db.relationship(
