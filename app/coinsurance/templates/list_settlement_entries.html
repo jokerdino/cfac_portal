@@ -4,114 +4,62 @@
 <h1 class="title">Details of all coinsurance settlements</h1>
 
 {% if settlement_entries %}
-    <table class="table is-striped is-fullwidth" id="settlement_table">
-
-        <thead>
-            <tr>
-
-                <th>Coinsurer name</th>
-                <th>Paid / received</th>
-                <th>Amount settled</th>
-                <th>Date of settlement</th>
-                <th>UTR number</th>
-                <th>Notes</th>
-                <th>View settled entries</th>
-                <th>View</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in settlement_entries %}
-            <tr>
-
-                    <td>                          {{ entry.name_of_company }}</td>
-                    <td>                          {{ entry.type_of_transaction }}</td>
-                    {% if entry.type_of_transaction == "Paid" %}
-                    <td class="has-text-right">{{ "{:,}".format(entry.settled_amount|int) }}</td>
-                    {% else %}
-                                   <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
-                    {% endif %}
-                    <td>                          {{ entry.date_of_settlement }}</td>
-                    <td>                          {{ entry.utr_number }}</td>
-                <td>
-                    {% if entry.notes %}
-                    {{ entry.notes[:30] }}
-{% endif %}
-                </td>
-                    <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">View</a></td>
-                               <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
-
-                                </tr>
-            {% endfor %}
-        </tbody>
-                    <tfoot>
-            <tr>
-                <th colspan="1" class="has-text-left"></th>
-                <th colspan="1"></th>
-                <th colspan="1" class="has-text-right"></th>
-                <th colspan="1"></th>
-                <th colspan="1"></th>
-                <th colspan="1"></th>
-            </tr>
-        </tfoot>
-
-    </table>
-
+<table class="table is-striped is-fullwidth is-bordered" id="settlement_table">
+    <thead>
+        <tr>
+            <th>Coinsurer name</th>
+            <th>Paid / received</th>
+            <th>Amount settled</th>
+            <th>Date of settlement</th>
+            <th>UTR number</th>
+            <th>Notes</th>
+            <th>View settled entries</th>
+            <th>View</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in settlement_entries %}
+    <tr>
+            <td>{{ entry.name_of_company }}</td>
+            <td>{{ entry.type_of_transaction }}</td>
+        {% if entry.type_of_transaction == "Paid" %}
+            <td class="has-text-right">{{ "{:,}".format(entry.settled_amount|int) }}</td>
+        {% else %}
+            <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
+        {% endif %}
+            <td class="has-text-centered">{{ entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
+            <td>{{ entry.utr_number }}</td>
+            <td>
+        {% if entry.notes %}
+                {{ entry.notes[:50] }}
+        {% endif %}
+            </td>
+            <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">View</a></td>
+           <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
+    </tr>
+        {% endfor %}
+</tbody>
+</table>
 {% endif %}
 
 {% block scripts %}
-        <script>
-            $(document).ready(function () {
-                            $('#settlement_table').DataTable({
-                                dom: 'lfBrtip',
-                                fixedHeader: true,
-                                buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[3,'desc']],
-                                            pagingType: 'full_numbers',
-                                                   footerCallback: function (row, data, start, end, display) {
-            var api = this.api();
+<script>
 
-            // Remove the formatting to get integer data for summation
-            var intVal = function (i) {
-                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
-            };
+new DataTable('#settlement_table', {
+    dom: 'lfBrtip',
+    fixedHeader: true,
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[3,'desc']],
+    pagingType: 'full_numbers',
+    lengthMenu: [
+                 [10,25,50,100,-1],
+                [10,25,50,100,'All'],]
+    });
 
-            // Total over all pages
-            total = api
-                .column(2)
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-
-            // Total over this page
-            pageTotal = api
-                .column(2, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-
-            // Update footer
-            const formatter = new Intl.NumberFormat('en-IN', {
-                            style:'currency',
-                            currency:'INR',
-                            minimumFractionDigits:2,
-                            maximumFractionDigits:2,
-                            trailingZeroDisplay: 'stripIfInteger'
-                        });
-
-            $(api.column(2).footer()).html('Page Total: ' + formatter.format(pageTotal) );
-            $(api.column(0).footer()).html('Total: ' + formatter.format(total) );
-        },
-                                lengthMenu: [
-                                             [10,25,50,100,-1],
-                                            [10,25,50,100,'All'],]
-                                        });
-                        });
-        </script>
+</script>
 
 {% endblock scripts %}
 {% endblock content %}

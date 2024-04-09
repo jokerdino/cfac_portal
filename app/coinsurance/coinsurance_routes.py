@@ -11,7 +11,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
-from flask_login import current_user
+from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
 from app.coinsurance import coinsurance_bp
@@ -34,6 +34,7 @@ from app.tickets.tickets_routes import humanize_datetime
 
 
 @coinsurance_bp.route("/")
+@login_required
 def home_page():
     from server import db
 
@@ -95,6 +96,7 @@ def home_page():
 
 
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
+@login_required
 def add_coinsurance_entry():
     from server import db
 
@@ -270,6 +272,7 @@ def enable_button(current_user, coinsurance_entry) -> bool:
 
 
 @coinsurance_bp.route("/view/<int:coinsurance_id>")
+@login_required
 def view_coinsurance_entry(coinsurance_id):
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
     remarks = Remarks.query.filter(Remarks.coinsurance_id == coinsurance_id)
@@ -278,21 +281,7 @@ def view_coinsurance_entry(coinsurance_id):
     ).all()
 
     enable_edit_button = enable_button(current_user, coinsurance)
-    # commented out and code moved to function enable_button on 17.03.2024
-    # enable_edit_button = False
-    # if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-    #     if coinsurance.current_status != "Settled":
-    #         enable_edit_button = True
-    #     elif coinsurance.current_status == "Settled":
-    #         if Settlement.query.filter(
-    #             Settlement.utr_number == coinsurance.utr_number
-    #         ).first():
-    #             enable_edit_button = False
-    #         else:
-    #             enable_edit_button = True
-    # elif current_user.user_type in ["oo_user", "ro_user"]:
-    #     if coinsurance.current_status == "Needs clarification from RO or OO":
-    #         enable_edit_button = True
+
     return render_template(
         "view_coinsurance_entry.html",
         coinsurance=coinsurance,
@@ -306,6 +295,7 @@ def view_coinsurance_entry(coinsurance_id):
 @coinsurance_bp.route(
     "/<string:requirement>/<int:coinsurance_id>", methods=["POST", "GET"]
 )
+@login_required
 def download_document(requirement, coinsurance_id):
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
 
@@ -334,6 +324,7 @@ def download_document(requirement, coinsurance_id):
 
 
 @coinsurance_bp.route("/settlements/<int:settlement_id>", methods=["POST", "GET"])
+@login_required
 def download_settlements(settlement_id):
     settlement = Settlement.query.get_or_404(settlement_id)
 
@@ -421,6 +412,7 @@ def show_zones(ro_code):
 
 
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
+@login_required
 def edit_coinsurance_entry(coinsurance_id):
     from server import db
 
@@ -611,47 +603,6 @@ def edit_coinsurance_entry(coinsurance_id):
             ).first():
                 update_settlement = True
                 update_utr_choices(coinsurance, form)
-
-    #        commented out since code moved to function enable_button on 17.03.2024
-    # enable_save_button = False
-    # if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-    #     if coinsurance.current_status != "Settled":
-    #         # change_status = True
-    #         enable_save_button = True
-    #     elif coinsurance.current_status == "Settled":
-    #         # change_status = True
-    #
-    #         if not Settlement.query.filter(
-    #             Settlement.utr_number == coinsurance.utr_number
-    #         ).first():
-    #             update_settlement = True
-    #             enable_save_button = True
-    #             update_utr_choices(coinsurance, form)
-    #             # commented out since code moved to function update_utr_choices on 17.03.2024
-    #             # utr_list = (
-    #             #     Settlement.query.filter(
-    #             #         coinsurance.follower_company_name == Settlement.name_of_company
-    #             #     )
-    #             #     .with_entities(
-    #             #         Settlement.name_of_company,
-    #             #         Settlement.utr_number,
-    #             #         Settlement.date_of_settlement,
-    #             #         Settlement.settled_amount,
-    #             #     )
-    #             #     .distinct()
-    #             # )
-    #             # form.settlement.choices = [
-    #             #     (
-    #             #         utr_number,
-    #             #         f"{name_of_company}-{utr_number} on {date_of_settlement.strftime('%d/%m/%Y')} {settled_amount}",
-    #             #     )
-    #             #     for name_of_company, utr_number, date_of_settlement, settled_amount in utr_list
-    #             # ]
-    #
-    # elif current_user.user_type in ["oo_user", "ro_user"]:
-    #     if coinsurance.current_status == "Needs clarification from RO or OO":
-    #         enable_save_button = True
-
     return render_template(
         "edit_coinsurance_entry.html",
         form=form,
@@ -675,13 +626,11 @@ def select_coinsurers(query, form):
         coinsurer_choice: str = form.data["coinsurer_name"]
         if coinsurer_choice != "View all":
             query = query.filter(Coinsurance.follower_company_name == coinsurer_choice)
-        return query
-        # else:
-        #   return query
     return query
 
 
 @coinsurance_bp.route("/list/Settled/exception")
+@login_required
 def list_settled_entries_without_utr():
     form_select_coinsurer = CoinsurerSelectForm()
     coinsurance_entries = (
@@ -714,6 +663,7 @@ def list_settled_entries_without_utr():
 
 
 @coinsurance_bp.route("/list/all", methods=["POST", "GET"])
+@login_required
 def list_coinsurance_entries():
     form_select_coinsurer = CoinsurerSelectForm()
 
@@ -751,6 +701,7 @@ def list_coinsurance_entries():
 
 
 @coinsurance_bp.route("/list/<string:status>", methods=["POST", "GET"])
+@login_required
 def list_coinsurance_entries_by_status(status):
     form_select_coinsurer = CoinsurerSelectForm()
 
@@ -759,28 +710,17 @@ def list_coinsurance_entries_by_status(status):
         coinsurance_entries = coinsurance_entries.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
         )
-        # coinsurance_entries = Coinsurance.query.filter(
-        #     Coinsurance.uiic_regional_code == current_user.ro_code
-        # ).filter(Coinsurance.current_status == status)
+
     elif current_user.user_type == "oo_user":
         coinsurance_entries = coinsurance_entries.filter(
             (Coinsurance.uiic_office_code == current_user.oo_code)
             & (Coinsurance.uiic_regional_code == current_user.ro_code)
         )
-        # coinsurance_entries = Coinsurance.query.filter(
-        #     Coinsurance.uiic_office_code == current_user.oo_code
-        # ).filter(Coinsurance.current_status == status)
 
     coinsurance_entries = select_coinsurers(coinsurance_entries, form_select_coinsurer)
 
-    # update_settlement = False
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
         if status in ["To be settled"]:  # , "To be considered for settlement"]:
-            # update_settlement = True
-            # coinsurance_entries = select_coinsurers(
-            #     coinsurance_entries, form_select_coinsurer
-            # )
-
             coinsurer_choices = coinsurance_entries.distinct(
                 Coinsurance.follower_company_name
             )
@@ -866,34 +806,27 @@ def list_coinsurance_entries_by_status(status):
                 show_zones=show_zones,
             )
         else:
-            # coinsurance_entries = select_coinsurers(
-            #     coinsurance_entries, form_select_coinsurer
-            # )
             return render_template(
                 "view_all_coinsurance_entries.html",
                 coinsurance_entries=coinsurance_entries,
                 update_settlement=True,
                 status=status,
-                #        form=form,
                 form_select_coinsurer=form_select_coinsurer,
                 show_zones=show_zones,
             )
     else:
-        # coinsurance_entries = select_coinsurers(
-        #     coinsurance_entries, form_select_coinsurer
-        # )
         return render_template(
             "view_all_coinsurance_entries.html",
             coinsurance_entries=coinsurance_entries,
             update_settlement=False,
             status=status,
-            #        form=form,
             form_select_coinsurer=form_select_coinsurer,
             show_zones=show_zones,
         )
 
 
 @coinsurance_bp.route("/list/settlements/<string:utr_number>", methods=["POST", "GET"])
+@login_required
 def list_settled_coinsurance_entries(utr_number):
     form_select_coinsurer = CoinsurerSelectForm()
     coinsurance_entries = Coinsurance.query.filter(Coinsurance.utr_number == utr_number)
@@ -909,6 +842,7 @@ def list_settled_coinsurance_entries(utr_number):
 
 
 @coinsurance_bp.route("/settlements/list")
+@login_required
 def list_settlement_entries():
     settlement_entries = Settlement.query.all()
 
@@ -918,12 +852,14 @@ def list_settlement_entries():
 
 
 @coinsurance_bp.route("/settlements/view/<int:settlement_id>")
+@login_required
 def view_settlement_entry(settlement_id):
     settlement = Settlement.query.get_or_404(settlement_id)
     return render_template("view_settlement_entry.html", settlement=settlement)
 
 
 @coinsurance_bp.route("/settlements/add_settlement_data", methods=["POST", "GET"])
+@login_required
 def add_settlement_data():
     from server import db
 
@@ -970,6 +906,7 @@ def add_settlement_data():
 
 
 @coinsurance_bp.route("/log/<int:coinsurance_id>")
+@login_required
 def view_coinsurance_log(coinsurance_id):
     log = Coinsurance_log.query.filter(
         Coinsurance_log.coinsurance_id == coinsurance_id
@@ -981,6 +918,7 @@ def view_coinsurance_log(coinsurance_id):
 
 
 @coinsurance_bp.route("/upload_balances", methods=["POST", "GET"])
+@login_required
 def upload_coinsurance_balance():
     if request.method == "POST":
         file_upload_coinsurance_balance = request.files.get("file")
@@ -1024,6 +962,7 @@ def upload_coinsurance_balance():
 
 
 @coinsurance_bp.route("/view_coinsurance_balance", methods=["POST", "GET"])
+@login_required
 def query_view_coinsurance_balance():
     form = CoinsuranceBalanceQueryForm()
     # Querying distinct list of periods from the table
@@ -1048,6 +987,7 @@ def query_view_coinsurance_balance():
 
 
 @coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
+@login_required
 def view_coinsurance_balance(period):
     coinsurance_balance = CoinsuranceBalances.query.filter(
         CoinsuranceBalances.period == period
