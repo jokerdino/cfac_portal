@@ -47,7 +47,7 @@
 
     <div class="cell">
      <a href="{{ url_for('coinsurance.home_page') }}">
-    <article class="box notification is-primary">
+    <article class="box notification is-black has-text-white">
       <div class="content">
         <p class="title">Coinsurance</p>
         <p class="subtitle">Upload coinsurance confirmations</p>
@@ -61,7 +61,7 @@
   {% if current_user.user_type != "coinsurance_hub_user" %}
     <div class="cell">
     <a href="{{ url_for('brs.brs_home_page')}}">
-    <article class="box notification is-warning">
+    <article class="box notification has-background-warning-80">
       <div class="content">
         <p class="title">BRS</p>
         <p class="subtitle">Enter BRS and outstanding entries</p>
@@ -89,7 +89,7 @@
 
   <div class="cell">
         <a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">
-    <article class="box notification is-success">
+    <article class="box notification has-background-success-60">
       <div class="content">
         <p class="title">Knowledge base</p>
         <p class="subtitle">Everything you need to know about</p>
@@ -107,7 +107,7 @@
     <div class="grid box">
   <div class="cell">
       <a href="{{ url_for('contacts.contacts_homepage') }}">
-    <article class="box notification is-success">
+    <article class="box notification has-background-success-60">
       <div class="content">
         <p class="title">Contacts</p>
         <p class="subtitle">Head Office, Regional Office and Coinsurance hub</p>
@@ -136,7 +136,7 @@
           {% if current_user.user_type != "coinsurance_hub_user" %}
               <div class="cell">
       <a href="{{ url_for('outstanding_expenses.os_homepage') }}">
-    <article class="box notification is-warning">
+    <article class="box notification has-background-warning-80">
       <div class="content">
         <p class="title">Outstanding expenses</p>
         <p class="subtitle">Outstanding expenses as on March 2024</p>
@@ -157,7 +157,7 @@
 
       <div class="cell">
     <a href="{{ url_for('contracts.view_contracts', status='active') }}">
-    <article class="box notification is-warning">
+    <article class="box notification has-background-warning-80">
       <div class="content">
         <p class="title">Contracts</p>
         <p class="subtitle">Details of Active and expired contracts</p>
@@ -172,7 +172,7 @@
 
   <div class="cell">
     <a href="{{ url_for('portal_admin.view_list_users') }}">
-    <article class="box notification is-danger">
+    <article class="box notification has-background-danger-60 has-text-white">
       <div class="content">
         <p class="title">Admin users</p>
         <p class="subtitle">Reset user password and bulk upload user logins</p>
