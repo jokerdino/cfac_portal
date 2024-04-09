@@ -28,7 +28,7 @@
         <td>{{ entry['debit_amount'] }}</td>
         <td>{{ entry['credit_amount'] }}</td>
         <td>{{ entry['payment_id'] }}</td>
-        <td>{{ entry['date_of_payment'] }}</td>
+        <td data-sort="{{ entry['date_of_payment'] }}">{{ entry['date_of_payment'].strftime("%d/%m/%Y") }}</td>
          <td>{{ entry['reason'] }}</td>
          <td>{{ entry['course_of_action'] }}</td>
         <td><a class="button is-link is-small is-outlined" href="{{ url_for('bg.view_bg_entry', bg_key = entry['id']) }}">View</a></td>

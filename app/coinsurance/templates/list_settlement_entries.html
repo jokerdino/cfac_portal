@@ -27,7 +27,7 @@
         {% else %}
             <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
         {% endif %}
-            <td class="has-text-centered">{{ entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-centered" data-sort="{{ entry.date_of_settlement }}">{{ entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
             <td>{{ entry.utr_number }}</td>
             <td>
         {% if entry.notes %}
@@ -54,9 +54,10 @@ new DataTable('#settlement_table', {
          { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
     order: [[3,'desc']],
     pagingType: 'full_numbers',
+    pageLength: 50,
     lengthMenu: [
-                 [10,25,50,100,-1],
-                [10,25,50,100,'All'],]
+         [10,25,50,100,-1],
+         [10,25,50,100,'All'],]
     });
 
 </script>

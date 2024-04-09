@@ -8,7 +8,7 @@
     <tr><th>Debit Amount</th><td>{{ bg.debit_amount }}</td></tr>
     <tr><th>Credit Amount</th><td>{{ bg.credit_amount }}</td></tr>
     <tr><th>Payment ID</th><td>{{ bg.payment_id }}</td></tr>
-    <tr><th>Date of payment </th><td>{{ bg.date_of_payment }}</td></tr>
+    <tr><th>Date of payment </th><td>{{ bg.date_of_payment.strftime("%d/%m/%Y") }}</td></tr>
     <tr><th>Reason</th><td>{{ bg.reason }}</td></tr>
     <tr><th>Course of action</th><td>{{ bg.course_of_action }}</td></tr>
 

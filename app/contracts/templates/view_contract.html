@@ -5,8 +5,8 @@
 <table class="table is-striped is-hoverable is-fullwidth">
     <tr><th>Name of vendor</th><td>{{ contract.vendor }}</td></tr>
     <tr><th>Purpose</th><td>{{ contract.purpose }}</td></tr>
-    <tr><th>Start date</th><td>{{ contract.start_date }}</td></tr>
-    <tr><th>End date</th><td>{{ contract.end_date }}</td></tr>
+    <tr><th>Start date</th><td>{{ contract.start_date.strftime("%d/%m/%Y") }}</td></tr>
+    <tr><th>End date</th><td>{{ contract.end_date.strftime("%d/%m/%Y") }}</td></tr>
     <tr><th>EMD</th><td>{{ contract.emd }}</td></tr>
     <tr><th>Notice period</th><td>{{ contract.notice_period }}</td></tr>
     <tr><th>Status</th><td>{% if contract.end_date %}
