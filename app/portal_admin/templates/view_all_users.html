@@ -5,20 +5,18 @@
 
 {% if users %}
 <form action="" method="post" name="user_list">
-    <table class="table is-striped is-fullwidth" id="user_table">
+<table class="table is-striped is-fullwidth" id="user_table">
 
-        <thead>
-            <tr>
-                <th>RO Code</th>
-                <th>OO code</th>
-                <th>Username</th>
-                <th>Type of user</th>
-                <th>Password reset status</th>
-                <th>Last login</th>
-                <th>Edit user settings</th>
-            </tr>
-        </thead>
-        <tbody>
+    <thead><tr>
+            <th>RO Code</th>
+            <th>OO code</th>
+            <th>Username</th>
+            <th>Type of user</th>
+            <th>Password reset status</th>
+            <th>Last login</th>
+            <th>Edit user settings</th>
+        </tr></thead>
+    <tbody>
 
             {% for user in users %}
             {% if current_user.user_type == "admin" %}
@@ -46,20 +44,20 @@
 
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-            $('#user_table').DataTable({
-                    dom: 'lfBrtip',
-                                buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded'},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded'},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
-                    order: [[2,'asc']],
-                    pagingType: 'full_numbers',
-                    lengthMenu: [
-                            [10,25,50,100,-1],
-                            [10,25,50,100,'All'],]
-                });
-        });
+
+new DataTable('#user_table', {
+    dom: 'lfBrtip',
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded'},
+         { extend: 'csvHtml5', className: 'is-info is-rounded'},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
+    order: [[2,'asc']],
+    pagingType: 'full_numbers',
+    lengthMenu: [
+        [10,25,50,100,-1],
+        [10,25,50,100,'All'],]
+});
+
 </script>
 {% endblock scripts %}
 {% endblock content %}

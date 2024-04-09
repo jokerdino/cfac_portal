@@ -4,32 +4,26 @@
 {% if current_user.user_type == "admin" %}
 <form action="" method="post" name="user_page">
       {{ form.csrf_token }}
-    <table class="table is-fullwidth">
-            <tr> <th>RO code:</th> <td>{{ user.ro_code }}</td> </tr>
-        <tr> <th>OO code:</th> <td>{{ user.oo_code }}</td> </tr>
-        <tr> <th>Username:</th> <td>{{ user.username }}</td> </tr>
-        <tr> <th>Last login time:</th>
 
-            {% if user.time_last_login %}
-            <td title="{{ user.time_last_login }}">{{ humanize_datetime(user.time_last_login) }}</td>
-            {% else %}
-            <td>{{ user.time_last_login }}</td>
-            {% endif %}
-        </tr>
+<table class="table is-fullwidth">
+    <tr><th>RO code:</th> <td>{{ user.ro_code }}</td> </tr>
+    <tr><th>OO code:</th> <td>{{ user.oo_code }}</td> </tr>
+    <tr><th>Username:</th> <td>{{ user.username }}</td> </tr>
+    <tr><th>Last login time:</th>
+
+{% if user.time_last_login %}
+    <td title="{{ user.time_last_login }}">{{ humanize_datetime(user.time_last_login) }}</td>
+{% else %}
+    <td>{{ user.time_last_login }}</td>
+{% endif %}
+</tr>
 
   {% if current_user.user_type == "admin" %}
 
-        <tr>
-            <th> {{ form.reset_password_page.label }}</th>
-            <td> {{ form.reset_password_page }} </td>
-        </tr>
-
-        <tr>   <th>{{ form.change_user_type.label }}</th>
-            <td> {{ form.change_user_type }} </td>
-        </tr>
-
-        {% endif %}
-    </table>
+    <tr><th> {{ form.reset_password_page.label }}</th><td> {{ form.reset_password_page }} </td></tr>
+    <tr><th>{{ form.change_user_type.label }}</th><td> {{ form.change_user_type }} </td></tr>
+  {% endif %}
+</table>
 
 {% if current_user.user_type == "admin" %}
 
@@ -40,28 +34,26 @@
     {% endif %}
 </form>
 
-                        {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                        <div class="notification is-danger">
-                            {{ messages[0] }}
-                        </div>
-                        {% endif %}
-                        {% endwith %}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="notification is-danger">
+        {{ messages[0] }}
+    </div>
+    {% endif %}
+    {% endwith %}
 
 <table class="table is-fullwidth" id="user_log_table">
-<thead>
-<tr>
-
+<thead><tr>
     <th>Username</th>
-                <th>Type of action</th>
-                <th>Time of action</th></tr>
-                </thead>
-                {% for item in user_log %}
-                <tr>
-                      <td>{{ item.user_id }}</td>
-                    <td>{{ item.type_of_action }}</td>
-                    <td data-sort="{{ item.time_of_action }}" title="{{ item.time_of_action }}">{{ humanize_datetime(item.time_of_action) }}</td>
-            </tr>
+    <th>Type of action</th>
+    <th>Time of action</th>
+</tr></thead>
+    {% for item in user_log %}
+    <tr>
+      <td>{{ item.user_id }}</td>
+      <td>{{ item.type_of_action }}</td>
+      <td data-sort="{{ item.time_of_action }}" title="{{ item.time_of_action }}">{{ humanize_datetime(item.time_of_action) }}</td>
+    </tr>
 
 {% endfor %}
 </table>
@@ -71,20 +63,19 @@
 
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-            $('#user_log_table').DataTable({
-                    dom: 'lfBrtip',
-                                buttons: [
-                                             {   extend: 'copyHtml5', className: 'is-danger is-rounded'},
-                                              { extend: 'csvHtml5', className: 'is-info is-rounded'},
-                                               { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
-                    order: [[2,'desc']],
-                    pagingType: 'full_numbers',
-                    lengthMenu: [
-                            [10,25,50,100,-1],
-                            [10,25,50,100,'All'],]
-                });
-        });
+
+new DataTable('#user_log_table', {
+    dom: 'lfBrtip',
+    buttons: [
+     { extend: 'copyHtml5', className: 'is-danger is-rounded'},
+     { extend: 'csvHtml5', className: 'is-info is-rounded'},
+     { extend: 'excelHtml5', className: 'is-primary is-rounded'}],
+    order: [[2,'desc']],
+    pagingType: 'full_numbers',
+    lengthMenu: [
+        [10,25,50,100,-1],
+        [10,25,50,100,'All'],]
+});
 </script>
 {% endblock scripts %}
 {% endblock content %}

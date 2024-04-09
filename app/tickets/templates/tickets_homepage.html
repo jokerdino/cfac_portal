@@ -40,18 +40,17 @@
 {% endif %}
 {% block scripts %}
 <script>
-        $(document).ready(function () {
-                     $('#tickets_table').DataTable({
-                                dom: 'lfBrtip',
 
-                                        buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[8,'desc']],
-                                            pagingType: 'full_numbers',
-        })
-        });
+new DataTable('#tickets_table', {
+    dom: 'lfBrtip',
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[8,'desc']],
+    pagingType: 'full_numbers',
+
+});
 
 </script>
 {% endblock scripts %}

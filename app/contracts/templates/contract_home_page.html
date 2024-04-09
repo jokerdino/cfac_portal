@@ -61,17 +61,17 @@
 
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-          $('#contracts_table').DataTable({
-            dom: 'lfBrtip',
-                                buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[3,'asc']],
-                                            pagingType: 'full_numbers',
-                      });
-    });
+
+new DataTable('#contracts_table', {
+dom: 'lfBrtip',
+buttons: [
+     { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+     { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+     { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+order: [[3,'asc']],
+pagingType: 'full_numbers',
+
+});
 </script>
 {% endblock scripts %}
 {% endblock content %}

@@ -41,18 +41,18 @@
 {% endif %}
 {% block scripts %}
     <script>
-        $(document).ready(function () {
-                     $('#contacts_table').DataTable({
-                                dom: 'lfBrtip',
-                                paging: false,
-                                        buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[0,'asc']],
-                                            pagingType: 'full_numbers',
-        })
-        });
+
+new DataTable('#contacts_table', {
+    dom: 'lfBrtip',
+    paging: false,
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[0,'asc']],
+    pagingType: 'full_numbers',
+
+});
 
     </script>
     {% endblock scripts %}

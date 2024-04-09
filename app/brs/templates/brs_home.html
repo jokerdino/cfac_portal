@@ -150,27 +150,25 @@
 
 {% endif %}
 {% block scripts %}
-        <script>
-            $(document).ready(function () {
-                            $('#brs_table').DataTable({
-                                dom: 'lfBrtip',
-                                fixedHeader: true,
-                                pageLength: 50,
-                                scrollY: true,
-                                buttons: [
-                                             { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-                                             { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-                                             { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-                                order: [[1,'asc']],
-                                            pagingType: 'full_numbers',
+<script>
 
-                                lengthMenu: [
-                                             [50,100,150,200,-1],
-                                            [50,100,150,200,'All'],]
-                                        });
-                        });
-        </script>
+new DataTable('#brs_table', {
+    dom: 'lfBrtip',
+    fixedHeader: true,
+    pageLength: 50,
+    scrollY: true,
+    buttons: [
+         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
+         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
+         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
+    order: [[1,'asc']],
+    pagingType: 'full_numbers',
+    lengthMenu: [
+        [50,100,150,200,-1],
+        [50,100,150,200,'All'],]
+});
+</script>
 
-        {% endblock scripts %}
+{% endblock scripts %}
 
 {% endblock content %}
