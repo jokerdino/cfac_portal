@@ -1,7 +1,6 @@
 from datetime import datetime
 import calendar
 from sqlalchemy.sql import exists, select
-from typing import List, Any
 
 import pandas as pd
 
@@ -224,7 +223,7 @@ def upload_brs(brs_key):
     # When a new month base file is uploaded, the month has to be manually added to the list right now.
     # TODO: Build a frontend for the same to enable or disable?
     brs_entry = BRS.query.get_or_404(brs_key)
-    list_months_delete = ["January-2024", "February-2024"]
+    list_months_delete = ["January-2024", "February-2024", "March-2024"]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
