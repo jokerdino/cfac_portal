@@ -21,7 +21,7 @@ from app.outstanding_expenses.os_form import OutstandingExpensesForm
 @login_required
 def os_homepage():
     list_os_entries = OutstandingExpenses.query.order_by(
-        OutstandingExpenses.date_date_of_creation
+        OutstandingExpenses.date_date_of_creation.desc()
     )
 
     if current_user.user_type == "ro_user":
