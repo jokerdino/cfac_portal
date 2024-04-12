@@ -27,6 +27,7 @@ class TicketsForm(FlaskForm):
             "Claims",
             "Voucher cancellation",
             "NEFT rejection",
+            "JV for blocked GL codes",
             "Others",
         ],
     )
