@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <meta name="keywords" content="CFAC portal"/>
+        <meta name="description" content="CFAC portal" />
+        <title>Home</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}"/>
+
+    </head>
+
+        <header>
+            <nav class="navbar has-background-primary-light" aria-label="main navigation">
+                <div class="navbar-brand">
+                    <div class="navbar-start">
+                        <div class="navbar-item">
+                            <div class="buttons">
+                                <a class="button is-link" href="{{ url_for('main.index') }}">Home</a>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            {% if not current_user.is_authenticated %}
+                                <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
+                                {% else %}
+
+                                  <a class="button">  {{ current_user.username }} </a>
+                                <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        </div>
+            </nav>
+        </header>
+        <body>
+        <div class="container">
+        <section class="section block">
+            <a class="is-link is-outlined button" href="https://merchant.in.worldline.com/login" target="_blank">WorldLine Portal login</a>
+
+        </section>
+            </div>
+        </body>
+</html>
