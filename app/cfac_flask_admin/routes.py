@@ -3,7 +3,7 @@ from flask_admin.menu import MenuLink
 
 from flask_admin_models import DefaultModelView
 
-from app.cfac_flask_admin.model_views import BRSView, UserView
+from app.cfac_flask_admin.model_views import BRSView, UserView, OSView
 
 from extensions import admin, db
 from app.brs.models import BRS, BRS_month, Outstanding
@@ -18,6 +18,9 @@ from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
 from app.users.user_model import User, Log_user
 from app.tickets.tickets_model import Tickets, TicketRemarks
+from app.knowledge_base.knowledge_base_model import KnowledgeBase
+from app.bank_guarantee.bg_models import BankGuarantee
+from app.outstanding_expenses.os_model import OutstandingExpenses
 
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
@@ -80,3 +83,10 @@ admin.add_view(ModelView(Contacts, db.session, endpoint="contacts_"))
 
 # contracts models
 admin.add_view(ModelView(Contracts, db.session, endpoint="contracts_"))
+
+# knowledge models
+admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
+# bank guarantee models
+admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
+# outstanding expenses model
+admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))

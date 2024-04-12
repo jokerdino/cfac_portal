@@ -14,3 +14,9 @@ class UserView(DefaultModelView):
 class BRSView(DefaultModelView):
     column_searchable_list = ["uiic_office_code", "month"]
     column_filters = ["uiic_office_code", "month"]
+    can_export = True
+
+
+class OSView(DefaultModelView):
+    column_searchable_list = ["str_operating_office_code"]
+    column_filters = ["str_operating_office_code"]
