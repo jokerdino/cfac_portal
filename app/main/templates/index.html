@@ -91,7 +91,7 @@
         <a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">
     <article class="box notification has-background-success-60">
       <div class="content">
-        <p class="title">Knowledge base</p>
+        <p class="title">Knowledge Base</p>
         <p class="subtitle">Everything you need to know about</p>
         <div class="content">
 
@@ -123,7 +123,7 @@
       <a href="{{ url_for('bg.bg_homepage') }}">
     <article class="box notification is-info">
       <div class="content">
-        <p class="title">Bank guarantee</p>
+        <p class="title">Bank Guarantee</p>
         <p class="subtitle">Details of bank guarantee balance - as on March 2024</p>
         <div class="content">
 
@@ -138,8 +138,23 @@
       <a href="{{ url_for('outstanding_expenses.os_homepage') }}">
     <article class="box notification has-background-warning-80">
       <div class="content">
-        <p class="title">Outstanding expenses</p>
-        <p class="subtitle">Outstanding expenses as on March 2024</p>
+        <p class="title">Outstanding Expenses</p>
+        <p class="subtitle">Details of O/S exp</p>
+        <div class="content">
+
+        </div>
+      </div>
+    </article>
+          </a>
+  </div>
+        {% endif %}
+                 {% if current_user.user_type != "coinsurance_hub_user" %}
+              <div class="cell">
+      <a href="{{ url_for('main.pos_dashboard') }}">
+    <article class="box notification has-background-success-60">
+      <div class="content">
+        <p class="title">POS Dashboard</p>
+        <p class="subtitle">Kotak WorldLine</p>
         <div class="content">
 
         </div>
