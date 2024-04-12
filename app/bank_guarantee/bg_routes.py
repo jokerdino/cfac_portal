@@ -15,7 +15,7 @@ from app.bank_guarantee.bg_form import BGForm
 @bg_bp.route("/", methods=["POST", "GET"])
 @login_required
 def bg_homepage():
-    bg_query = BankGuarantee.query.group_by(BankGuarantee.id)
+    bg_query = BankGuarantee.query.order_by(BankGuarantee.id)
     if current_user.user_type in ["oo_user"]:
         bg_query = bg_query.filter(BankGuarantee.oo_code == current_user.oo_code)
     elif current_user.user_type == "ro_user":
