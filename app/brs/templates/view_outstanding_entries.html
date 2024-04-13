@@ -3,55 +3,55 @@
 {% if outstanding %}
 <table class="table is-fullwidth" id="outstanding">
     <thead>
-    <tr>
-        <th>Regional office</th>
-        <th>Operating office</th>
-        <th>Financial year</th>
-        <th>Period</th>
-        <th>BRS type</th>
-        <th>Bank</th>
-        <th>Date of collection</th>
-        <th>Instrument number</th>
-        <th>Date of instrument</th>
-        <th>Instrument amount</th>
-        <th>View BRS</th>
-    </tr>
-</thead>
+        <tr>
+            <th>Regional office</th>
+            <th>Operating office</th>
+            <th>Financial year</th>
+            <th>Period</th>
+            <th>BRS type</th>
+            <th>Bank</th>
+            <th>Date of collection</th>
+            <th>Instrument number</th>
+            <th>Date of instrument</th>
+            <th>Instrument amount</th>
+            <th>View BRS</th>
+        </tr>
+    </thead>
     <tbody>
-     {% for entries in outstanding %}
-       <tr>
-        <td>{{ entries.brs_month.brs.uiic_regional_code }}</td>
-        <td>{{ entries.brs_month.brs.uiic_office_code }}</td>
-        <td>{{ entries.brs_month.brs.financial_year }}</td>
-        <td>{{ entries.brs_month.brs.month }}</td>
-        <td>{{ entries.brs_month.brs_type | upper() }}</td>
-        <td>{{ get_brs_bank(entries.brs_month.brs.id, entries.brs_month.brs_type) }} </td>
-        <td>{{ entries.date_of_collection }}</td>
-        <td>{{ entries.instrument_number }}</td>
-        <td>{{ entries.date_of_instrument }}</td>
-        <td class="has-text-right">{{ entries.instrument_amount }}</td>
-        <td><a href="{{ url_for('brs.view_brs', brs_key = entries.brs_month.id) }}">View</a></td>
-          </tr>
+        {% for entries in outstanding %}
+        <tr>
+            <td>{{ entries.brs_month.brs.uiic_regional_code }}</td>
+            <td>{{ entries.brs_month.brs.uiic_office_code }}</td>
+            <td>{{ entries.brs_month.brs.financial_year }}</td>
+            <td>{{ entries.brs_month.brs.month }}</td>
+            <td>{{ entries.brs_month.brs_type | upper() }}</td>
+            <td>{{ get_brs_bank(entries.brs_month.brs.id, entries.brs_month.brs_type) }} </td>
+            <td>{{ entries.date_of_collection }}</td>
+            <td>{{ entries.instrument_number }}</td>
+            <td>{{ entries.date_of_instrument }}</td>
+            <td class="has-text-right">{{ entries.instrument_amount }}</td>
+            <td><a href="{{ url_for('brs.view_brs', brs_key = entries.brs_month.id) }}">View</a></td>
+        </tr>
         {% endfor %}
-        </tbody>
+    </tbody>
 </table>
 {% endif %}
 {% block scripts %}
 <script>
-new DataTable('#outstanding',{
-dom: 'lfBrtip',
-buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-order: [[1,'asc']],
-pagingType: 'full_numbers',
+    new DataTable('#outstanding', {
+        dom: 'lfBrtip',
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
 
-lengthMenu: [
-         [10,25,50,100,-1],
-        [10,25,50,100,'All'],]
-});
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
 </script>
-    {% endblock scripts %}
+{% endblock scripts %}
 
 {% endblock content %}

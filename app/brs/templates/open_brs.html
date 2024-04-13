@@ -2,156 +2,213 @@
 {% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
 {% block content %}
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
-    (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
-    (current_user.user_type == "admin") %}
+(current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
+(current_user.user_type == "admin") %}
 
 <div class="container">
-<h1 class="title">Upload BRS</h1>
-<form action="" method="post" enctype="multipart/form-data" >
-    {{ form.csrf_token }}
-    <table class="table is-fullwidth is-hoverable">
+        <h1 class="title">Upload BRS</h1>
+        <form action="" method="post" enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                <table class="table is-fullwidth is-hoverable">
 
-        <tr><th>Regional Office code</th><td>{{ brs_entry.uiic_regional_code }}</td><td></td></tr>
-          <tr><th>Operating Office Code</th><td>{{ brs_entry.uiic_office_code }}</td><td></td></tr>
-            <tr><th>Financial year</th><td>{{ brs_entry.financial_year }}</td><td></td></tr>
-              <tr><th>Month</th><td>{{ brs_entry.month }}</td><td></td></tr>
+                        <tr>
+                                <th>Regional Office code</th>
+                                <td>{{ brs_entry.uiic_regional_code }}</td>
+                                <td></td>
+                        </tr>
+                        <tr>
+                                <th>Operating Office Code</th>
+                                <td>{{ brs_entry.uiic_office_code }}</td>
+                                <td></td>
+                        </tr>
+                        <tr>
+                                <th>Financial year</th>
+                                <td>{{ brs_entry.financial_year }}</td>
+                                <td></td>
+                        </tr>
+                        <tr>
+                                <th>Month</th>
+                                <td>{{ brs_entry.month }}</td>
+                                <td></td>
+                        </tr>
 
-{% if brs_entry.cash_bank %}
-<tr><th>Cash BRS</th>
-<td>
+                        {% if brs_entry.cash_bank %}
+                        <tr>
+                                <th>Cash BRS</th>
+                                <td>
 
-{% if brs_entry.cash_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cash_brs_id) }}' >View Cash BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_cash_brs }}  {{ form.delete_cash_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="cash", brs_id = brs_entry.id) }}' > Enter Cash BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.cash_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.cash_brs_id) }}'>View
+                                                Cash BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_cash_brs }} {{ form.delete_cash_brs.label }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="cash", brs_id = brs_entry.id) }}'>
+                                        Enter Cash BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-{% if brs_entry.cheque_bank %}
-<tr><th>Cheque BRS</th>
-<td>
+                        {% if brs_entry.cheque_bank %}
+                        <tr>
+                                <th>Cheque BRS</th>
+                                <td>
 
-{% if brs_entry.cheque_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.cheque_brs_id) }}' >View Cheque BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_cheque_brs }}  {{ form.delete_cheque_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="cheque", brs_id = brs_entry.id) }}' > Enter Cheque BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.cheque_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.cheque_brs_id) }}'>View
+                                                Cheque BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_cheque_brs }} {{ form.delete_cheque_brs.label }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="cheque", brs_id = brs_entry.id) }}'>
+                                        Enter Cheque BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-{% if brs_entry.pg_bank %}
-<tr><th>Payment Gateway BRS</th>
-<td>
+                        {% if brs_entry.pg_bank %}
+                        <tr>
+                                <th>Payment Gateway BRS</th>
+                                <td>
 
-{% if brs_entry.pg_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pg_brs_id) }}' >View Payment Gateway BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_pg_brs }}  {{ form.delete_pg_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="pg", brs_id = brs_entry.id) }}' > Enter Payment Gateway BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.pg_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.pg_brs_id) }}'>View
+                                                Payment Gateway BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_pg_brs }} {{ form.delete_pg_brs.label }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="pg", brs_id = brs_entry.id) }}'>
+                                        Enter Payment Gateway BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-{% if brs_entry.pos_bank %}
-<tr><th>POS BRS</th>
-<td>
+                        {% if brs_entry.pos_bank %}
+                        <tr>
+                                <th>POS BRS</th>
+                                <td>
 
-{% if brs_entry.pos_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.pos_brs_id) }}' >View POS BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_pos_brs }}  {{ form.delete_pos_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="pos", brs_id = brs_entry.id) }}' > Enter POS BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.pos_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.pos_brs_id) }}'>View
+                                                POS BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_pos_brs }} {{ form.delete_pos_brs.label }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="pos", brs_id = brs_entry.id) }}'>
+                                        Enter POS BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-{% if brs_entry.bbps_bank %}
-<tr><th>BBPS BRS</th>
-<td>
+                        {% if brs_entry.bbps_bank %}
+                        <tr>
+                                <th>BBPS BRS</th>
+                                <td>
 
-{% if brs_entry.bbps_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.bbps_brs_id) }}' >View BBPS BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_bbps_brs }}  {{ form.delete_bbps_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="bbps", brs_id = brs_entry.id) }}' > Enter BBPS BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.bbps_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.bbps_brs_id) }}'>View
+                                                BBPS BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_bbps_brs }} {{ form.delete_bbps_brs.label }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="bbps", brs_id = brs_entry.id) }}'>
+                                        Enter BBPS BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-        {% if brs_entry.local_collection_bank %}
-<tr><th>Local collection BRS</th>
-<td>
+                        {% if brs_entry.local_collection_bank %}
+                        <tr>
+                                <th>Local collection BRS</th>
+                                <td>
 
-{% if brs_entry.local_collection_brs_id %}
-<a class="button is-success" href='{{ url_for("brs.view_brs", brs_key = brs_entry.local_collection_brs_id) }}' >View Local Collection BRS</a>
-        <td class="is-vcentered">
-        {% if current_user.user_type in list_delete_brs %}
-      {{ form.delete_local_collection_brs }}  {{ form.delete_local_collection_brs.label }}
-        {% endif %}
-        </td>
-{% else %}
-<a class="button is-danger" href='{{ url_for("brs.enter_brs", requirement="local_collection", brs_id = brs_entry.id) }}' > Enter Local Collection BRS</a>
-</td><td></td>
-</tr>
-{% endif %}
-{% endif %}
+                                        {% if brs_entry.local_collection_brs_id %}
+                                        <a class="button is-success"
+                                                href='{{ url_for("brs.view_brs", brs_key = brs_entry.local_collection_brs_id) }}'>View
+                                                Local Collection BRS</a>
+                                <td class="is-vcentered">
+                                        {% if current_user.user_type in list_delete_brs %}
+                                        {{ form.delete_local_collection_brs }} {{ form.delete_local_collection_brs.label
+                                        }}
+                                        {% endif %}
+                                </td>
+                                {% else %}
+                                <a class="button is-danger"
+                                        href='{{ url_for("brs.enter_brs", requirement="local_collection", brs_id = brs_entry.id) }}'>
+                                        Enter Local Collection BRS</a>
+                                </td>
+                                <td></td>
+                        </tr>
+                        {% endif %}
+                        {% endif %}
 
-    </table>
+                </table>
 
-    <div class="has-text-centered">
-{% if brs_entry.cash_brs_id or brs_entry.cheque_brs_id or brs_entry.pg_brs_id or brs_entry.pos_brs_id or brs_entry.bbps_brs_id or brs_entry.local_collection_brs_id %}
-            <a class="button is-link" href="{{ url_for("brs.view_consolidated_brs", brs_key = brs_entry.id) }}">Open Consolidated BRS</a>
+                <div class="has-text-centered">
+                        {% if brs_entry.cash_brs_id or brs_entry.cheque_brs_id or brs_entry.pg_brs_id or
+                        brs_entry.pos_brs_id or brs_entry.bbps_brs_id or brs_entry.local_collection_brs_id %}
+                        <!-- djlint:off -->
+                        <a class="button is-link"
+                                href="{{ url_for('brs.view_consolidated_brs', brs_key=brs_entry.id) }}">
+                                Open Consolidated BRS</a>
+                        <!-- djlint:on -->
+                        {% if current_user.user_type in list_delete_brs %}
+                        <button class="button is-primary is-big">Save</button>
 
-     {% if current_user.user_type in list_delete_brs %}
-        <button class="button is-primary is-big">Save</button>
+                </div>
+                {% endif %}
+                {% endif %}
 
-    </div>
-    {% endif %}
-    {% endif %}
+        </form>
 
-</form>
-
-            {% for field, errors in form.errors.items() %}
-    <div class="notification is-danger">
-        {{ field }}        {{ ', '.join(errors) }}
-    </div>
-    {% endfor %}
-            </div>
+        {% for field, errors in form.errors.items() %}
+        <div class="notification is-danger">
+                {{ field }} {{ ', '.join(errors) }}
+        </div>
+        {% endfor %}
+</div>
 </div>
 
-            {% with messages = get_flashed_messages() %}
+{% with messages = get_flashed_messages() %}
 {% if messages %}
 {% for message in messages %}
-           <div class="notification is-danger">
-<p>{{ message }}</p>
+<div class="notification is-danger">
+        <p>{{ message }}</p>
 </div>
 {% endfor %}
 {% endif %}

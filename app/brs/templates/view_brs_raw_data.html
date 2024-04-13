@@ -4,79 +4,82 @@
 {% if current_user.user_type in ["admin","ro_user"] %}
 {% if brs_entries %}
 <div class="table-container">
-<table class="table is-bordered is-hoverable" id="brs_table">
-<thead>
-<tr class="has-text-centered">
-<th class="is-vcentered">Regional Code</th>
-<th class="is-vcentered">Operating Office</th>
-<th class="is-vcentered">Financial year</th>
-<th class="is-vcentered">Period</th>
-<th class="is-vcentered">BRS type</th>
-<th class="is-vcentered">Bank</th>
-<th class="is-vcentered">Opening balance</th>
-<th class="is-vcentered">On hand</th>
-<th class="is-vcentered">Collections</th>
-<th class="is-vcentered">Cancellations</th>
-<th class="is-vcentered">Fund transfer</th>
+        <table class="table is-bordered is-hoverable" id="brs_table">
+                <thead>
+                        <tr class="has-text-centered">
+                                <th class="is-vcentered">Regional Code</th>
+                                <th class="is-vcentered">Operating Office</th>
+                                <th class="is-vcentered">Financial year</th>
+                                <th class="is-vcentered">Period</th>
+                                <th class="is-vcentered">BRS type</th>
+                                <th class="is-vcentered">Bank</th>
+                                <th class="is-vcentered">Opening balance</th>
+                                <th class="is-vcentered">On hand</th>
+                                <th class="is-vcentered">Collections</th>
+                                <th class="is-vcentered">Cancellations</th>
+                                <th class="is-vcentered">Fund transfer</th>
 
-<th class="is-vcentered">Bank charges</th>
-<th class="is-vcentered">On hand</th>
-<th class="is-vcentered">Closing balance</th>
-<th class="is-vcentered">Remarks</th>
-<th class="is-vcentered">Time stamp</th>
-<th class="is-vcentered">Status</th>
-<th class="is-vcentered">No. of outstanding entries</th>
-</tr>
-</thead>
-<tbody>
-{% for entry in brs_entries %}
-<tr>
-<td class="has-text-centered">{{ entry.brs.uiic_regional_code }}</td>
-<td class="has-text-centered">{{ entry.brs.uiic_office_code }}</td>
-<td class="has-text-centered">{{ entry.brs.financial_year }}</td>
-<td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}' >{{ entry.brs.month }}</td>
-<td>{{ entry.brs_type.replace("_", " ") | upper }}</td>
-<td>{{ get_brs_bank(entry.brs.id, entry.brs_type) }}</td>
-<td class="has-text-right">{{ entry.int_opening_balance }}</td>
-<td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
-<td class="has-text-right">{{ entry.int_transactions }}</td>
-<td class="has-text-right">{{ entry.int_cancellations }}</td>
-<td class="has-text-right">{{ entry.int_fund_transfer }}</td>
-<td class="has-text-right">{{ entry.int_bank_charges }}</td>
-<td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
-<td class="has-text-right">{{ entry.int_closing_balance }}</td>
-<td>{{ entry.remarks or "" }}</td>
-<td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}" href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{ humanize_datetime(entry.timestamp) }}</a></td>
-<td>{{ entry.status or "Submitted" }}</td>
-        <td>{{ entry.brs_outstanding.count() }}</td>
+                                <th class="is-vcentered">Bank charges</th>
+                                <th class="is-vcentered">On hand</th>
+                                <th class="is-vcentered">Closing balance</th>
+                                <th class="is-vcentered">Remarks</th>
+                                <th class="is-vcentered">Time stamp</th>
+                                <th class="is-vcentered">Status</th>
+                                <th class="is-vcentered">No. of outstanding entries</th>
+                        </tr>
+                </thead>
+                <tbody>
+                        {% for entry in brs_entries %}
+                        <tr>
+                                <td class="has-text-centered">{{ entry.brs.uiic_regional_code }}</td>
+                                <td class="has-text-centered">{{ entry.brs.uiic_office_code }}</td>
+                                <td class="has-text-centered">{{ entry.brs.financial_year }}</td>
+                                <td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}'>{{
+                                        entry.brs.month }}</td>
+                                <td>{{ entry.brs_type.replace("_", " ") | upper }}</td>
+                                <td>{{ get_brs_bank(entry.brs.id, entry.brs_type) }}</td>
+                                <td class="has-text-right">{{ entry.int_opening_balance }}</td>
+                                <td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
+                                <td class="has-text-right">{{ entry.int_transactions }}</td>
+                                <td class="has-text-right">{{ entry.int_cancellations }}</td>
+                                <td class="has-text-right">{{ entry.int_fund_transfer }}</td>
+                                <td class="has-text-right">{{ entry.int_bank_charges }}</td>
+                                <td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
+                                <td class="has-text-right">{{ entry.int_closing_balance }}</td>
+                                <td>{{ entry.remarks or "" }}</td>
+                                <td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}"
+                                                href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{
+                                                humanize_datetime(entry.timestamp) }}</a></td>
+                                <td>{{ entry.status or "Submitted" }}</td>
+                                <td>{{ entry.brs_outstanding.count() }}</td>
 
-</tr>
+                        </tr>
 
-{% endfor %}
+                        {% endfor %}
 
-</tbody>
-</table>
+                </tbody>
+        </table>
 </div>
 
 {% endif %}
 {% endif %}
 {% block scripts %}
 <script>
-new DataTable('#brs_table', {
-    dom: 'lfBrtip',
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[15,'desc']],
-    pagingType: 'full_numbers',
-    lengthMenu: [
-         [10,25,50,100,-1],
-         [10,25,50,100,'All'],]
-});
+        new DataTable('#brs_table', {
+                dom: 'lfBrtip',
+                buttons: [
+                        { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+                order: [[15, 'desc']],
+                pagingType: 'full_numbers',
+                lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, 'All'],]
+        });
 
 </script>
 
-        {% endblock scripts %}
+{% endblock scripts %}
 
 {% endblock content %}

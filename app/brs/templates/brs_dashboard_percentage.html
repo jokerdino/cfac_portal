@@ -5,57 +5,57 @@
 {% if current_user.user_type in ["admin","ro_user"] %}
 <form class="mb-5" method="post" enctype="multipart/form-data">
     {{ form.csrf_token }}
-  {{ form.month.label }}:  {{ form.month(class='select') }}
+    {{ form.month.label }}: {{ form.month(class='select') }}
     <button class="is-success is-outlined is-hoverable button is-small ">Refresh</button>
 </form>
 
 <table class="table is-bordered is-fullwidth" id="brs_percent_table">
 
     <thead>
-    <tr>
-        <th>Regional Office</th>
-        <th>Month</th>
-        <th>Total</th>
-        <th>Completed</th>
-        <th>Pending</th>
-        <th>Percentage completed</th>
-    </tr>
+        <tr>
+            <th>Regional Office</th>
+            <th>Month</th>
+            <th>Total</th>
+            <th>Completed</th>
+            <th>Pending</th>
+            <th>Percentage completed</th>
+        </tr>
     </thead>
     <tbody>
-    {% for entry in query %}
-    {% set total = entry[2] + entry[4] + entry[6] + entry[8] + entry[10] + entry[12] %}
-    {% set completed = entry[3] + entry[5] + entry[7] + entry[9] + entry[11] + entry[13] %}
-<tr>
-    <td>{{ entry[0] }}</td>
-    <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }}</td>
-    <td>{{ total }}</td>
-    <td>{{ completed }}</td>
-    <td>{{ total - completed }}</td>
-    <td>{{ "{0:0.2f}".format(completed / total * 100) }}%</td>
+        {% for entry in query %}
+        {% set total = entry[2] + entry[4] + entry[6] + entry[8] + entry[10] + entry[12] %}
+        {% set completed = entry[3] + entry[5] + entry[7] + entry[9] + entry[11] + entry[13] %}
+        <tr>
+            <td>{{ entry[0] }}</td>
+            <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }}</td>
+            <td>{{ total }}</td>
+            <td>{{ completed }}</td>
+            <td>{{ total - completed }}</td>
+            <td>{{ "{0:0.2f}".format(completed / total * 100) }}%</td>
 
-    </tr>
-    {% endfor %}
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
 {% endif %}
 
 {% block scripts %}
 <script>
-new DataTable('#brs_percent_table', {
-    dom: 'lfBrtip',
-    fixedHeader: true,
-    pageLength: 36,
-    scrollY: true,
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[5,'desc'], [1, 'asc']],
-    pagingType: 'full_numbers',
+    new DataTable('#brs_percent_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        pageLength: 36,
+        scrollY: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[5, 'desc'], [1, 'asc']],
+        pagingType: 'full_numbers',
 
-    lengthMenu: [
-        [36,72,108,144,-1],
-        [36,72,108,144,'All'],]
+        lengthMenu: [
+            [36, 72, 108, 144, -1],
+            [36, 72, 108, 144, 'All'],]
     });
 
 </script>

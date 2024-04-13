@@ -4,147 +4,148 @@
 {% if brs_entries %}
 
 <table class="table is-bordered is-hoverable" id="brs_table">
-<thead>
-<tr>
-<th>Regional Code</th>
-<th>Operating Office</th>
-<th>Financial year</th>
-<th>Period</th>
-<th>%</th>
+    <thead>
+        <tr>
+            <th>Regional Code</th>
+            <th>Operating Office</th>
+            <th>Financial year</th>
+            <th>Period</th>
+            <th>%</th>
 
-<th>Cash BRS status</th>
-<th>Cheque BRS status</th>
-<th>PG BRS Status</th>
-<th>POS BRS status</th>
-<th>BBPS BRS status</th>
-    <th>Local collection BRS status</th>
+            <th>Cash BRS status</th>
+            <th>Cheque BRS status</th>
+            <th>PG BRS Status</th>
+            <th>POS BRS status</th>
+            <th>BBPS BRS status</th>
+            <th>Local collection BRS status</th>
 
-<th></th>
-</tr>
-</thead>
-<tbody>
-{% for entry in brs_entries %}
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in brs_entries %}
 
-{% if colour_check(entry.id) %}
+        {% if colour_check(entry.id) %}
 
-<!-- djlint:off -->
-<tr class="has-background-success">
-<!-- djlint:on -->
-{% else %}
+        <!-- djlint:off -->
+        <tr class="has-background-success">
+            <!-- djlint:on -->
+            {% else %}
 
-<tr>
-{% endif %}
-<td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
-<td class="has-text-centered">{{ entry.uiic_office_code }}</td>
-<td class="has-text-centered">{{ entry.financial_year }}</td>
-<td class="has-text-left" data-sort="{{ entry.month|datetime_format("%B-%Y") }}">{{ entry.month }}</td>
+        <tr>
+            {% endif %}
+            <td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
+            <td class="has-text-centered">{{ entry.uiic_office_code }}</td>
+            <td class="has-text-centered">{{ entry.financial_year }}</td>
+            <td class="has-text-left" data-sort="{{ entry.month|datetime_format(" %B-%Y") }}">{{ entry.month }}</td>
 
-<td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
-{% if entry.cash_bank %}
-    {% if entry.cash_brs_id %}
-        <td class="has-background-success">Uploaded</td>
-    {% else %}
-        <td class="has-text-danger">Pending</td>
-    {% endif %}
+            <td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
+            {% if entry.cash_bank %}
+            {% if entry.cash_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
 
-{% else %}
+            {% else %}
 
-    {% if not colour_check(entry.id) %}
-    <td class="has-background-grey">NA</td>
-    {% else %}
-    <td>NA</td>
-    {% endif %}
-{% endif %}
+            {% if not colour_check(entry.id) %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
 
-{% if entry.cheque_bank %}
+            {% if entry.cheque_bank %}
 
-    {% if entry.cheque_brs_id %}
-        <td class="has-background-success">Uploaded</td>
-    {% else %}
-        <td class="has-text-danger">Pending</td>
-    {% endif %}
+            {% if entry.cheque_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
 
-{% else %}
+            {% else %}
 
-    {% if not colour_check(entry.id) %}
-    <td class="has-background-grey">NA</td>
-    {% else %}
-    <td>NA</td>
-    {% endif %}
-{% endif %}
-{% if entry.pg_bank %}
+            {% if not colour_check(entry.id) %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
+            {% if entry.pg_bank %}
 
-    {% if entry.pg_brs_id %}
-        <td class="has-background-success">Uploaded</td>
-    {% else %}
-        <td class="has-text-danger">Pending</td>
-    {% endif %}
+            {% if entry.pg_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
 
-{% else %}
+            {% else %}
 
-    {% if not colour_check(entry.id) %}
-    <td class="has-background-grey">NA</td>
-    {% else %}
+            {% if not colour_check(entry.id) %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
 
-    <td>NA</td>
-    {% endif %}
-{% endif %}
-{% if entry.pos_bank %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
+            {% if entry.pos_bank %}
 
-{% if entry.pos_brs_id %}
-<td class="has-background-success">Uploaded</td>
-{% else %}
+            {% if entry.pos_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
 
-<td class="has-text-danger">Pending</td>
-{% endif %}
-{% else %}
-    {% if not colour_check(entry.id) %}
-    <td class="has-background-grey">NA</td>
-    {% else %}
-     <td>NA</td>
-    {% endif %}
-{% endif %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
+            {% else %}
+            {% if not colour_check(entry.id) %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
 
-{% if entry.bbps_bank %}
+            {% if entry.bbps_bank %}
 
-{% if entry.bbps_brs_id %}
-<td class="has-background-success">Uploaded</td>
-{% else %}
+            {% if entry.bbps_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
 
-<td class="has-text-danger">Pending</td>
-{% endif %}
-{% else %}
-    {% if not colour_check(entry.id) %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
+            {% else %}
+            {% if not colour_check(entry.id) %}
 
-    <td class="has-background-grey">NA</td>
-    {% else %}
-     <td>NA</td>
-    {% endif %}
-{% endif %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
 
-    {% if entry.local_collection_bank %}
+            {% if entry.local_collection_bank %}
 
-{% if entry.local_collection_brs_id %}
-<td class="has-background-success">Uploaded</td>
-{% else %}
+            {% if entry.local_collection_brs_id %}
+            <td class="has-background-success">Uploaded</td>
+            {% else %}
 
-<td class="has-text-danger">Pending</td>
-{% endif %}
-{% else %}
-    {% if not colour_check(entry.id) %}
+            <td class="has-text-danger">Pending</td>
+            {% endif %}
+            {% else %}
+            {% if not colour_check(entry.id) %}
 
-    <td class="has-background-grey">NA</td>
-    {% else %}
-     <td>NA</td>
-    {% endif %}
-{% endif %}
+            <td class="has-background-grey">NA</td>
+            {% else %}
+            <td>NA</td>
+            {% endif %}
+            {% endif %}
 
-<td><a class="button is-small is-link is-outlined" href="{{ url_for('brs.upload_brs', brs_key = entry.id )}} ">Open</a></td>
-</tr>
+            <td><a class="button is-small is-link is-outlined"
+                    href="{{ url_for('brs.upload_brs', brs_key = entry.id )}} ">Open</a></td>
+        </tr>
 
-{% endfor %}
+        {% endfor %}
 
-</tbody>
+    </tbody>
 
 </table>
 
@@ -152,21 +153,21 @@
 {% block scripts %}
 <script>
 
-new DataTable('#brs_table', {
-    dom: 'lfBrtip',
-    fixedHeader: true,
-    pageLength: 50,
-    scrollY: true,
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[1,'asc']],
-    pagingType: 'full_numbers',
-    lengthMenu: [
-        [50,100,150,200,-1],
-        [50,100,150,200,'All'],]
-});
+    new DataTable('#brs_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        pageLength: 50,
+        scrollY: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [
+            [50, 100, 150, 200, -1],
+            [50, 100, 150, 200, 'All'],]
+    });
 </script>
 
 {% endblock scripts %}
