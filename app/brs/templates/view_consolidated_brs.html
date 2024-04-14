@@ -7,7 +7,7 @@
         margin: 1cm;
     }
 </style>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
 {% endif %}
 {% block content %}
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_month.uiic_regional_code) or
@@ -16,38 +16,42 @@
 
 <div class="container is-size-8 is-centered">
     <table class="table is-fullwidth is-bordered">
-        <tr class="has-text-centered">
-            <th>Regional office code</th>
-            <th>Operating office code</th>
-            <th>Financial year</th>
-            <th>Month</th>
-        </tr>
-        <tr class="has-text-centered">
-            <td>{{ brs_month.uiic_regional_code }}</td>
-            <td>{{ brs_month.uiic_office_code }}</td>
-            <td>{{ brs_month.financial_year }}</td>
-            <td>{{ brs_month.month }}</td>
-        </tr>
+        <thead>
+            <tr>
+                <th class="has-text-centered">Regional office code</th>
+                <th class="has-text-centered">Operating office code</th>
+                <th class="has-text-centered">Financial year</th>
+                <th class="has-text-centered">Month</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="has-text-centered">
+                <td>{{ brs_month.uiic_regional_code }}</td>
+                <td>{{ brs_month.uiic_office_code }}</td>
+                <td>{{ brs_month.financial_year }}</td>
+                <td>{{ brs_month.month }}</td>
+            </tr>
+        </tbody>
     </table>
 
     <table class="table is-fullwidth is-bordered">
         <thead>
-            <tr class="has-text-centered">
+            <tr>
                 <th></th>
                 <th></th>
-                <th class="is-vcentered">{% if cash_brs %} Cash {% endif %}</th>
-                <th class="is-vcentered">{% if cheque_brs %} Cheque {% endif %}</th>
-                <th class="is-vcentered">{% if pg_brs %} Payment Gateway {% endif %}</th>
-                <th class="is-vcentered">{% if pos_brs %} POS {% endif %}</th>
-                <th class="is-vcentered">{% if bbps_brs %} BBPS {% endif %}</th>
-                <th class="is-vcentered">{% if local_collection_brs %} Local Collection {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if cash_brs %} Cash {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if cheque_brs %} Cheque {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if pg_brs %} Payment Gateway {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if pos_brs %} POS {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if bbps_brs %} BBPS {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if local_collection_brs %} Local Collection {% endif %}
+                </th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <th class="is-vcentered">BRS bank</th>
                 <td></td>
-
                 <td class="has-text-centered is-vcentered">{{ brs_month.cash_bank if cash_brs }} </td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.cheque_bank if cheque_brs }}</td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.pg_bank if pg_brs }}</td>
@@ -172,11 +176,11 @@
 {% if pdf %}
 <table class="mt-5 table is-centered is-fullwidth is-bordered">
     <thead>
-        <tr class="has-text-centered">
-            <th>Accounts officer</th>
-            <th>Accounts incharge</th>
-            <th>Regional accountant</th>
-            <th>Regional manager / incharge</th>
+        <tr>
+            <th class="has-text-centered">Accounts officer</th>
+            <th class="has-text-centered">Accounts incharge</th>
+            <th class="has-text-centered">Regional accountant</th>
+            <th class="has-text-centered">Regional manager / incharge</th>
         </tr>
     </thead>
     <tbody>

@@ -1,10 +1,12 @@
 from datetime import datetime
 import calendar
 from sqlalchemy.sql import exists, select
+import sqlalchemy
 
 import pandas as pd
 
 from flask import (
+    abort,
     current_app,
     flash,
     redirect,
@@ -32,7 +34,7 @@ def brs_home_page():
     elif current_user.user_type in ["admin", "ro_user"]:
         return redirect(url_for("brs.brs_dashboard"))
     else:
-        return "No permission"
+        abort(404)
     return render_template(
         "brs_home.html",
         brs_entries=brs_entries,
@@ -66,7 +68,14 @@ def brs_percentage():
     form = DashboardForm()
 
     month_choices = BRS.query.with_entities(BRS.month).distinct()
-    form.month.choices = ["View all"] + [x.month for x in month_choices]
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.month.choices = ["View all"] + [item.strftime("%B-%Y") for item in list_period]
 
     query = BRS.query.with_entities(
         BRS.uiic_regional_code,
@@ -85,14 +94,10 @@ def brs_percentage():
         func.count(BRS.local_collection_brs_id),
     ).group_by(BRS.uiic_regional_code, BRS.month)
 
-    # if current_user.user_type == "ro_user":
-    #     query = query.filter(BRS.uiic_regional_code == current_user.ro_code)
-
     if form.validate_on_submit():
         month = form.data["month"]
         if month != "View all":
             query = query.filter(BRS.month == month)
-        return render_template("brs_dashboard_percentage.html", query=query, form=form)
 
     return render_template("brs_dashboard_percentage.html", query=query, form=form)
 
@@ -103,7 +108,11 @@ def brs_dashboard():
     form = DashboardForm()
 
     month_choices = BRS.query.with_entities(BRS.month).distinct()
-    form.month.choices = ["View all"] + [x.month for x in month_choices]
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+    list_period.sort(reverse=True)
+
+    form.month.choices = ["View all"] + [item.strftime("%B-%Y") for item in list_period]
 
     query = BRS.query.with_entities(
         BRS.uiic_regional_code,
@@ -129,7 +138,6 @@ def brs_dashboard():
         month = form.data["month"]
         if month != "View all":
             query = query.filter(BRS.month == month)
-        return render_template("brs_dashboard.html", query=query, form=form)
 
     return render_template("brs_dashboard.html", query=query, form=form)
 
@@ -375,15 +383,10 @@ def download_format(requirement):
 @login_required
 def view_brs(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
-    # brs = BRS.query.get_or_404(brs_entry.brs_id)
-    # brs_outstanding_entries = Outstanding.query.filter(
-    #   Outstanding.brs_month_id == brs_key
-    # ).filter(Outstanding.instrument_amount.is_not(None))
+
     return render_template(
         "view_brs_entry.html",
-        #     brs=brs,
         brs_entry=brs_entry,
-        #    outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
         pdf=False,
     )
@@ -393,22 +396,17 @@ def view_brs(brs_key):
 @login_required
 def view_brs_pdf(brs_key):
     brs_entry = BRS_month.query.get_or_404(brs_key)
-    # brs_month = BRS.query.get_or_404(brs_entry.brs_id)
-    # brs_outstanding_entries = Outstanding.query.filter(
-    #     Outstanding.brs_month_id == brs_key
-    # ).filter(Outstanding.instrument_amount.is_not(None))
+
     html = render_template(
         "view_brs_entry.html",
-        #        brs_month=brs_month,
         brs_entry=brs_entry,
-        #       outstanding=brs_outstanding_entries,
         get_brs_bank=get_brs_bank,
         pdf=True,
     )
     return render_pdf(HTML(string=html))
 
 
-def get_prev_month_amount(requirement: str, brs_id: int) -> (float, float):
+def get_prev_month_amount(requirement: str, brs_id: int):
     brs_entry = BRS.query.get_or_404(brs_id)
 
     datetime_object = datetime.strptime(brs_entry.month, "%B-%Y")
@@ -466,6 +464,86 @@ def prevent_duplicate_brs(requirement: str, brs_id: int) -> bool:
     return brs_available
 
 
+def validate_outstanding_entries(
+    df_form_data_os_entries: pd.DataFrame, requirement: str, closing_balance: float
+):
+   # for cash, instrument amount and date of collection is mandatory
+   # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
+   # negative values are not allowed to be entered
+
+    if requirement == "cash":
+        date_columns = ["date_of_collection"]
+        try:
+            df_os_entries = pd.read_csv(
+                df_form_data_os_entries,
+                parse_dates=date_columns,
+                dtype={"instrument_amount": float},
+                dayfirst=True,
+            )
+        except ValueError as e:
+            return (6, pd.DataFrame, 0)
+    else:
+        date_columns = ["date_of_instrument", "date_of_collection"]
+        try:
+            df_os_entries = pd.read_csv(
+                df_form_data_os_entries,
+                parse_dates=date_columns,
+                dtype={
+                    "instrument_amount": float,
+                    "instrument_number": str,
+                },
+                dayfirst=True,
+            )
+
+        except ValueError as e:
+            return (6, pd.DataFrame, 0)
+
+    sum_os_entries = df_os_entries["instrument_amount"].sum()
+    if not float(sum_os_entries) == float(closing_balance):
+        return (5, pd.DataFrame, sum_os_entries)
+
+    # checking for negative values
+    df_negative_values = df_os_entries[df_os_entries["instrument_amount"].lt(0)]
+    if len(df_negative_values) > 0:
+        return (3, pd.DataFrame, sum_os_entries)
+
+    df_na_date_of_collection = df_os_entries[
+        df_os_entries["date_of_collection"].isnull()
+    ]
+    if len(df_na_date_of_collection) > 0:
+        return (4, pd.DataFrame, sum_os_entries)
+
+    if requirement != "cash":
+        df_na_instrument_date = df_os_entries[
+            df_os_entries["date_of_instrument"].isnull()
+        ]
+        df_na_instrument_number = df_os_entries[
+            df_os_entries["instrument_number"].isnull()
+        ]
+
+        if len(df_na_instrument_date) > 0:
+            return (1, pd.DataFrame, sum_os_entries)
+
+        elif len(df_na_instrument_number) > 0:
+            return (2, pd.DataFrame, sum_os_entries)
+    return 10, df_os_entries, sum_os_entries
+
+
+def update_brs_id(requirement: str, brs_entry, integer_brs_id: int) -> None:
+
+    if requirement == "cash":
+        brs_entry.cash_brs_id = integer_brs_id
+    elif requirement == "cheque":
+        brs_entry.cheque_brs_id = integer_brs_id
+    elif requirement == "pg":
+        brs_entry.pg_brs_id = integer_brs_id
+    elif requirement == "pos":
+        brs_entry.pos_brs_id = integer_brs_id
+    elif requirement == "bbps":
+        brs_entry.bbps_brs_id = integer_brs_id
+    elif requirement == "local_collection":
+        brs_entry.local_collection_brs_id = integer_brs_id
+
 @brs_bp.route("/<int:brs_id>/<string:requirement>/add_brs", methods=["POST", "GET"])
 @login_required
 def enter_brs(requirement, brs_id):
@@ -516,55 +594,47 @@ def enter_brs(requirement, brs_id):
             )
 
             if closing_balance > 0:
-                try:
-                    if requirement == "cash":
-                        date_columns = ["date_of_collection"]
-                        df_outstanding_entries = pd.read_csv(
-                            form.data["outstanding_entries"],
-                            parse_dates=date_columns,
-                            dtype={"instrument_amount": float},
+
+                if not form.data["outstanding_entries"]:
+                    flash(
+                        "Please upload details of closing balance in prescribed format."
+                    )
+                else:
+                    (
+                        status_validate_os_entries,
+                        df_outstanding_entries,
+                        sum_os_entries,
+                    ) = validate_outstanding_entries(
+                        form.data["outstanding_entries"], requirement, closing_balance
+                    )
+                    if status_validate_os_entries == 1:
+                        flash("Date of instrument must be entered in dd/mm/yyyy format.")
+                    elif status_validate_os_entries == 2:
+                        flash("Instrument number must be entered.")
+                    elif status_validate_os_entries == 3:
+                        flash("Please do not enter negative amounts.")
+                    elif status_validate_os_entries == 4:
+                        flash("Date of collection must be entered in dd/mm/yyyy format")
+                    elif status_validate_os_entries == 5:
+                        flash(
+                            f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
                         )
-                    else:
-                        date_columns = ["date_of_instrument", "date_of_collection"]
-                        df_outstanding_entries = pd.read_csv(
-                            form.data["outstanding_entries"],
-                            parse_dates=date_columns,
-                            dtype={
-                                "instrument_amount": float,
-                                "instrument_number": str,
-                            },
+
+                    elif status_validate_os_entries == 6:
+                        flash(
+                            "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
                         )
+                    elif status_validate_os_entries == 10:
 
-                    try:
-                        sum_os_entries = df_outstanding_entries[
-                            "instrument_amount"
-                        ].sum()
-                        if not float(sum_os_entries) == float(closing_balance):
-                            flash(
-                                f"Closing balance {closing_balance} is not matching with sum of outstanding entries {sum_os_entries}."
-                            )
+                        db.session.add(brs)
+                        db.session.commit()
+                        update_brs_id(requirement, brs_entry, brs.id)
 
-                        else:
-                            db.session.add(brs)
-                            db.session.commit()
-                            if requirement == "cash":
-                                brs_entry.cash_brs_id = brs.id
-                            elif requirement == "cheque":
-                                brs_entry.cheque_brs_id = brs.id
-                            elif requirement == "pg":
-                                brs_entry.pg_brs_id = brs.id
-                            elif requirement == "pos":
-                                brs_entry.pos_brs_id = brs.id
-                            elif requirement == "bbps":
-                                brs_entry.bbps_brs_id = brs.id
-                            elif requirement == "local_collection":
-                                brs_entry.local_collection_brs_id = brs.id
-
-                            df_outstanding_entries["brs_month_id"] = brs.id
-                            engine = create_engine(
-                                current_app.config.get("SQLALCHEMY_DATABASE_URI")
-                            )
-
+                        df_outstanding_entries["brs_month_id"] = brs.id
+                        engine = create_engine(
+                            current_app.config.get("SQLALCHEMY_DATABASE_URI")
+                        )
+                        try:
                             df_outstanding_entries.dropna(
                                 subset=["instrument_amount"]
                             ).to_sql(
@@ -572,37 +642,25 @@ def enter_brs(requirement, brs_id):
                             )
                             db.session.commit()
                             return redirect(url_for("brs.upload_brs", brs_key=brs_id))
-                    except Exception as e:
-                        flash(f"Please upload in prescribed format.")
-                except pd.errors.EmptyDataError:
-                    flash(
-                        "Please upload details of Closing balance in prescribed format."
-                    )
-                except Exception as e:
-                    flash(f"Please upload in prescribed format.")
+                        except sqlalchemy.exc.DataError as e:
+                            db.session.delete(brs)
+                            update_brs_id(requirement, brs_entry, None)
+                            db.session.commit()
+                            flash(
+                                "Please ensure dates are entered in dd/mm/yyyy format and amount in integer format."
+                            )
+
             else:
                 db.session.add(brs)
                 db.session.commit()
-
-                if requirement == "cash":
-                    brs_entry.cash_brs_id = brs.id
-                elif requirement == "cheque":
-                    brs_entry.cheque_brs_id = brs.id
-                elif requirement == "pg":
-                    brs_entry.pg_brs_id = brs.id
-                elif requirement == "pos":
-                    brs_entry.pos_brs_id = brs.id
-                elif requirement == "bbps":
-                    brs_entry.bbps_brs_id = brs.id
-                elif requirement == "local_collection":
-                    brs_entry.local_collection_brs_id = brs.id
+                update_brs_id(requirement, brs_entry, brs.id)
 
                 db.session.commit()
 
                 return redirect(url_for("brs.upload_brs", brs_key=brs_id))
 
-    form.opening_balance.data: float = get_prev_month_amount(requirement, brs_id)[0]
-    form.opening_on_hand.data: float = get_prev_month_amount(requirement, brs_id)[1]
+    form.opening_balance.data = get_prev_month_amount(requirement, brs_id)[0]
+    form.opening_on_hand.data = get_prev_month_amount(requirement, brs_id)[1]
 
     return render_template(
         "add_brs_entry.html",
@@ -637,14 +695,12 @@ def list_brs_entries():
         month = form.data["month"]
         brs_type = form.data["brs_type"]
 
-        list_all_brs_entries = (
-            BRS_month.query.join(BRS, BRS.id == BRS_month.brs_id)
-            #   .join(Outstanding, Outstanding.brs_month_id == BRS_month.id)
-            .filter(
-                (BRS_month.status.is_(None))
-                & (BRS.month == month)
-                & (BRS_month.brs_type == brs_type)
-            )
+        list_all_brs_entries = BRS_month.query.join(
+            BRS, BRS.id == BRS_month.brs_id
+        ).filter(
+            (BRS_month.status.is_(None))
+            & (BRS.month == month)
+            & (BRS_month.brs_type == brs_type)
         )
 
         subquery = (
@@ -686,12 +742,18 @@ def list_brs_entries_exceptions():
         b. Closing balance is greater than zero AND
         c. Outstanding entries are not present for the BRS monthly record."""
 
+    subquery = (
+        Outstanding.query.with_entities(Outstanding.brs_month_id).distinct().subquery()
+    )
+
     list_all_brs_entries = BRS_month.query.filter(
         (BRS_month.status == "Deleted")
-        | (BRS_month.status.is_(None))
-        & (
-            (BRS_month.int_closing_balance > 0)
-            & (~exists().where(Outstanding.brs_month_id == BRS_month.id))
+        | (
+            BRS_month.status.is_(None)
+            & (
+                (BRS_month.int_closing_balance > 0)
+                & (~BRS_month.id.in_(select(subquery)))
+            )
         )
     )
 

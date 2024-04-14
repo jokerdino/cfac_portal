@@ -37,7 +37,7 @@
             <td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
             <td class="has-text-centered">{{ entry.uiic_office_code }}</td>
             <td class="has-text-centered">{{ entry.financial_year }}</td>
-            <td class="has-text-left" data-sort="{{ entry.month|datetime_format(" %B-%Y") }}">{{ entry.month }}</td>
+            <td class="has-text-left" data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry.month }}</td>
 
             <td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
             {% if entry.cash_bank %}
