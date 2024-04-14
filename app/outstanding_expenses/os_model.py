@@ -23,6 +23,7 @@ class OutstandingExpenses(db.Model):
     str_narration = db.Column(db.Text)
 
     date_payment_date = db.Column(db.Date)
+    current_status = db.Column(db.String)
 
     date_date_of_creation = db.Column(db.DateTime)
 

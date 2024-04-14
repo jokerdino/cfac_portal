@@ -14,13 +14,13 @@ from app.outstanding_expenses import os_bp
 from app.outstanding_expenses.os_model import (
     OutstandingExpenses,
 )
-from app.outstanding_expenses.os_form import OutstandingExpensesForm
+from app.outstanding_expenses.os_form import OutstandingExpensesForm, DeleteOSForm
 
 
-@os_bp.route("/", methods=["POST", "GET"])
+@os_bp.route("/")
 @login_required
 def os_homepage():
-    list_os_entries = OutstandingExpenses.query.order_by(
+    list_os_entries = OutstandingExpenses.query.filter(OutstandingExpenses.current_status.is_(None)).order_by(
         OutstandingExpenses.date_date_of_creation.desc()
     )
 
@@ -33,6 +33,12 @@ def os_homepage():
             OutstandingExpenses.str_operating_office_code == current_user.oo_code
         )
 
+    return render_template("os_homepage.html", list_os_entries=list_os_entries)
+
+
+@os_bp.route("/exceptions")
+def list_deleted_entries():
+    list_os_entries = OutstandingExpenses.query.filter(OutstandingExpenses.current_status.is_not(None))
     return render_template("os_homepage.html", list_os_entries=list_os_entries)
 
 
@@ -107,17 +113,27 @@ def add_os_entry():
     )
 
 
-@os_bp.route("/view/<int:os_key>")
+@os_bp.route("/view/<int:os_key>", methods=["GET", "POST"])
 @login_required
 def view_os_entry(os_key):
+    form = DeleteOSForm()
+    from extensions import db
     os = OutstandingExpenses.query.get_or_404(os_key)
-    return render_template("view_os_entry.html", os=os)
+    if os.current_status is not None:
+        abort(404)
+    if form.validate_on_submit():
+        os.current_status = "Deleted"
+        db.session.commit()
+        return redirect(url_for("outstanding_expenses.os_homepage"))
+    return render_template("view_os_entry.html", os=os, form=form)
 
 
 @os_bp.route("/edit/<int:os_key>", methods=["GET", "POST"])
 @login_required
 def edit_os_entry(os_key):
     os = OutstandingExpenses.query.get_or_404(os_key)
+    if os.current_status is not None:
+        abort(404)
 
     # Checking if the entry is pertaining to that RO or OO
     if (

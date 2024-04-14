@@ -8,6 +8,7 @@ from wtforms import (
     TextAreaField,
     SelectField,
     StringField,
+    SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, Length, ValidationError
 
@@ -142,3 +143,6 @@ class OutstandingExpensesForm(FlaskForm):
             raise ValidationError("Payment date cannot be earlier than 01/04/2024.")
         if field.data > date.today():
             raise ValidationError("Payment date cannot be future date.")
+
+class DeleteOSForm(FlaskForm):
+    delete_button = SubmitField("Delete")
