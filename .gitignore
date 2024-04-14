@@ -1,3 +1,16 @@
 *.pyc
 *~
 *.swp
+.cfac_portal/*
+settlements/*
+ri_confirmations/*
+statements/*
+confirmations/*
+contracts/*
+.idea/*
+knowledge_base/*
+migrations/*
+python-packages/*
+*.csv
+*.txt
+data/*
