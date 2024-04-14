@@ -2,56 +2,72 @@
 {% block content %}
 {% if tickets %}
 
-<table class="table is-bordered is-hoverable is-fullwidth" id="tickets_table">
+{% for field, errors in form.errors.items() %}
+<div class="notification is-danger">
+    {{ field }} {{ ', '.join(errors) }}
+</div>
+{% endfor %}
 
-    <thead>
-    <tr class="has-text-centered">
-        <th>Regional Office</th>
-        <th>Office Code</th>
-        <th>Ticket number</th>
-        <th>Contact person</th>
-        <th>Email address</th>
-        <th>Mobile number</th>
-        <th>Department</th>
-        <th>Status</th>
-        <th>Date of creation</th>
-        <th>View</th>
-        <th>Edit</th>
-    </tr></thead>
-    <tbody>
-    {% for ticket in tickets %}
-    <tr>
-        <td>{{ ticket.regional_office_code }}</td>
-        <td>{{ ticket.office_code }}</td>
-        <td>{{ ticket.ticket_number }}</td>
-        <td>{{ ticket.contact_person }}</td>
-        <td>{{ ticket.contact_email_address }}</td>
-        <td>{{ ticket.contact_mobile_number }}</td>
-        <td>{{ ticket.department }}</td>
-        <td>{{ ticket.status }}</td>
-        <td data-sort="{{ ticket.date_of_creation }}" title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td>
-        <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}">View</a></td>
-        <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}">Edit</a></td>
-        {% endfor %}
-    </tr>
-    </tbody>
-</table>
+<div class="container is-fluid">
+    <form method="post" action="">
+        {{ form.csrf_token }}
+        {{ form.department.label }} {{ form.department(class="select") }} <button
+            class="button is-small is-success is-outlined">Filter</button>
+    </form>
+</div>
+<div class="container is-fluid">
+    <table class="table is-bordered is-hoverable is-fullwidth" id="tickets_table">
 
+        <thead>
+            <tr class="has-text-centered">
+                <th>Regional Office</th>
+                <th>Office Code</th>
+                <th>Ticket number</th>
+                <th>Contact person</th>
+                <th>Email address</th>
+                <th>Mobile number</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Date of creation</th>
+                <th>View</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket.regional_office_code }}</td>
+                <td>{{ ticket.office_code }}</td>
+                <td>{{ ticket.ticket_number }}</td>
+                <td>{{ ticket.contact_person }}</td>
+                <td>{{ ticket.contact_email_address }}</td>
+                <td>{{ ticket.contact_mobile_number }}</td>
+                <td>{{ ticket.department }}</td>
+                <td>{{ ticket.status }}</td>
+                <td data-sort="{{ ticket.date_of_creation }}" title="{{ ticket.date_of_creation }}">{{
+                    humanize_datetime(ticket.date_of_creation) }}</td>
+                <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}">View</a></td>
+                <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}">Edit</a></td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</div>
 {% endif %}
 {% block scripts %}
 <script>
 
-new DataTable('#tickets_table', {
-    dom: 'lfBrtip',
-    stateSave: true,
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[8,'desc']],
-    pagingType: 'full_numbers',
+    new DataTable('#tickets_table', {
+        dom: 'lfBrtip',
+        stateSave: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[8, 'desc']],
+        pagingType: 'full_numbers',
 
-});
+    });
 
 </script>
 {% endblock scripts %}
