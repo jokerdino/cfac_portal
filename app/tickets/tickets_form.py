@@ -45,3 +45,6 @@ class TicketsForm(FlaskForm):
     regional_incharge_approval = BooleanField(
         "Regional Incharge approval is available", validators=[DataRequired()]
     )
+
+class TicketFilterForm(FlaskForm):
+    department = SelectField("Filter by department")

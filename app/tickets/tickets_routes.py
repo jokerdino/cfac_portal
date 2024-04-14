@@ -7,7 +7,7 @@ from flask_login import current_user, login_required
 
 from app.tickets import tickets_bp
 from app.tickets.tickets_model import Tickets, TicketRemarks
-from app.tickets.tickets_form import TicketsForm
+from app.tickets.tickets_form import TicketsForm, TicketFilterForm
 
 
 @tickets_bp.route("/add", methods=["POST", "GET"])
@@ -133,33 +133,62 @@ def edit_ticket(ticket_id):
     )
 
 
-@tickets_bp.route("/status/all")
+@tickets_bp.route("/status/all/<string:department>", methods=["POST","GET"])
 @login_required
-def tickets_homepage():
-    tickets = Tickets.query.order_by(Tickets.id.desc())
+def tickets_homepage(department):
+    form = TicketFilterForm()
+
+    tickets = Tickets.query.order_by(Tickets.department)
+
     if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
         tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
     elif current_user.user_type == "ro_user":
         tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
-    # elif current_user.user_type == "admin":
+
+    select_department(tickets, form)
+    if department != "View all":
+        tickets = tickets.filter(Tickets.department == department)
+
+    if form.validate_on_submit():
+        department = form.data["department"]
+        return redirect(url_for("tickets.tickets_homepage", department=department))
 
     return render_template(
-        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime
+        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime, form=form
     )
 
 
-@tickets_bp.route("/status/<string:status>")
+@tickets_bp.route("/status/<string:status>/<string:department>", methods=["GET", "POST"])
 @login_required
-def filter_by_status(status):
+def filter_by_status(status, department):
+    form = TicketFilterForm()
+
     tickets = Tickets.query.filter(Tickets.status == status)
+
     if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
         tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
     elif current_user.user_type == "ro_user":
         tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
+
+    select_department(tickets, form)
+    if department != "View all":
+        tickets = tickets.filter(Tickets.department == department)
+
+    if form.validate_on_submit():
+        department = form.data["department"]
+        return redirect(url_for("tickets.filter_by_status", status=status, department=department))
+
     return render_template(
-        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime
+        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime, form=form
     )
 
 
 def humanize_datetime(input_datetime):
     return humanize.naturaltime(datetime.now() - input_datetime)
+
+
+def select_department(query, form):
+    department = query.distinct(Tickets.department)
+    form.department.choices = ["View all"] + [
+        x.department for x in department
+    ]
