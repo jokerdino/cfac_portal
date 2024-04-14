@@ -1,7 +1,8 @@
 from random import *
 
 import pandas as pd
-from flask import current_app, flash, redirect, render_template, request, url_for
+from flask import abort, current_app, flash, render_template, request
+from flask_login import current_user, login_required
 from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
@@ -12,13 +13,9 @@ from app.users.user_model import Log_user, User
 
 from app.tickets.tickets_routes import humanize_datetime
 
-#
-# @admin_bp.route("/home", methods=["POST", "GET"])
-# def home_page():
-#     return render_template("home.html")
-
 
 @admin_bp.route("/upload", methods=["POST", "GET"])
+@login_required
 def upload_users():
     if request.method == "POST":
         upload_file = request.files.get("file")
@@ -32,11 +29,9 @@ def upload_users():
             },
         )
         password_hash = generate_password_hash("password")
-        # print(df_user_upload.columns.values.tolist())
+
         for df_user_upload in df_user_upload_chunk:
-            #  df_user_upload["password"] = df_user_upload["password"].apply(
-            #     generate_password_hash
-            # )
+
             df_user_upload["password"] = password_hash
             df_user_upload["reset_password"] = True
             engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
@@ -46,21 +41,21 @@ def upload_users():
                 flash("User details have been uploaded to database.")
             except IntegrityError:
                 flash("Upload unique username only.")
-    #        convert_input(upload_file)
-    # flash("GST invoice data has been received. Processing the input file..")
-    # await upload_details(upload_file)
+
 
     return render_template("upload.html")
 
 
 @admin_bp.route("/view_user/<int:user_key>", methods=["POST", "GET"])
+@login_required
 def view_user_page(user_key):
     form = UpdateUserForm()
     from server import db
 
-    # return render_template("user_page.html")
-
     user = User.query.get_or_404(user_key)
+
+    if current_user.user_type == "ro_user" and (user.user_type != "oo_user" or user.ro_code != current_user.ro_code):
+        abort(404)
     user_log = (
         db.session.query(Log_user).filter(Log_user.user_id == user.username).all()
     )
@@ -69,7 +64,7 @@ def view_user_page(user_key):
         # change type of user based on selectfield
 
         # reset password should set some random password and enable reset_password for the user
-        user_type = form.data["change_user_type"]
+        user_type = form.data["change_user_type"] or user.user_type
 
         if form.data["reset_password_page"]:
             user.reset_password = True
@@ -80,13 +75,14 @@ def view_user_page(user_key):
 
         user.user_type = user_type
         # user.reset_password = reset_password_page
-        db.session.add(user)
+#        db.session.add(user)
         db.session.commit()
         admin_check()
     #  return redirect(url_for("portal_admin.view_list_users"))
 
     form.change_user_type.data = user.user_type
     form.reset_password_page.data = user.reset_password
+
 
     return render_template(
         "user_page.html",
@@ -97,12 +93,16 @@ def view_user_page(user_key):
     )
 
 
-@admin_bp.route("/home", methods=["POST", "GET"])
+@admin_bp.route("/home")
+@login_required
 def view_list_users():
     # TODO: delete button
+    users = User.query.order_by(User.user_type)
+    if current_user.user_type == "ro_user":
+        users = users.filter((User.ro_code == current_user.ro_code) & (User.user_type == "oo_user"))
     return render_template(
         "view_all_users.html",
-        users=User.query.all(),
+        users=users,
         humanize_datetime=humanize_datetime,
     )
 
