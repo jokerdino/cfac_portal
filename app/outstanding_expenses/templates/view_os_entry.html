@@ -2,42 +2,88 @@
 
 {% block content %}
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == os.str_regional_office_code) or
-    (current_user.user_type == "oo_user" and current_user.oo_code == os.str_operating_office_code) or
-    (current_user.user_type == "admin") %}
+(current_user.user_type == "oo_user" and current_user.oo_code == os.str_operating_office_code) or
+(current_user.user_type == "admin") %}
 
 <div class="container">
-   <div class="columns is-centered">
+    <div class="columns is-centered">
 
-    <div class="column">
-<table class="table">
-    <tr><th>Regional Office</th><td>{{ os.str_regional_office_code }}</td></tr>
-    <tr><th>Operating Office</th><td>{{ os.str_operating_office_code }}</td></tr>
+        <div class="column">
+            <table class="table">
+                <tr>
+                    <th>Regional Office</th>
+                    <td>{{ os.str_regional_office_code }}</td>
+                </tr>
+                <tr>
+                    <th>Operating Office</th>
+                    <td>{{ os.str_operating_office_code }}</td>
+                </tr>
 
-    <tr><th>Party type</th><td>{{ os.str_party_type }}</td></tr>
-    <tr><th>Party name</th><td>{{ os.str_party_name }}</td></tr>
-    <tr><th>Party ID</th><td>{{ os.str_party_id }}</td></tr>
-    <tr><th>Nature of payment</th><td>{{ os.str_nature_of_payment }}</td></tr>
-    <tr><th>Narration</th><td>{{ os.str_narration }}</td></tr>
-</table>
+                <tr>
+                    <th>Party type</th>
+                    <td>{{ os.str_party_type }}</td>
+                </tr>
+                <tr>
+                    <th>Party name</th>
+                    <td>{{ os.str_party_name }}</td>
+                </tr>
+                <tr>
+                    <th>Party ID</th>
+                    <td>{{ os.str_party_id }}</td>
+                </tr>
+                <tr>
+                    <th>Nature of payment</th>
+                    <td>{{ os.str_nature_of_payment }}</td>
+                </tr>
+                <tr>
+                    <th>Narration</th>
+                    <td>{{ os.str_narration }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="column">
+            <table class="table">
+                <tr>
+                    <th>Gross outstanding amount</th>
+                    <td>{{ os.float_gross_amount }}</td>
+                </tr>
+                <tr>
+                    <th>Whether TDS is involved</th>
+                    <td>{{ "Yes" if os.bool_tds_involved else "No" }}</td>
+                </tr>
+                <tr>
+                    <th>Section</th>
+                    <td>{{ os.str_section or "" }}</td>
+                </tr>
+                <tr>
+                    <th>TDS amount</th>
+                    <td>{{ os.float_tds_amount or "" }}</td>
+                </tr>
+                <tr>
+                    <th>PAN Number</th>
+                    <td>{{ os.str_pan_number or "" }}</td>
+                </tr>
+                <tr>
+                    <th>Net amount</th>
+                    <td>{{ os.float_net_amount }}</td>
+                </tr>
+                <tr>
+                    <th>Date of payment</th>
+                    <td>{{ os.date_payment_date.strftime('%d/%m/%Y') if os.date_payment_date else "Not paid" }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
-
-<div class="column">
-    <table class="table">
-        <tr><th>Gross outstanding amount</th><td>{{ os.float_gross_amount }}</td></tr>
-        <tr><th>Whether TDS is involved</th><td>{{ "Yes" if os.bool_tds_involved else "No" }}</td></tr>
-        <tr><th>Section</th><td>{{ os.str_section or "" }}</td></tr>
-        <tr><th>TDS amount</th><td>{{ os.float_tds_amount or "" }}</td></tr>
-        <tr><th>PAN Number</th><td>{{ os.str_pan_number or "" }}</td></tr>
-        <tr><th>Net amount</th><td>{{ os.float_net_amount }}</td></tr>
-        <tr><th>Date of payment</th><td>{{ os.date_payment_date.strftime('%d/%m/%Y') if os.date_payment_date else "Not paid" }}</td></tr>
-   </table>
 </div>
-</div>
-</div>
-<div class="has-text-centered">
-<a class="button is-link is-outlined" href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=os.id) }}">Edit</a>
-</div>
-
+<form method="post" action="" onsubmit="return confirm('Are you sure you want to delete this outstanding entry?');">
+    {{ form.csrf_token }}
+    <div class="has-text-centered">
+        <a class="button is-link is-outlined"
+            href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=os.id) }}">Edit</a>
+        {{ form.delete_button(class="button is-danger") }}
+    </div>
+</form>
 {% endif %}
 
 {% endblock content %}
