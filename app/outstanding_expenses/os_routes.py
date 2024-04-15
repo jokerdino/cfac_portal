@@ -42,7 +42,7 @@ def list_deleted_entries():
     return render_template("os_homepage.html", list_os_entries=list_os_entries)
 
 
-@os_bp.route("/add", methods=["POST", "GET"])
+@os_bp.route("/add", methods=["GET"])
 @login_required
 def add_os_entry():
     form = OutstandingExpensesForm()
@@ -113,7 +113,7 @@ def add_os_entry():
     )
 
 
-@os_bp.route("/view/<int:os_key>", methods=["GET", "POST"])
+@os_bp.route("/view/<int:os_key>", methods=["GET"])
 @login_required
 def view_os_entry(os_key):
     form = DeleteOSForm()
@@ -128,7 +128,7 @@ def view_os_entry(os_key):
     return render_template("view_os_entry.html", os=os, form=form)
 
 
-@os_bp.route("/edit/<int:os_key>", methods=["GET", "POST"])
+@os_bp.route("/edit/<int:os_key>", methods=["GET"])
 @login_required
 def edit_os_entry(os_key):
     os = OutstandingExpenses.query.get_or_404(os_key)

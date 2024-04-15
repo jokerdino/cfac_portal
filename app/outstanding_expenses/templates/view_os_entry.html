@@ -81,7 +81,7 @@
     <div class="has-text-centered">
         <a class="button is-link is-outlined"
             href="{{ url_for('outstanding_expenses.edit_os_entry', os_key=os.id) }}">Edit</a>
-        {{ form.delete_button(class="button is-danger") }}
+        {{ form.delete_button(class="button is-danger", disabled=disabled) }}
     </div>
 </form>
 {% endif %}
