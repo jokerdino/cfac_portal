@@ -1,3 +1,4 @@
+from math import fabs
 from datetime import datetime
 import calendar
 from sqlalchemy.sql import exists, select
@@ -499,7 +500,8 @@ def validate_outstanding_entries(
             return (6, pd.DataFrame, 0)
 
     sum_os_entries = df_os_entries["instrument_amount"].sum()
-    if not float(sum_os_entries) == float(closing_balance):
+    #if not float(sum_os_entries) == float(closing_balance):
+    if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
         return (5, pd.DataFrame, sum_os_entries)
 
     # checking for negative values
@@ -659,8 +661,9 @@ def enter_brs(requirement, brs_id):
 
                 return redirect(url_for("brs.upload_brs", brs_key=brs_id))
 
-    form.opening_balance.data = get_prev_month_amount(requirement, brs_id)[0]
-    form.opening_on_hand.data = get_prev_month_amount(requirement, brs_id)[1]
+    prev_month_opening_balance, prev_month_opening_on_hand = get_prev_month_amount(requirement, brs_id)
+    form.opening_balance.data = prev_month_opening_balance
+    form.opening_on_hand.data = prev_month_opening_on_hand
 
     return render_template(
         "add_brs_entry.html",
