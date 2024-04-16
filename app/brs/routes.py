@@ -746,20 +746,60 @@ def list_brs_entries_exceptions():
         b. Closing balance is greater than zero AND
         c. Outstanding entries are not present for the BRS monthly record."""
 
+    # subquery = (
+    #     Outstanding.query.with_entities(Outstanding.brs_month_id).distinct().subquery()
+    # )
+
+    list_all_brs_entries = BRS_month.query.filter(
+     #   (BRS_month.status == "Deleted")
+        ~BRS_month.status.is_(None)
+        # | (
+        #     BRS_month.status.is_(None)
+        #     & (
+        #         (BRS_month.int_closing_balance > 0)
+        #         & (~BRS_month.id.in_(select(subquery)))
+        #     )
+        # )
+    )
+
+    return render_template(
+        "view_brs_raw_data.html",
+        brs_entries=list_all_brs_entries,
+        get_brs_bank=get_brs_bank,
+        humanize_datetime=humanize_datetime,
+    )
+
+
+@brs_bp.route("/dashboard/view_raw_data/exceptions2")
+@login_required
+def list_brs_entries_exceptions2():
+    """Function to return exceptions - BRS monthly records for the following conditions
+    1. The BRS monthly record is deleted OR
+    2.
+        a. The BRS monthly record is not deleted AND
+        b. Closing balance is greater than zero AND
+        c. Outstanding entries are not present for the BRS monthly record."""
+
     subquery = (
         Outstanding.query.with_entities(Outstanding.brs_month_id).distinct().subquery()
     )
 
     list_all_brs_entries = BRS_month.query.filter(
-        (BRS_month.status == "Deleted")
-        | (
-            BRS_month.status.is_(None)
-            & (
+        #(BRS_month.status == "Deletedbyquery")
+       # | (
+          #  BRS_month.status.is_(None)
+           # &
                 (BRS_month.int_closing_balance > 0)
                 & (~BRS_month.id.in_(select(subquery)))
-            )
         )
-    )
+   # )
+    # brs_id = list_all_brs_entries.with_entities(BRS_month.id)
+    # for id in brs_id:
+    #    brs_entry = BRS_month.query.get(id)
+    #    brs_entry.status = "Deleted"
+
+    # from extensions import db
+    # db.session.commit()
 
     return render_template(
         "view_brs_raw_data.html",
