@@ -637,6 +637,7 @@ def enter_brs(requirement, brs_id):
                             current_app.config.get("SQLALCHEMY_DATABASE_URI")
                         )
                         try:
+                            df_outstanding_entries = df_outstanding_entries.loc[:, ~df_outstanding_entries.columns.str.match('Unnamed')]
                             df_outstanding_entries.dropna(
                                 subset=["instrument_amount"]
                             ).to_sql(
