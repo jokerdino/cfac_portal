@@ -74,7 +74,7 @@
 
                                 <td title="{{ item.time_of_remark }}">{{ humanize_datetime(item.time_of_remark) }}</td>
                                 <td>{{ item.user }}</td>
-                                <td>{{ item.remarks }}</td>
+                                <td class="word-wrap">{{ item.remarks }}</td>
                                 {% endfor %}
                             </tr>
 

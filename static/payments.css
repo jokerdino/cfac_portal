@@ -16,3 +16,7 @@ input::-webkit-inner-spin-button {
 input[type=number] {
     -moz-appearance:textfield; /* Firefox */
 }
+
+td.word-wrap {
+    white-space:pre-wrap;
+}

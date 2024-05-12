@@ -12,7 +12,7 @@ from app.bank_guarantee.bg_models import BankGuarantee
 from app.bank_guarantee.bg_form import BGForm
 
 
-@bg_bp.route("/", methods=["POST", "GET"])
+@bg_bp.route("/", methods=["GET"])
 @login_required
 def bg_homepage():
     bg_query = BankGuarantee.query.order_by(BankGuarantee.id)
@@ -24,7 +24,7 @@ def bg_homepage():
     return render_template("bg_home.html", bg_query=bg_query)
 
 
-@bg_bp.route("/add", methods=["POST", "GET"])
+@bg_bp.route("/add", methods=["GET"])
 @login_required
 def add_bg_entry():
     from extensions import db
@@ -72,7 +72,7 @@ def add_bg_entry():
     )
 
 
-@bg_bp.route("/edit/<int:bg_key>", methods=["POST", "GET"])
+@bg_bp.route("/edit/<int:bg_key>", methods=["GET"])
 @login_required
 def edit_bg_entry(bg_key):
     from extensions import db

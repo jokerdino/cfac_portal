@@ -3,60 +3,66 @@
 <h1 class="title">Bank guarantee entries</h1>
 {% if bg_query.count() > 0 %}
 <table class="table is-bordered is-fullwidth" id="bg_table">
-    <thead><tr>
-        <th class="is-vcentered has-text-centered">RO Code</th>
-        <th class="is-vcentered has-text-centered">Office Code</th>
-        <th class="is-vcentered has-text-centered">Customer Name</th>
-        <th class="is-vcentered has-text-centered">Customer ID / SL Code</th>
-        <th class="is-vcentered has-text-centered">Debit Amount</th>
-        <th class="is-vcentered has-text-centered">Credit Amount</th>
-        <th class="is-vcentered has-text-centered">Payment ID</th>
-        <th class="is-vcentered has-text-centered">Date of payment</th>
-        <th class="is-vcentered has-text-centered">Reason</th>
-        <th class="is-vcentered has-text-centered">Course of action</th>
-        <th class="is-vcentered has-text-centered">View</th>
-        <th class="is-vcentered has-text-centered">Edit</th>
-    </tr></thead>
+    <thead>
+        <tr>
+            <th class="is-vcentered has-text-centered">RO Code</th>
+            <th class="is-vcentered has-text-centered">Office Code</th>
+            <th class="is-vcentered has-text-centered">Customer Name</th>
+            <th class="is-vcentered has-text-centered">Customer ID / SL Code</th>
+            <th class="is-vcentered has-text-centered">Debit Amount</th>
+            <th class="is-vcentered has-text-centered">Credit Amount</th>
+            <th class="is-vcentered has-text-centered">Payment ID</th>
+            <th class="is-vcentered has-text-centered">Date of payment</th>
+            <th class="is-vcentered has-text-centered">Reason</th>
+            <th class="is-vcentered has-text-centered">Course of action</th>
+            <th class="is-vcentered has-text-centered">View</th>
+            <th class="is-vcentered has-text-centered">Edit</th>
+        </tr>
+    </thead>
 
-    <tbody><tr>
-{% for entry in bg_query %}
+    <tbody>
+        <tr>
+            {% for entry in bg_query %}
 
-        <td>{{ entry['ro_code'] }}</td>
-        <td>{{ entry['oo_code'] }}</td>
-        <td>{{ entry['customer_name'] }}</td>
-        <td>{{ entry['customer_id'] }}</td>
-        <td class="has-text-right">{{ entry['debit_amount'] }}</td>
-        <td class="has-text-right">{{ entry['credit_amount'] }}</td>
-        <td>{{ entry['payment_id'] }}</td>
-        <td class="has-text-centered" data-sort="{{ entry['date_of_payment'] }}">{{ entry['date_of_payment'].strftime("%d/%m/%Y") }}</td>
-        <td>{{ entry['reason'] }}</td>
-        <td>{{ entry['course_of_action'] }}</td>
-        <td><a class="button is-link is-small is-outlined" href="{{ url_for('bg.view_bg_entry', bg_key=entry.id) }}">View</a></td>
-        <td><a class="button is-link is-small is-outlined" href="{{ url_for('bg.edit_bg_entry', bg_key=entry.id) }}">Edit</a></td>
-</tr>
-    {% endfor %}
+            <td>{{ entry['ro_code'] }}</td>
+            <td>{{ entry['oo_code'] }}</td>
+            <td>{{ entry['customer_name'] }}</td>
+            <td>{{ entry['customer_id'] }}</td>
+            <td class="has-text-right">{{ entry['debit_amount'] }}</td>
+            <td class="has-text-right">{{ entry['credit_amount'] }}</td>
+            <td>{{ entry['payment_id'] }}</td>
+            <td class="has-text-centered" data-sort="{{ entry['date_of_payment'] }}">{{
+                entry['date_of_payment'].strftime("%d/%m/%Y") }}</td>
+            <td>{{ entry['reason'] }}</td>
+            <td>{{ entry['course_of_action'] }}</td>
+            <td><a class="button is-link is-small is-outlined"
+                    href="{{ url_for('bg.view_bg_entry', bg_key=entry.id) }}">View</a></td>
+            <td><a class="button is-link is-small is-outlined"
+                    href="{{ url_for('bg.edit_bg_entry', bg_key=entry.id) }}">Edit</a></td>
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
 {% endif %}
 {% block scripts %}
 <script>
-new DataTable('#bg_table', {
-dom: 'lfBrtip',
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[10,'desc']],
-    pagingType: 'full_numbers',
-    columnDefs: [
-        {
-            target: [8,9],
-            visible: false,
-            searchable: false
-        },
+    new DataTable('#bg_table', {
+        dom: 'lfBrtip',
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[10, 'desc']],
+        pagingType: 'full_numbers',
+        columnDefs: [
+            {
+                target: [8, 9],
+                visible: false,
+                searchable: false
+            },
 
-    ]
-});
+        ]
+    });
 
 </script>
 {% endblock scripts %}
