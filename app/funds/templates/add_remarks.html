@@ -1,0 +1,38 @@
+{% extends "funds_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title">Add remarks for {{ display_date.strftime("%d/%m/%Y") }}</h1>
+    <table class="table is-bordered is-fullwidth">
+        <tr>
+            <th>Total inflow</th>
+            <td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(display_inflow(display_date)) }}</td>
+        </tr>
+        <tr>
+            <th>Total outflow</th>
+            <td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(display_outflow(display_date)) }}</td>
+        </tr>
+    </table>
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth">
+            <tr>
+                <th>
+                    {{ form.major_payments.label }}</th>
+                <td> {{ form.major_payments(class="textarea") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.major_receipts.label }}</th>
+                <td>{{ form.major_receipts(class="textarea") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            {% if enable_update(display_date) %}
+            <button class="button is-success">Submit</button>
+            {% else %}
+            <button class="button is-success" disabled>Submit</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock content %}

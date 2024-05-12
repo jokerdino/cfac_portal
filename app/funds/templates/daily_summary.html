@@ -1,0 +1,241 @@
+{% if not pdf %}
+{% extends "funds_layout.html" %}
+{% else %}
+<style>
+    @page {
+        size: portrait;
+        margin: 1cm;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
+{% endif %}
+
+{% block content %}
+<div class="container">
+    {% if not pdf %}
+    <div class="has-text-right">
+        <a class="button is-link is-outlined" target="_blank"
+            href="{{ url_for('funds.daily_summary_pdf', date_string=display_date.strftime('%d%m%Y')) }}">Print to
+            PDF</a>
+    </div>
+    {% endif %}
+
+    <h1 class="is-size-3 title">Funds flow statement for {{ display_date.strftime("%d/%m/%Y (%A)") }}</h1>
+
+    <div class="columns is-centered">
+
+        <div class="column is-half">
+            <h3 class="has-text-weight-bold has-text-centered">Funds inflow</h3>
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-weight-bold has-text-centered">
+                        <td>Collections</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flag in flag_description | sort %}
+                    <tr>
+                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                        <td>{{ flag[0] }}</td>
+
+                        <td class="has-text-right">
+                            {% if display_inflow(display_date, flag[0]) %}
+                            {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    <tr>
+                        <td>Other receipts</td>
+                        <td class="has-text-right">
+
+                            {% if daily_sheet %}
+                            {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
+                            daily_sheet.float_amount_taken_from_investments) }}
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>HDFC OPENING BAL</td>
+                        <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
+                            "HDFC"))
+                            }}
+                        </td>
+                    </tr>
+
+                    {% set inflow_total = get_inflow_total(display_date) %}
+                    <tr>
+                        <td class="has-text-weight-bold">Total</td>
+                        <td class="has-text-weight-bold has-text-right">
+                            {{ "{:,.2f}".format(inflow_total) }}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="column is-half">
+            <h3 class="has-text-centered has-text-weight-bold">Funds outflow</h3>
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-centered has-text-weight-bold">
+                        <td>Payments</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for label, item in outflow_items | sort %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td class="has-text-right">
+                            {% if display_outflow(display_date, item) %}
+                            {{ "{:,.2f}".format(display_outflow(display_date, item)) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        {% set filler_length = (flag_description|list|length) - right_length -1 %}
+                        {% for number in range(filler_length) %}
+                        <td></td>
+                        <td class="is-invisible">text</td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td class="has-text-weight-bold">Total</td>
+                        <td class="has-text-weight-bold has-text-right">
+                            {% if display_outflow(display_date) %}
+                            {{ "{:,.2f}".format(display_outflow(display_date)) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+            <table class="table is-bordered is-fullwidth">
+                <tbody>
+                    <tr>
+                        {% if (inflow_total - display_outflow(display_date)) > 0 %}
+                        <td class="has-text-success has-text-weight-bold">Surplus</td>
+
+                        <td class="has-text-right has-text-success has-text-weight-bold">{{
+                            "{:,.2f}".format( inflow_total -
+                            display_outflow(display_date)) }}
+                        </td>
+                        {% else %}
+                        <td class="has-text-danger has-text-weight-bold">Deficit</td>
+                        <td class="has-text-right has-text-weight-bold has-text-danger">{{
+                            "{:,.2f}".format(display_outflow(display_date)-
+                            inflow_total) }}
+                        </td>
+                        {% endif %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <table class="table is-bordered is-fullwidth">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Investment opening balance</th>
+                <th class="has-text-centered">Given to investment</th>
+                <th class="has-text-centered">Drawn from investment</th>
+                <th class="has-text-centered">Investment closing balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="has-text-right"> {{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
+                    "Investment")) }}</td>
+                <td class="has-text-right">
+                    {% if daily_sheet %}
+                    {{ "{:,.2f}".format(daily_sheet.float_amount_given_to_investments) }}</td>
+                {% endif %}
+                <td class="has-text-right">
+                    {% if daily_sheet %}
+                    {{ "{:,.2f}".format(daily_sheet.float_amount_taken_from_investments) }}</td>
+                {% endif %}
+
+                <td class="has-text-right">
+                    {% if daily_sheet %}
+                    {{ "{:,.2f}".format(daily_sheet.float_amount_investment_closing_balance) }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {% if daily_sheet %}
+                    {{ "{:,.2f}".format(daily_sheet.float_amount_hdfc_closing_balance) }}</td>
+                {% endif %}
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table is-bordered is-fullwidth">
+        <tr>
+            <td>Major outflow</td>
+            <td class="word-wrap">{{ daily_sheet.text_major_payments }}</td>
+
+        </tr>
+        <tr>
+            <td>Major receipts</td>
+            <td class="word-wrap">{{ daily_sheet.text_major_collections }}</td>
+
+        </tr>
+    </table>
+
+    <div class="mt-5"></div>
+
+    <table class="table is-bordered is-fullwidth">
+        <tr>
+            <td class="is-invisible is-size-4">text</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td class="has-text-centered has-text-weight-bold">Person 1</td>
+            <td class="has-text-centered has-text-weight-bold">Person 2</td>
+        </tr>
+        <tr>
+            <td class="has-text-centered">Person 1</td>
+            <td class="has-text-centered">Person 2</td>
+        </tr>
+
+        <tr>
+
+            <td></td>
+            <td class="is-invisible is-size-4">text</td>
+        </tr>
+        <tr>
+            <td class="has-text-centered has-text-weight-bold">Person 3</td>
+            <td class="has-text-centered has-text-weight-bold">Person 3</td>
+        </tr>
+        <tr>
+            <td class="has-text-centered">Person 3</td>
+            <td class="has-text-centered">Person 3</td>
+        </tr>
+    </table>
+
+</div>
+
+<div class="mt-5"></div>
+
+{% endblock content %}

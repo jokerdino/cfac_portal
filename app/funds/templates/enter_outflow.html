@@ -1,0 +1,123 @@
+{% extends "funds_layout.html" %}
+
+{% block content %}
+<div class="container">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <h1 class="title">Enter outflow for {{ display_date.strftime("%d/%m/%Y") }}</h1>
+
+    <table class="table is-bordered is-narrow is-fullwidth">
+        <tr>
+            <th>Total inflow</th>
+            <td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(display_inflow(display_date)) }}</td>
+        </tr>
+    </table>
+    {% if investment_list.count() > 0 %}
+    <table class="table is-bordered is-fullwidth">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Date given to investment</th>
+                <th class="has-text-centered">Amount given</th>
+                <th class="has-text-centered">Expected date of return</th>
+                <th class="has-text-centered">Remarks</th>
+                <th class="has-text-centered">Status</th>
+                <th class="has-text-centered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                {% for item in investment_list %}
+                <td class="has-text-centered">{{ item['date_given_to_investment'].strftime('%d/%m/%Y') }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(item['float_amount_given_to_investment']) }}</td>
+                <td class="has-text-centered">{{ item['date_expected_date_of_return'].strftime('%d/%m/%Y') }}</td>
+                <td>{{ item['text_remarks'] }}</td>
+                <td class="has-text-centered">{{ item['current_status'] }}</td>
+                <td class="has-text-centered"><a
+                        href="{{ url_for('funds.edit_amount_given_to_investment', investment_id=item['id'] )}}">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% if list_outgo.count() > 0 %}
+
+    <table class="table is-bordered is-fullwidth">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Expected date of outgo</th>
+                <th class="has-text-centered">Estimated outgo amount</th>
+                <th class="has-text-centered">Department</th>
+                <th class="has-text-centered">Remarks</th>
+                <th class="has-text-centered">Status</th>
+                <th class="has-text-centered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                {% for item in list_outgo %}
+                <td class="has-text-centered">{{ item['date_of_outgo'].strftime('%d/%m/%Y') }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(item['float_expected_outgo']) }}</td>
+                <td class="has-text-centered">{{ item['text_dept'] }}</td>
+                <td>{{ item['text_remarks'] }}</td>
+                <td class="has-text-centered">{{ item['current_status'] }}</td>
+                <td class="has-text-centered"><a
+                        href="{{ url_for('funds.edit_major_outgo', outgo_id=item['id']) }}">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-bordered is-narrow is-fullwidth is-striped is-hoverable">
+            <tr>
+                {% for item in form if item.widget.input_type != 'hidden' %}
+                <td class="is-vcentered has-text-weight-bold">{{ item.label }}</td>
+                <td>{{ item(class="input") }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div class="has-text-centered">
+            {% if enable_update(display_date) %}
+            <button class="button is-success">Submit</button>
+            {% else %}
+            <button class="button is-success" disabled>Submit</button>
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
+            const $notification = $delete.parentNode;
+
+            $delete.addEventListener('click', () => {
+                $notification.parentNode.removeChild($notification);
+            });
+        });
+    });
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

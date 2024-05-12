@@ -1,0 +1,26 @@
+{% extends "funds_layout.html" %}
+
+{% block content %}
+<div class="container table-container">
+    <table class="table is-striped is-bordered" id="flag_table">
+        <thead>
+            <tr>
+                {% for i in column_names %}
+                <th>{{ i|upper }}</th>
+                {% endfor %}
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in query %}
+                {% for i in column_names %}
+                <td>{{ item[i] }}</td>
+                {% endfor %}
+                <td><a href={{ url_for('funds.edit_flag_entry', flag_id=item['id']) }}>Edit</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
