@@ -23,4 +23,21 @@
         </tbody>
     </table>
 </div>
+{% block scripts %}
+<script>
+    new DataTable('#flag_table', {
+        dom: 'lfBrtip',
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[10, 'desc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
+        pageLength: 50,
+
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}

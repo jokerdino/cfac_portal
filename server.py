@@ -96,6 +96,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(os_bp, url_prefix="/os")
 
+    from app.funds import funds_bp
+
+    app.register_blueprint(funds_bp, url_prefix="/funds")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

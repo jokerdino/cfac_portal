@@ -4,7 +4,6 @@ from wtforms import (
     FileField,
     StringField,
     SelectField,
-    IntegerField,
     TextAreaField,
     DateField,
     DecimalField,
@@ -52,33 +51,15 @@ class DailySummaryForm(FlaskForm):
         "Enter details of major payments", validators=[Optional()]
     )
 
+    person1_name = SelectField("Enter name of person 1", choices=["P Sudha Venkateswari", "S Vineeth"])
+    person1_designation = SelectField("Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"])
+    person2_name = SelectField("Enter name of person 2", choices=["Gaddam Janakiram"])
+    person2_designation = SelectField("Enter designation of person 2", choices=["Chief Manager"])
+    person3_name = SelectField("Enter name of person 3", choices=["S Hemamalini"])
+    person3_designation = SelectField("Enter designation of person 3", choices=["DGM & CFO"])
+    person4_name = SelectField("Enter name of person 4", choices=["Usha Girish"])
+    person4_designation = SelectField("Enter designation of person 4", choices=["General Manager"])
 
-class DailySummaryForm2(FlaskForm):
-
-    current_date = DateField("Enter date", validators=[DataRequired()])
-    total_receipts = DecimalField(
-        "Enter total amount receipted", validators=[DataRequired()]
-    )
-    total_payments = DecimalField(
-        "Enter total amount paid", validators=[DataRequired()]
-    )
-
-    major_receipts = TextAreaField(
-        "Enter details of major receipts", validators=[Optional()]
-    )
-    major_payments = TextAreaField(
-        "Enter details of major payments", validators=[Optional()]
-    )
-
-    amount_given_to_investments = DecimalField(
-        "Amount given to investments", validators=[Optional()]
-    )
-    amount_received_from_investments = DecimalField(
-        "Amount received from investments", validators=[Optional()]
-    )
-
-    remarks = TextAreaField("Enter additional remarks", validators=[Optional()])
-    submit_daily_summary = SubmitField("Submit")
 
 class MajorOutgoForm(FlaskForm):
     date_of_outgo = DateField(

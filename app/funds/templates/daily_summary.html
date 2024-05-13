@@ -8,6 +8,7 @@
     }
 </style>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
 {% endif %}
 
 {% block content %}
@@ -211,26 +212,25 @@
         </tr>
 
         <tr>
-            <td class="has-text-centered has-text-weight-bold">Person 1</td>
-            <td class="has-text-centered has-text-weight-bold">Person 2</td>
+            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person1_name }}</td>
+            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person2_name }}</td>
         </tr>
         <tr>
-            <td class="has-text-centered">Person 1</td>
-            <td class="has-text-centered">Person 2</td>
+            <td class="has-text-centered">{{ daily_sheet.text_person1_designation }}</td>
+            <td class="has-text-centered">{{ daily_sheet.text_person2_designation }}</td>
         </tr>
 
         <tr>
-
             <td></td>
             <td class="is-invisible is-size-4">text</td>
         </tr>
         <tr>
-            <td class="has-text-centered has-text-weight-bold">Person 3</td>
-            <td class="has-text-centered has-text-weight-bold">Person 3</td>
+            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person3_name }}</td>
+            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person4_name }}</td>
         </tr>
         <tr>
-            <td class="has-text-centered">Person 3</td>
-            <td class="has-text-centered">Person 3</td>
+            <td class="has-text-centered">{{ daily_sheet.text_person3_designation }}</td>
+            <td class="has-text-centered">{{ daily_sheet.text_person4_designation }}</td>
         </tr>
     </table>
 

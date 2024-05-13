@@ -6,7 +6,7 @@
         <thead>
             <tr>
                 {% for i in column_names %}
-                <th>{{ i|upper }}</th>
+                <th class="has-text-centered">{{ i|upper }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -14,11 +14,29 @@
             <tr>
                 {% for item in query %}
                 {% for i in column_names %}
-                <td>{{ item[i] }}</td>
+                <td>{{ item[i] or "" }}</td>
                 {% endfor %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+{% block scripts %}
+<script>
+    new DataTable('#bank_statement_table', {
+        dom: 'lfBrtip',
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[10, 'desc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
+        pageLength: 50,
+
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}

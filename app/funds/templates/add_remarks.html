@@ -25,6 +25,38 @@
                 <th>{{ form.major_receipts.label }}</th>
                 <td>{{ form.major_receipts(class="textarea") }}</td>
             </tr>
+            <tr>
+                <th>{{ form.person1_name.label }}</th>
+                <td>{{ form.person1_name(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person1_designation.label }}</th>
+                <td>{{ form.person1_designation(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person2_name.label }}</th>
+                <td>{{ form.person2_name(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person2_designation.label }}</th>
+                <td>{{ form.person2_designation(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person3_name.label }}</th>
+                <td>{{ form.person3_name(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person3_designation.label }}</th>
+                <td>{{ form.person3_designation(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person4_name.label }}</th>
+                <td>{{ form.person4_name(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.person4_designation.label }}</th>
+                <td>{{ form.person4_designation(class="select") }}</td>
+            </tr>
         </table>
         <div class="has-text-centered">
             {% if enable_update(display_date) %}
