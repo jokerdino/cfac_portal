@@ -5,17 +5,35 @@
     <h1 class="title">Add remarks for {{ display_date.strftime("%d/%m/%Y") }}</h1>
     <table class="table is-bordered is-fullwidth">
         <tr>
-            <th>Total inflow</th>
-            <td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(display_inflow(display_date)) }}</td>
+            <th>Total inflow (excluding funds drawn from investment)</th>
+            <td class="has-text-right has-text-weight-bold">
+                <a class="button is-info is-small js-modal-trigger" id="inflow" data-target="modal_inflow">
+                </a>
+            </td>
         </tr>
         <tr>
-            <th>Total outflow</th>
-            <td class="has-text-right has-text-weight-bold">{{ "{:,.2f}".format(display_outflow(display_date)) }}</td>
+            <th>Funds drawn from investment</th>
+            <td class="has-text-right has-text-weight-bold" id="investment_drawn">
+
+            </td>
+        </tr>
+        <tr>
+            <th>Total outflow (excluding funds given to investment)</th>
+            <td class="has-text-right has-text-weight-bold">
+                <a class="button is-info is-small js-modal-trigger" id="outflow" data-target="modal_outflow">
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <th>Funds given to investment</th>
+            <td class="has-text-right has-text-weight-bold" id="investment_given">
+
+            </td>
         </tr>
     </table>
     <form method="post">
         {{ form.csrf_token }}
-        <table class="table is-fullwidth">
+        <table class="table is-fullwidth is-narrow">
             <tr>
                 <th>
                     {{ form.major_payments.label }}</th>
@@ -59,6 +77,9 @@
             </tr>
         </table>
         <div class="has-text-centered">
+            <a class="button"
+                href="{{ url_for('funds.enter_outflow', date_string=display_date.strftime('%d%m%Y')) }}">Go
+                to outflow</a>
             {% if enable_update(display_date) %}
             <button class="button is-success">Submit</button>
             {% else %}
@@ -67,4 +88,188 @@
         </div>
     </form>
 </div>
+
+<!---modal -->
+<div class="modal" id="modal_inflow">
+    <div class="modal-background"></div>
+
+    <div class="modal-content">
+        <div class="box">
+
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-weight-bold has-text-centered">
+                        <td>Collections</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flag in flag_description | sort %}
+                    <tr>
+                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                        <td>{{ flag[0] }}</td>
+
+                        <td class="has-text-right">
+                            {% if display_inflow(display_date, flag[0]) %}
+                            {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    <tr>
+                        <td>Other receipts</td>
+                        <td class="has-text-right">
+
+                            {% if daily_sheet %}
+                            {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
+                            daily_sheet.float_amount_taken_from_investments) }}
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>HDFC OPENING BAL</td>
+                        <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
+                            "HDFC"))
+                            }}
+                        </td>
+                    </tr>
+
+                    {% set inflow_total = get_inflow_total(display_date) %}
+                    <tr>
+                        <td class="has-text-weight-bold">Total</td>
+                        <td class="has-text-weight-bold has-text-right">
+                            {{ "{:,.2f}".format(inflow_total) }}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+            <button class="modal-close is-large" aria-label="close"></button>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal_outflow">
+    <div class="modal-background"></div>
+
+    <div class="modal-content">
+        <div class="box">
+
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-centered has-text-weight-bold">
+                        <td>Payments</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for label, item in outflow_items | sort %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td class="has-text-right">
+                            {% if display_outflow(display_date, item) %}
+                            {{ "{:,.2f}".format(display_outflow(display_date, item)) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr>
+                        <td class="has-text-weight-bold">Total</td>
+                        <td class="has-text-weight-bold has-text-right">
+                            {% if display_outflow(display_date) %}
+                            {{ "{:,.2f}".format(display_outflow(display_date)) }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}
+
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+
+<script>
+    const formatter = new Intl.NumberFormat('en-IN', {
+        //style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        //trailingZeroDisplay: 'stripIfInteger'
+    });
+
+    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') - daily_sheet.float_amount_taken_from_investments }}";
+
+    document.getElementById("inflow").innerText = formatter.format(amountInflow);
+    amountOutflow = "{{ display_outflow(display_date) }}";
+    document.getElementById("outflow").innerText = formatter.format(amountOutflow);
+
+    amountInvestmentDrawn = "{{ get_daily_summary(display_date, 'investment_taken') }}";
+    document.getElementById("investment_drawn").innerText = formatter.format(amountInvestmentDrawn);
+
+    amountInvestmentGiven = "{{ get_daily_summary(display_date, 'investment_given') }}";
+    document.getElementById("investment_given").innerText = formatter.format(amountInvestmentGiven);
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Functions to open and close a modal
+        function openModal($el) {
+            $el.classList.add('is-active');
+        }
+
+        function closeModal($el) {
+            $el.classList.remove('is-active');
+        }
+
+        function closeAllModals() {
+            (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+                closeModal($modal);
+            });
+        }
+
+        // Add a click event on buttons to open a specific modal
+        (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+            const modal = $trigger.dataset.target;
+            const $target = document.getElementById(modal);
+
+            $trigger.addEventListener('click', () => {
+                openModal($target);
+            });
+        });
+
+        // Add a click event on various child elements to close the parent modal
+        (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+            const $target = $close.closest('.modal');
+
+            $close.addEventListener('click', () => {
+                closeModal($target);
+            });
+        });
+
+        // Add a keyboard event to close all modals
+        document.addEventListener('keydown', (event) => {
+            const e = event || window.event;
+
+            if (e.keyCode === 27) { // Escape key
+                closeAllModals();
+            }
+        });
+    });
+</script>
+{% endblock scripts %}
 {% endblock content %}

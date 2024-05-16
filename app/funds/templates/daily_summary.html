@@ -1,4 +1,4 @@
-{% if not pdf %}
+{% if pdf == "False" %}
 {% extends "funds_layout.html" %}
 {% else %}
 <style>
@@ -13,11 +13,10 @@
 
 {% block content %}
 <div class="container">
-    {% if not pdf %}
+    {% if pdf == "False" %}
     <div class="has-text-right">
-        <a class="button is-link is-outlined" target="_blank"
-            href="{{ url_for('funds.daily_summary_pdf', date_string=display_date.strftime('%d%m%Y')) }}">Print to
-            PDF</a>
+        <a class="button is-link is-outlined" target="_blank" href="{{ url_for('funds.daily_summary',
+            date_string=display_date.strftime('%d%m%Y'), pdf='True' ) }}">Print to PDF</a>
     </div>
     {% endif %}
 
@@ -26,7 +25,7 @@
     <div class="columns is-centered">
 
         <div class="column is-half">
-            <h3 class="has-text-weight-bold has-text-centered">Funds inflow</h3>
+            <h3 class="is-size-4 has-text-weight-bold has-text-centered">Funds inflow</h3>
             <table class="table is-bordered is-fullwidth">
                 <thead>
                     <tr class="has-text-weight-bold has-text-centered">
@@ -55,10 +54,9 @@
                         <td>Other receipts</td>
                         <td class="has-text-right">
 
-                            {% if daily_sheet %}
                             {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
-                            daily_sheet.float_amount_taken_from_investments) }}
-                            {% endif %}
+                            get_daily_summary(display_date, "investment_taken")) }}
+
                         </td>
 
                     </tr>
@@ -84,7 +82,7 @@
         </div>
 
         <div class="column is-half">
-            <h3 class="has-text-centered has-text-weight-bold">Funds outflow</h3>
+            <h3 class="is-size-4 has-text-centered has-text-weight-bold">Funds outflow</h3>
             <table class="table is-bordered is-fullwidth">
                 <thead>
                     <tr class="has-text-centered has-text-weight-bold">
@@ -154,10 +152,12 @@
     <table class="table is-bordered is-fullwidth">
         <thead>
             <tr>
-                <th class="has-text-centered">Investment opening balance</th>
+                <th class="has-text-centered">Investment closing balance <small>as on {{
+                        (display_date - timedelta(1)).strftime("%d/%m/%Y") }}</small></th>
                 <th class="has-text-centered">Given to investment</th>
                 <th class="has-text-centered">Drawn from investment</th>
-                <th class="has-text-centered">Investment closing balance</th>
+                <th class="has-text-centered">Investment closing balance <small>as on {{
+                        display_date.strftime("%d/%m/%Y") }}</small></th>
             </tr>
         </thead>
         <tbody>
@@ -165,28 +165,26 @@
                 <td class="has-text-right"> {{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
                     "Investment")) }}</td>
                 <td class="has-text-right">
-                    {% if daily_sheet %}
-                    {{ "{:,.2f}".format(daily_sheet.float_amount_given_to_investments) }}</td>
-                {% endif %}
+                    {{ "{:,.2f}".format(get_daily_summary(display_date, "investment_given")) }}</td>
                 <td class="has-text-right">
-                    {% if daily_sheet %}
-                    {{ "{:,.2f}".format(daily_sheet.float_amount_taken_from_investments) }}</td>
-                {% endif %}
-
+                    {{ "{:,.2f}".format(get_daily_summary(display_date, "investment_taken")) }}</td>
                 <td class="has-text-right">
-                    {% if daily_sheet %}
-                    {{ "{:,.2f}".format(daily_sheet.float_amount_investment_closing_balance) }}
-                    {% endif %}
+                    {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
+                    "Investment")) }}
                 </td>
             </tr>
             <tr>
-                <td></td>
+                <th class="has-text-centered">Investment closing balance <small>as on {{ (display_date -
+                        relativedelta(years=1)).strftime("%d/%m/%Y") }}
+                    </small></th>
+                <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance((display_date
+                    + relativedelta(days=1)
+                    - relativedelta(years=1))
+                    , "Investment")) }}</td>
                 <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
                 <td class="has-text-right has-text-weight-bold">
-                    {% if daily_sheet %}
-                    {{ "{:,.2f}".format(daily_sheet.float_amount_hdfc_closing_balance) }}</td>
-                {% endif %}
-                <td></td>
+                    {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
+                    "HDFC")) }}</td>
             </tr>
         </tbody>
     </table>
@@ -194,12 +192,10 @@
         <tr>
             <td>Major outflow</td>
             <td class="word-wrap">{{ daily_sheet.text_major_payments }}</td>
-
         </tr>
         <tr>
             <td>Major receipts</td>
             <td class="word-wrap">{{ daily_sheet.text_major_collections }}</td>
-
         </tr>
     </table>
 
@@ -210,7 +206,6 @@
             <td class="is-invisible is-size-4">text</td>
             <td></td>
         </tr>
-
         <tr>
             <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person1_name }}</td>
             <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person2_name }}</td>
@@ -219,7 +214,6 @@
             <td class="has-text-centered">{{ daily_sheet.text_person1_designation }}</td>
             <td class="has-text-centered">{{ daily_sheet.text_person2_designation }}</td>
         </tr>
-
         <tr>
             <td></td>
             <td class="is-invisible is-size-4">text</td>

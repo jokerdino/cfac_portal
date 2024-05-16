@@ -24,8 +24,8 @@
                         }}>Outflow</a></td>
                 <td class="has-text-centered"><a href={{ url_for("funds.add_remarks", date_string=date_string)
                         }}>Remarks</a></td>
-                <td class="has-text-centered"><a href={{ url_for("funds.daily_summary", date_string=date_string)
-                        }}>Daily summary</a></td>
+                <td class="has-text-centered"><a href={{ url_for("funds.daily_summary", date_string=date_string,
+                        pdf='False' ) }}>Daily summary</a></td>
                 <td class="has-text-right">{{ "{:,.2f}".format(get_inflow_total(date[0]) - display_outflow(date[0])) }}
                 </td>
                 <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(date[0], "net_investment")) }}</td>

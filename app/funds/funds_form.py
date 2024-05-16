@@ -15,10 +15,18 @@ class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload document", validators=[DataRequired()])
     upload_document = SubmitField("Upload")
 
+# class GivenToInvestment(Form):
+#     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
+#     expected_date_of_return = DateField(
+#         "Enter expected date of return", validators=[Optional()]
+#     )
 class OutflowForm(FlaskForm):
     drawn_from_investment = DecimalField("Drawn from investment", validators=[Optional()])
+    # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
-
+    expected_date_of_return = DateField(
+        "Enter expected date of return", validators=[Optional()]
+    )
     amount_citi_health = DecimalField("CITI Health", validators=[Optional()])
     amount_mro1_health = DecimalField("MRO1 Health", validators=[Optional()])
 
@@ -83,7 +91,7 @@ class AmountGivenToInvestmentForm(FlaskForm):
     amount_given_to_investment = DecimalField(
         "Enter amount given to investment", validators=[DataRequired()]
     )
-    expected_date_amount_return = DateField(
+    expected_date_of_return = DateField(
         "Enter expected date of return", validators=[DataRequired()]
     )
     remarks = TextAreaField("Enter additional remarks", validators=[Optional()])
