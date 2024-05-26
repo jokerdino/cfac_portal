@@ -22,13 +22,23 @@ from app.knowledge_base.knowledge_base_model import KnowledgeBase
 from app.bank_guarantee.bg_models import BankGuarantee
 from app.outstanding_expenses.os_model import OutstandingExpenses
 
+from app.funds.funds_model import (
+    FundAmountGivenToInvestment,
+    FundBankAccountNumbers,
+    FundBankStatement,
+    FundDailyOutflow,
+    FundDailySheet,
+    FundFlagSheet,
+    FundMajorOutgo,
+)
+
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="Users", parent_name="Users")
 admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
-
+admin.add_sub_category(name="Funds", parent_name="Funds")
 # User models
 admin.add_view(UserView(User, db.session, category="Users"))  # , name="User"))
 admin.add_view(
@@ -90,3 +100,46 @@ admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
 admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
 # outstanding expenses model
 admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))
+# funds model
+
+admin.add_view(
+    DefaultModelView(
+        FundAmountGivenToInvestment,
+        db.session,
+        endpoint="funds_investment",
+        category="Funds",
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundBankAccountNumbers,
+        db.session,
+        endpoint="funds_bankaccountnumbers",
+        category="Funds",
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundBankStatement, db.session, endpoint="funds_bank_statement", category="Funds"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundDailyOutflow, db.session, endpoint="funds_daily_outflow", category="Funds"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundFlagSheet, db.session, endpoint="funds_flag_sheet", category="Funds"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundMajorOutgo, db.session, endpoint="funds_major_outgo", category="Funds"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundDailySheet, db.session, endpoint="funds_daily_sheet", category="Funds"
+    )
+)
