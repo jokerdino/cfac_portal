@@ -232,7 +232,7 @@ def upload_brs(brs_key):
     # When a new month base file is uploaded, the month has to be manually added to the list right now.
     # TODO: Build a frontend for the same to enable or disable?
     brs_entry = BRS.query.get_or_404(brs_key)
-    list_months_delete = ["January-2024", "February-2024", "March-2024"]
+    list_months_delete = ["January-2024", "February-2024", "March-2024", "April-2024"]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
@@ -837,6 +837,11 @@ def list_outstanding_entries():
                 & (BRS_month.brs_type == brs_type)
             )
         )
+        if current_user.user_type == "ro_user":
+            outstanding_entries = outstanding_entries.filter(
+                BRS.uiic_regional_code == current_user.ro_code
+            )
+
         return render_template(
             "view_outstanding_entries.html",
             outstanding=outstanding_entries,
