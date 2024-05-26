@@ -1,0 +1,202 @@
+{% if pdf == "False" %}
+{% extends "funds_layout.html" %}
+{% else %}
+<style>
+    @page {
+        size: portrait;
+        margin: 1cm;
+    }
+</style>
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+{% endif %}
+
+{% block content %}
+<div class="container">
+    {% if pdf == "False" %}
+    <div class="has-text-right">
+        <a class="button is-link is-outlined" target="_blank" href="{{ url_for('funds.ibt',
+            date_string=display_date.strftime('%d%m%Y'), pdf='True' ) }}">Print to PDF</a>
+    </div>
+    {% endif %}
+
+    <h1 class="is-size-3 title">INTER BANK TRANSFER OF FUNDS for {{ display_date.strftime("%d/%m/%Y (%A)") }}</h1>
+
+    <h3 class="is-size-4 has-text-weight-bold has-text-centered">Collections</h3>
+    <table class="table is-bordered is-narrow is-fullwidth">
+        <thead>
+            <tr class="has-text-weight-bold has-text-centered">
+                <td>Collections</td>
+                <td>Bank Name</td>
+                <td>Type</td>
+                <td>Account number</td>
+                <td>Amount</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flag in flag_description | sort %}
+            <tr>
+                {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                <td>{{ flag[0] }}</td>
+                <td>HDFC</td>
+                <td>RTGS</td>
+                <td></td>
+
+                <td class="has-text-right">
+                    {% if display_inflow(display_date, flag[0]) %}
+                    {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+
+                    {% else %}
+                    {{ "0.00" }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            <tr>
+                <td>Other receipts</td>
+                <td>HDFC</td>
+                <td>RTGS</td>
+                <td></td>
+                <td class="has-text-right">
+
+                    {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
+                    get_daily_summary(display_date, "investment_taken")) }}
+
+                </td>
+
+            </tr>
+            <tr>
+                <td>HDFC OPENING BAL</td>
+                <td>HDFC</td>
+                <td></td>
+                <td></td>
+                <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
+                    "HDFC"))
+                    }}
+                </td>
+            </tr>
+            <tr>
+                <td>Investment</td>
+                <td>HDFC</td>
+                <td>RTGS</td>
+                <td></td>
+                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(display_date,
+                    "investment_taken")) }}</td>
+            </tr>
+
+            <tr>
+                <td class="has-text-weight-bold">Total</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="has-text-weight-bold has-text-right">
+                    {{ "{:,.2f}".format(display_inflow(display_date) + return_prev_day_closing_balance(display_date,
+                    "HDFC")) }}
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <h3 class="is-size-4 has-text-centered has-text-weight-bold">Payments</h3>
+    <table class="table is-bordered is-narrow is-fullwidth">
+        <thead>
+            <tr class="has-text-centered has-text-weight-bold">
+                <td>Payments</td>
+                <td>Bank Name</td>
+                <td>Type</td>
+                <td>Account number</td>
+                <td>Amount</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for label, item in outflow_items | sort %}
+            <tr>
+                {% if label not in ["AXIS NEFT","MRO1 HEALTH","TNCMCHIS"] %}
+                <td>{{ label }}</td>
+                <td> {{ get_ibt_details(label)[0]["bank_name"] or "" }}</td>
+                <td> {{ get_ibt_details(label)[0]["bank_type"] or "" }}</td>
+                <td class="has-text-right"> {{ get_ibt_details(label)[0]["bank_account_number"] or "" }}</td>
+                <td class="has-text-right">
+                    {% if display_outflow(display_date, item) %}
+                    {{ "{:,.2f}".format(display_outflow(display_date, item)) }}
+
+                    {% else %}
+                    {{ "0.00" }}
+                    {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>AXIS NEFT</td>
+                <td>{{ get_ibt_details("AXIS NEFT")[0]["bank_name"] }}</td>
+                <td>{{ get_ibt_details("AXIS NEFT")[0]["bank_type"] }}</td>
+                <td class="has-text-right">{{ get_ibt_details("AXIS NEFT")[0]["bank_account_number"] }}</td>
+                <td class="has-text-right">
+
+                    {{ "{:,.2f}".format(display_outflow(display_date, "amount_axis_neft") +
+                    display_outflow(display_date, "amount_mro1_health") + display_outflow(display_date,
+                    "amount_tncmchis")) }}
+                </td>
+            </tr>
+            <tr>
+                <td>Investment</td>
+                <td>HDFC</td>
+                <td>Book transfer</td>
+                <td class="has-text-right">00040350000860</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(display_date,
+                    "investment_given")) }}</td>
+            </tr>
+            <tr>
+                <td class="has-text-weight-bold">Total</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="has-text-weight-bold has-text-right">
+                    {% if display_outflow(display_date) %}
+                    {{ "{:,.2f}".format(display_outflow(display_date) + get_daily_summary(display_date,
+                    "investment_given")) }}
+
+                    {% else %}
+                    {{ "0.00" }}
+                    {% endif %}
+
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+
+    <div class="columns">
+        <div class="column is-two-thirds"></div>
+        <div class="column is-one-third">
+            <table class="table is-bordered is-fullwidth">
+                <tbody>
+                <tr>
+                    <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
+                    <td class="has-text-right has-text-weight-bold">
+                        {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
+                        "HDFC")) }}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-5"></div>
+
+    {% if pdf == "False" %}
+    <div class="has-text-centered">
+        <a class="button" href="{{ url_for('funds.add_remarks',
+            date_string=display_date.strftime('%d%m%Y')) }}">Go to remarks</a>
+        <a class="button is-link is-outlined" href="{{ url_for('funds.daily_summary',
+            date_string=display_date.strftime('%d%m%Y'), pdf='False' ) }}">Go to daily summary</a>
+    </div>
+</div>
+
+<div class="mt-5"></div>
+
+{% endif %}
+{% endblock content %}

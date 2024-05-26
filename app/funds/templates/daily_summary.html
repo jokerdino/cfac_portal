@@ -154,8 +154,9 @@
             <tr>
                 <th class="has-text-centered">Investment closing balance <small>as on {{
                         (display_date - timedelta(1)).strftime("%d/%m/%Y") }}</small></th>
-                <th class="has-text-centered">Given to investment</th>
+
                 <th class="has-text-centered">Drawn from investment</th>
+                <th class="has-text-centered">Given to investment</th>
                 <th class="has-text-centered">Investment closing balance <small>as on {{
                         display_date.strftime("%d/%m/%Y") }}</small></th>
             </tr>
@@ -165,9 +166,10 @@
                 <td class="has-text-right"> {{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
                     "Investment")) }}</td>
                 <td class="has-text-right">
-                    {{ "{:,.2f}".format(get_daily_summary(display_date, "investment_given")) }}</td>
-                <td class="has-text-right">
                     {{ "{:,.2f}".format(get_daily_summary(display_date, "investment_taken")) }}</td>
+                <td class="has-text-right">
+                    {{ "{:,.2f}".format(get_daily_summary(display_date, "investment_given")) }}</td>
+
                 <td class="has-text-right">
                     {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
                     "Investment")) }}

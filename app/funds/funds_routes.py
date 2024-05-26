@@ -18,6 +18,7 @@ from app.funds.funds_model import (
     FundDailySheet,
     FundFlagSheet,
     FundMajorOutgo,
+    FundBankAccountNumbers,
 )
 
 from app.funds.funds_form import (
@@ -158,6 +159,15 @@ def get_inflow_total(date):
     )
 
     return inflow_total
+
+
+def get_ibt_details(outflow_description):
+
+    outflow = FundBankAccountNumbers.query.filter(
+        FundBankAccountNumbers.outflow_description == outflow_description
+    )
+
+    return outflow
 
 
 @funds_bp.route("/", methods=["GET"])
@@ -588,7 +598,7 @@ def add_remarks(date_string):
         db.session.commit()
         return redirect(
             url_for(
-                "funds.daily_summary",
+                "funds.ibt",
                 date_string=date_string,
                 pdf="False",
             )
@@ -641,6 +651,40 @@ def add_remarks(date_string):
         flag_description=flag_description,
         get_inflow_total=get_inflow_total,
         outflow_items=zip(outflow_labels, outflow_amounts),
+    )
+
+
+@funds_bp.route("/ibt/<string:date_string>/<string:pdf>", methods=["GET"])
+@login_required
+def ibt(date_string, pdf="False"):
+    from extensions import db
+
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+
+    daily_sheet = FundDailySheet.query.filter(
+        FundDailySheet.date_current_date == param_date
+    ).first()
+    flag_description = db.session.query(FundFlagSheet.flag_description)
+
+    return render_template(
+        "ibt.html",
+        display_date=param_date,
+        # outflow=outflow,
+        datetime=datetime,
+        daily_sheet=daily_sheet,
+        display_inflow=display_inflow,
+        outflow_items=zip(outflow_labels, outflow_amounts),
+        right_length=len(outflow_labels),
+        # outflow_amounts=outflow_amounts,
+        display_outflow=fill_outflow,
+        flag_description=flag_description,
+        return_prev_day_closing_balance=return_prev_day_closing_balance,
+        get_inflow_total=get_inflow_total,
+        pdf=pdf,
+        timedelta=datetime.timedelta,
+        relativedelta=relativedelta,
+        get_daily_summary=get_daily_summary,
+        get_ibt_details=get_ibt_details,
     )
 
 
@@ -760,6 +804,37 @@ def upload_investment_balance():
         "upload_file_template.html",
         form=form,
         title="Upload closing balance of investment",
+    )
+
+
+@funds_bp.route("/upload_bank_account_number", methods=["GET", "POST"])
+@login_required
+def upload_bank_account_number():
+    # uploading closing balance of previous year for reference
+    form = UploadFileForm()
+
+    if form.validate_on_submit():
+        bank_account_number = form.data["file_upload"]
+        df_investment = pd.read_csv(
+            bank_account_number, dtype={"bank_account_number": str}
+        )
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+        # df_flag_sheet["date_current_date"] = datetime.date.today()
+        df_investment["date_created_date"] = datetime.datetime.now()
+        df_investment["created_by"] = current_user.username
+        # try:
+        df_investment.to_sql(
+            "fund_bank_account_numbers",
+            engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("Bank account numbers have been uploaded successfully.")
+    return render_template(
+        "upload_file_template.html",
+        form=form,
+        title="Upload bank account numbers",
     )
 
 
@@ -947,13 +1022,17 @@ def funds_reports():
         # query = inflow_query.union(outflow_query)
         if investments:
             case_investment_given = case(
-               (FundDailySheet.float_amount_given_to_investments > 0,
-                "Given to investment"),
+                (
+                    FundDailySheet.float_amount_given_to_investments > 0,
+                    "Given to investment",
+                ),
                 else_="",
             )
             case_investment_taken = case(
-                (FundDailySheet.float_amount_taken_from_investments > 0,
-                "Taken from investments"),
+                (
+                    FundDailySheet.float_amount_taken_from_investments > 0,
+                    "Taken from investments",
+                ),
                 else_="",
             )
             investment_given_query = (

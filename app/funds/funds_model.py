@@ -130,3 +130,21 @@ class FundAmountGivenToInvestment(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
+class FundBankAccountNumbers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    outflow_description = db.Column(db.String)
+    bank_name = db.Column(db.String)
+    bank_type = db.Column(db.String)
+    bank_account_number = db.Column(db.String)
+
+    current_status = db.Column(db.String)
+
+    date_created_date = db.Column(db.DateTime)
+    date_updated_date = db.Column(db.DateTime)
+    date_deleted_date = db.Column(db.DateTime)
+
+    created_by = db.Column(db.String)
+    updated_by = db.Column(db.String)
+    deleted_by = db.Column(db.String)
