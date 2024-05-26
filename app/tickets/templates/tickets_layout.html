@@ -62,9 +62,13 @@
     </header>
 
     <div class="container is-fluid">
-        <hr />
+
         {% if current_user.is_authenticated %}
-        {% block content %}{% endblock content %}
+
+        <hr />
+        {% block content %}
+
+        {% endblock content %}
         {% endif %}
     </div>
     <script type="text/javascript" charset="utf8"

@@ -9,6 +9,32 @@
 {% endfor %}
 
 <div class="container is-fluid">
+    <div class="mt-5 columns">
+        <div class="column is-half"></div>
+        <div class="column is-one-quarter"></div>
+        <div class="column is-one-quarter">
+            <table class="table is-bordered">
+
+                <tr>
+                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='premium') }}">Download
+                            Premium /
+                            claims JV
+                            Format</a>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='bulk') }}">Download Bulk
+                            JV
+                            Format</a>
+                    </td>
+
+                </tr>
+
+            </table>
+        </div>
+
+    </div>
     <form method="post" action="">
         {{ form.csrf_token }}
         {{ form.department.label }} {{ form.department(class="select") }} <button

@@ -2,7 +2,7 @@ from datetime import datetime
 
 import humanize
 
-from flask import flash, redirect, render_template, url_for
+from flask import flash, redirect, render_template, url_for, send_file
 from flask_login import current_user, login_required
 
 from app.tickets import tickets_bp
@@ -192,3 +192,14 @@ def select_department(query, form):
     form.department.choices = ["View all"] + [
         x.department for x in department
     ]
+
+
+@tickets_bp.route("/download_jv_format/<string:requirement>")
+@login_required
+def download_jv_format(requirement):
+    if requirement == "premium":
+        return send_file("jv_format_premium.xlsx")
+    elif requirement == "bulk":
+        return send_file("jv_bulk_jv_format.xlsx")
+    else:
+        return None
