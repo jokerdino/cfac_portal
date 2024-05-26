@@ -1,0 +1,50 @@
+{% extends "funds_layout.html" %}
+
+{% block content %}
+<div class="table-container">
+    <table class="table is-striped is-bordered is-fullwidth" id="reports_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Date</th>
+                <th class="has-text-centered">Description</th>
+                <th class="has-text-centered">Description</th>
+                <th class="has-text-centered">Amount</th>
+                <th class="has-text-centered">Type</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in query %}
+
+                <td>{{ item[0] or "" }}</td>
+                <td>{{ item[1].upper().replace("_", " ").replace("AMOUNT", "") or "" }}</td>
+                <td>{{ item[2].upper().replace("_", " ").replace("AMOUNT", "") or "" }}</td>
+                <td>{{ item[3] or "" }}</td>
+                <td>{{ item[4] or "" }}</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block scripts %}
+<script>
+    new DataTable('#reports_table', {
+        dom: 'lfBrtip',
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
+        pageLength: 50,
+
+    });
+
+</script>
+{% endblock scripts %}
+
+{% endblock content %}

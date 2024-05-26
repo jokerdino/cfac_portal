@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
 
 from wtforms import (
+    BooleanField,
     FileField,
     StringField,
     SelectField,
@@ -9,7 +10,16 @@ from wtforms import (
     DecimalField,
     SubmitField,
 )
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, Optional
+
+
+class ReportsForm(FlaskForm):
+    start_date = DateField("Enter start date", validators=[Optional()])
+    end_date = DateField("Enter end date", validators=[Optional()])
+    check_inflow = BooleanField("Include inflow", validators=[Optional()])
+    check_outflow = BooleanField("Include outflow", validators=[Optional()])
+    check_investments = BooleanField("Include investments", validators=[Optional()])
+
 
 class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload document", validators=[DataRequired()])

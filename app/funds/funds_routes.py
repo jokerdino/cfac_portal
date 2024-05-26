@@ -7,7 +7,7 @@ import pandas as pd
 
 from flask import current_app, render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, func, distinct
+from sqlalchemy import create_engine, func, distinct, text, case, union
 
 from app.funds import funds_bp
 
@@ -27,6 +27,7 @@ from app.funds.funds_form import (
     UploadFileForm,
     OutflowForm,
     FlagForm,
+    ReportsForm,
 )
 
 outflow_labels = [
@@ -454,7 +455,9 @@ def enter_outflow(date_string):
                 db.session.add(given_to_investment)
 
             else:
-                given_to_investment.date_expected_date_of_return = expected_date_of_return
+                given_to_investment.date_expected_date_of_return = (
+                    expected_date_of_return
+                )
                 given_to_investment.float_amount_given_to_investment = (
                     amount_given_to_investment
                 )
@@ -881,6 +884,118 @@ def list_amount_given_to_investment():
     )
 
     return render_template("investment_list.html", investment_list=investment_list)
+
+
+@funds_bp.route("/reports", methods=["POST", "GET"])
+@login_required
+def funds_reports():
+    from extensions import db
+
+    form = ReportsForm()
+    if form.validate_on_submit():
+        # if no start date is provided, default to 01/04/2024
+        start_date = form.data["start_date"] or datetime.date(2024, 4, 1)
+        # if no end date is provided, default to today
+        end_date = form.data["end_date"] or datetime.date.today()
+        inflow = form.data["check_inflow"]
+        outflow = form.data["check_outflow"]
+        investments = form.data["check_investments"]
+
+        #        print(start_date, end_date)
+        all_queries = []
+        if inflow:
+            case_inflow = case((FundBankStatement.credit > 0, "Inflow"), else_="")
+            inflow_query = (
+                db.session.query(FundBankStatement)
+                .with_entities(
+                    FundBankStatement.book_date,
+                    FundBankStatement.flag_description,
+                    FundBankStatement.description,
+                    FundBankStatement.credit,
+                    case_inflow,
+                )
+                .filter(
+                    (
+                        (FundBankStatement.book_date >= start_date)
+                        & (FundBankStatement.book_date <= end_date)
+                    )
+                    & (FundBankStatement.credit > 0)
+                )
+            )
+            all_queries.append(inflow_query)
+            # query = inflow_query
+        if outflow:
+            case_outflow = case(
+                (FundDailyOutflow.outflow_amount > 0, "Outflow"), else_=""
+            )
+            outflow_query = (
+                db.session.query(FundDailyOutflow)
+                .with_entities(
+                    FundDailyOutflow.outflow_date,
+                    FundDailyOutflow.outflow_description,
+                    FundDailyOutflow.outflow_description,
+                    FundDailyOutflow.outflow_amount,
+                    case_outflow,
+                )
+                .filter(
+                    (FundDailyOutflow.outflow_date >= start_date)
+                    & (FundDailyOutflow.outflow_date <= end_date)
+                    & (FundDailyOutflow.outflow_amount > 0)
+                )
+            )
+            all_queries.append(outflow_query)
+        # query = inflow_query.union(outflow_query)
+        if investments:
+            case_investment_given = case(
+               (FundDailySheet.float_amount_given_to_investments > 0,
+                "Given to investment"),
+                else_="",
+            )
+            case_investment_taken = case(
+                (FundDailySheet.float_amount_taken_from_investments > 0,
+                "Taken from investments"),
+                else_="",
+            )
+            investment_given_query = (
+                db.session.query(FundDailySheet)
+                .with_entities(
+                    FundDailySheet.date_current_date,
+                    case_investment_given,
+                    case_investment_given,
+                    FundDailySheet.float_amount_given_to_investments,
+                    case_investment_given,
+                )
+                .filter(
+                    (FundDailySheet.date_current_date >= start_date)
+                    & (FundDailySheet.date_current_date <= end_date)
+                    & (FundDailySheet.float_amount_given_to_investments > 0)
+                )
+            )
+            investment_taken_query = (
+                db.session.query(FundDailySheet)
+                .with_entities(
+                    FundDailySheet.date_current_date,
+                    case_investment_taken,
+                    case_investment_taken,
+                    FundDailySheet.float_amount_taken_from_investments,
+                    case_investment_taken,
+                )
+                .filter(
+                    (FundDailySheet.date_current_date >= start_date)
+                    & (FundDailySheet.date_current_date <= end_date)
+                    & (FundDailySheet.float_amount_taken_from_investments > 0)
+                )
+            )
+            all_queries.append(investment_given_query)
+            all_queries.append(investment_taken_query)
+        # all_queries = [inflow_query, outflow_query, investment_given_query, investment_taken_query]
+        query_set = union(*all_queries)
+        query = db.session.execute(query_set)
+        return render_template("reports_output.html", query=query)
+    form.check_inflow.data = True
+    form.check_outflow.data = True
+    form.check_investments.data = True
+    return render_template("reports_form.html", form=form)
 
 
 # @funds_bp.route("/horo", methods=["POST", "GET"])

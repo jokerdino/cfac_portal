@@ -618,7 +618,7 @@ def edit_coinsurance_entry(coinsurance_id):
 
 def select_coinsurers(query, form):
     coinsurer_choices = query.distinct(Coinsurance.follower_company_name)
-    form.coinsurer_name.choices: list[str] = ["View all"] + [
+    form.coinsurer_name.choices = ["View all"] + [
         x.follower_company_name for x in coinsurer_choices
     ]
 
@@ -629,7 +629,7 @@ def select_coinsurers(query, form):
     return query
 
 
-@coinsurance_bp.route("/list/Settled/exception")
+@coinsurance_bp.route("/list/Settled/exception", methods=["POST", "GET"])
 @login_required
 def list_settled_entries_without_utr():
     form_select_coinsurer = CoinsurerSelectForm()

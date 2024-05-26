@@ -1,0 +1,31 @@
+{% extends "funds_layout.html" %}
+{% block content %}
+<div class="container">
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table">
+            <tr>
+                <th>{{ form.start_date.label }}</th>
+                <td>{{ form.start_date(class="input") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.end_date.label }}</th>
+                <td>{{ form.end_date(class="input") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.check_inflow.label }}</th>
+                <td>{{ form.check_inflow }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.check_outflow.label }}</th>
+                <td>{{ form.check_outflow }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.check_investments.label }}</th>
+                <td>{{ form.check_investments }}</td>
+            </tr>
+        </table>
+        <button class="button">Query</button>
+    </form>
+</div>
+{% endblock content %}
