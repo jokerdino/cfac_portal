@@ -232,7 +232,13 @@ def upload_brs(brs_key):
     # When a new month base file is uploaded, the month has to be manually added to the list right now.
     # TODO: Build a frontend for the same to enable or disable?
     brs_entry = BRS.query.get_or_404(brs_key)
-    list_months_delete = ["January-2024", "February-2024", "March-2024", "April-2024"]
+    list_months_delete = [
+        "January-2024",
+        "February-2024",
+        "March-2024",
+        "April-2024",
+        "May-2024",
+    ]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
@@ -468,9 +474,9 @@ def prevent_duplicate_brs(requirement: str, brs_id: int) -> bool:
 def validate_outstanding_entries(
     df_form_data_os_entries: pd.DataFrame, requirement: str, closing_balance: float
 ):
-   # for cash, instrument amount and date of collection is mandatory
-   # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
-   # negative values are not allowed to be entered
+    # for cash, instrument amount and date of collection is mandatory
+    # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
+    # negative values are not allowed to be entered
 
     if requirement == "cash":
         date_columns = ["date_of_collection"]
@@ -500,7 +506,7 @@ def validate_outstanding_entries(
             return (6, pd.DataFrame, 0)
 
     sum_os_entries = df_os_entries["instrument_amount"].sum()
-    #if not float(sum_os_entries) == float(closing_balance):
+    # if not float(sum_os_entries) == float(closing_balance):
     if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
         return (5, pd.DataFrame, sum_os_entries)
 
@@ -545,6 +551,7 @@ def update_brs_id(requirement: str, brs_entry, integer_brs_id: int) -> None:
         brs_entry.bbps_brs_id = integer_brs_id
     elif requirement == "local_collection":
         brs_entry.local_collection_brs_id = integer_brs_id
+
 
 @brs_bp.route("/<int:brs_id>/<string:requirement>/add_brs", methods=["POST", "GET"])
 @login_required
@@ -610,7 +617,9 @@ def enter_brs(requirement, brs_id):
                         form.data["outstanding_entries"], requirement, closing_balance
                     )
                     if status_validate_os_entries == 1:
-                        flash("Date of instrument must be entered in dd/mm/yyyy format.")
+                        flash(
+                            "Date of instrument must be entered in dd/mm/yyyy format."
+                        )
                     elif status_validate_os_entries == 2:
                         flash("Instrument number must be entered.")
                     elif status_validate_os_entries == 3:
@@ -637,7 +646,9 @@ def enter_brs(requirement, brs_id):
                             current_app.config.get("SQLALCHEMY_DATABASE_URI")
                         )
                         try:
-                            df_outstanding_entries = df_outstanding_entries.loc[:, ~df_outstanding_entries.columns.str.match('Unnamed')]
+                            df_outstanding_entries = df_outstanding_entries.loc[
+                                :, ~df_outstanding_entries.columns.str.match("Unnamed")
+                            ]
                             df_outstanding_entries.dropna(
                                 subset=["instrument_amount"]
                             ).to_sql(
@@ -662,7 +673,9 @@ def enter_brs(requirement, brs_id):
 
                 return redirect(url_for("brs.upload_brs", brs_key=brs_id))
 
-    prev_month_opening_balance, prev_month_opening_on_hand = get_prev_month_amount(requirement, brs_id)
+    prev_month_opening_balance, prev_month_opening_on_hand = get_prev_month_amount(
+        requirement, brs_id
+    )
     form.opening_balance.data = prev_month_opening_balance
     form.opening_on_hand.data = prev_month_opening_on_hand
 
@@ -751,7 +764,7 @@ def list_brs_entries_exceptions():
     # )
 
     list_all_brs_entries = BRS_month.query.filter(
-     #   (BRS_month.status == "Deleted")
+        #   (BRS_month.status == "Deleted")
         ~BRS_month.status.is_(None)
         # | (
         #     BRS_month.status.is_(None)
@@ -785,14 +798,14 @@ def list_brs_entries_exceptions2():
     )
 
     list_all_brs_entries = BRS_month.query.filter(
-        #(BRS_month.status == "Deletedbyquery")
-       # | (
-          #  BRS_month.status.is_(None)
-           # &
-                (BRS_month.int_closing_balance > 0)
-                & (~BRS_month.id.in_(select(subquery)))
-        )
-   # )
+        # (BRS_month.status == "Deletedbyquery")
+        # | (
+        #  BRS_month.status.is_(None)
+        # &
+        (BRS_month.int_closing_balance > 0)
+        & (~BRS_month.id.in_(select(subquery)))
+    )
+    # )
     # brs_id = list_all_brs_entries.with_entities(BRS_month.id)
     # for id in brs_id:
     #    brs_entry = BRS_month.query.get(id)
@@ -864,3 +877,59 @@ def get_brs_bank(brs_id, requirement):
         return brs_entry.bbps_bank
     elif requirement == "local_collection":
         return brs_entry.local_collection_bank
+
+
+@brs_bp.route(
+    "/api/v1/brs/get_closing_balance/<string:office_code>/<string:month>/<string:brs_type>"
+)
+def get_brs_closing_balance(office_code, month, brs_type):
+    """for feeding into E-Formats
+    returns closing balance if office code, month and type of BRS is provided"""
+
+    filtered_brs = BRS.query.filter(
+        (BRS.uiic_office_code == office_code) & (BRS.month == month)
+    ).first()
+    if brs_type == "cash":
+        brs_entry_id = filtered_brs.cash_brs_id
+    elif brs_type == "cheque":
+        brs_entry_id = filtered_brs.cheque_brs_id
+    elif brs_type == "pos":
+        brs_entry_id = filtered_brs.pos_brs_id
+    elif brs_type == "pg":
+        brs_entry_id = filtered_brs.pg_brs_id
+    elif brs_type == "bbps":
+        brs_entry_id = filtered_brs.bbps_brs_id
+    elif brs_type == "local_collection":
+        brs_entry_id = filtered_brs.local_collection_brs_id
+
+    brs_entry = BRS_month.query.get(brs_entry_id)
+
+    closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+    return f"{closing_balance}"
+
+
+@brs_bp.route("/api/v1/brs/get_percent_complete/<string:regional_office_code>/")
+def get_percent_completion(regional_office_code):
+    """for e-formats checklist of BRS completion
+    returns percentage completion if regional office code is entered"""
+    query = (
+        BRS.query.with_entities(
+            func.count(BRS.cash_bank)
+            + func.count(BRS.cheque_bank)
+            + func.count(BRS.pg_bank)
+            + func.count(BRS.pos_bank)
+            + func.count(BRS.bbps_bank)
+            + func.count(BRS.local_collection_bank),
+            func.count(BRS.cash_brs_id)
+            + func.count(BRS.cheque_brs_id)
+            + func.count(BRS.pg_brs_id)
+            + func.count(BRS.pos_brs_id)
+            + func.count(BRS.bbps_brs_id)
+            + func.count(BRS.local_collection_brs_id),
+        )
+        .filter(BRS.uiic_regional_code == regional_office_code)
+        .group_by(BRS.uiic_regional_code)
+    )
+
+    percent_complete = (query[0][1] / query[0][0])* 100 if query else 0
+    return f"{percent_complete}"
