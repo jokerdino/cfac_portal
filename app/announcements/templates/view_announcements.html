@@ -1,0 +1,49 @@
+{% extends "announcements_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="title is-size-3">Announcements</h1>
+    <table class="table is-fullwidth is-bordered" id="announcements_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Posted by</th>
+                <th class="has-text-centered">Posted on</th>
+                <th class="has-text-centered">Title</th>
+                <th class="has-text-centered">Message</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in list %}
+                <td>{{ item.created_by.upper() }}</td>
+                <td data-sort="{{ item.created_on }}" title="{{ item.created_on }}">{{
+                    humanize_datetime(item.created_on) }}</td>
+                <td>{{ item.txt_title }}</td>
+                <td>{{ item.txt_message }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+
+    new DataTable('#announcements_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}
