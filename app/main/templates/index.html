@@ -44,170 +44,85 @@
 </header>
 
 <body>
-  <div class="container">
-    <div class="grid box">
 
-      <div class="cell">
-        <a href="{{ url_for('coinsurance.home_page') }}">
-          <article class="box notification is-black has-text-white">
-            <div class="content">
-              <p class="title">Coinsurance</p>
-              <p class="subtitle">Upload coinsurance confirmations</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-      {% if current_user.user_type != "coinsurance_hub_user" %}
-      <div class="cell">
-        <a href="{{ url_for('brs.brs_home_page')}}">
-          <article class="box notification has-background-warning-80">
-            <div class="content has-text-black">
-              <p class="title">BRS</p>
-              <p class="subtitle">Enter BRS and outstanding entries</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
-      <div class="cell">
-        <a href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval', department='View all') }}">
-          <article class="box notification is-info">
-            <div class="content">
-              <p class="title">Tickets</p>
-              <p class="subtitle">HPSM tickets pending for CFAC approval</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-
-      <div class="cell">
-        <a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">
-          <article class="box notification has-background-success-60">
-            <div class="content">
-              <p class="title">Knowledge Base</p>
-              <p class="subtitle">Everything you need to know about</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-
+  <div class="columns">
+    <div class="column is-2">
+      <aside class="menu mt-5 ml-5">
+        <p class="menu-label">General</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('coinsurance.home_page') }}">Coinsurance</a></li>
+          {% if current_user.user_type != "coinsurance_hub_user" %}
+          <li><a href="{{ url_for('brs.brs_home_page')}}">BRS</a></li>
+          {% endif %}
+          <li><a
+              href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval', department='View all') }}">Tickets</a>
+          </li>
+        </ul>
+        <p class="menu-label">Information</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>
+          <li><a href="{{ url_for('contacts.contacts_homepage') }}">Contacts</a></li>
+          <li><a href="{{ url_for('announcements.view_announcements') }}">Announcements</a></li>
+        </ul>
+        <p class="menu-label">Useful links</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('main.pos_dashboard') }}">POS Dashboard</a></li>
+        </ul>
+        {% if current_user.user_type != "coinsurance_hub_user" %}
+        <p class="menu-label">Data collection</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('outstanding_expenses.os_homepage') }}">Outstanding expenses</a></li>
+          <li><a href="{{ url_for('bg.bg_homepage') }}">Bank guarantee</a></li>
+        </ul>
+        {% endif %}
+        {% if current_user.user_type == "admin" %}
+        <p class="menu-label">Head Office only</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('contracts.view_contracts', status='active') }}">Contracts</a></li>
+          {% if current_user.username == "bar44515" %}
+          <li><a href="{{ url_for('funds.funds_home') }}">Funds</a></li>
+          {% endif %}
+        </ul>
+        {% endif %}
+        {% if current_user.user_type in ["admin","ro_user"] %}
+        <p class="menu-label">Admin</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('portal_admin.view_list_users') }}">Reset password</a></li>
+        </ul>
+        {% endif %}
+      </aside>
     </div>
-  </div>
-  <div class="container">
-    <div class="grid box">
-      <div class="cell">
-        <a href="{{ url_for('contacts.contacts_homepage') }}">
-          <article class="box notification has-background-success-60">
-            <div class="content">
-              <p class="title">Contacts</p>
-              <p class="subtitle">Head Office, Regional Office and Coinsurance hub</p>
-              <div class="content">
+    <div class="column mt-5 mr-5">
 
-              </div>
-            </div>
-          </article>
-        </a>
+      <h1 class="title is-size-3">Latest announcements</h1>
+      <div class="table-container">
+        <table class="table is-fullwidth is-bordered" id="announcements_table">
+          <thead>
+            <tr>
+              <th class="has-text-centered">Posted by</th>
+              <th class="has-text-centered">Posted on</th>
+              <th class="has-text-centered">Title</th>
+              <th class="has-text-centered">Message</th>
+
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {% for item in query %}
+              <td>{{ item.created_by.upper() }}</td>
+              <td title="{{ item.created_on }}">{{ humanize_datetime(item.created_on) }}</td>
+              <td>{{ item.txt_title }}</td>
+              <td>{{ item.txt_message }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <a class="button is-link is-outlined" href="{{ url_for('announcements.view_announcements') }}">View all
+          announcements →</a>
       </div>
-      {% if current_user.user_type != "coinsurance_hub_user" %}
-      <div class="cell">
-        <a href="{{ url_for('bg.bg_homepage') }}">
-          <article class="box notification is-info">
-            <div class="content">
-              <p class="title">Bank Guarantee</p>
-              <p class="subtitle">Details of bank guarantee balance - as on March 2024</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
-      {% if current_user.user_type != "coinsurance_hub_user" %}
-      <div class="cell">
-        <a href="{{ url_for('outstanding_expenses.os_homepage') }}">
-          <article class="box notification has-background-warning-80">
-            <div class="content has-text-black">
-              <p class="title">Outstanding Expenses</p>
-              <p class="subtitle is-size-6">Details of O/S exp</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
-      {% if current_user.user_type != "coinsurance_hub_user" %}
-      <div class="cell">
-        <a href="{{ url_for('main.pos_dashboard') }}">
-          <article class="box notification has-background-success-60">
-            <div class="content">
-              <p class="title">POS Dashboard</p>
-              <p class="subtitle">Kotak WorldLine</p>
-              <div class="content">
-
-              </div>
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-  {% if current_user.user_type in ["admin","ro_user"] %}
-  <div class="container">
-    <div class="grid box">
-      {% if current_user.user_type == "admin" %}
-
-      <div class="cell">
-        <a href="{{ url_for('contracts.view_contracts', status='active') }}">
-          <article class="box notification has-background-warning-80">
-            <div class="content">
-              <p class="title">Contracts</p>
-              <p class="subtitle">Details of Active and expired contracts</p>
-              <div class="content">
-
-              </div>
-
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
-
-      {% if current_user.user_type in ["admin","ro_user"] %}
-      <div class="cell">
-        <a href="{{ url_for('portal_admin.view_list_users') }}">
-          <article class="box notification has-background-danger-65 has-text-white">
-            <div class="content">
-              <p class="title">Reset password</p>
-              <p class="subtitle">Reset user password</p>
-              <div class="content">
-
-              </div>
-
-            </div>
-          </article>
-        </a>
-      </div>
-      {% endif %}
     </div>
   </div>
 
-  {% endif %}
 </body>
 
 </html>

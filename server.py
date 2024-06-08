@@ -100,6 +100,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(funds_bp, url_prefix="/funds")
 
+    from app.announcements import announcements_bp
+
+    app.register_blueprint(announcements_bp, url_prefix="/announcements")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

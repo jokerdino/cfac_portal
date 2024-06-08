@@ -3,11 +3,14 @@ from flask_login import current_user, login_required
 
 from app.main import main_bp
 
+from app.tickets.tickets_routes import humanize_datetime
+from app.announcements.announcements_model import Announcements
 
 @main_bp.route("/")
 def index():
     if current_user.is_authenticated:
-        return render_template("index.html")
+        query = Announcements.query.order_by(Announcements.created_on.desc()).limit(10)
+        return render_template("index.html", query=query, humanize_datetime=humanize_datetime)
     else:
         return redirect(url_for("users.login_page"))
 
