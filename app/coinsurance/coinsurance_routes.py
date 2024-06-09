@@ -33,6 +33,7 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceCashCall,
 )
 
+from app.funds.funds_model import FundBankStatement
 from app.tickets.tickets_routes import humanize_datetime
 
 
@@ -93,8 +94,18 @@ def home_page():
             func.date_trunc("year", Settlement.date_of_settlement).desc(),
         )
     )
+    fund_query = (
+        FundBankStatement.query.filter(
+            FundBankStatement.flag_description == "COINSURANCE"
+        )
+        .order_by(FundBankStatement.book_date.desc())
+        .limit(50)
+    )
     return render_template(
-        "coinsurance_home.html", dashboard=query, settlement_query=settlement_query
+        "coinsurance_home.html",
+        dashboard=query,
+        settlement_query=settlement_query,
+        fund_query=fund_query,
     )
 
 

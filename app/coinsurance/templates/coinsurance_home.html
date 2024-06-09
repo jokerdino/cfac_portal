@@ -3,52 +3,84 @@
 
 {% if dashboard %}
 <div class="container is-size-6">
-<table class="table is-bordered">
-<thead>
-<tr><th>Current status</th>
-<th>Number of entries</th>
-</tr>
-</thead>
-<tbody>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>Current status</th>
+                <th>Number of entries</th>
+            </tr>
+        </thead>
+        <tbody>
 
-{% for entry in dashboard %}
-<tr>
-    {% if entry[0] == "Needs clarification from RO or OO" and
-    (current_user.user_type in ["ro_user", "oo_user"]) %}
-<td class="has-text-danger">{{ entry[0] }}</td>
-<td class="has-text-right"><a href="{{ url_for('coinsurance.list_coinsurance_entries_by_status', status=entry[0]) }}"><div>{{ entry[1] }}</div></a></td>
-{% else %}
-<td>{{ entry[0] }}</td>
-<td class="has-text-right"> <a href="{{ url_for('coinsurance.list_coinsurance_entries_by_status', status=entry[0]) }}"><div>{{ entry[1] }}</div></a></td>
-{% endif %}
-{% endfor %}
-</tr>
-</tbody>
-</table>
+            {% for entry in dashboard %}
+            <tr>
+                {% if entry[0] == "Needs clarification from RO or OO" and
+                (current_user.user_type in ["ro_user", "oo_user"]) %}
+                <td class="has-text-danger">{{ entry[0] }}</td>
+                <td class="has-text-right"><a
+                        href="{{ url_for('coinsurance.list_coinsurance_entries_by_status', status=entry[0]) }}">
+                        <div>{{ entry[1] }}</div>
+                    </a></td>
+                {% else %}
+                <td>{{ entry[0] }}</td>
+                <td class="has-text-right"> <a
+                        href="{{ url_for('coinsurance.list_coinsurance_entries_by_status', status=entry[0]) }}">
+                        <div>{{ entry[1] }}</div>
+                    </a></td>
+                {% endif %}
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
 
-{% endif %}
-    {% if current_user.user_type == "admin" %}
-<h1 class="title">Summary of settlements</h1>
-<div class="mt-5 is-centered">
-<table class="table is-bordered">
-    <thead>
-    <tr>
-        <th>Period</th>
-        <th>Type of transaction</th>
-        <th>Settled amount</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% for entry in settlement_query %}
-    <tr>
-        <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
-        <td>{{ entry[2] }}</td>
-        <td class="has-text-right">{{ "{:,.2f}".format(entry[3]) }}</td>
-{% endfor %}
-</tr>
-    </tbody>
-</table>
-</div>
     {% endif %}
+
+    {% if current_user.user_type in ["admin", "coinsurance_hub_user"] %}
+
+    <h3 class="title is-size-5">Last 50 credits received in HDFC Pool account</h3>
+    <table class="table is-bordered is-hoverable">
+        <thead>
+            <tr>
+                <th>Value date</th>
+                <th>Description</th>
+                <th>Credit</th>
+                <th>Reference number</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>{% for item in fund_query %}
+                <td>{{ item.value_date }}</td>
+                <td>{{ item.description }}</td>
+                <td class="has-text-right">{{ item.credit }}</td>
+                <td>{{ item.reference_no }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if current_user.user_type == "admin" %}
+    <h1 class="title">Summary of settlements</h1>
+    <div class="mt-5 is-centered">
+        <table class="table is-bordered">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Type of transaction</th>
+                    <th>Settled amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in settlement_query %}
+                <tr>
+                    <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
+                    <td>{{ entry[2] }}</td>
+                    <td class="has-text-right">{{ "{:,.2f}".format(entry[3]) }}</td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
     </div>
+    {% endif %}
+</div>
 {% endblock content %}

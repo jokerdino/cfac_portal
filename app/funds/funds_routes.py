@@ -815,16 +815,15 @@ def upload_bank_account_number():
 
     if form.validate_on_submit():
         bank_account_number = form.data["file_upload"]
-        df_investment = pd.read_csv(
+        df_bank_account = pd.read_csv(
             bank_account_number, dtype={"bank_account_number": str}
         )
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
-        # df_flag_sheet["date_current_date"] = datetime.date.today()
-        df_investment["date_created_date"] = datetime.datetime.now()
-        df_investment["created_by"] = current_user.username
-        # try:
-        df_investment.to_sql(
+        df_bank_account["date_created_date"] = datetime.datetime.now()
+        df_bank_account["created_by"] = current_user.username
+
+        df_bank_account.to_sql(
             "fund_bank_account_numbers",
             engine,
             if_exists="append",
