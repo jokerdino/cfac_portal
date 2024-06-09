@@ -21,8 +21,14 @@ from flask_login import current_user, login_required
 from sqlalchemy import create_engine, func
 
 from app.brs import brs_bp
-from app.brs.models import BRS, BRS_month, Outstanding
-from app.brs.forms import BRSForm, BRS_entry, DashboardForm, RawDataForm
+from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries
+from app.brs.forms import (
+    BRSForm,
+    BRS_entry,
+    DashboardForm,
+    RawDataForm,
+    EnableDeleteMonthForm,
+)
 
 from app.tickets.tickets_routes import humanize_datetime
 
@@ -210,15 +216,72 @@ def percent_completed(brs_key):
 def bulk_upload_brs():
     if request.method == "POST":
         upload_file = request.files.get("file")
-        df_user_upload = pd.read_csv(
+        df_brs_upload = pd.read_csv(
             upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
         )
-        df_user_upload["timestamp"] = datetime.now()
+        df_brs_upload["timestamp"] = datetime.now()
+
+        df_month = df_brs_upload["month"].drop_duplicates().to_frame()
+        df_month = df_month.rename(columns={"month": "txt_month"})
+        df_month["bool_enable_delete"] = True
+        df_month["created_by"] = current_user.username
+        df_month["created_on"] = datetime.now()
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_user_upload.to_sql("brs", engine, if_exists="append", index=False)
+        df_brs_upload.to_sql("brs", engine, if_exists="append", index=False)
+        df_month.to_sql("delete_entries", engine, if_exists="append", index=False)
         flash("BRS records have been uploaded to database.")
 
     return render_template("bulk_brs_upload.html")
+
+
+# add month
+@brs_bp.route("/enable_delete/add", methods=["POST", "GET"])
+@login_required
+def enable_month_deletion():
+    form = EnableDeleteMonthForm()
+    from extensions import db
+
+    if form.validate_on_submit():
+        delete_entries = DeleteEntries(
+            txt_month=form.data["txt_month"],
+            bool_enable_delete=form.data["bool_enable_delete"],
+            created_by=current_user.username,
+            created_on=datetime.now(),
+        )
+        db.session.add(delete_entries)
+        db.session.commit()
+    return render_template("enable_month_delete.html", form=form)
+
+
+# edit month
+@brs_bp.route("/enable_delete/edit/<int:month_id>", methods=["POST", "GET"])
+@login_required
+def edit_month_deletion(month_id):
+    form = EnableDeleteMonthForm()
+    from extensions import db
+
+    delete_entries = DeleteEntries.query.get_or_404(month_id)
+
+    if form.validate_on_submit():
+        delete_entries.bool_enable_delete = form.data["bool_enable_delete"]
+        delete_entries.updated_by = current_user.username
+        delete_entries.updated_on = datetime.now()
+        db.session.commit()
+    form.txt_month.data = delete_entries.txt_month
+    form.bool_enable_delete.data = delete_entries.bool_enable_delete
+    return render_template("enable_month_delete.html", form=form)
+
+
+# list months
+@brs_bp.route("/enable_delete/list")
+@login_required
+def list_month_deletions():
+    list = DeleteEntries.query.order_by(DeleteEntries.id)
+    column_names = DeleteEntries.query.statement.columns.keys()
+
+    return render_template(
+        "list_months_delete.html", list=list, column_names=column_names
+    )
 
 
 @brs_bp.route("/upload_brs/<int:brs_key>", methods=["POST", "GET"])
@@ -232,13 +295,19 @@ def upload_brs(brs_key):
     # When a new month base file is uploaded, the month has to be manually added to the list right now.
     # TODO: Build a frontend for the same to enable or disable?
     brs_entry = BRS.query.get_or_404(brs_key)
-    list_months_delete = [
-        "January-2024",
-        "February-2024",
-        "March-2024",
-        "April-2024",
-        "May-2024",
-    ]
+    query_list_months_delete = DeleteEntries.query.with_entities(
+        DeleteEntries.txt_month
+    ).filter(DeleteEntries.bool_enable_delete == True)
+    list_months_delete = [txt_month[0] for txt_month in query_list_months_delete]
+    # print(list_months_delete)
+    # print(type(list_months_delete))
+    # list_months_delete2 = [
+    #     "January-2024",
+    #     "February-2024",
+    #     "March-2024",
+    #     "April-2024",
+    #     "May-2024",
+    # ]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
@@ -931,5 +1000,5 @@ def get_percent_completion(regional_office_code):
         .group_by(BRS.uiic_regional_code)
     )
 
-    percent_complete = (query[0][1] / query[0][0])* 100 if query else 0
+    percent_complete = (query[0][1] / query[0][0]) * 100 if query else 0
     return f"{percent_complete}"

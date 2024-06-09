@@ -7,6 +7,7 @@ from wtforms import (
     TextAreaField,
     SelectField,
     StringField,
+    SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, NumberRange
 
@@ -65,3 +66,11 @@ class RawDataForm(FlaskForm):
             ("local_collection", "Local collection"),
         ],
     )
+
+
+class EnableDeleteMonthForm(FlaskForm):
+    txt_month = StringField("Month", validators=[DataRequired()])
+    bool_enable_delete = BooleanField(
+        "Enable month for deletion", validators=[Optional()]
+    )
+    submit = SubmitField("Submit")

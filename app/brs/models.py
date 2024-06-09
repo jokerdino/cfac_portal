@@ -27,6 +27,18 @@ class BRS(db.Model):
     timestamp = db.Column(db.DateTime)
 
 
+class DeleteEntries(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    txt_month = db.Column(db.String)
+    bool_enable_delete = db.Column(db.Boolean)
+
+    created_by = db.Column(db.String)
+    created_on = db.Column(db.DateTime)
+
+    updated_by = db.Column(db.String)
+    updated_on = db.Column(db.DateTime)
+
+
 class BRS_month(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     brs_id = db.Column(db.Integer, db.ForeignKey("brs.id"))

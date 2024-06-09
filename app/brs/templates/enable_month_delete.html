@@ -1,0 +1,23 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+<div class="container box">
+    <form method="post">
+        {{ form.csrf_token }}
+
+        <table class="table">
+            <tr>
+                <th>{{ form.txt_month.label }}</th>
+                <td>{{ form.txt_month(class="input") }}</td>
+            </tr>
+            <tr>
+                <th> {{ form.bool_enable_delete.label }}</th>
+                <td>{{ form.bool_enable_delete }}</td>
+            </tr>
+
+        </table>
+        <div class="has-text-centered">
+            {{ form.submit(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

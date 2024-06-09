@@ -15,27 +15,39 @@
 
 <body>
     <header>
-        <nav class="navbar has-background-primary-light" aria-label="main navigation">
+        <nav class="navbar is-danger" aria-label="main navigation">
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <div class="navbar-item">
-                        <div class="buttons">
-                            <a class="button is-link" href="{{ url_for('main.index') }}">Home</a>
-                            <a class="button is-link" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
-                            {% if current_user.user_type in ["admin", "ro_user"] %}
-                            <a class="button is-link" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
-                            <a class="button is-link" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
-                                entries</a>
-                            {% endif %}
-                            {% if current_user.user_type == "admin" %}
 
-                            <a class="button is-link" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
-                                entries</a>
-                            <a class="button is-link" href="{{ url_for('brs.brs_percentage') }}">Percentage
-                                completion</a>
-                            {% endif %}
+                        <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                        <a class="navbar-item" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
+                        {% if current_user.user_type in ["admin", "ro_user"] %}
+                        <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
+                        <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
+                            entries</a>
+                        {% endif %}
+                        {% if current_user.user_type == "admin" %}
 
+                        <a class="navbar-item" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
+                            entries</a>
+                        <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Percentage
+                            completion</a>
+                        {% endif %}
+                        {% if current_user.username == "bar44515" %}
+
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link">Enable deletion</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item" href="{{ url_for('brs.list_month_deletions') }}">List of
+                                    months for deletion</a>
+                                <a class="navbar-item" href="{{ url_for('brs.enable_month_deletion') }}">Enable
+                                    month deletion
+                                </a>
+                            </div>
                         </div>
+                        {% endif %}
+
                     </div>
                 </div>
             </div>

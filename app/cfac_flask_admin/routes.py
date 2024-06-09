@@ -6,13 +6,14 @@ from flask_admin_models import DefaultModelView
 from app.cfac_flask_admin.model_views import BRSView, UserView, OSView
 
 from extensions import admin, db
-from app.brs.models import BRS, BRS_month, Outstanding
+from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
     Settlement,
     Remarks,
     Coinsurance_log,
     CoinsuranceBalances,
+    CoinsuranceCashCall,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
@@ -32,6 +33,9 @@ from app.funds.funds_model import (
     FundMajorOutgo,
 )
 
+from app.mis_tracker.mis_model import MisTracker
+from app.announcements.announcements_model import Announcements
+
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="Users", parent_name="Users")
@@ -45,6 +49,7 @@ admin.add_view(
     DefaultModelView(Log_user, db.session, endpoint="log_user_", category="Users")
 )
 
+
 # BRS models
 admin.add_view(BRSView(BRS, db.session, endpoint="brs_", category="BRS"))
 admin.add_view(
@@ -52,6 +57,9 @@ admin.add_view(
 )
 admin.add_view(
     ModelView(Outstanding, db.session, endpoint="outstanding_", category="BRS")
+)
+admin.add_view(
+    ModelView(DeleteEntries, db.session, endpoint="delete_entries_", category="BRS")
 )
 
 # coinsurance models
@@ -74,6 +82,14 @@ admin.add_view(
         CoinsuranceBalances,
         db.session,
         endpoint="coinsurance_balances_",
+        category="Coinsurance",
+    )
+)
+admin.add_view(
+    ModelView(
+        CoinsuranceCashCall,
+        db.session,
+        endpoint="coinsurance_cashcall",
         category="Coinsurance",
     )
 )
@@ -100,6 +116,7 @@ admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
 admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
 # outstanding expenses model
 admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))
+
 # funds model
 
 admin.add_view(
@@ -143,3 +160,7 @@ admin.add_view(
         FundDailySheet, db.session, endpoint="funds_daily_sheet", category="Funds"
     )
 )
+
+# misc models
+admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
+admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
