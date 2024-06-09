@@ -104,6 +104,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(announcements_bp, url_prefix="/announcements")
 
+    from app.mis_tracker import mis_bp
+
+    app.register_blueprint(mis_bp, url_prefix="/mis")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

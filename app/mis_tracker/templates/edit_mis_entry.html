@@ -1,0 +1,36 @@
+{% extends "mis_layout.html" %}
+
+{% block content %}
+{% if current_user.user_type == "admin" %}
+<div class="container mt-5">
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table">
+            <tr>
+                <th>Period</th>
+                <td>{{ mis_entry.txt_period }}</td>
+            </tr>
+            <tr>
+                <th>MIS type</th>
+                <td>{{ mis_entry.txt_mis_type }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.bool_mis_shared.label }}</th>
+                <td>{{ form.bool_mis_shared }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.bool_brs_completed.label }}</th>
+                <td>{{ form.bool_brs_completed }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.bool_jv_passed.label }}</th>
+                <td>{{ form.bool_jv_passed }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+{% endblock content %}

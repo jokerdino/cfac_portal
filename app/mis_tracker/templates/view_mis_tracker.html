@@ -1,0 +1,57 @@
+{% extends "mis_layout.html" %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <table class="table is-fullwidth is-bordered" id="mis_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Month</th>
+                <th class="has-text-centered">MIS</th>
+                <th class="has-text-centered">MIS has been shared</th>
+                {% if current_user.user_type == "admin" %}
+                <th class="has-text-centered">BRS completed</th>
+                <th class="has-text-centered">JV passed</th>
+                <th class="has-text-centered">View</th>
+                <th class="has-text-centered">Edit</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in list %}
+                <td>{{ item.txt_period }}</td>
+                <td>{{ item.txt_mis_type }}</td>
+                <td class="has-text-centered">{{ "✅" if item.bool_mis_shared else "❌" }}</td>
+                {% if current_user.user_type == "admin" %}
+                <td class="has-text-centered">{{ "✅" if item.bool_brs_completed else "❌" }}</td>
+                <td class="has-text-centered">{{ "✅" if item.bool_jv_passed else "❌" }}</td>
+
+                <td><a href="{{ url_for('mis.view_mis_entry', mis_key=item.id) }}">View</a></td>
+                <td><a href="{{ url_for('mis.edit_mis_entry', mis_key=item.id) }}">Edit</a></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+
+    new DataTable('#mis_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[5, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

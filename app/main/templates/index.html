@@ -63,6 +63,7 @@
           <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>
           <li><a href="{{ url_for('contacts.contacts_homepage') }}">Contacts</a></li>
           <li><a href="{{ url_for('announcements.view_announcements') }}">Announcements</a></li>
+          <li><a href="{{ url_for('mis.view_mis_tracker') }}">MIS status</a></li>
         </ul>
         <p class="menu-label">Useful links</p>
         <ul class="menu-list">
@@ -103,7 +104,6 @@
               <th class="has-text-centered">Posted on</th>
               <th class="has-text-centered">Title</th>
               <th class="has-text-centered">Message</th>
-
             </tr>
           </thead>
           <tbody>
@@ -120,6 +120,37 @@
         <a class="button is-link is-outlined" href="{{ url_for('announcements.view_announcements') }}">View all
           announcements →</a>
       </div>
+
+      <h1 class="title is-size-3">MIS status</h1>
+      <table class="table is-fullwidth is-bordered" id="mis_table">
+        <thead>
+          <tr>
+            <th class="has-text-centered">Month</th>
+            <th class="has-text-centered">MIS</th>
+            <th class="has-text-centered">MIS has been shared</th>
+            {% if current_user.user_type == "admin" %}
+            <th class="has-text-centered">BRS completed</th>
+            <th class="has-text-centered">JV passed</th>
+
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            {% for item in list %}
+            <td>{{ item.txt_period }}</td>
+            <td>{{ item.txt_mis_type }}</td>
+            <td class="has-text-centered">{{ "✅" if item.bool_mis_shared else "❌" }}</td>
+            {% if current_user.user_type == "admin" %}
+            <td class="has-text-centered">{{ "✅" if item.bool_brs_completed else "❌" }}</td>
+            <td class="has-text-centered">{{ "✅" if item.bool_jv_passed else "❌" }}</td>
+
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <a class="button is-link is-outlined" href="{{ url_for('mis.view_mis_tracker') }}">View all MIS tracker→</a>
     </div>
   </div>
 
