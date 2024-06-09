@@ -1,0 +1,65 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<h1 class="title">List of cash calls raised</h1>
+
+<table class="table is-fullwidth is-bordered" id="cash_call_table">
+    <thead>
+
+        <tr>
+            <th class="has-text-centered">Coinsurance Hub</th>
+            <th class="has-text-centered">Regional Office</th>
+            <th class="has-text-centered">Operating Office</th>
+            <th class="has-text-centered">Insured name</th>
+            <th class="has-text-centered">100% Claims amount</th>
+            <th class="has-text-centered">Coinsurer name</th>
+            <th class="has-text-centered">Cash call amount</th>
+            <th class="has-text-centered">Date of cash call raised</th>
+            <th class="has-text-centered">Current status</th>
+            <th class="has-text-centered">Request ID</th>
+            <th class="has-text-centered">View</th>
+            <th class="has-text-centered">Edit</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr> {% for item in list %}
+
+            <td>{{ item['txt_hub'] }}</td>
+            <td>{{ item['txt_ro_code'] }}</td>
+            <td>{{ item['txt_oo_code'] }}</td>
+            <td>{{ item['txt_insured_name'] }}</td>
+            <td>{{ item['amount_total_paid'] }}</td>
+            <td>{{ item['txt_coinsurer_name'] }}</td>
+            <td>{{ item['amount_of_share'] }}</td>
+            <td>{{ item['date_of_cash_call_raised'] }}</td>
+            <td>{{ item['txt_current_status'] }}</td>
+            <td>{{ item['txt_request_id'] }}</td>
+            <td><a href="{{ url_for('coinsurance.view_cash_call', cash_call_key=item['id'] )}}">View</a></td>
+            <td><a href="{{ url_for('coinsurance.edit_cash_call', cash_call_key=item['id'] )}}">Edit</a></td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% block scripts %}
+<script>
+
+    new DataTable('#cash_call_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[7, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

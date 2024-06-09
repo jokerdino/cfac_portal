@@ -1,0 +1,90 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<h1 class="title">Details of cash call</h1>
+<div class="columns box">
+    <div class="column">
+        <table class="table is-fullwidth">
+            <tr>
+                <th>Hub</th>
+                <td>{{ cash_call.txt_hub }}</td>
+            </tr>
+            <tr>
+                <th>Regional Office Code</th>
+                <td>{{ cash_call.txt_ro_code }}</td>
+            </tr>
+            <tr>
+                <th>Operating Office Code</th>
+                <td>{{ cash_call.txt_oo_code }}</td>
+            </tr>
+            <tr>
+                <th>Name of insured</th>
+                <td>{{ cash_call.txt_insured_name }}</td>
+            </tr>
+            <tr>
+                <th>Policy start date</th>
+                <td>{{ cash_call.date_policy_start_date }}</td>
+            </tr>
+            <tr>
+                <th>Policy end date</th>
+                <td>{{ cash_call.date_policy_end_date }}</td>
+            </tr>
+            <tr>
+                <th>Total claim amount paid</th>
+                <td>{{ cash_call.amount_total_paid }}</td>
+            </tr>
+            <tr>
+                <th>Remarks</th>
+                <td>{{ cash_call.txt_remarks }}</td>
+            </tr>
+            <tr>
+                <th>Date of claim payment</th>
+                <td>{{ cash_call.date_claim_payment }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="column">
+        <table class="table is-fullwidth">
+            <tr>
+                <th>Name of coinsurer</th>
+                <td>{{ cash_call.txt_coinsurer_name }}</td>
+            </tr>
+            <tr>
+                <th>Percentage share</th>
+                <td>{{ cash_call.percent_share }}</td>
+            </tr>
+            <tr>
+                <th>Amount of share</th>
+                <td>{{ cash_call.amount_of_share }}</td>
+            </tr>
+            <tr>
+                <th>Request ID</th>
+                <td>{{ cash_call.txt_request_id }}</td>
+            </tr>
+            <tr>
+                <th>Date of cash call</th>
+                <td>{{ cash_call.date_of_cash_call_raised }}</td>
+            </tr>
+            <tr>
+                <th>Current status</th>
+                <td>{{ cash_call.txt_current_status }}</td>
+            </tr>
+            <tr>
+                <th>UTR Number</th>
+                <td>{{ cash_call.txt_utr_number or "" }}</td>
+            </tr>
+            <tr>
+                <th>Date of cash call settlement</th>
+                <td>{{ cash_call.date_of_cash_call_settlement or "" }}</td>
+            </tr>
+            <tr>
+                <th>Amount of cash call settled</th>
+                <td>{{ cash_call.amount_settlement or "" }}</td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+<div class="has-text-centered">
+    <a class="button is-link" href="{{ url_for('coinsurance.edit_cash_call', cash_call_key=cash_call.id) }}">Edit</a>
+</div>
+{% endblock content %}

@@ -2,102 +2,186 @@
 {% block content %}
 
 <h1 class="title"></h1>
-    <table class="table is-fullwidth">
+<div class="columns">
+    <div class="column">
 
-        <tr><th>Entry number</th> <td>{{ coinsurance.id }} </td></tr>
-        <tr><th>Regional office code</th> <td>{{ coinsurance.uiic_regional_code }}</td></tr>
-        <tr><th>Operating office code</th> <td>{{ coinsurance.uiic_office_code }} </td></tr>
-        <tr><th>Whether leader or follower</th> <td>{{ coinsurance.type_of_transaction }}</td></tr>
-        <tr><th>Name of the coinsurer</th> <td>{{ coinsurance.follower_company_name }}</td></tr>
-        <tr><th>Coinsurer office code</th> <td>{{ coinsurance.follower_office_code }}</td></tr>
-        <tr><th>Payable amount</th> <td>{{ coinsurance.payable_amount }}</td></tr>
-        <tr><th>Receivable amount</th> <td>{{ coinsurance.receivable_amount }}</td></tr>
-       <tr><th>Name of insured</th> <td>{{ coinsurance.insured_name }}</td></tr>
-        <tr><th>Whether RI is involved or not</th> <td>{{ "Yes" if coinsurance.boolean_reinsurance_involved else "No" }}</td></tr>
-        {% if coinsurance.boolean_reinsurance_involved %}
-        <tr><th>RI payable amount</th> <td>{{ coinsurance.int_ri_payable_amount }}</td></tr>
-        <tr><th>RI receivable amount</th> <td>{{ coinsurance.int_ri_receivable_amount }}</td></tr>
-        {% endif %}
-        {% if coinsurance.net_amount > 0 %}
-        <tr><th>Net amount payable </th> <td>{{ coinsurance.net_amount }}</td></tr>
-        {% else %}
-        <tr><th>Net amount receivable</th> <td>{{ coinsurance.net_amount * -1 }}</td></tr>
-        {% endif %}
-        <tr><th>Request ID</th> <td>{{ coinsurance.request_id }}</td></tr>
-       <tr><th>Download statement</th>    <td>
-               {% if coinsurance.statement %}
-               <a href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'> Download statement</a>
-               {% else %}
-                Statement not uploaded
-                {% endif %}
-           </td></tr>
-       <tr><th>Download confirmation</th>    <td>
-               {% if coinsurance.confirmation %}
-               <a href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'> Download confirmation</a>
-               {% else %}
-               Confirmation not uploaded
-               {% endif %}
-           </td></tr>
+        <table class="table is-fullwidth">
 
-        {% if coinsurance.boolean_reinsurance_involved %}
-       <tr><th>Download RI confirmation</th>    <td><a href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'> Download RI confirmation</a></td></tr>
-        {% endif %}
-        {% if remarks %}
-        <tr><th>Remarks</th> <td>
-                <table class="table is-bordered">
-                    <thead></thead>
-                    <tr>
-                        <th>Time of remarks</th>
-                        <th>User</th>
-                        <th>Remarks</th>
-                    </tr>
-                    <tbody>
-                        {% for remark in remarks %}
-                        <tr>
-                            <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark) }}</td>
-                            <td>{{ remark.user }}</td>
-                            <td>{{ remark.remarks }}</td>
+            <tr>
+                <th>Entry number</th>
+                <td>{{ coinsurance.id }} </td>
+            </tr>
+            <tr>
+                <th>Regional office code</th>
+                <td>{{ coinsurance.uiic_regional_code }}</td>
+            </tr>
+            <tr>
+                <th>Operating office code</th>
+                <td>{{ coinsurance.uiic_office_code }} </td>
+            </tr>
+            <tr>
+                <th>Whether leader or follower</th>
+                <td>{{ coinsurance.type_of_transaction }}</td>
+            </tr>
+            <tr>
+                <th>Name of the coinsurer</th>
+                <td>{{ coinsurance.follower_company_name }}</td>
+            </tr>
+            <tr>
+                <th>Coinsurer office code</th>
+                <td>{{ coinsurance.follower_office_code }}</td>
+            </tr>
+            <tr>
+                <th>Name of insured</th>
+                <td>{{ coinsurance.insured_name }}</td>
+            </tr>
+            <tr>
+                <th>Payable amount</th>
+                <td>{{ coinsurance.payable_amount }}</td>
+            </tr>
+            <tr>
+                <th>Receivable amount</th>
+                <td>{{ coinsurance.receivable_amount }}</td>
+            </tr>
 
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endif %}
-            </td></tr>
-
-            <tr><th>Current status</th><td>{{ coinsurance.current_status }}</td></tr>
-            {% if coinsurance.current_status == "Settled" %}
-            <tr><th>Details of settlement</th><td>
-                  <table class="table is-bordered">
-                    <thead></thead>
-                    <tr>
-                        <th>Date of settlement</th>
-                        <th>Amount settled</th>
-                        <th>Paid / received</th>
-                        <th>UTR number</th>
-                    </tr>
-                    <tbody>
-                        {% for settlement_entry in settlement %}
-                        <tr>
-                            <td>{{ settlement_entry.date_of_settlement }}</td>
-                            <td>{{ settlement_entry.settled_amount }}</td>
-                            <td>{{ settlement_entry.type_of_transaction }}</td>
-                            <td>{{ settlement_entry.utr_number }}</td>
-
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </td></tr>
-            {% endif %}
-            </table>
-    <div class="mt-5 has-text-centered">
-        {% if enable_edit_button %}
-      <a class="button is-link is-outlined is-large" href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=coinsurance.id)}}">Edit</a>
-      		{% else %}
-				<a class="button is-link is-large" disabled>Edit</a>
-
-      {% endif %}
+            <tr>
+                <th>Request ID</th>
+                <td>{{ coinsurance.request_id }}</td>
+            </tr>
+        </table>
     </div>
+    <div class="column">
+        <table class="table is-fullwidth">
+            <tr>
+                <th>Whether RI is involved or not</th>
+                <td>{{ "Yes" if coinsurance.boolean_reinsurance_involved else "No" }}</td>
+            </tr>
+            {% if coinsurance.boolean_reinsurance_involved %}
+            <tr>
+                <th>RI payable amount</th>
+                <td>{{ coinsurance.int_ri_payable_amount }}</td>
+            </tr>
+            <tr>
+                <th>RI receivable amount</th>
+                <td>{{ coinsurance.int_ri_receivable_amount }}</td>
+            </tr>
+            {% endif %}
+            {% if coinsurance.net_amount > 0 %}
+            <tr>
+                <th>Net amount payable</th>
+                <td>{{ coinsurance.net_amount }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <th>Net amount receivable</th>
+                <td>{{ coinsurance.net_amount * -1 }}</td>
+            </tr>
+            {% endif %}
+
+            <tr>
+                <th>Download statement</th>
+                <td>
+                    {% if coinsurance.statement %}
+                    <a class="button is-link is-small is-outlined"
+                        href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'>
+                        Download statement</a>
+                    {% else %}
+                    Statement not uploaded
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Download confirmation</th>
+                <td>
+                    {% if coinsurance.confirmation %}
+                    <a class="button is-link is-small is-outlined"
+                        href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'>
+                        Download confirmation</a>
+                    {% else %}
+                    Confirmation not uploaded
+                    {% endif %}
+                </td>
+            </tr>
+
+            {% if coinsurance.boolean_reinsurance_involved %}
+            <tr>
+                <th>Download RI confirmation</th>
+                <td><a class="button is-link is-small is-outlined"
+                        href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'>
+                        Download RI confirmation</a></td>
+            </tr>
+            {% endif %}
+            {% if remarks.count() > 0 %}
+            <tr>
+                <th>Remarks</th>
+                <td>
+                    <table class="table is-bordered">
+                        <thead></thead>
+                        <tr>
+                            <th>Time of remarks</th>
+                            <th>User</th>
+                            <th>Remarks</th>
+                        </tr>
+                        <tbody>
+                            {% for remark in remarks %}
+                            <tr>
+                                <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark) }}
+                                </td>
+                                <td>{{ remark.user }}</td>
+                                <td>{{ remark.remarks }}</td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>Current status</th>
+                <td>{{ coinsurance.current_status }}</td>
+            </tr>
+            {% if coinsurance.current_status == "Settled" %}
+            <tr>
+                <th>Details of settlement</th>
+                <td>
+                    <table class="table is-bordered">
+                        <thead></thead>
+                        <tr>
+                            <th>Date of settlement</th>
+                            <th>Amount settled</th>
+                            <th>Paid / received</th>
+                            <th>UTR number</th>
+                        </tr>
+                        <tbody>
+                            {% for settlement_entry in settlement %}
+                            <tr>
+                                <td>{{ settlement_entry.date_of_settlement }}</td>
+                                <td>{{ settlement_entry.settled_amount }}</td>
+                                <td>{{ settlement_entry.type_of_transaction }}</td>
+                                <td><a
+                                        href="{{ url_for('coinsurance.list_settled_coinsurance_entries', utr_number=settlement_entry.utr_number) }}">{{
+                                        settlement_entry.utr_number }}</a></td>
+
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+<div class="mt-5 has-text-centered">
+    {% if enable_edit_button %}
+    <a class="button is-link is-outlined is-large"
+        href="{{ url_for ('coinsurance.edit_coinsurance_entry', coinsurance_id=coinsurance.id)}}">Edit</a>
+    {% else %}
+    <a class="button is-link is-large" disabled>Edit</a>
+
+    {% endif %}
+</div>
 
 {% endblock content %}

@@ -3,95 +3,208 @@
 {% block content %}
 
 <h1 class="title">Enter coinsurance confirmation details</h1>
-<form action="" method="post" enctype="multipart/form-data" >
-    {{ form.csrf_token }}
-    <table class="table is-fullwidth is-hoverable">
-        <tr> <th>  {{ form.regional_office_code.label }}   </th>
-        <td>
-        {% if current_user.user_type in ["admin","coinsurance_hub_user"] %}
-          {{ form.regional_office_code(class='input') }}
-          {% else %}
-          {{ form.regional_office_code.data }}
-          {% endif %}
-        </td>
-        </tr>
-        <tr><th>{{ form.oo_code.label }}</th>    <td>
-        {% if current_user.user_type == "oo_user" %}
-        {{ form.oo_code.data }}
-              {% else %}
-        {{ form.oo_code(class='input')}}
-        {% endif %}
-        </td></tr>
-        <tr><th>{{ form.coinsurer_name.label }}</th>    <td>{{ form.coinsurer_name(class='select') }}</td></tr>
-        <tr><th>{{ form.coinsurer_office_code.label }}</th>    <td>{{ form.coinsurer_office_code(class='input') }}</td></tr>
-        <tr><th>{{ form.type_of_transaction.label }}</th>    <td>{{ form.type_of_transaction(class='select')}}</td></tr>
-        <tr><th>{{ form.payable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.payable_amount(class='input') }}</td></tr>
-        <tr><th>{{ form.receivable_amount.label }}</th>    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input') }}</td></tr>
-        <tr><th><label id="label_before_ri">Net payable (excluding RI)</label></th> <td><label id="cal_direct_amount"></label></td></tr>
-        <tr><th>{{ form.request_id.label }}</th>    <td>{{ form.request_id(class='input')}}</td></tr>
-        <tr><th>{{ form.name_of_insured.label }}</th>    <td>{{ form.name_of_insured(class='input')}}</td></tr>
-
-        <tr><th>{{ form.statement.label }}</th>    <td>{{ form.statement }}
-
-        {% if edit and coinsurance.statement %}
-        <a href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'>Download statement</a>
-        {% elif edit %} Statement not uploaded {% endif %}
-        </td></tr>
-
-        <tr><th>{{ form.confirmation.label }}</th>    <td>{{ form.confirmation }}
-
-        {% if edit and coinsurance.confirmation %}
-        <a href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'>Download confirmation</a>
-        {% elif edit %} Confirmation not uploaded {% endif %}
-        </td></tr>
-
-        <tr><th>{{ form.bool_reinsurance.label }}</th>    <td>{{ form.bool_reinsurance(class='checkbox') }}</td></tr>
-        {% if form.bool_reinsurance.data %}
-        <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input') }}</td></tr>
-        <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input') }}</td></tr>
-        <tr><th><label id="label_after_ri">Net payable (including RI)</label></th> <td ><label id="cal_ri_amount"> </label></td></tr>
-
-        <tr><th>{{ form.ri_confirmation.label }}</th>    <td>{{ form.ri_confirmation }}
-        {% if edit and coinsurance.ri_confirmation %}
-        <a href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'>Download RI confirmation</a>
-        {% elif edit %} Reinsurance confirmation not uploaded {% endif %}
-        </td></tr>
-
-        {% else %}
-        <tr><th>{{ form.int_ri_payable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input', disabled=disabled) }}</td></tr>
-        <tr><th>{{ form.int_ri_receivable_amount.label }}</th>    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input', disabled=disabled) }}</td></tr>
-        <tr><th><label id="label_after_ri">Net payable (including RI)</label></th> <td ><label id="cal_ri_amount" disabled></label></td></tr>
-        <tr><th>{{ form.ri_confirmation.label }}</th>    <td>{{ form.ri_confirmation(disabled=disabled) }}</td></tr>
-        {% endif %}
-        {% if remarks %}
-        <tr><th>Remarks</th> <td>
-            <table class="table is-bordered">
-                <thead>
-                <tr>
-                    <th>Time of remarks</th>
-                    <th>User</th>
-                    <th>Remarks</th>
-                </tr></thead>
-                    <tbody>
-                        {% for remark in remarks %}
-                        <tr>
-                            <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark) }}</td>
-                            <td>{{ remark.user }}</td>
-                            <td>{{ remark.remarks }}</td>
-
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-            </table></td></tr>
-        {% endif %}
-        <tr><th>{{ form.remarks.label }}</th>    <td>{{ form.remarks(class='textarea') }}</td></tr>
-        {% if change_status %}
-        <tr><th>{{ form.current_status.label }}</th>    <td>{{ form.current_status(class='select')}}</td></tr>
-        {% endif %}
-        {% if update_settlement %}
-            <tr><th>{{ form.settlement.label }}</th>    <td>{{ form.settlement(class='select')}}</td></tr>
+{% for field in form %}
+{% if field.errors %}
+<div class="notification is-danger">
+    {{ field.label }} field is to be completed.
+</div>
 {% endif %}
-    </table>
+{% endfor %}
+
+{% with messages = get_flashed_messages() %}
+{% for message in messages %}
+<div class="notification is-danger">
+    <p>{{ message }}</p>
+</div>
+{% endfor %}
+
+{% endwith %}
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    <div class="columns box">
+        <div class="column">
+            <table class="table is-fullwidth is-hoverable">
+                <tr>
+                    <th> {{ form.regional_office_code.label }} </th>
+                    <td>
+                        {% if current_user.user_type in ["admin","coinsurance_hub_user"] %}
+                        {{ form.regional_office_code(class='input') }}
+                        {% else %}
+                        {{ form.regional_office_code.data }}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>{{ form.oo_code.label }}</th>
+                    <td>
+                        {% if current_user.user_type == "oo_user" %}
+                        {{ form.oo_code.data }}
+                        {% else %}
+                        {{ form.oo_code(class='input')}}
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <th>{{ form.type_of_transaction.label }}</th>
+                    <td>{{ form.type_of_transaction(class='select')}}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.coinsurer_name.label }}</th>
+                    <td>{{ form.coinsurer_name(class='select') }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.coinsurer_office_code.label }}</th>
+                    <td>{{ form.coinsurer_office_code(class='input') }}</td>
+                </tr>
+
+                <tr>
+                    <th>{{ form.name_of_insured.label }}</th>
+                    <td>{{ form.name_of_insured(class='input')}}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.payable_amount.label }}</th>
+                    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.payable_amount(class='input') }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.receivable_amount.label }}</th>
+                    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input') }}
+                    </td>
+                </tr>
+                <tr>
+                    <th><label id="label_before_ri">Net payable (excluding RI)</label></th>
+                    <td><label id="cal_direct_amount"></label></td>
+                </tr>
+                <tr>
+                    <th>{{ form.request_id.label }}</th>
+                    <td>{{ form.request_id(class='textarea')}}</td>
+                </tr>
+
+            </table>
+        </div>
+        <div class="column">
+            <table class="table is-fullwidth is-hoverable">
+                <tr>
+                    <th>{{ form.statement.label }}</th>
+                    <td>{{ form.statement }}
+
+                        {% if edit and coinsurance.statement %}
+                        <a class="button is-link is-small is-outlined"
+                            href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'>Download
+                            statement</a>
+                        {% elif edit %} Statement not uploaded {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>{{ form.confirmation.label }}</th>
+                    <td>{{ form.confirmation }}
+
+                        {% if edit and coinsurance.confirmation %}
+                        <a class="button is-link is-small is-outlined"
+                            href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'>Download
+                            confirmation</a>
+                        {% elif edit %} Confirmation not uploaded {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th>{{ form.bool_reinsurance.label }}</th>
+                    <td>{{ form.bool_reinsurance(class='checkbox') }}</td>
+                </tr>
+                {% if form.bool_reinsurance.data %}
+                <tr>
+                    <th>{{ form.int_ri_payable_amount.label }}</th>
+                    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input') }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.int_ri_receivable_amount.label }}</th>
+                    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input') }}</td>
+                </tr>
+                <tr>
+                    <th><label id="label_after_ri">Net payable (including RI)</label></th>
+                    <td><label id="cal_ri_amount"> </label></td>
+                </tr>
+
+                <tr>
+                    <th>{{ form.ri_confirmation.label }}</th>
+                    <td>{{ form.ri_confirmation }}
+                        {% if edit and coinsurance.ri_confirmation %}
+                        <a class="button is-link is-small is-outlined"
+                            href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'>Download
+                            RI confirmation</a>
+                        {% elif edit %} Reinsurance confirmation not uploaded {% endif %}
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <th>{{ form.int_ri_payable_amount.label }}</th>
+                    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input', disabled=disabled) }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.int_ri_receivable_amount.label }}</th>
+                    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input', disabled=disabled) }}
+                    </td>
+                </tr>
+                <tr>
+                    <th><label id="label_after_ri">Net payable (including RI)</label></th>
+                    <td><label id="cal_ri_amount" disabled></label></td>
+                </tr>
+                <tr>
+                    <th>{{ form.ri_confirmation.label }}</th>
+                    <td>{{ form.ri_confirmation(disabled=disabled) }}</td>
+                </tr>
+                {% endif %}
+                {% if remarks %}
+                {% if remarks.count() > 0 %}
+                <tr>
+                    <th>Remarks</th>
+                    <td>
+                        <table class="table is-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Time of remarks</th>
+                                    <th>User</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for remark in remarks %}
+                                <tr>
+                                    <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark)
+                                        }}
+                                    </td>
+                                    <td>{{ remark.user }}</td>
+                                    <td>{{ remark.remarks }}</td>
+
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endif %}
+                <tr>
+                    <th>{{ form.remarks.label }}</th>
+                    <td>{{ form.remarks(class='textarea') }}</td>
+                </tr>
+                {% if change_status %}
+                <tr>
+                    <th>{{ form.current_status.label }}</th>
+                    <td>{{ form.current_status(class='select')}}</td>
+                </tr>
+                {% endif %}
+                {% if update_settlement %}
+                <tr>
+                    <th>{{ form.settlement.label }}</th>
+                    <td>{{ form.settlement(class='select')}}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
     <div class="mt-5 has-text-centered">
         {% if enable_save_button %}
         <button class="button is-primary is-large">Save</button>
@@ -101,70 +214,45 @@
     </div>
 </form>
 
-  {% for field in form %}
-      {% if field.errors %}
-    <div class="notification is-danger">
-        {{ field.label }} field is to be completed.
-    </div>
-      {% endif %}
- {% endfor %}
-
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-
-    <script>
-      var messages = {{ messages | safe }};
-      for (var i=0; i<messages.length; i++) {
-        alert(messages[i]);
-      }
-    </script>
-
-{% for message in messages %}
-   <div class="notification is-danger">
-        <p>{{ message }}</p>
-   </div>
-{% endfor %}
-{% endif %}
-{% endwith %}
 {% block scripts %}
 <script>
 
-$(document).ready(function() {
-calculateSum();
-});
+    $(document).ready(function () {
+        calculateSum();
+    });
 
-   function calculateSum() {
-     var direct_payable = parseInt(document.getElementById("payable_amount").value===""?0:document.getElementById("payable_amount").value);
-     var direct_receivable = parseInt(document.getElementById("receivable_amount").value===""?0:document.getElementById("receivable_amount").value);
-     sum_direct = direct_payable - direct_receivable;
+    function calculateSum() {
+        var direct_payable = parseInt(document.getElementById("payable_amount").value === "" ? 0 : document.getElementById("payable_amount").value);
+        var direct_receivable = parseInt(document.getElementById("receivable_amount").value === "" ? 0 : document.getElementById("receivable_amount").value);
+        sum_direct = direct_payable - direct_receivable;
 
-    if (sum_direct > 0) {
-    document.getElementById("label_before_ri").innerText = "Net payable (excluding RI)";
-        document.getElementById("cal_direct_amount").innerText = sum_direct;
-    } else {
-     document.getElementById("label_before_ri").innerText = "Net receivable (excluding RI)";
-         document.getElementById("cal_direct_amount").innerText = sum_direct*-1;
-    }
-     var ri_payable = parseInt(document.getElementById("int_ri_payable_amount").value===""?0:document.getElementById("int_ri_payable_amount").value);
-     var ri_receivable = parseInt(document.getElementById("int_ri_receivable_amount").value===""?0:document.getElementById("int_ri_receivable_amount").value);
-     sum_ri = sum_direct + ri_payable - ri_receivable
+        if (sum_direct > 0) {
+            document.getElementById("label_before_ri").innerText = "Net payable (excluding RI)";
+            document.getElementById("cal_direct_amount").innerText = sum_direct;
+        } else {
+            document.getElementById("label_before_ri").innerText = "Net receivable (excluding RI)";
+            document.getElementById("cal_direct_amount").innerText = sum_direct * -1;
+        }
+        var ri_payable = parseInt(document.getElementById("int_ri_payable_amount").value === "" ? 0 : document.getElementById("int_ri_payable_amount").value);
+        var ri_receivable = parseInt(document.getElementById("int_ri_receivable_amount").value === "" ? 0 : document.getElementById("int_ri_receivable_amount").value);
+        sum_ri = sum_direct + ri_payable - ri_receivable
 
-    if (sum_ri > 0) {
+        if (sum_ri > 0) {
             document.getElementById("label_after_ri").innerText = "Net payable (including RI)";
             document.getElementById("cal_ri_amount").innerText = sum_ri;
-    } else {
+        } else {
             document.getElementById("label_after_ri").innerText = "Net receivable (including RI)";
-            document.getElementById("cal_ri_amount").innerText = sum_ri*-1;
+            document.getElementById("cal_ri_amount").innerText = sum_ri * -1;
+        }
     }
-}
-     // enable or disable RI related things
-     document.getElementById('bool_reinsurance').onchange = function() {
+    // enable or disable RI related things
+    document.getElementById('bool_reinsurance').onchange = function () {
         document.getElementById('int_ri_payable_amount').disabled = !this.checked;
         document.getElementById('int_ri_receivable_amount').disabled = !this.checked;
         document.getElementById('cal_ri_amount').disabled = !this.checked;
         document.getElementById('ri_confirmation').disabled = !this.checked;
-};
+    };
 
-     </script>
+</script>
 {% endblock scripts %}
 {% endblock content %}

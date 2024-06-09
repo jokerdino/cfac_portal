@@ -92,3 +92,40 @@ class CoinsuranceBalances(db.Model):
     oo_due_to = db.Column(db.Float)
     oo_due_from = db.Column(db.Float)
     net_amount = db.Column(db.Float)
+
+
+class CoinsuranceCashCall(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    txt_hub = db.Column(db.String)
+    txt_ro_code = db.Column(db.String)
+    txt_oo_code = db.Column(db.String)
+
+    txt_insured_name = db.Column(db.String)
+    date_policy_start_date = db.Column(db.Date)
+    date_policy_end_date = db.Column(db.Date)
+
+    amount_total_paid = db.Column(db.Numeric(15, 2))
+    txt_remarks = db.Column(db.Text)
+    date_claim_payment = db.Column(db.Date)
+
+    txt_coinsurer_name = db.Column(db.String)
+    percent_share = db.Column(db.Numeric(5, 2))
+    amount_of_share = db.Column(db.Numeric(15, 2))
+    txt_request_id = db.Column(db.String)
+
+    date_of_cash_call_raised = db.Column(db.Date)
+    txt_current_status = db.Column(db.String)
+
+    txt_utr_number = db.Column(db.String)
+    date_of_cash_call_settlement = db.Column(db.Date)
+    amount_settlement = db.Column(db.Numeric(15, 2))
+
+    created_by = db.Column(db.String)
+    created_on = db.Column(db.DateTime)
+
+    updated_by = db.Column(db.String)
+    updated_on = db.Column(db.DateTime)
+
+    deleted_by = db.Column(db.String)
+    deleted_on = db.Column(db.DateTime)
