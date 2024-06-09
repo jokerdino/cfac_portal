@@ -13,51 +13,59 @@
             <th>Date of settlement</th>
             <th>UTR number</th>
             <th>Notes</th>
-            <th>View settled entries</th>
             <th>View</th>
+            {% if current_user.user_type == "admin" %}
+            <th>Edit</th>
+            {% endif %}
         </tr>
     </thead>
     <tbody>
         {% for entry in settlement_entries %}
-    <tr>
+        <tr>
             <td>{{ entry.name_of_company }}</td>
             <td>{{ entry.type_of_transaction }}</td>
-        {% if entry.type_of_transaction == "Paid" %}
+            {% if entry.type_of_transaction == "Paid" %}
             <td class="has-text-right">{{ "{:,}".format(entry.settled_amount|int) }}</td>
-        {% else %}
+            {% else %}
             <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
-        {% endif %}
-            <td class="has-text-centered" data-sort="{{ entry.date_of_settlement }}">{{ entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
-            <td>{{ entry.utr_number }}</td>
+            {% endif %}
+            <td class="has-text-centered" data-sort="{{ entry.date_of_settlement }}">{{
+                entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
+            <td><a href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">{{
+                    entry.utr_number }}</a></td>
             <td>
-        {% if entry.notes %}
+                {% if entry.notes %}
                 {{ entry.notes[:50] }}
-        {% endif %}
+                {% endif %}
             </td>
-            <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = entry.utr_number) }}">View</a></td>
-           <td><a class="button is-info is-small" href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
-    </tr>
+            <td><a class="button is-info is-small"
+                    href="{{ url_for ('coinsurance.view_settlement_entry', settlement_id = entry.id) }}">View</a></td>
+            {% if current_user.user_type == "admin" %}
+            <td><a class="button is-info is-small"
+                    href="{{ url_for ('coinsurance.edit_settlement_entry', settlement_id = entry.id) }}">Edit</a></td>
+            {% endif %}
+        </tr>
         {% endfor %}
-</tbody>
+    </tbody>
 </table>
 {% endif %}
 
 {% block scripts %}
 <script>
 
-new DataTable('#settlement_table', {
-    dom: 'lfBrtip',
-    fixedHeader: true,
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[3,'desc']],
-    pagingType: 'full_numbers',
-    pageLength: 50,
-    lengthMenu: [
-         [10,25,50,100,-1],
-         [10,25,50,100,'All'],]
+    new DataTable('#settlement_table', {
+        dom: 'lfBrtip',
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[3, 'desc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
     });
 
 </script>

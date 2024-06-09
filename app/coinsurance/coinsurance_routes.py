@@ -619,7 +619,9 @@ def edit_coinsurance_entry(coinsurance_id):
 
 
 def select_coinsurers(query, form):
-    coinsurer_choices = query.distinct(Coinsurance.follower_company_name)
+    coinsurer_choices = query.order_by(
+        Coinsurance.follower_company_name.asc()
+    ).distinct(Coinsurance.follower_company_name)
     form.coinsurer_name.choices = ["View all"] + [
         x.follower_company_name for x in coinsurer_choices
     ]
@@ -671,7 +673,7 @@ def list_coinsurance_entries():
 
     coinsurance_entries = Coinsurance.query.filter(
         Coinsurance.current_status != "No longer valid"
-    ).order_by(Coinsurance.follower_company_name.desc())
+    ).order_by(Coinsurance.follower_company_name.asc())
     if current_user.user_type == "ro_user":
         coinsurance_entries = Coinsurance.query.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -707,7 +709,9 @@ def list_coinsurance_entries():
 def list_coinsurance_entries_by_status(status):
     form_select_coinsurer = CoinsurerSelectForm()
 
-    coinsurance_entries = Coinsurance.query.filter(Coinsurance.current_status == status)
+    coinsurance_entries = Coinsurance.query.filter(
+        Coinsurance.current_status == status
+    ).order_by(Coinsurance.follower_company_name.asc())
     if current_user.user_type == "ro_user":
         coinsurance_entries = coinsurance_entries.filter(
             Coinsurance.uiic_regional_code == current_user.ro_code
@@ -734,16 +738,20 @@ def list_coinsurance_entries_by_status(status):
 
             form = SettlementUTRForm()
 
-            utr_list = Settlement.query.with_entities(
-                Settlement.name_of_company,
-                Settlement.utr_number,
-                Settlement.settled_amount,
-                Settlement.date_of_settlement,
-            ).distinct()
+            utr_list = (
+                Settlement.query.with_entities(
+                    Settlement.name_of_company,
+                    Settlement.utr_number,
+                    Settlement.settled_amount,
+                    Settlement.date_of_settlement,
+                )
+                .order_by(Settlement.date_of_settlement.desc())
+                .distinct()
+            )
             form.utr_number.choices = [
                 (
                     utr_number,
-                    f"{name_of_company}-{utr_number}: Rs. {settled_amount} on {date_of_settlement.strftime('%d/%m/%Y')}",
+                    f"{name_of_company}-{utr_number}: Rs. {settled_amount:,} on {date_of_settlement.strftime('%d/%m/%Y')}",
                 )
                 for name_of_company, utr_number, settled_amount, date_of_settlement in utr_list
                 if name_of_company in list_coinsurer_choices
@@ -907,6 +915,50 @@ def add_settlement_data():
     return render_template("add_settlement_entry.html", form=form)
 
 
+@coinsurance_bp.route("/settlements/edit/<int:settlement_id>", methods=["POST", "GET"])
+@login_required
+def edit_settlement_entry(settlement_id):
+    from extensions import db
+
+    settlement = Settlement.query.get_or_404(settlement_id)
+    form = SettlementForm()
+    if form.validate_on_submit():
+        settlement.name_of_company = form.coinsurer_name.data
+        settlement.date_of_settlement = form.date_of_settlement.data
+        settlement.settled_amount = form.amount_settled.data
+        settlement.utr_number = form.utr_number.data
+        settlement.type_of_transaction = form.type_of_settlement.data
+        settlement.notes = form.notes.data
+
+        if form.data["settlement_file"]:
+            settlement_filename_data = secure_filename(
+                form.data["settlement_file"].filename
+            )
+            settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
+            settlement_filename = (
+                "settlement"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + settlement_file_extension
+            )
+            form.settlement_file.data.save("settlements/" + settlement_filename)
+            settlement.file_settlement_file = settlement_filename
+
+        db.session.commit()
+        return redirect(
+            url_for("coinsurance.view_settlement_entry", settlement_id=settlement.id)
+        )
+    form.coinsurer_name.data = settlement.name_of_company
+    form.date_of_settlement.data = settlement.date_of_settlement
+    form.amount_settled.data = settlement.settled_amount
+    form.utr_number.data = settlement.utr_number
+    form.type_of_settlement.data = settlement.type_of_transaction
+    form.notes.data = settlement.notes
+    return render_template(
+        "add_settlement_entry.html", form=form, edit=True, settlement=settlement
+    )
+
+
 @coinsurance_bp.route("/log/<int:coinsurance_id>")
 @login_required
 def view_coinsurance_log(coinsurance_id):
@@ -999,16 +1051,6 @@ def view_coinsurance_balance(period):
         coinsurance_balance=coinsurance_balance,
         period=period,
     )
-
-
-#  CRUD for cash call tracker
-
-# list all cash calls - DONE
-# add new cash call - DONE
-# view cash call - DONE
-# edit cash call - DONE
-
-# bulk upload cash calls
 
 
 @coinsurance_bp.route("/cash_call/add", methods=["POST", "GET"])

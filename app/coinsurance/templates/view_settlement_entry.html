@@ -1,25 +1,59 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
 
-<h1 class="title">Settlement details</h1>
+<div class="container">
+    <h1 class="title">Settlement details</h1>
     <table class="table is-fullwidth">
 
-        <tr><th>Coinsurer name</th> <td>{{ settlement.name_of_company }} </td></tr>
-        <tr><th>Paid / received</th> <td>{{ settlement.type_of_transaction }}</td></tr>
-        <tr><th>Amount settled</th> <td>{{ settlement.settled_amount }} </td></tr>
-        <tr><th>UTR number</th> <td>{{ settlement.utr_number }}</td></tr>
-        <tr><th>Date of settlement</th> <td>{{ settlement.date_of_settlement.strftime("%d/%m/%Y") }}</td></tr>
-        <tr><th>Notes</th><td>{{ settlement.notes| safe }}</td></tr>
-        <tr><th>View settled entries</th> <td> <a href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = settlement.utr_number) }}">View settled entries</a></td></tr>
-        <tr><th>Download settlement summary statement</th>
+        <tr>
+            <th>Coinsurer name</th>
+            <td>{{ settlement.name_of_company }} </td>
+        </tr>
+        <tr>
+            <th>Paid / received</th>
+            <td>{{ settlement.type_of_transaction }}</td>
+        </tr>
+        <tr>
+            <th>Amount settled</th>
+            <td>{{ settlement.settled_amount }} </td>
+        </tr>
+        <tr>
+            <th>UTR number</th>
+            <td>{{ settlement.utr_number }}</td>
+        </tr>
+        <tr>
+            <th>Date of settlement</th>
+            <td>{{ settlement.date_of_settlement.strftime("%d/%m/%Y") }}</td>
+        </tr>
+        <tr>
+            <th>Notes</th>
+            <td>{{ settlement.notes| safe }}</td>
+        </tr>
+        <tr>
+            <th>View settled entries</th>
+            <td> <a
+                    href="{{ url_for ('coinsurance.list_settled_coinsurance_entries', utr_number = settlement.utr_number) }}">View
+                    settled entries</a></td>
+        </tr>
+        <tr>
+            <th>Download settlement summary statement</th>
 
             {% if settlement.file_settlement_file %}
-            <td> <a href="{{ url_for ('coinsurance.download_settlements', settlement_id = settlement.id) }}">Download settlement statement</a></td>
-        {% else %}
+            <td> <a href="{{ url_for ('coinsurance.download_settlements', settlement_id = settlement.id) }}">Download
+                    settlement statement</a></td>
+            {% else %}
             <td>No settlement statement uploaded</td>
             {% endif %}
         </tr>
 
     </table>
 
+    {% if current_user.user_type == "admin" %}
+    <div class="has-text-centered">
+        <a class="button is-link"
+            href="{{ url_for('coinsurance.edit_settlement_entry', settlement_id=settlement.id) }}">Edit</a>
+    </div>
+
+    {% endif %}
+</div>
 {% endblock content %}

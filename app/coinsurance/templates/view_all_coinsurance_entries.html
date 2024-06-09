@@ -4,144 +4,136 @@
 
 {% if coinsurance_entries %}
 
-<form class="mb-5" method="post" enctype="multipart/form-data">
-    {{ form_select_coinsurer.csrf_token }}
-    {{ form_select_coinsurer.coinsurer_name.label }}: {{ form_select_coinsurer.coinsurer_name(class='select') }}
+<div class="columns">
+    <div class="column">
+        <form class="mb-5" method="post" enctype="multipart/form-data">
+            {{ form_select_coinsurer.csrf_token }}
+            {{ form_select_coinsurer.coinsurer_name.label }}: {{ form_select_coinsurer.coinsurer_name(class='select') }}
 
-    {{ form_select_coinsurer.filter_coinsurer(class="button is-success is-outlined is-hoverable is-small") }}
-</form>
+            {{ form_select_coinsurer.filter_coinsurer(class="button is-success is-outlined is-hoverable is-small") }}
+        </form>
 
-<form method="post" name="coinsurance_list" enctype="multipart/form-data">
-    {% if status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"] %}
-    {{ form.csrf_token }}
-    {{ form.utr_number.label }} {{ form.utr_number(class='select') }}
-
-    {% endif %}
-    {% if update_settlement and status == "To be settled" and current_user.user_type in ["admin","coinsurance_hub_user"]
-    %}
-    <div class="field is-grouped mt-5">
-        <div class="control">
-            {{ form.update_settlement(class="button is-danger") }}
-        </div>
-    </div>
-    <div class="table-container">
-        <div class="is-pulled-right">
-            <table class="table is-bordered" id="totalTable">
-                <tr>
-                    <th>Total: </th>
-                    <td id="total"></td>
-                </tr>
-                <tr>
-                    <th>Page total: </th>
-                    <td class="has-text-right" id="page_total"></td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <table class="table is-striped is-narrow is-hoverable is-fullwidth" id="coinsurance_table">
-
-        <thead>
-            <tr>
-
-                {% if update_settlement and status == "To be settled" and current_user.user_type in
-                ["admin","coinsurance_hub_user"] %}
-                <th>Select</th>
-                {% endif %}
-
-                <th>Entry ID</th>
-                <th></th>
-                <th>RO code</th>
-                <th>OO code</th>
-                <th>Coinsurer name</th>
-                <th>Coinsurer office code</th>
-                <th>Leader / follower </th>
-                <th>Request ID</th>
-                <th>Name of insured</th>
-                <th>Payable amount</th>
-                <th>Receivable amount</th>
-                <th>Net payable / (Net receivable) (Excluding RI)</th>
-                <th>Reinsurance involved</th>
-                <th>RI payable amount</th>
-                <th>RI receivable amount </th>
-                <th>Net payable / (Net receivable) (Including RI) </th>
-                <th>Current status</th>
-                <th>Zone</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in coinsurance_entries %}
-            <tr>
-                {% if update_settlement and status == "To be settled" and current_user.user_type in
-                ["admin","coinsurance_hub_user"] %}
-                <td>
-                    <label class="checkbox">
-                        <input type="checkbox" name="coinsurance_keys" value="{{ entry.id }}" />
-                    </label>
-                </td>
-                {% endif %}
-                <td class="has-text-right"> {{ entry.id }}</td>
-                <td>
-                    <a class="button is-small is-info"
-                        href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">
-                        View</a>
-                </td>
-                <td> {{ entry.uiic_regional_code }}</td>
-                <td> {{ entry.uiic_office_code | replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.follower_company_name }}</td>
-                <td> {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.type_of_transaction }}</td>
-                <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.insured_name }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.payable_amount - entry.receivable_amount|int) }}</td>
-                <td> {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.int_ri_payable_amount|int) }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.int_ri_receivable_amount|int) }}</td>
-                <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
-                <td>{{ entry.current_status or '' }}</td>
-                <td>{{ show_zones(entry.uiic_regional_code) }}</td>
-
-            </tr>
+        {% if status == "To be settled" and update_settlement and current_user.user_type in
+        ["admin","coinsurance_hub_user"]
+        %}
+        <form method="post" name="coinsurance_list" enctype="multipart/form-data">
+            {% for field, errors in form.errors.items() %}
+            <div class="notification is-danger">
+                {{ field }} {{ ', '.join(errors) }}
+            </div>
             {% endfor %}
-        </tbody>
-        <!--
-                    <tfoot>
-            <tr>
-                <th colspan="8"></th>
-                <th colspan="3" class="has-text-right"></th>
-                <th colspan="2" class="has-text-left"></th>
-            </tr>
-        </tfoot>
-        -->
 
-    </table>
-    <div class="table-container mt-5">
-        <div class="is-pulled-right">
-            <table class="table is-bordered">
-                <tr>
-                    <th>Total: </th>
-                    <td id="total_bottom"></td>
-                </tr>
-                <tr>
-                    <th>Page total: </th>
-                    <td class="has-text-right" id="page_total_bottom"></td>
-                </tr>
-            </table>
+            {{ form.csrf_token }}
+            {{ form.utr_number.label }} {{ form.utr_number(class='select') }}
+
+            {{ form.update_settlement(class="ml-5 button is-danger") }}
+
+            {% endif %}
+    </div>
+    <div class="column">
+        <div class="table-container">
+            <div class="is-pulled-right">
+                <table class="table is-bordered" id="totalTable">
+                    <tr>
+                        <th>Total: </th>
+                        <td id="total"></td>
+                    </tr>
+                    <tr>
+                        <th>Page total: </th>
+                        <td class="has-text-right" id="page_total"></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
+</div>
+<table class="table is-striped is-narrow is-hoverable is-fullwidth" id="coinsurance_table">
+
+    <thead>
+        <tr>
+
+            {% if update_settlement and status == "To be settled" and current_user.user_type in
+            ["admin","coinsurance_hub_user"] %}
+            <th>Select</th>
+            {% endif %}
+
+            <th>Entry ID</th>
+            <th></th>
+            <th>RO code</th>
+            <th>OO code</th>
+            <th>Coinsurer name</th>
+            <th>Coinsurer office code</th>
+            <th>Leader / follower </th>
+            <th>Request ID</th>
+            <th>Name of insured</th>
+            <th>Payable amount</th>
+            <th>Receivable amount</th>
+            <th>Net payable / (Net receivable) (Excluding RI)</th>
+            <th>Reinsurance involved</th>
+            <th>RI payable amount</th>
+            <th>RI receivable amount </th>
+            <th>Net payable / (Net receivable) (Including RI) </th>
+            <th>Current status</th>
+            <th>Zone</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in coinsurance_entries %}
+        <tr>
+            {% if update_settlement and status == "To be settled" and current_user.user_type in
+            ["admin","coinsurance_hub_user"] %}
+            <td>
+                <label class="checkbox">
+                    <input type="checkbox" name="coinsurance_keys" value="{{ entry.id }}" />
+                </label>
+            </td>
+            {% endif %}
+            <td class="has-text-right"> {{ entry.id }}</td>
+            <td>
+                <a class="button is-small is-info"
+                    href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">
+                    View</a>
+            </td>
+            <td> {{ entry.uiic_regional_code }}</td>
+            <td> {{ entry.uiic_office_code | replace(",",", ") | replace("/","/ ") }}</td>
+            <td> {{ entry.follower_company_name }}</td>
+            <td> {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
+            <td> {{ entry.type_of_transaction }}</td>
+            <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
+            <td> {{ entry.insured_name }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.payable_amount|int) }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.receivable_amount|int) }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.payable_amount - entry.receivable_amount|int) }}</td>
+            <td> {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.int_ri_payable_amount|int) }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.int_ri_receivable_amount|int) }}</td>
+            <td class="has-text-right">{{ "{:,}".format(entry.net_amount|int) }}</td>
+            <td>{{ entry.current_status or '' }}</td>
+            <td>{{ show_zones(entry.uiic_regional_code) }}</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+
+</table>
+<div class="table-container mt-5">
+    <div class="is-pulled-right">
+        <table class="table is-bordered">
+            <tr>
+                <th>Total: </th>
+                <td id="total_bottom"></td>
+            </tr>
+            <tr>
+                <th>Page total: </th>
+                <td class="has-text-right" id="page_total_bottom"></td>
+            </tr>
+        </table>
+    </div>
+</div>
 
 </form>
-{% for field, errors in form.errors.items() %}
-<div class="notification is-danger">
-    {{ field }} {{ ', '.join(errors) }}
-</div>
-{% endfor %}
-</div>
-</div>
 
-{% endif %}
 {% endif %}
 
 {% block scripts %}
@@ -221,7 +213,6 @@
         },
 
     });
-
 
 </script>
 {% endblock scripts %}
