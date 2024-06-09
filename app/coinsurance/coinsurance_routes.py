@@ -22,6 +22,7 @@ from app.coinsurance.coinsurance_form import (
     CoinsuranceBalanceQueryForm,
     CoinsurerSelectForm,
     CoinsuranceCashCallForm,
+    UploadFileForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -904,6 +905,8 @@ def add_settlement_data():
             utr_number=utr_number,
             type_of_transaction=type_of_settlement,
             notes=notes,
+            created_by=current_user.username,
+            created_on=datetime.now(),
         )
 
         db.session.add(settlement)
@@ -929,6 +932,8 @@ def edit_settlement_entry(settlement_id):
         settlement.utr_number = form.utr_number.data
         settlement.type_of_transaction = form.type_of_settlement.data
         settlement.notes = form.notes.data
+        settlement.updated_by = current_user.username
+        settlement.updated_on = datetime.now()
 
         if form.data["settlement_file"]:
             settlement_filename_data = secure_filename(
@@ -1175,4 +1180,58 @@ def edit_cash_call(cash_call_key):
 
     return render_template(
         "cash_call_add.html", form=form, title="Edit cash call details"
+    )
+
+
+# bulk upload cash calls
+
+
+@coinsurance_bp.route("/cash_call/bulk_upload", methods=["POST", "GET"])
+@login_required
+def bulk_upload_cash_call():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        df_cash_call = pd.read_csv(form.data["file_upload"])
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+        df_cash_call["created_on"] = datetime.now()
+        df_cash_call["created_by"] = current_user.username
+
+        df_cash_call.to_sql(
+            "coinsurance_cash_call",
+            engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("Coinsurance cash call details have been uploaded successfully.")
+    return render_template(
+        "coinsurance_upload_file_template.html",
+        form=form,
+        title="Bulk upload cash call details",
+    )
+
+
+# bulk upload settlements
+@coinsurance_bp.route("/settlements/bulk_upload", methods=["POST", "GET"])
+@login_required
+def bulk_upload_settlements():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        df_settlement = pd.read_csv(form.data["file_upload"])
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+        df_settlement["created_on"] = datetime.now()
+        df_settlement["created_by"] = current_user.username
+
+        df_settlement.to_sql(
+            "settlement",
+            engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("Settlement details have been uploaded successfully.")
+    return render_template(
+        "coinsurance_upload_file_template.html",
+        form=form,
+        title="Bulk upload settlement details",
     )

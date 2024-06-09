@@ -40,6 +40,15 @@ class Settlement(db.Model):
     type_of_transaction = db.Column(db.String)
     notes = db.Column(db.Text)
 
+    created_by = db.Column(db.String)
+    created_on = db.Column(db.DateTime)
+
+    updated_by = db.Column(db.String)
+    updated_on = db.Column(db.DateTime)
+
+    deleted_by = db.Column(db.String)
+    deleted_on = db.Column(db.DateTime)
+
 
 class Remarks(db.Model):
     id = db.Column(db.Integer, primary_key=True)

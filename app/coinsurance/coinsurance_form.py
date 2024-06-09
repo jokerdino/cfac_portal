@@ -167,3 +167,8 @@ class CoinsuranceCashCallForm(FlaskForm):
         "If settled, date of settlement", validators=[Optional()]
     )
     amount_settled = DecimalField("If settled, amount settled", validators=[Optional()])
+
+
+class UploadFileForm(FlaskForm):
+    file_upload = FileField("Upload document", validators=[DataRequired()])
+    upload_document = SubmitField("Upload")
