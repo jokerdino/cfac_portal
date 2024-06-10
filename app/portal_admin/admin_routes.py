@@ -28,7 +28,7 @@ def upload_users():
                 "username": str,
             },
         )
-        password_hash = generate_password_hash("password")
+        password_hash = generate_password_hash("united")
 
         for df_user_upload in df_user_upload_chunk:
 

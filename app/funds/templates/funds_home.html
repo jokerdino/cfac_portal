@@ -19,19 +19,23 @@
             {% for date in query %}
             <tr>
                 {% set date_string = date[0].strftime('%d%m%Y') %}
-                <td class="has-text-centered"><a href={{ url_for("funds.view_bank_statement", date_string=date_string)
-                        }}>{{ date[0].strftime("%d/%m/%Y") }}</a></td>
-                <td class="has-text-centered"><a href={{ url_for("funds.enter_outflow", date_string=date_string)
-                        }}>Outflow</a></td>
-                <td class="has-text-centered"><a href={{ url_for("funds.add_remarks", date_string=date_string)
-                        }}>Remarks</a></td>
-                <td class="has-text-centered"><a href={{ url_for("funds.ibt", date_string=date_string, pdf='False' )
-                        }}>IBT</a></td>
-                <td class="has-text-centered"><a href={{ url_for("funds.daily_summary", date_string=date_string, pdf='False') }}>Daily summary</a></td>
-                <td class="has-text-right">{{ "{:,.2f}".format(get_inflow_total(date[0]) - display_outflow(date[0])) }}
+                <td class="has-text-centered"><a href="{{ url_for('funds.view_bank_statement', date_string=date_string)
+                        }}">{{ date[0].strftime("%d/%m/%Y") }}</a></td>
+                <td class="has-text-centered"><a href="{{ url_for('funds.enter_outflow', date_string=date_string)
+                        }}">Outflow</a></td>
+                <td class="has-text-centered"><a href="{{ url_for('funds.add_remarks', date_string=date_string)
+                        }}">Remarks</a></td>
+                <td class="has-text-centered"><a href="{{ url_for('funds.ibt', date_string=date_string, pdf='False' )
+                        }}">IBT</a></td>
+                <td class="has-text-centered"><a href="{{ url_for('funds.daily_summary', date_string=date_string,
+                        pdf='False' ) }}">Daily summary</a></td>
+                <td class="has-text-right">{{ (get_inflow_total(date[0]) - display_outflow(date[0])) |
+                    indian_number_format }}
                 </td>
-                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(date[0], "net_investment")) }}</td>
-                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(date[0], "closing_balance")) }}</td>
+                <td class="has-text-right">{{ get_daily_summary(date[0], "net_investment") | indian_number_format }}
+                </td>
+                <td class="has-text-right">{{ get_daily_summary(date[0], "closing_balance") | indian_number_format }}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

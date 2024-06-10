@@ -44,7 +44,7 @@
 
                 <td class="has-text-right">
                     {% if display_inflow(display_date, flag[0]) %}
-                    {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+                    {{ display_inflow(display_date, flag[0]) | indian_number_format }}
 
                     {% else %}
                     {{ "0.00" }}
@@ -60,8 +60,8 @@
                 <td></td>
                 <td class="has-text-right">
 
-                    {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
-                    get_daily_summary(display_date, "investment_taken")) }}
+                    {{ (display_inflow(display_date, "OTHER RECEIPTS") -
+                    get_daily_summary(display_date, "investment_taken")) | indian_number_format }}
 
                 </td>
 
@@ -71,9 +71,8 @@
                 <td>HDFC</td>
                 <td></td>
                 <td></td>
-                <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
-                    "HDFC"))
-                    }}
+                <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
+                    "HDFC") | indian_number_format }}
                 </td>
             </tr>
             <tr>
@@ -81,8 +80,8 @@
                 <td>HDFC</td>
                 <td>RTGS</td>
                 <td></td>
-                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(display_date,
-                    "investment_taken")) }}</td>
+                <td class="has-text-right">{{ get_daily_summary(display_date,
+                    "investment_taken") | indian_number_format }}</td>
             </tr>
 
             <tr>
@@ -91,8 +90,8 @@
                 <td></td>
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
-                    {{ "{:,.2f}".format(display_inflow(display_date) + return_prev_day_closing_balance(display_date,
-                    "HDFC")) }}
+                    {{ (display_inflow(display_date) + return_prev_day_closing_balance(display_date,
+                    "HDFC")) | indian_number_format }}
                 </td>
             </tr>
 
@@ -120,7 +119,7 @@
                 <td class="has-text-right"> {{ get_ibt_details(label)[0]["bank_account_number"] or "" }}</td>
                 <td class="has-text-right">
                     {% if display_outflow(display_date, item) %}
-                    {{ "{:,.2f}".format(display_outflow(display_date, item)) }}
+                    {{ display_outflow(display_date, item) | indian_number_format }}
 
                     {% else %}
                     {{ "0.00" }}
@@ -136,9 +135,9 @@
                 <td class="has-text-right">{{ get_ibt_details("AXIS NEFT")[0]["bank_account_number"] }}</td>
                 <td class="has-text-right">
 
-                    {{ "{:,.2f}".format(display_outflow(display_date, "amount_axis_neft") +
+                    {{ (display_outflow(display_date, "amount_axis_neft") +
                     display_outflow(display_date, "amount_mro1_health") + display_outflow(display_date,
-                    "amount_tncmchis")) }}
+                    "amount_tncmchis")) | indian_number_format }}
                 </td>
             </tr>
             <tr>
@@ -146,8 +145,8 @@
                 <td>HDFC</td>
                 <td>Book transfer</td>
                 <td class="has-text-right">00040350000860</td>
-                <td class="has-text-right">{{ "{:,.2f}".format(get_daily_summary(display_date,
-                    "investment_given")) }}</td>
+                <td class="has-text-right">{{ (get_daily_summary(display_date,
+                    "investment_given")) | indian_number_format }}</td>
             </tr>
             <tr>
                 <td class="has-text-weight-bold">Total</td>
@@ -156,8 +155,8 @@
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
                     {% if display_outflow(display_date) %}
-                    {{ "{:,.2f}".format(display_outflow(display_date) + get_daily_summary(display_date,
-                    "investment_given")) }}
+                    {{ (display_outflow(display_date) + get_daily_summary(display_date,
+                    "investment_given"))| indian_number_format }}
 
                     {% else %}
                     {{ "0.00" }}
@@ -177,8 +176,8 @@
                     <tr>
                         <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
                         <td class="has-text-right has-text-weight-bold">
-                            {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                            "HDFC")) }}</td>
+                            {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
+                            "HDFC") | indian_number_format }}</td>
                     </tr>
                 </tbody>
             </table>

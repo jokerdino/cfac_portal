@@ -1,5 +1,9 @@
 from datetime import datetime
 import calendar
+
+from babel.numbers import format_decimal
+import humanize
+
 from flask import Flask
 
 from waitress import serve
@@ -13,6 +17,14 @@ from extensions import db, lm, migrate, admin
 @lm.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+def indian_number_format(input_number):
+    return format_decimal(input_number, format="#####,##,##,##0.00", locale="en_IN")
+
+
+def humanize_datetime(input_datetime):
+    return humanize.naturaltime(datetime.now() - input_datetime)
 
 
 def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
@@ -39,6 +51,8 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
 
     app.jinja_env.filters["datetime_format"] = datetime_format
+    app.jinja_env.filters["humanize_datetime"] = humanize_datetime
+    app.jinja_env.filters["indian_number_format"] = indian_number_format
 
     # Initialize Flask extensions here
 

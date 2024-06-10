@@ -201,9 +201,10 @@ def upload_bank_statement():
 
         # predetermined columns to be parsed as date types
         date_columns = ["Book Date", "Value Date"]
-        df_bank_statement = pd.read_csv(
+        df_bank_statement = pd.read_excel(
             bank_statement,
             parse_dates=date_columns,
+            date_format="dd-mm-yyyy",
             dtype={
                 "Description": str,
                 "Ledger Balance": float,
@@ -224,6 +225,12 @@ def upload_bank_statement():
         df_bank_statement["date_created_date"] = datetime.datetime.now()
         df_bank_statement["created_by"] = current_user.username
 
+        # debit entries to be moved to credit entries
+        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "credit"] = (
+            df_bank_statement["debit"]
+        )
+        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "debit"] = None
+
         # adding flag from flag_sheet table
         df_bank_statement = add_flag(df_bank_statement)
 
@@ -240,7 +247,7 @@ def upload_bank_statement():
             "ledger_balance",
         ].item()
 
-        net_amount = float(closing_balance_prev_day) + sum_credits - sum_debits
+        net_amount = float(closing_balance_prev_day) + sum_credits + sum_debits
         # print(net_amount, sum_credits, sum_debits, closing_balance_statement)
         # if (net_amount - closing_balance_statement)!= 0:
         if (fabs(float(net_amount) - float(closing_balance_statement))) > 0.001:
@@ -445,9 +452,31 @@ def enter_outflow(date_string):
         amount_given_to_investment = form.data["given_to_investment"] or 0
 
         if (amount_given_to_investment > 0) and expected_date_of_return:
-            given_to_investment = FundAmountGivenToInvestment.query.filter(
-                FundAmountGivenToInvestment.date_given_to_investment == param_date
-            ).first()
+
+            # finding if any entry is present for the day
+            given_to_investment = (
+                FundAmountGivenToInvestment.query.filter(
+                    FundAmountGivenToInvestment.date_given_to_investment == param_date
+                )
+                .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+                .first()
+            )
+            # summing up all the funds given to investment for the day
+            # if the sum totals up, do not update the amount in given_to_investment table
+            # otherwise, update the table
+
+            sum_given_to_investment = (
+                FundAmountGivenToInvestment.query.with_entities(
+                    func.sum(
+                        FundAmountGivenToInvestment.float_amount_given_to_investment
+                    )
+                )
+                .filter(
+                    FundAmountGivenToInvestment.date_given_to_investment == param_date
+                )
+                .first()
+            )
+
             if not given_to_investment:
 
                 # if entry for the date is not there, create new one
@@ -464,12 +493,18 @@ def enter_outflow(date_string):
                 )
                 db.session.add(given_to_investment)
 
-            else:
+            # if the sum of all the funds given to investment for the day tallies with amount given in the form,
+            # do not update the amount given to investment table
+            # if the total does not tally, update the amount given to investment table
+
+            elif sum_given_to_investment[0] != amount_given_to_investment:
+
                 given_to_investment.date_expected_date_of_return = (
                     expected_date_of_return
                 )
-                given_to_investment.float_amount_given_to_investment = (
-                    amount_given_to_investment
+                # difference amount of sum and entered value will be updated in the table
+                given_to_investment.float_amount_given_to_investment += (
+                    amount_given_to_investment - sum_given_to_investment[0]
                 )
                 given_to_investment.updated_by = current_user.username
                 given_to_investment.date_updated_date = datetime.datetime.now()
@@ -514,9 +549,13 @@ def enter_outflow(date_string):
 
     # if entry for date is present, please insert it
 
-    given_to_investment = FundAmountGivenToInvestment.query.filter(
-        FundAmountGivenToInvestment.date_given_to_investment == param_date
-    ).first()
+    given_to_investment = (
+        FundAmountGivenToInvestment.query.filter(
+            FundAmountGivenToInvestment.date_given_to_investment == param_date
+        )
+        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+        .first()
+    )
     if given_to_investment:
         form.expected_date_of_return.data = (
             given_to_investment.date_expected_date_of_return
@@ -978,7 +1017,7 @@ def funds_reports():
         #        print(start_date, end_date)
         all_queries = []
         if inflow:
-            case_inflow = case((FundBankStatement.credit > 0, "Inflow"), else_="")
+            case_inflow = case((FundBankStatement.credit != 0, "Inflow"), else_="")
             inflow_query = (
                 db.session.query(FundBankStatement)
                 .with_entities(
@@ -993,7 +1032,7 @@ def funds_reports():
                         (FundBankStatement.value_date >= start_date)
                         & (FundBankStatement.value_date <= end_date)
                     )
-                    & (FundBankStatement.credit > 0)
+                    & (FundBankStatement.credit != 0)
                 )
             )
             all_queries.append(inflow_query)
