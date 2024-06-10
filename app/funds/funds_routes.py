@@ -982,7 +982,7 @@ def funds_reports():
             inflow_query = (
                 db.session.query(FundBankStatement)
                 .with_entities(
-                    FundBankStatement.book_date,
+                    FundBankStatement.value_date,
                     FundBankStatement.flag_description,
                     FundBankStatement.description,
                     FundBankStatement.credit,
@@ -990,8 +990,8 @@ def funds_reports():
                 )
                 .filter(
                     (
-                        (FundBankStatement.book_date >= start_date)
-                        & (FundBankStatement.book_date <= end_date)
+                        (FundBankStatement.value_date >= start_date)
+                        & (FundBankStatement.value_date <= end_date)
                     )
                     & (FundBankStatement.credit > 0)
                 )

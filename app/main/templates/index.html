@@ -80,7 +80,7 @@
         <p class="menu-label">Head Office only</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('contracts.view_contracts', status='active') }}">Contracts</a></li>
-          {% if current_user.username == "bar44515" %}
+          {% if current_user.username in ["bar44515", "vin38405", "sug29777", "sud45327", "jan27629", "hem27596"] %}
           <li><a href="{{ url_for('funds.funds_home') }}">Funds</a></li>
           {% endif %}
         </ul>

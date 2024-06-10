@@ -105,7 +105,7 @@
             <tr class="has-text-centered has-text-weight-bold">
                 <td>Payments</td>
                 <td>Bank Name</td>
-                <td>Type</td>
+                <td>Format</td>
                 <td>Account number</td>
                 <td>Amount</td>
             </tr>
@@ -174,12 +174,12 @@
         <div class="column is-one-third">
             <table class="table is-bordered is-fullwidth">
                 <tbody>
-                <tr>
-                    <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
-                    <td class="has-text-right has-text-weight-bold">
-                        {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                        "HDFC")) }}</td>
-                </tr>
+                    <tr>
+                        <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
+                        <td class="has-text-right has-text-weight-bold">
+                            {{ "{:,.2f}".format(return_prev_day_closing_balance((display_date + relativedelta(days=1)),
+                            "HDFC")) }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

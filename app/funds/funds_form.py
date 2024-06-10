@@ -25,13 +25,16 @@ class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload document", validators=[DataRequired()])
     upload_document = SubmitField("Upload")
 
+
 # class GivenToInvestment(Form):
 #     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
 #     expected_date_of_return = DateField(
 #         "Enter expected date of return", validators=[Optional()]
 #     )
 class OutflowForm(FlaskForm):
-    drawn_from_investment = DecimalField("Drawn from investment", validators=[Optional()])
+    drawn_from_investment = DecimalField(
+        "Drawn from investment", validators=[Optional()]
+    )
     # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
     expected_date_of_return = DateField(
@@ -43,22 +46,30 @@ class OutflowForm(FlaskForm):
     amount_axis_neft = DecimalField("AXIS NEFT", validators=[Optional()])
     amount_citi_neft = DecimalField("CITI NEFT", validators=[Optional()])
     amount_tncmchis = DecimalField("TNCMCHIS", validators=[Optional()])
-    amount_axis_centralised_cheque = DecimalField("AXIS Centralised Cheque", validators=[Optional()])
-    amount_axis_centralised_cheque_521 = DecimalField("AXIS Centralised Cheque 521", validators=[Optional()])
+    amount_axis_centralised_cheque = DecimalField(
+        "AXIS Centralised Cheque", validators=[Optional()]
+    )
+    amount_axis_centralised_cheque_521 = DecimalField(
+        "AXIS Centralised Cheque 521", validators=[Optional()]
+    )
     amount_axis_tds_gst = DecimalField("AXIS TDS GST", validators=[Optional()])
     amount_pension = DecimalField("Pension", validators=[Optional()])
     amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
     amount_ro_bhopal_crop = DecimalField("RO Bhopal Crop", validators=[Optional()])
     amount_ro_nagpur_crop = DecimalField("RO Nagpur Crop", validators=[Optional()])
     amount_citi_omp = DecimalField("CITI OMP", validators=[Optional()])
-    amount_hdfc_lien = DecimalField("Amount held by HDFC under Lien", validators=[Optional()])
+    amount_hdfc_lien = DecimalField(
+        "Amount held by HDFC under Lien", validators=[Optional()]
+    )
     amount_other_payments = DecimalField("Other payments", validators=[Optional()])
     amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
 
 
 class FlagForm(FlaskForm):
     flag_description = StringField("Add flag description", validators=[DataRequired()])
-    flag_regular_expression = StringField("Add flag pattern", validators=[DataRequired()])
+    flag_regular_expression = StringField(
+        "Add flag pattern", validators=[DataRequired()]
+    )
 
 
 class DailySummaryForm(FlaskForm):
@@ -69,14 +80,25 @@ class DailySummaryForm(FlaskForm):
         "Enter details of major payments", validators=[Optional()]
     )
 
-    person1_name = SelectField("Enter name of person 1", choices=["P Sudha Venkateswari", "S Vineeth"])
-    person1_designation = SelectField("Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"])
+    person1_name = SelectField(
+        "Enter name of person 1",
+        choices=["P Sudha Venkateswari", "S Vineeth", "G Suganya Priya"],
+    )
+    person1_designation = SelectField(
+        "Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"]
+    )
     person2_name = SelectField("Enter name of person 2", choices=["Gaddam Janakiram"])
-    person2_designation = SelectField("Enter designation of person 2", choices=["Chief Manager"])
+    person2_designation = SelectField(
+        "Enter designation of person 2", choices=["Chief Manager"]
+    )
     person3_name = SelectField("Enter name of person 3", choices=["S Hemamalini"])
-    person3_designation = SelectField("Enter designation of person 3", choices=["DGM & CFO"])
+    person3_designation = SelectField(
+        "Enter designation of person 3", choices=["DGM & CFO"]
+    )
     person4_name = SelectField("Enter name of person 4", choices=["Usha Girish"])
-    person4_designation = SelectField("Enter designation of person 4", choices=["General Manager"])
+    person4_designation = SelectField(
+        "Enter designation of person 4", choices=["General Manager"]
+    )
 
 
 class MajorOutgoForm(FlaskForm):
@@ -90,8 +112,9 @@ class MajorOutgoForm(FlaskForm):
         "Enter details of department/ Region", validators=[DataRequired()]
     )
     remarks = TextAreaField("Enter remarks", validators=[Optional()])
-    current_status = SelectField("Status", choices=["Pending", "Paid"], validators=[DataRequired()])
-
+    current_status = SelectField(
+        "Status", choices=["Pending", "Paid"], validators=[DataRequired()]
+    )
 
 
 class AmountGivenToInvestmentForm(FlaskForm):
@@ -106,4 +129,6 @@ class AmountGivenToInvestmentForm(FlaskForm):
     )
     remarks = TextAreaField("Enter additional remarks", validators=[Optional()])
 
-    current_status = SelectField("Status", choices=["Pending", "Received"], validators=[DataRequired()])
+    current_status = SelectField(
+        "Status", choices=["Pending", "Received"], validators=[DataRequired()]
+    )
