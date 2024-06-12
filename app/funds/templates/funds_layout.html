@@ -76,8 +76,7 @@
         </nav>
     </header>
 
-    <div class="container is-fluid">
-        <hr />
+    <div class="container is-fluid mt-5">
         {% if current_user.is_authenticated %}
         {% block content %}{% endblock content %}
         {% endif %}

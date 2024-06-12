@@ -19,6 +19,12 @@ class ReportsForm(FlaskForm):
     check_inflow = BooleanField("Include inflow", validators=[Optional()])
     check_outflow = BooleanField("Include outflow", validators=[Optional()])
     check_investments = BooleanField("Include investments", validators=[Optional()])
+    check_major_payments = BooleanField(
+        "Include major payments", validators=[Optional()]
+    )
+    check_major_receipts = BooleanField(
+        "Include major receipts", validators=[Optional()]
+    )
 
 
 class UploadFileForm(FlaskForm):
@@ -62,7 +68,9 @@ class OutflowForm(FlaskForm):
         "Amount held by HDFC under Lien", validators=[Optional()]
     )
     amount_other_payments = DecimalField("Other payments", validators=[Optional()])
-    amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
+
+
+#    amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
 
 
 class FlagForm(FlaskForm):

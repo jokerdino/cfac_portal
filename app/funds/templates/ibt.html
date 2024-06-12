@@ -186,6 +186,25 @@
 
     <div class="mt-5"></div>
 
+    <table class="table is-bordered is-fullwidth">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Prepared by</th>
+                <th class="has-text-centered">Input given by</th>
+                <th class="has-text-centered">First authorized by</th>
+                <th class="has-text-centered">Second authorized by</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="is-invisible">Text</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="mb-5 mt-5"></div>
     {% if pdf == "False" %}
     <div class="has-text-centered">
         <a class="button" href="{{ url_for('funds.add_remarks',
@@ -195,7 +214,7 @@
     </div>
 </div>
 
-<div class="mt-5"></div>
+<div class="mb-5 mt-5"></div>
 
 {% endif %}
 {% endblock content %}

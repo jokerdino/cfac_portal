@@ -160,7 +160,7 @@
 
                         <td class="has-text-right">
                             {% if display_inflow(display_date, flag[0]) %}
-                            {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+                            {{ display_inflow(display_date, flag[0]) | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}
@@ -173,16 +173,16 @@
                         <td>Other receipts</td>
                         <td class="has-text-right">
 
-                            {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS")) }}
+                            {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
 
                         </td>
 
                     </tr>
                     <tr>
                         <td>HDFC OPENING BAL</td>
-                        <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
-                            "HDFC"))
-                            }}
+                        <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
+                            "HDFC") | indian_number_format }}
+
                         </td>
                     </tr>
 
@@ -190,9 +190,9 @@
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
-                            {{ "{:,.2f}".format(display_inflow(display_date) +
+                            {{ (display_inflow(display_date) +
                             return_prev_day_closing_balance(display_date,
-                            "HDFC")) }}
+                            "HDFC")) | indian_number_format }}
                         </td>
                     </tr>
 
@@ -378,6 +378,25 @@
             }
         });
     });
+
+</script>
+<script>
+    // replace functionality of enter button in form
+    // instead of enter submitting form, enter will function as tab
+
+    // if user presses enter, the form will move to next input field instead of submitting form
+
+    // credit for answer https://stackoverflow.com/a/41392967
+
+    document.addEventListener('keydown', function (event) {
+        if (event.keyCode === 13 && event.target.nodeName === 'INPUT') {
+            var form = event.target.form;
+            var index = Array.prototype.indexOf.call(form, event.target);
+            form.elements[index + 1].focus();
+            event.preventDefault();
+        }
+    });
+
 </script>
 {% endblock scripts %}
 {% endblock content %}

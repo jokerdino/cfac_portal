@@ -17,9 +17,10 @@
 
             <tr>
                 {% for item in investment_list %}
-                <td class="has-text-centered">{{ item['date_given_to_investment'].strftime('%d/%m/%Y') }}</td>
+                <td data-sort="{{ item['date_given_to_investment'] }}" class="has-text-centered">{{
+                    item['date_given_to_investment'].strftime('%d/%m/%Y') }}</td>
                 <td class="has-text-right">{{ item['float_amount_given_to_investment'] | indian_number_format }}</td>
-                <td class="has-text-centered">
+                <td class="has-text-centered" data-sort="{{ item['date_expected_date_of_return'] }}">
                     {% if item['date_expected_date_of_return'] %} {{
                     item['date_expected_date_of_return'].strftime('%d/%m/%Y') }}
                     {% endif %}</td>

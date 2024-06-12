@@ -1,26 +1,30 @@
 {% extends "funds_layout.html" %}
 {% block content %}
 
-<div class="container">
+<div class="container is-fluid">
     <table class="table is-bordered is-fullwidth is-hoverable is-striped is-narrow" id="home_table">
         <thead>
             <tr>
-                <th class="has-text-centered">Bank statement</th>
-                <th class="has-text-centered">Outflow</th>
-                <th class="has-text-centered">Remarks</th>
-                <th class="has-text-centered">IBT</th>
-                <th class="has-text-centered">Daily summary</th>
-                <th class="has-text-centered">Net cashflow</th>
-                <th class="has-text-centered">Net investment amount</th>
-                <th class="has-text-centered">HDFC Closing balance</th>
+                <th class="has-text-centered is-vcentered">Bank statement</th>
+                <th class="has-text-centered is-vcentered">Outflow</th>
+                <th class="has-text-centered is-vcentered">Remarks</th>
+                <th class="has-text-centered is-vcentered">IBT</th>
+                <th class="has-text-centered is-vcentered">Daily summary</th>
+                <th class="has-text-centered is-vcentered">Total inflow</th>
+                <th class="has-text-centered is-vcentered">Total outflow</th>
+                <th class="has-text-centered is-vcentered">Net cashflow</th>
+                <th class="has-text-centered is-vcentered">Given to investment</th>
+                <th class="has-text-centered is-vcentered">Drawn from investment</th>
+                <th class="has-text-centered is-vcentered">Net investment amount</th>
+                <th class="has-text-centered is-vcentered">HDFC closing balance</th>
             </tr>
         </thead>
         <tbody>
             {% for date in query %}
             <tr>
                 {% set date_string = date[0].strftime('%d%m%Y') %}
-                <td class="has-text-centered"><a href="{{ url_for('funds.view_bank_statement', date_string=date_string)
-                        }}">{{ date[0].strftime("%d/%m/%Y") }}</a></td>
+                <td class="has-text-centered" data-sort="{{ date[0] }}"><a href="{{ url_for('funds.view_bank_statement', date_string=date_string)
+                        }}">{{ date[0].strftime("%d/%m/%Y") }} </a></td>
                 <td class="has-text-centered"><a href="{{ url_for('funds.enter_outflow', date_string=date_string)
                         }}">Outflow</a></td>
                 <td class="has-text-centered"><a href="{{ url_for('funds.add_remarks', date_string=date_string)
@@ -29,8 +33,19 @@
                         }}">IBT</a></td>
                 <td class="has-text-centered"><a href="{{ url_for('funds.daily_summary', date_string=date_string,
                         pdf='False' ) }}">Daily summary</a></td>
+                <td class="has-text-right">{{ get_inflow_total(date[0]) |
+                    indian_number_format }}
+                </td>
+                <td class="has-text-right">{{ display_outflow(date[0]) |
+                    indian_number_format }}
+                </td>
                 <td class="has-text-right">{{ (get_inflow_total(date[0]) - display_outflow(date[0])) |
                     indian_number_format }}
+                </td>
+
+                <td class="has-text-right">{{ get_daily_summary(date[0], "investment_given") | indian_number_format }}
+                </td>
+                <td class="has-text-right">{{ get_daily_summary(date[0], "investment_taken") | indian_number_format }}
                 </td>
                 <td class="has-text-right">{{ get_daily_summary(date[0], "net_investment") | indian_number_format }}
                 </td>
@@ -49,7 +64,7 @@
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-        order: [[10, 'desc']],
+        order: [[0, 'desc']],
         pagingType: 'full_numbers',
         lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
         pageLength: 50,

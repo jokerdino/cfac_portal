@@ -17,7 +17,8 @@
 
             <tr>
                 {% for item in list_outgo %}
-                <td class="has-text-centered">{{ item['date_of_outgo'].strftime('%d/%m/%Y') }}</td>
+                <td class="has-text-centered" data-sort="{{ item['date_of_outgo'] }}">{{
+                    item['date_of_outgo'].strftime('%d/%m/%Y') }}</td>
                 <td class="has-text-right">{{ item['float_expected_outgo'] | indian_number_format }}</td>
                 <td class="has-text-centered">{{ item['text_dept'] }}</td>
                 <td>{{ item['text_remarks'] }}</td>

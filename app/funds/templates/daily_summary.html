@@ -92,6 +92,7 @@
                 <tbody>
                     {% for label, item in outflow_items | sort %}
                     <tr>
+                        {% if label not in ["MRO1 HEALTH","TNCMCHIS"] %}
                         <td>{{ label }}</td>
                         <td class="has-text-right">
                             {% if display_outflow(display_date, item) %}
@@ -102,7 +103,26 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% endif %}
                     {% endfor %}
+                    <tr>
+                        <td>MRO1 HEALTH</td>
+                        <td class="has-text-right">{% if display_outflow(display_date, item) %}
+                            {{ display_outflow(display_date, "MRO1 HEALTH") | indian_number_format }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}</td>
+                    </tr>
+                    <tr>
+                        <td>TNCMCHIS</td>
+                        <td class="has-text-right">{% if display_outflow(display_date, item) %}
+                            {{ display_outflow(display_date, "TNCMCHIS") | indian_number_format }}
+
+                            {% else %}
+                            {{ "0.00" }}
+                            {% endif %}</td>
+                    </tr>
                     <tr>
                         {% set filler_length = (flag_description|list|length) - right_length -1 %}
                         {% for number in range(filler_length) %}
@@ -217,16 +237,16 @@
             <td class="has-text-centered">{{ daily_sheet.text_person2_designation }}</td>
         </tr>
         <tr>
-            <td></td>
-            <td class="is-invisible is-size-4">text</td>
+
+            <td class="is-invisible is-size-4" colspan="2">text</td>
         </tr>
         <tr>
-            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person3_name }}</td>
-            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person4_name }}</td>
+            <td class="has-text-centered has-text-weight-bold" colspan="2">{{ daily_sheet.text_person3_name }}</td>
+
         </tr>
         <tr>
-            <td class="has-text-centered">{{ daily_sheet.text_person3_designation }}</td>
-            <td class="has-text-centered">{{ daily_sheet.text_person4_designation }}</td>
+            <td class="has-text-centered" colspan="2">{{ daily_sheet.text_person3_designation }}</td>
+
         </tr>
     </table>
 

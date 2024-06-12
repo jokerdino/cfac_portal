@@ -111,7 +111,7 @@
 
                         <td class="has-text-right">
                             {% if display_inflow(display_date, flag[0]) %}
-                            {{ "{:,.2f}".format(display_inflow(display_date, flag[0])) }}
+                            {{ display_inflow(display_date, flag[0]) | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}
@@ -125,17 +125,17 @@
                         <td class="has-text-right">
 
                             {% if daily_sheet %}
-                            {{ "{:,.2f}".format(display_inflow(display_date, "OTHER RECEIPTS") -
-                            daily_sheet.float_amount_taken_from_investments) }}
+                            {{ (display_inflow(display_date, "OTHER RECEIPTS") -
+                            daily_sheet.float_amount_taken_from_investments) | indian_number_format }}
                             {% endif %}
                         </td>
 
                     </tr>
                     <tr>
                         <td>HDFC OPENING BAL</td>
-                        <td class="has-text-right">{{ "{:,.2f}".format(return_prev_day_closing_balance(display_date,
-                            "HDFC"))
-                            }}
+                        <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
+                            "HDFC") | indian_number_format }}
+
                         </td>
                     </tr>
 
@@ -143,7 +143,7 @@
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
-                            {{ "{:,.2f}".format(inflow_total) }}
+                            {{ inflow_total | indian_number_format }}
                         </td>
                     </tr>
 
@@ -174,7 +174,7 @@
                         <td>{{ label }}</td>
                         <td class="has-text-right">
                             {% if display_outflow(display_date, item) %}
-                            {{ "{:,.2f}".format(display_outflow(display_date, item)) }}
+                            {{ display_outflow(display_date, item) | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}
@@ -187,7 +187,7 @@
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
                             {% if display_outflow(display_date) %}
-                            {{ "{:,.2f}".format(display_outflow(display_date)) }}
+                            {{ display_outflow(display_date) | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}

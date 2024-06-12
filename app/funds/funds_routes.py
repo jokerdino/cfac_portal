@@ -7,7 +7,7 @@ import pandas as pd
 
 from flask import current_app, render_template, flash, redirect, url_for, request
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, func, distinct, text, case, union
+from sqlalchemy import create_engine, func, distinct, text, case, union, cast, String
 
 from app.funds import funds_bp
 
@@ -47,7 +47,7 @@ outflow_labels = [
     "CITI OMP",
     "Lien by HDFC",
     "Other payments",
-    "BOA TPA",
+    # "BOA TPA",
 ]
 outflow_amounts = [
     "amount_citi_health",
@@ -65,7 +65,7 @@ outflow_amounts = [
     "amount_citi_omp",
     "amount_hdfc_lien",
     "amount_other_payments",
-    "amount_boa_tpa",
+    # "amount_boa_tpa",
 ]
 
 
@@ -1013,6 +1013,8 @@ def funds_reports():
         inflow = form.data["check_inflow"]
         outflow = form.data["check_outflow"]
         investments = form.data["check_investments"]
+        major_payments = form.data["check_major_payments"]
+        major_receipts = form.data["check_major_receipts"]
 
         #        print(start_date, end_date)
         all_queries = []
@@ -1024,7 +1026,7 @@ def funds_reports():
                     FundBankStatement.value_date,
                     FundBankStatement.flag_description,
                     FundBankStatement.description,
-                    FundBankStatement.credit,
+                    cast(FundBankStatement.credit, String),
                     case_inflow,
                 )
                 .filter(
@@ -1047,7 +1049,7 @@ def funds_reports():
                     FundDailyOutflow.outflow_date,
                     FundDailyOutflow.outflow_description,
                     FundDailyOutflow.outflow_description,
-                    FundDailyOutflow.outflow_amount,
+                    cast(FundDailyOutflow.outflow_amount, String),
                     case_outflow,
                 )
                 .filter(
@@ -1079,7 +1081,7 @@ def funds_reports():
                     FundDailySheet.date_current_date,
                     case_investment_given,
                     case_investment_given,
-                    FundDailySheet.float_amount_given_to_investments,
+                    cast(FundDailySheet.float_amount_given_to_investments, String),
                     case_investment_given,
                 )
                 .filter(
@@ -1094,7 +1096,7 @@ def funds_reports():
                     FundDailySheet.date_current_date,
                     case_investment_taken,
                     case_investment_taken,
-                    FundDailySheet.float_amount_taken_from_investments,
+                    cast(FundDailySheet.float_amount_taken_from_investments, String),
                     case_investment_taken,
                 )
                 .filter(
@@ -1105,6 +1107,57 @@ def funds_reports():
             )
             all_queries.append(investment_given_query)
             all_queries.append(investment_taken_query)
+        if major_receipts:
+            case_major_receipts = case(
+                (
+                    FundDailySheet.text_major_collections != None,
+                    "Major collections",
+                ),
+                else_="",
+            )
+            major_receipts_query = (
+                db.session.query(FundDailySheet)
+                .with_entities(
+                    FundDailySheet.date_current_date,
+                    case_major_receipts,
+                    case_major_receipts,
+                    FundDailySheet.text_major_collections,
+                    case_major_receipts,
+                )
+                .filter(
+                    (FundDailySheet.date_current_date >= start_date)
+                    & (FundDailySheet.date_current_date <= end_date)
+                    & (FundDailySheet.text_major_collections != None)
+                )
+            )
+            # pass
+            all_queries.append(major_receipts_query)
+        if major_payments:
+
+            case_major_payments = case(
+                (
+                    FundDailySheet.text_major_payments != None,
+                    "Major payments",
+                ),
+                else_="",
+            )
+            major_payments_query = (
+                db.session.query(FundDailySheet)
+                .with_entities(
+                    FundDailySheet.date_current_date,
+                    case_major_payments,
+                    case_major_payments,
+                    FundDailySheet.text_major_payments,
+                    case_major_payments,
+                )
+                .filter(
+                    (FundDailySheet.date_current_date >= start_date)
+                    & (FundDailySheet.date_current_date <= end_date)
+                    & (FundDailySheet.text_major_payments != None)
+                )
+            )
+            # pass
+            all_queries.append(major_payments_query)
         # all_queries = [inflow_query, outflow_query, investment_given_query, investment_taken_query]
         query_set = union(*all_queries)
         query = db.session.execute(query_set)
