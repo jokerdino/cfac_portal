@@ -38,9 +38,9 @@ class UploadFileForm(FlaskForm):
 #         "Enter expected date of return", validators=[Optional()]
 #     )
 class OutflowForm(FlaskForm):
-    drawn_from_investment = DecimalField(
-        "Drawn from investment", validators=[Optional()]
-    )
+    # drawn_from_investment = DecimalField(
+    #     "Drawn from investment", validators=[Optional()]
+    # )
     # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
     expected_date_of_return = DateField(

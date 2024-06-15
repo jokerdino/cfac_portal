@@ -26,7 +26,7 @@
     <table class="table is-bordered is-narrow is-fullwidth">
 
         <tr>
-            <th>Total inflow</th>
+            <th>Total inflow (including funds received from investments)</th>
             <td class="has-text-right"><a class="button is-info is-small js-modal-trigger" id="inflow"
                     data-target="modal_inflow"></a></td>
         </tr>
@@ -103,11 +103,7 @@
         {{ form.csrf_token }}
 
         <table class="table is-bordered is-narrow is-fullwidth is-striped is-hoverable">
-            <tr>
-                <th>{{ form.drawn_from_investment.label }}</th>
-                <td class="has-text-right is-vcentered"><label id="label_drawn_from_investment"></label></td>
-                <td onkeyup="displayincrores()">{{ form.drawn_from_investment(class="input") }}</td>
-            </tr>
+
             <tr>
                 <th>{{ form.given_to_investment.label }}
                     <br />Date of expected return: {{ form.expected_date_of_return }}
@@ -314,7 +310,7 @@
             maximumFractionDigits: 2,
             //trailingZeroDisplay: 'stripIfInteger'
         });
-        totalOutflow = totalOutflow - parseFloat(document.getElementById("drawn_from_investment").value);
+        //totalOutflow = totalOutflow - parseFloat(document.getElementById("drawn_from_investment").value);
         document.getElementById("outflow").innerText = formatter.format(totalOutflow);
 
         inflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') }}";
@@ -393,6 +389,7 @@
             var form = event.target.form;
             var index = Array.prototype.indexOf.call(form, event.target);
             form.elements[index + 1].focus();
+            form.elements[index + 1].select();
             event.preventDefault();
         }
     });

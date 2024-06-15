@@ -36,7 +36,8 @@
                 <tbody>
                     {% for flag in flag_description | sort %}
                     <tr>
-                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS",
+                        "Drawn from investment"] %}
                         <td>{{ flag[0] }}</td>
 
                         <td class="has-text-right">
@@ -54,8 +55,7 @@
                         <td>Other receipts</td>
                         <td class="has-text-right">
 
-                            {{ (display_inflow(display_date, "OTHER RECEIPTS") -
-                            get_daily_summary(display_date, "investment_taken")) | indian_number_format }}
+                            {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
 
                         </td>
 
@@ -108,7 +108,7 @@
                     <tr>
                         <td>MRO1 HEALTH</td>
                         <td class="has-text-right">{% if display_outflow(display_date, item) %}
-                            {{ display_outflow(display_date, "MRO1 HEALTH") | indian_number_format }}
+                            {{ display_outflow(display_date, "amount_mro1_health") | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}
@@ -117,14 +117,14 @@
                     <tr>
                         <td>TNCMCHIS</td>
                         <td class="has-text-right">{% if display_outflow(display_date, item) %}
-                            {{ display_outflow(display_date, "TNCMCHIS") | indian_number_format }}
+                            {{ display_outflow(display_date, "amount_tncmchis") | indian_number_format }}
 
                             {% else %}
                             {{ "0.00" }}
                             {% endif %}</td>
                     </tr>
                     <tr>
-                        {% set filler_length = (flag_description|list|length) - right_length -1 %}
+                        {% set filler_length = (flag_description|list|length) - right_length -2 %}
                         {% for number in range(filler_length) %}
                         <td></td>
                         <td class="is-invisible">text</td>

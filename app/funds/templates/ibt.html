@@ -36,7 +36,8 @@
         <tbody>
             {% for flag in flag_description | sort %}
             <tr>
-                {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS", "Drawn from investment"]
+                %}
                 <td>{{ flag[0] }}</td>
                 <td>HDFC</td>
                 <td>RTGS</td>
@@ -60,8 +61,7 @@
                 <td></td>
                 <td class="has-text-right">
 
-                    {{ (display_inflow(display_date, "OTHER RECEIPTS") -
-                    get_daily_summary(display_date, "investment_taken")) | indian_number_format }}
+                    {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
 
                 </td>
 

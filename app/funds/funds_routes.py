@@ -446,7 +446,7 @@ def enter_outflow(date_string):
         for key, amount in form.data.items():
             if ("amount" in key) and (amount is not None):
                 write_to_database_outflow(param_date, key, amount)
-        amount_drawn_from_investment = form.data["drawn_from_investment"] or 0
+        #  amount_drawn_from_investment = form.data["drawn_from_investment"] or 0
 
         expected_date_of_return = form.data["expected_date_of_return"] or None
         amount_given_to_investment = form.data["given_to_investment"] or 0
@@ -511,12 +511,14 @@ def enter_outflow(date_string):
 
         # db.session.commit()
         daily_sheet.float_amount_given_to_investments = amount_given_to_investment
-        daily_sheet.float_amount_taken_from_investments = amount_drawn_from_investment
+        daily_sheet.float_amount_taken_from_investments = display_inflow(
+            param_date, "Drawn from investment"
+        )  # amount_drawn_from_investment
 
         daily_sheet.float_amount_investment_closing_balance = (
             return_prev_day_closing_balance(param_date, "Investment")
             + amount_given_to_investment
-            - amount_drawn_from_investment
+            - display_inflow(param_date, "Drawn from investment")
         )
 
         # yesterday closing balance + inflow - outflow + investment_inflow - investment_outflow
@@ -540,9 +542,9 @@ def enter_outflow(date_string):
     for item in outflow_amounts:
         form[item].data = fill_outflow(param_date, item) or 0
 
-    form.drawn_from_investment.data = (
-        (daily_sheet.float_amount_taken_from_investments or 0) if daily_sheet else 0
-    )
+    # form.drawn_from_investment.data = (
+    #     (daily_sheet.float_amount_taken_from_investments or 0) if daily_sheet else 0
+    # )
     form.given_to_investment.data = (
         (daily_sheet.float_amount_given_to_investments or 0) if daily_sheet else 0
     )
@@ -1035,6 +1037,7 @@ def funds_reports():
                         & (FundBankStatement.value_date <= end_date)
                     )
                     & (FundBankStatement.credit != 0)
+                    & (FundBankStatement.flag_description != "Drawn from investment")
                 )
             )
             all_queries.append(inflow_query)
@@ -1110,7 +1113,7 @@ def funds_reports():
         if major_receipts:
             case_major_receipts = case(
                 (
-                    FundDailySheet.text_major_collections != None,
+                    FundDailySheet.text_major_collections.is_not(None),
                     "Major collections",
                 ),
                 else_="",
@@ -1127,7 +1130,8 @@ def funds_reports():
                 .filter(
                     (FundDailySheet.date_current_date >= start_date)
                     & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.text_major_collections != None)
+                    & (FundDailySheet.text_major_collections.is_not(None))
+                    & (FundDailySheet.text_major_collections != "")
                 )
             )
             # pass
@@ -1136,7 +1140,7 @@ def funds_reports():
 
             case_major_payments = case(
                 (
-                    FundDailySheet.text_major_payments != None,
+                    FundDailySheet.text_major_payments.is_not(None),
                     "Major payments",
                 ),
                 else_="",
@@ -1153,7 +1157,8 @@ def funds_reports():
                 .filter(
                     (FundDailySheet.date_current_date >= start_date)
                     & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.text_major_payments != None)
+                    & (FundDailySheet.text_major_payments.is_not(None))
+                    & (FundDailySheet.text_major_payments != "")
                 )
             )
             # pass

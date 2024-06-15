@@ -5,18 +5,13 @@
     <h1 class="title">Add remarks for {{ display_date.strftime("%d/%m/%Y") }}</h1>
     <table class="table is-bordered is-fullwidth">
         <tr>
-            <th>Total inflow (excluding funds drawn from investment)</th>
+            <th>Total inflow (including funds received from investments)</th>
             <td class="has-text-right has-text-weight-bold">
                 <a class="button is-info is-small js-modal-trigger" id="inflow" data-target="modal_inflow">
                 </a>
             </td>
         </tr>
-        <tr>
-            <th>Funds drawn from investment</th>
-            <td class="has-text-right has-text-weight-bold" id="investment_drawn">
 
-            </td>
-        </tr>
         <tr>
             <th>Total outflow (excluding funds given to investment)</th>
             <td class="has-text-right has-text-weight-bold">
@@ -125,8 +120,7 @@
                         <td class="has-text-right">
 
                             {% if daily_sheet %}
-                            {{ (display_inflow(display_date, "OTHER RECEIPTS") -
-                            daily_sheet.float_amount_taken_from_investments) | indian_number_format }}
+                            {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
                             {% endif %}
                         </td>
 
@@ -143,7 +137,9 @@
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
-                            {{ inflow_total | indian_number_format }}
+                            {{ (display_inflow(display_date) +
+                            return_prev_day_closing_balance(display_date,
+                            "HDFC")) | indian_number_format }}
                         </td>
                     </tr>
 
@@ -213,14 +209,14 @@
         //trailingZeroDisplay: 'stripIfInteger'
     });
 
-    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') - daily_sheet.float_amount_taken_from_investments }}";
+    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') }}";
 
     document.getElementById("inflow").innerText = formatter.format(amountInflow);
     amountOutflow = "{{ display_outflow(display_date) }}";
     document.getElementById("outflow").innerText = formatter.format(amountOutflow);
 
-    amountInvestmentDrawn = "{{ get_daily_summary(display_date, 'investment_taken') }}";
-    document.getElementById("investment_drawn").innerText = formatter.format(amountInvestmentDrawn);
+    // amountInvestmentDrawn = "{{ get_daily_summary(display_date, 'investment_taken') }}";
+    //document.getElementById("investment_drawn").innerText = formatter.format(amountInvestmentDrawn);
 
     amountInvestmentGiven = "{{ get_daily_summary(display_date, 'investment_given') }}";
     document.getElementById("investment_given").innerText = formatter.format(amountInvestmentGiven);

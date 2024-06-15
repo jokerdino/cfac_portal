@@ -16,6 +16,7 @@
                 <th class="has-text-centered is-vcentered">Given to investment</th>
                 <th class="has-text-centered is-vcentered">Drawn from investment</th>
                 <th class="has-text-centered is-vcentered">Net investment amount</th>
+                <th class="has-text-centered is-vcentered">Investment closing balance</th>
                 <th class="has-text-centered is-vcentered">HDFC closing balance</th>
             </tr>
         </thead>
@@ -48,6 +49,9 @@
                 <td class="has-text-right">{{ get_daily_summary(date[0], "investment_taken") | indian_number_format }}
                 </td>
                 <td class="has-text-right">{{ get_daily_summary(date[0], "net_investment") | indian_number_format }}
+                </td>
+                <td class="has-text-right">{{ get_daily_summary(date[0], "investment_closing_balance") |
+                    indian_number_format }}
                 </td>
                 <td class="has-text-right">{{ get_daily_summary(date[0], "closing_balance") | indian_number_format }}
                 </td>
