@@ -10,7 +10,11 @@ from wtforms import (
     DecimalField,
     SubmitField,
 )
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired, Optional, ValidationError
+
+
+def num_of_days(date1, date2):
+    return (date2 - date1).days
 
 
 class ReportsForm(FlaskForm):
@@ -25,6 +29,17 @@ class ReportsForm(FlaskForm):
     check_major_receipts = BooleanField(
         "Include major receipts", validators=[Optional()]
     )
+
+
+class FundsJVForm(FlaskForm):
+    start_date = DateField("Enter start date", validators=[Optional()])
+    end_date = DateField("Enter end date", validators=[Optional()])
+
+    def validate_end_date(self, field):
+        if field.data < self.start_date.data:
+            raise ValidationError("End date should not be earlier than start date.")
+        if (num_of_days(self.start_date.data, field.data) + 1) > 7:
+            raise ValidationError("Maximum date range allowed is 7 days.")
 
 
 class UploadFileForm(FlaskForm):

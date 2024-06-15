@@ -1,0 +1,33 @@
+{% extends "funds_layout.html" %}
+
+{% block content %}
+{% if current_user.user_type == "admin" %}
+<div class="table-container mb-5">
+    <table class="table is-fullwidth is-striped is-bordered" id="gst_table">
+        <thead>
+            <tr>
+                {% for i in column_names %}
+                {% if 'txt' in i %}
+                <th>{{ i|upper }}</th>
+                {% endif %}
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in list %}
+                {% for i in column_names %}
+                {% if 'txt' in i %}
+                <td>{{ item[i] }}</td>
+                {% endif %}
+                {% endfor %}
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock content %}

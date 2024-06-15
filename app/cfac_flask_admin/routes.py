@@ -36,6 +36,7 @@ from app.funds.funds_model import (
     FundDailySheet,
     FundFlagSheet,
     FundMajorOutgo,
+    FundJournalVoucherFlagSheet,
 )
 
 from app.mis_tracker.mis_model import MisTracker
@@ -163,6 +164,11 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         FundDailySheet, db.session, endpoint="funds_daily_sheet", category="Funds"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundJournalVoucherFlagSheet, db.session, endpoint="funds_jv_flag_sheet", category="Funds"
     )
 )
 

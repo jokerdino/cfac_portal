@@ -1,5 +1,6 @@
 from extensions import db
 
+
 class FundBankStatement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_uploaded_date = db.Column(db.Date)
@@ -26,8 +27,9 @@ class FundBankStatement(db.Model):
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
 
+
 class FundFlagSheet(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
 
     flag_description = db.Column(db.Text)
     flag_reg_exp = db.Column(db.Text)
@@ -42,6 +44,7 @@ class FundFlagSheet(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
 
 class FundDailyOutflow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,18 +64,19 @@ class FundDailyOutflow(db.Model):
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
 
+
 class FundDailySheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_current_date = db.Column(db.Date)
 
-    #float_receipts = db.Column(db.Numeric(20, 2))
-    #float_payments = db.Column(db.Numeric(20, 2))
+    # float_receipts = db.Column(db.Numeric(20, 2))
+    # float_payments = db.Column(db.Numeric(20, 2))
 
     text_major_collections = db.Column(db.Text)
     text_major_payments = db.Column(db.Text)
 
-    float_amount_given_to_investments = db.Column(db.Numeric(20,2))
-    float_amount_taken_from_investments = db.Column(db.Numeric(20,2))
+    float_amount_given_to_investments = db.Column(db.Numeric(20, 2))
+    float_amount_taken_from_investments = db.Column(db.Numeric(20, 2))
 
     float_amount_hdfc_closing_balance = db.Column(db.Numeric(20, 2))
     float_amount_investment_closing_balance = db.Column(db.Numeric(20, 2))
@@ -97,6 +101,7 @@ class FundDailySheet(db.Model):
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
 
+
 class FundMajorOutgo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_of_outgo = db.Column(db.Date)
@@ -113,6 +118,7 @@ class FundMajorOutgo(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
 
 class FundAmountGivenToInvestment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -131,6 +137,7 @@ class FundAmountGivenToInvestment(db.Model):
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
 
+
 class FundBankAccountNumbers(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -138,6 +145,24 @@ class FundBankAccountNumbers(db.Model):
     bank_name = db.Column(db.String)
     bank_type = db.Column(db.String)
     bank_account_number = db.Column(db.String)
+
+    current_status = db.Column(db.String)
+
+    date_created_date = db.Column(db.DateTime)
+    date_updated_date = db.Column(db.DateTime)
+    date_deleted_date = db.Column(db.DateTime)
+
+    created_by = db.Column(db.String)
+    updated_by = db.Column(db.String)
+    deleted_by = db.Column(db.String)
+
+
+class FundJournalVoucherFlagSheet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    txt_description = db.Column(db.String)
+    txt_flag = db.Column(db.String)
+    txt_gl_code = db.Column(db.String)
+    txt_sl_code = db.Column(db.String)
 
     current_status = db.Column(db.String)
 
