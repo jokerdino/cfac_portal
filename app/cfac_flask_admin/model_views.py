@@ -20,3 +20,7 @@ class BRSView(DefaultModelView):
 class OSView(DefaultModelView):
     column_searchable_list = ["str_operating_office_code"]
     column_filters = ["str_operating_office_code"]
+
+
+class FundBankStatementView(DefaultModelView):
+    column_searchable_list = ["flag_description", "description"]

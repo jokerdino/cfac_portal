@@ -3,7 +3,12 @@ from flask_admin.menu import MenuLink
 
 from flask_admin_models import DefaultModelView
 
-from app.cfac_flask_admin.model_views import BRSView, UserView, OSView
+from app.cfac_flask_admin.model_views import (
+    BRSView,
+    UserView,
+    OSView,
+    FundBankStatementView,
+)
 
 from extensions import admin, db
 from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries
@@ -136,7 +141,7 @@ admin.add_view(
     )
 )
 admin.add_view(
-    DefaultModelView(
+    FundBankStatementView(
         FundBankStatement, db.session, endpoint="funds_bank_statement", category="Funds"
     )
 )
