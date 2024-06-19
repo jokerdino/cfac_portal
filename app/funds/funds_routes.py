@@ -1293,10 +1293,10 @@ def download_jv():
                 func.upper(
                     func.replace(
                         func.replace(
-                            FundDailyOutflow.outflow_description, "amount", ""
+                            FundDailyOutflow.outflow_description, "amount_", ""
                         ),
                         "_",
-                        "",
+                        " ",
                     )
                 ).label("Bank Description"),
                 FundDailyOutflow.outflow_amount.label("Amount"),
@@ -1442,6 +1442,8 @@ def prepare_outflow_jv(
 
     df_outflow["Remarks"] = (
         df_outflow["DESCRIPTION"]
+        + " "
+        + df_outflow["FLAG"]
         + " "
         + df_outflow["Date"].dt.strftime("%d/%m/%Y").astype(str)
     )
