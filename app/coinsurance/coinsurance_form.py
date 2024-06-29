@@ -32,7 +32,7 @@ coinsurer_list = [
     "ICICI Lombard",
     "Iffco Tokio",
     "Kerala State Insurance Department",
-    "Kotak Mahindra",
+    "Kotak General",
     "L&T",
     "Liberty Videocon",
     "Magma",

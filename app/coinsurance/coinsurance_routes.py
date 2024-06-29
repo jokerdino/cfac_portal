@@ -365,7 +365,7 @@ def update_utr_choices(coinsurance, form):
             Settlement.settled_amount,
         )
         .distinct()
-    )
+    ).order_by(Settlement.date_of_settlement.desc())
     form.settlement.choices = [
         (
             utr_number,
