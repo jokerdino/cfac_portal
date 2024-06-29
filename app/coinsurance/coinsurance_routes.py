@@ -34,8 +34,7 @@ from app.coinsurance.coinsurance_model import (
 )
 
 from app.funds.funds_model import FundBankStatement
-from app.tickets.tickets_routes import humanize_datetime
-
+from server import indian_number_format
 
 @coinsurance_bp.route("/")
 @login_required
@@ -302,7 +301,7 @@ def view_coinsurance_entry(coinsurance_id):
         remarks=remarks,
         settlement=settlement,
         enable_edit_button=enable_edit_button,
-        humanize_datetime=humanize_datetime,
+
     )
 
 
@@ -363,15 +362,16 @@ def update_utr_choices(coinsurance, form):
             Settlement.utr_number,
             Settlement.date_of_settlement,
             Settlement.settled_amount,
+            Settlement.notes,
         )
         .distinct()
     ).order_by(Settlement.date_of_settlement.desc())
     form.settlement.choices = [
         (
             utr_number,
-            f"{name_of_company}-{utr_number} Rs. {settled_amount} on {date_of_settlement.strftime('%d/%m/%Y')}",
+            f"{name_of_company}-{utr_number} Rs. {indian_number_format(settled_amount)} on {date_of_settlement.strftime('%d/%m/%Y')} ({notes})",
         )
-        for name_of_company, utr_number, date_of_settlement, settled_amount in utr_list
+        for name_of_company, utr_number, date_of_settlement, settled_amount, notes in utr_list
     ]
 
 
@@ -625,7 +625,7 @@ def edit_coinsurance_entry(coinsurance_id):
         change_status=change_status,
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
-        humanize_datetime=humanize_datetime,
+
         edit=True,
     )
 
@@ -756,6 +756,7 @@ def list_coinsurance_entries_by_status(status):
                     Settlement.utr_number,
                     Settlement.settled_amount,
                     Settlement.date_of_settlement,
+                    Settlement.notes,
                 )
                 .order_by(Settlement.date_of_settlement.desc())
                 .distinct()
@@ -763,9 +764,9 @@ def list_coinsurance_entries_by_status(status):
             form.utr_number.choices = [
                 (
                     utr_number,
-                    f"{name_of_company}-{utr_number}: Rs. {settled_amount:,} on {date_of_settlement.strftime('%d/%m/%Y')}",
+                    f"{name_of_company}-{utr_number}: Rs. {indian_number_format(settled_amount)} on {date_of_settlement.strftime('%d/%m/%Y')} ({notes})",
                 )
-                for name_of_company, utr_number, settled_amount, date_of_settlement in utr_list
+                for name_of_company, utr_number, settled_amount, date_of_settlement, notes in utr_list
                 if name_of_company in list_coinsurer_choices
             ]
 

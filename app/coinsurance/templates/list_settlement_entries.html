@@ -25,9 +25,9 @@
             <td>{{ entry.name_of_company }}</td>
             <td>{{ entry.type_of_transaction }}</td>
             {% if entry.type_of_transaction == "Paid" %}
-            <td class="has-text-right">{{ "{:,}".format(entry.settled_amount|int) }}</td>
+            <td class="has-text-right">{{ entry.settled_amount|indian_number_format }}</td>
             {% else %}
-            <td class="has-text-right">{{ "{:,}".format(entry.settled_amount*-1|int) }}</td>
+            <td class="has-text-right">{{ (entry.settled_amount*-1)|indian_number_format }}</td>
             {% endif %}
             <td class="has-text-centered" data-sort="{{ entry.date_of_settlement }}">{{
                 entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>

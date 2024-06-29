@@ -27,10 +27,11 @@
             <td>{{ item['txt_ro_code'] }}</td>
             <td>{{ item['txt_oo_code'] }}</td>
             <td>{{ item['txt_insured_name'] }}</td>
-            <td>{{ item['amount_total_paid'] }}</td>
+            <td>{{ item['amount_total_paid']|indian_number_format }}</td>
             <td>{{ item['txt_coinsurer_name'] }}</td>
-            <td>{{ item['amount_of_share'] }}</td>
-            <td>{{ item['date_of_cash_call_raised'] }}</td>
+            <td>{{ item['amount_of_share']|indian_number_format }}</td>
+            <td class="has-text-centered" data-sort="{{ item['date_of_cash_call_raised'] }}">{{
+                item['date_of_cash_call_raised'].strftime("%d/%m/%Y") }}</td>
             <td>{{ item['txt_current_status'] }}</td>
             <td>{{ item['txt_request_id'] }}</td>
             <td><a href="{{ url_for('coinsurance.view_cash_call', cash_call_key=item['id'] )}}">View</a></td>

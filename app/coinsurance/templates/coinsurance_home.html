@@ -49,9 +49,9 @@
         </thead>
         <tbody>
             <tr>{% for item in fund_query %}
-                <td>{{ item.value_date }}</td>
+                <td>{{ item.value_date.strftime("%d/%m/%Y") }}</td>
                 <td>{{ item.description }}</td>
-                <td class="has-text-right">{{ item.credit }}</td>
+                <td class="has-text-right">{{ item.credit|indian_number_format }}</td>
                 <td>{{ item.reference_no }}</td>
             </tr>
             {% endfor %}
@@ -75,7 +75,7 @@
                 <tr>
                     <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
                     <td>{{ entry[2] }}</td>
-                    <td class="has-text-right">{{ "{:,.2f}".format(entry[3]) }}</td>
+                    <td class="has-text-right">{{ entry[3]|indian_number_format }}</td>
                     {% endfor %}
                 </tr>
             </tbody>

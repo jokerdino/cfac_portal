@@ -22,15 +22,15 @@
             </tr>
             <tr>
                 <th>Policy start date</th>
-                <td>{{ cash_call.date_policy_start_date }}</td>
+                <td>{{ cash_call.date_policy_start_date.strftime("%d/%m/%Y") }}</td>
             </tr>
             <tr>
                 <th>Policy end date</th>
-                <td>{{ cash_call.date_policy_end_date }}</td>
+                <td>{{ cash_call.date_policy_end_date.strftime("%d/%m/%Y") }}</td>
             </tr>
             <tr>
                 <th>Total claim amount paid</th>
-                <td>{{ cash_call.amount_total_paid }}</td>
+                <td>{{ cash_call.amount_total_paid|indian_number_format }}</td>
             </tr>
             <tr>
                 <th>Remarks</th>
@@ -38,7 +38,7 @@
             </tr>
             <tr>
                 <th>Date of claim payment</th>
-                <td>{{ cash_call.date_claim_payment }}</td>
+                <td>{{ cash_call.date_claim_payment.strftime("%d/%m/%Y") if cash_call.date_claim_payment else "" }}</td>
             </tr>
         </table>
     </div>
@@ -50,11 +50,11 @@
             </tr>
             <tr>
                 <th>Percentage share</th>
-                <td>{{ cash_call.percent_share }}</td>
+                <td>{{ cash_call.percent_share }}%</td>
             </tr>
             <tr>
                 <th>Amount of share</th>
-                <td>{{ cash_call.amount_of_share }}</td>
+                <td>{{ cash_call.amount_of_share|indian_number_format }}</td>
             </tr>
             <tr>
                 <th>Request ID</th>
@@ -62,7 +62,7 @@
             </tr>
             <tr>
                 <th>Date of cash call</th>
-                <td>{{ cash_call.date_of_cash_call_raised }}</td>
+                <td>{{ cash_call.date_of_cash_call_raised.strftime("%d/%m/%Y") }}</td>
             </tr>
             <tr>
                 <th>Current status</th>
@@ -74,11 +74,14 @@
             </tr>
             <tr>
                 <th>Date of cash call settlement</th>
-                <td>{{ cash_call.date_of_cash_call_settlement or "" }}</td>
+
+                <td>
+                    {{ cash_call.date_of_cash_call_settlement.strftime("%d/%m/%Y") if
+                    cash_call.date_of_cash_call_settlement else "" }}</td>
             </tr>
             <tr>
                 <th>Amount of cash call settled</th>
-                <td>{{ cash_call.amount_settlement or "" }}</td>
+                <td>{{ cash_call.amount_settlement|indian_number_format if cash_call.amount_settlement else "" }}</td>
             </tr>
         </table>
     </div>

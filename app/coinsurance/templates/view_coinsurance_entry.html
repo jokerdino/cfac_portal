@@ -37,11 +37,11 @@
             </tr>
             <tr>
                 <th>Payable amount</th>
-                <td>{{ coinsurance.payable_amount }}</td>
+                <td>{{ coinsurance.payable_amount|indian_number_format }}</td>
             </tr>
             <tr>
                 <th>Receivable amount</th>
-                <td>{{ coinsurance.receivable_amount }}</td>
+                <td>{{ coinsurance.receivable_amount|indian_number_format }}</td>
             </tr>
 
             <tr>
@@ -59,22 +59,22 @@
             {% if coinsurance.boolean_reinsurance_involved %}
             <tr>
                 <th>RI payable amount</th>
-                <td>{{ coinsurance.int_ri_payable_amount }}</td>
+                <td>{{ coinsurance.int_ri_payable_amount|indian_number_format }}</td>
             </tr>
             <tr>
                 <th>RI receivable amount</th>
-                <td>{{ coinsurance.int_ri_receivable_amount }}</td>
+                <td>{{ coinsurance.int_ri_receivable_amount|indian_number_format }}</td>
             </tr>
             {% endif %}
             {% if coinsurance.net_amount > 0 %}
             <tr>
                 <th>Net amount payable</th>
-                <td>{{ coinsurance.net_amount }}</td>
+                <td>{{ coinsurance.net_amount|indian_number_format }}</td>
             </tr>
             {% else %}
             <tr>
                 <th>Net amount receivable</th>
-                <td>{{ coinsurance.net_amount * -1 }}</td>
+                <td>{{ (coinsurance.net_amount * -1)|indian_number_format }}</td>
             </tr>
             {% endif %}
 
@@ -125,10 +125,10 @@
                         <tbody>
                             {% for remark in remarks %}
                             <tr>
-                                <td title="{{ remark.time_of_remark }}">{{ humanize_datetime(remark.time_of_remark) }}
+                                <td title="{{ remark.time_of_remark }}">{{ remark.time_of_remark |humanize_datetime }}
                                 </td>
                                 <td>{{ remark.user }}</td>
-                                <td>{{ remark.remarks }}</td>
+                                <td class="word-wrap">{{ remark.remarks }}</td>
 
                             </tr>
                             {% endfor %}
@@ -157,8 +157,8 @@
                         <tbody>
                             {% for settlement_entry in settlement %}
                             <tr>
-                                <td>{{ settlement_entry.date_of_settlement }}</td>
-                                <td>{{ settlement_entry.settled_amount }}</td>
+                                <td>{{ settlement_entry.date_of_settlement.strftime("%d/%m/%Y") }}</td>
+                                <td>{{ settlement_entry.settled_amount|indian_number_format }}</td>
                                 <td>{{ settlement_entry.type_of_transaction }}</td>
                                 <td><a
                                         href="{{ url_for('coinsurance.list_settled_coinsurance_entries', utr_number=settlement_entry.utr_number) }}">{{
