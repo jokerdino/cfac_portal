@@ -1050,24 +1050,35 @@ def query_view_coinsurance_balance():
     form.period.choices = [
         (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
     ]
+    period = CoinsuranceBalances.query.with_entities(
+        CoinsuranceBalances.period
+    ).order_by(CoinsuranceBalances.id.desc()).first()[0]
 
     if form.validate_on_submit():
         period = form.data["period"]
-        return redirect(url_for("coinsurance.view_coinsurance_balance", period=period))
-    return render_template("query_coinsurance_balance.html", form=form)
-
-
-@coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
-@login_required
-def view_coinsurance_balance(period):
     coinsurance_balance = CoinsuranceBalances.query.filter(
-        CoinsuranceBalances.period == period
+    CoinsuranceBalances.period == period
     )
+    summary = CoinsuranceBalances.query.with_entities(CoinsuranceBalances.company_name, func.sum(CoinsuranceBalances.net_amount)).filter(CoinsuranceBalances.period == period).group_by(CoinsuranceBalances.company_name).order_by(CoinsuranceBalances.company_name)
     return render_template(
         "view_coinsurance_balance.html",
         coinsurance_balance=coinsurance_balance,
+        summary=summary,
+        form=form,
         period=period,
     )
+
+# @coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
+# @login_required
+# def view_coinsurance_balance(period):
+#     coinsurance_balance = CoinsuranceBalances.query.filter(
+#         CoinsuranceBalances.period == period
+#     )
+#     return render_template(
+#         "view_coinsurance_balance.html",
+#         coinsurance_balance=coinsurance_balance,
+#         period=period,
+#     )
 
 
 @coinsurance_bp.route("/cash_call/add", methods=["POST", "GET"])

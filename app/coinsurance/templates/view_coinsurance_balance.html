@@ -1,55 +1,94 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
-{% if coinsurance_balance %}
+<div class="container">
 
-<h1 class="title">{{ period }}</h1>
-<table class="table is-fullwidth is-bordered" id="coinsurance_balance_table">
-    <thead>
-        <tr>
-            <th>Office Code</th>
-            <th>Company name</th>
-            <th>Period</th>
-            <th>Hub Due to premium</th>
-            <th>Hub Due to claims</th>
-            <th>Hub Due from premium</th>
-            <th>Hub Due from claims</th>
-            <th>OO Due to</th>
-            <th>OO Due from</th>
-            <th>Net amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for entry in coinsurance_balance %}
-        <tr>
-            <td>{{ entry.office_code }}</td>
-            <td>{{ entry.company_name }}</td>
-            <td>{{ entry.period }}</td>
-            <td class="has-text-right">{{ entry.hub_due_to_premium|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.hub_due_to_claims|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.hub_due_from_premium|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.hub_due_from_claims|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.oo_due_to|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.oo_due_from|indian_number_format }}</td>
-            <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
+    <form action="" method="post">
+        {{ form.csrf_token }}
 
-            {% endfor %}
-        </tr>
-    </tbody>
-    <tfoot>
-        <tr>
-            <th class="has-text-right" colspan="9"></th>
+        {{ form.period.label }} : {{ form.period(class="select") }}
+        <button class="ml-5 button is-success">Query</button>
+    </form>
+    <h1 class="title mt-2"> Coinsurance balances for the month {{ period }}</h1>
+    <div class="tabs is-boxed">
+        <ul>
+            <li id="summary_tab" class="is-active"><a onclick="show_summary()">Summary</a></li>
+            <li id="balances_tab"><a onclick="show_office_wise_balance()">Office wise balances</a></li>
+        </ul>
+    </div>
+    {% if coinsurance_balance %}
+    <div id="summary" class="container">
 
-            <th></th>
-        </tr>
-    </tfoot>
-</table>
-{% endif %}
+        <table class="mt-5 mb-5 table is-bordered">
+            <thead>
+                <tr>
+                    <th>Name of company</th>
+                    <th>Net amount (payable)</th>
+                    <th>Net amount (receivable)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>{% for item in summary %}
+                    <td>{{ item[0] }}</td>
+                    <td class="has-text-right">{{ item[1]|indian_number_format if item[1] > 0 else 0 |
+                        indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[1]*-1)|indian_number_format if item[1] < 0 else 0 |
+                            indian_number_format }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
+    </div>
+    <div class="is-hidden" id="balances">
+        <table class="table is-fullwidth is-bordered" id="coinsurance_balance_table">
+            <thead>
+                <tr>
+                    <th>Office Code</th>
+                    <th>Company name</th>
+                    <th>Period</th>
+                    <th>Hub Due to premium</th>
+                    <th>Hub Due to claims</th>
+                    <th>Hub Due from premium</th>
+                    <th>Hub Due from claims</th>
+                    <th>OO Due to</th>
+                    <th>OO Due from</th>
+                    <th>Net amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in coinsurance_balance %}
+                <tr>
+                    <td>{{ entry.office_code }}</td>
+                    <td>{{ entry.company_name }}</td>
+                    <td>{{ entry.period }}</td>
+                    <td class="has-text-right">{{ entry.hub_due_to_premium|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.hub_due_to_claims|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.hub_due_from_premium|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.hub_due_from_claims|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.oo_due_to|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.oo_due_from|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
+
+                    {% endfor %}
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th class="has-text-right" colspan="9"></th>
+
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
 {% block scripts %}
 
 <script>
 
-    new DataTable('#coinsurance_balance_table', {
+    var data_table = new DataTable('#coinsurance_balance_table', {
         dom: 'lfBrtip',
         fixedHeader: true,
         pageLength: 100,
@@ -100,6 +139,28 @@
         },
 
     });
+
+    function show_office_wise_balance() {
+        // remove active of summary
+        // add is-hidden class to summary
+        document.getElementById("summary").classList.add("is-hidden");
+        document.getElementById("summary_tab").classList.remove("is-active");
+
+        document.getElementById("balances").classList.remove("is-hidden");
+        document.getElementById("balances_tab").classList.add("is-active");
+        data_table.fixedHeader.enable();
+
+    }
+    function show_summary() {
+        // remove active of balances
+        // add is-hidden class to balances
+        document.getElementById("summary").classList.remove("is-hidden");
+        document.getElementById("summary_tab").classList.add("is-active");
+
+        document.getElementById("balances").classList.add("is-hidden");
+        document.getElementById("balances_tab").classList.remove("is-active");
+        data_table.fixedHeader.disable();
+    }
 
 </script>
 {% endblock scripts %}
