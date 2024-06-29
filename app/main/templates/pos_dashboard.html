@@ -1,52 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <meta name="keywords" content="CFAC portal"/>
-        <meta name="description" content="CFAC portal" />
-        <title>Home</title>
-        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}"/>
 
-    </head>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="CFAC portal" />
+    <meta name="description" content="CFAC portal" />
+    <title>Home</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
 
-        <header>
-            <nav class="navbar has-background-primary-light" aria-label="main navigation">
-                <div class="navbar-brand">
-                    <div class="navbar-start">
-                        <div class="navbar-item">
-                            <div class="buttons">
-                                <a class="button is-link" href="{{ url_for('main.index') }}">Home</a>
+</head>
 
-                            </div>
-                        </div>
+<header>
+    <nav class="navbar has-background-primary-light" aria-label="main navigation">
+        <div class="navbar-brand">
+            <div class="navbar-start">
+                <div class="navbar-item">
+                    <div class="buttons">
+                        <a class="button is-link" href="{{ url_for('main.index') }}">Home</a>
+
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="navbar-end">
-                    <div class="navbar-item">
-                        <div class="buttons">
-                            {% if not current_user.is_authenticated %}
-                                <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
-                                {% else %}
+        <div class="navbar-end">
+            <div class="navbar-item">
+                <div class="buttons">
+                    {% if not current_user.is_authenticated %}
+                    <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
+                    {% else %}
 
-                                  <a class="button">  {{ current_user.username }} </a>
-                                <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                        </div>
-            </nav>
-        </header>
-        <body>
-        <div class="container">
+                    <a class="button"> {{ current_user.username }} </a>
+                    <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<body>
+    <div class="container">
         <section class="section block">
-            <a class="is-link is-outlined button" href="https://merchant.in.worldline.com/login" target="_blank">WorldLine Portal login</a>
+            <a class="is-link is-outlined button" href="https://merchant.in.worldline.com/login"
+                target="_blank">WorldLine Portal login</a>
 
         </section>
+        <h1 class="title is-medium">FAQs</h1>
+        <article class="message is-info">
+            <div class="message-header">
+                <p>How are Kotak PoS charge-back cases defended?</p>
+
             </div>
-        </body>
+            <div class="message-body">
+                When a cardholder, remitter, or customer uses a PoS machine to conduct a UPI
+                or card transaction, the amount is debited from their account. However, the
+                office does not provide any service (e.g., neither issuing a policy nor providing a
+                money receipt). Consequently, Kotak Bank receives a complaint or dispute from
+                the cardholder or the cardholder's bank regarding the card/UPI transaction
+                processed at your office.
+                To address this dispute, please provide the following documents for investigation
+                and remediation <strong>within 3 calendar days</strong> from the date of this communication.
+
+                <ol>
+                    <li> Provide a copy of the policy if it has already been issued for the said
+                        transaction.</li>
+                    <li>Provide a copy of the money receipt if payment has been received but the
+                        policy has not been issued for the said transaction.</li>
+                    <li>If, upon reviewing your records, you find that the cardholder's complaint is
+                        justified, please instruct the bank to reverse the transaction amount back
+                        to the cardholder's bank.</li>
+                    <li>Please note, in the event of irrelevant, inadequate or no response being
+                        received within the stipulated timeframe (<strong>within 03 calendar days from
+                            the date of this communication</strong>) or in case incomplete documentation is
+                        received, bank would be constrained to debit UIIC account, or a future
+                        settlement towards recovery for the said transaction. Please acknowledge
+                        the receipt of this communication.</li>
+                </ol>
+            </div>
+        </article>
+        <article class="message is-info">
+            <div class="message-header">
+                <p>What steps should be taken to address an unidentified transaction?</p>
+
+            </div>
+            <div class="message-body">
+                <ol>
+                    <li>Attempt to identify the transaction and receipt it accordingly.</li>
+                    <li>Unidentified transaction can be returned to the source account, if the
+                        transaction is initiated from your PoS machine however it is not identified
+                        by offices.</li>
+                </ol>
+
+                Solution » Please drop mail to murali.s@kotak.com mentioning RRN, date of
+                txn, TID/MID, amount (mention actual txn amount rather than differential
+                amount) to return it to the source account.
+            </div>
+        </article>
+    </div>
+</body>
+
 </html>
