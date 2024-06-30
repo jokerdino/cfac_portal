@@ -1,0 +1,150 @@
+{% extends "ho_accounts_layout.html" %}
+{% block content %}
+
+<div class="container is-fluid mb-5">
+    <form action="" method="post">
+        {{ form.csrf_token }}
+
+        {{ form.period.label }} : {{ form.period(class="select") }}
+        <button class="ml-5 button is-success">Query</button>
+    </form>
+    <h1 class="title mt-2">Accounts closing checklist for {{ period }}</h1>
+    <div class="tabs is-boxed">
+        <ul>
+            <li id="brs_tab" class="is-active"><a onclick="show_brs()">BRS</a></li>
+            <li id="accounts_work_tab"><a onclick="show_accounts_work()">General</a></li>
+        </ul>
+    </div>
+    <div class="container" id="brs_content">
+        <table class="table is-fullwidth is-bordered" id="brs_table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Name of bank</th>
+                    <th>GL Code</th>
+                    <th>SL Code</th>
+                    <th>Bank account number</th>
+                    <th>MIS shared</th>
+                    <th>BRS done</th>
+                    <th>JV passed</th>
+                    <th>Bank balance confirmation</th>
+                    <th>View</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    {% for item in mis_tracker %}
+                    <td>{{ item['str_period'] }}</td>
+                    <td>{{ item['str_name_of_bank'] }}</td>
+                    <td>{{ item['str_gl_code'] }}</td>
+                    <td>{{ item['str_sl_code'] }}</td>
+                    <td>{{ item['str_bank_account_number'] }}</td>
+                    <td class="has-text-centered">{{ "✅" if item['boolean_mis_shared'] else "❌" }}</td>
+                    <td class="has-text-centered">
+                        {% if item['str_brs_file_upload'] %}
+                        <a
+                            href="{{ url_for('ho_accounts.download_mis_documents', requirement='brs', id=item['id']) }}">⏬</a>
+                        {% else %}
+                        ❌
+                        {% endif %}
+                    </td>
+                    <td class="has-text-centered">{{ "✅" if item['boolean_jv_passed'] else "❌" }}</td>
+                    <td class="has-text-centered">
+                        {% if item['str_bank_confirmation_file_upload'] %}
+                        <a
+                            href="{{ url_for('ho_accounts.download_mis_documents', requirement='bank_confirmation', id=item['id']) }}">⏬</a>
+                        {% else %} ❌
+                        {% endif %}
+                    </td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('ho_accounts.view_mis', id=item['id'] )}}">View</a></td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('ho_accounts.edit_mis', id=item['id'] )}}">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+    <div class="container is-hidden" id="accounts_content">
+        <table class="table is-fullwidth is-bordered" id="accounts_table">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Work</th>
+                    <th>Current status</th>
+                    <th>View</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>{% for item in accounts_work_tracker %}
+                    <td>{{ item['str_period'] }}</td>
+                    <td>{{ item['str_work'] }}</td>
+                    <td class="has-text-centered">{{ "✅" if item['bool_current_status'] else "❌" }}</td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('ho_accounts.view_accounts_work', id=item['id'] )}}">View</a></td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('ho_accounts.edit_accounts_work', id=item['id'] )}}">Edit</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% block scripts %}
+<script>
+
+    var brs_table = new DataTable('#brs_table', {
+        dom: 'fBrti',
+        fixedHeader: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[9, 'asc']],
+
+    });
+
+    var accounts_table = new DataTable('#accounts_table', {
+        dom: 'fBrti',
+        fixedHeader: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+        order: [[3, 'asc']],
+
+    });
+
+    function show_accounts_work() {
+        // remove active of BRS
+        // add is-hidden class to BRS table
+        document.getElementById("brs_content").classList.add("is-hidden");
+        document.getElementById("brs_tab").classList.remove("is-active");
+
+        document.getElementById("accounts_content").classList.remove("is-hidden");
+        document.getElementById("accounts_work_tab").classList.add("is-active");
+        accounts_table.fixedHeader.enable();
+        brs_table.fixedHeader.disable();
+
+    }
+    function show_brs() {
+        // remove active of accounts work tab
+        // add is-hidden class to accounts table
+        document.getElementById("brs_content").classList.remove("is-hidden");
+        document.getElementById("brs_tab").classList.add("is-active");
+
+        document.getElementById("accounts_content").classList.add("is-hidden");
+        document.getElementById("accounts_work_tab").classList.remove("is-active");
+        brs_table.fixedHeader.enable();
+        accounts_table.fixedHeader.disable();
+    }
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

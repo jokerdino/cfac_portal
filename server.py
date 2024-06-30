@@ -122,6 +122,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(mis_bp, url_prefix="/mis")
 
+    from app.ho_accounts import ho_accounts_bp
+
+    app.register_blueprint(ho_accounts_bp, url_prefix="/ho_accounts")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

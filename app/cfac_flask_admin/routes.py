@@ -41,6 +41,7 @@ from app.funds.funds_model import (
 
 from app.mis_tracker.mis_model import MisTracker
 from app.announcements.announcements_model import Announcements
+from app.ho_accounts.ho_accounts_model import HeadOfficeAccountsTracker, HeadOfficeBankReconTracker
 
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
@@ -49,6 +50,7 @@ admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Funds", parent_name="Funds")
+admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 # User models
 admin.add_view(UserView(User, db.session, category="Users"))  # , name="User"))
 admin.add_view(
@@ -175,3 +177,7 @@ admin.add_view(
 # misc models
 admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
 admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
+
+# ho_checklist models
+admin.add_view(DefaultModelView(HeadOfficeBankReconTracker, db.session, endpoint="recon", category="HO_checklist"))
+admin.add_view(DefaultModelView(HeadOfficeAccountsTracker, db.session, endpoint="general", category="HO_checklist"))

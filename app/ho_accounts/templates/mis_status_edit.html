@@ -1,0 +1,95 @@
+{% extends "ho_accounts_layout.html" %}
+
+{% block content %}
+<div class="container">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <table class="table">
+            <tr>
+                <th>Period</th>
+                <td>{{ mis.str_period }}</td>
+            </tr>
+            <tr>
+                <th>Name of the bank</th>
+                <td>{{ mis.str_name_of_bank }}</td>
+            </tr>
+            <tr>
+                <th>Bank address</th>
+                <td>{{ mis.str_bank_address }}</td>
+            </tr>
+            <tr>
+                <th>GL Code</th>
+                <td>{{ mis.str_gl_code }}</td>
+            </tr>
+            <tr>
+                <th>SL Code</th>
+                <td>{{ mis.str_sl_code }}</td>
+            </tr>
+            <tr>
+                <th>Bank account number</th>
+                <td>{{ mis.str_bank_account_number }}</td>
+            </tr>
+            <tr>
+                <th>Customer ID</th>
+                <td>{{ mis.str_customer_id }}</td>
+            </tr>
+
+            <tr>
+                <th>{{ form.boolean_mis_shared.label }}</th>
+                <td>{{ form.boolean_mis_shared }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_brs_file_upload.label }}</th>
+                <td>{{ form.str_brs_file_upload }}
+                    {% if mis.str_brs_file_upload %}
+                    <a class="button is-link is-small is-outlined"
+                        href="{{ url_for('ho_accounts.download_mis_documents', requirement='brs', id=mis.id) }}">Download
+                        BRS</a>
+                    {% endif %}
+
+                </td>
+            </tr>
+            <tr>
+                <th>{{ form.boolean_jv_passed.label }}</th>
+                <td>{{ form.boolean_jv_passed }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_bank_confirmation_file_upload.label }}</th>
+                <td>{{ form.str_bank_confirmation_file_upload }}
+                    {% if mis.str_bank_confirmation_file_upload %}
+                    <a class="button is-link is-small is-outlined"
+                        href="{{ url_for('ho_accounts.download_mis_documents', requirement='bank_confirmation', id=mis.id) }}">Download
+                        Bank balance certificate</a>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>{{ form.text_remarks.label }}</th>
+
+                <td>{{ form.text_remarks(class="textarea") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            {{ form.submit_button(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

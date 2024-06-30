@@ -1,0 +1,77 @@
+{% extends "ho_accounts_layout.html" %}
+
+{% block content %}
+<div class="container">
+    <table class="table">
+        <tr>
+            <th>Period</th>
+            <td>{{ mis.str_period }}</td>
+        </tr>
+        <tr>
+            <th>Name of the bank</th>
+            <td>{{ mis.str_name_of_bank }}</td>
+        </tr>
+        <tr>
+            <th>Bank address</th>
+            <td>{{ mis.str_bank_address }}</td>
+        </tr>
+        <tr>
+            <th>GL Code</th>
+            <td>{{ mis.str_gl_code }}</td>
+        </tr>
+        <tr>
+            <th>SL Code</th>
+            <td>{{ mis.str_sl_code }}</td>
+        </tr>
+        <tr>
+            <th>Bank account number</th>
+            <td>{{ mis.str_bank_account_number }}</td>
+        </tr>
+        <tr>
+            <th>Customer ID</th>
+            <td>{{ mis.str_customer_id }}</td>
+        </tr>
+
+        <tr>
+            <th>Whether MIS has been shared</th>
+            <td>{{ "✅" if mis.boolean_mis_shared else "❌" }}</td>
+        </tr>
+        <tr>
+            <th>BRS</th>
+            <td>
+                {% if mis.str_brs_file_upload %}
+                <a class="button is-link is-small is-outlined"
+                    href="{{ url_for('ho_accounts.download_mis_documents', requirement='brs', id=mis.id) }}">Download
+                    BRS</a>
+                {% else %}
+                BRS not uploaded
+                {% endif %}
+
+            </td>
+        </tr>
+        <tr>
+            <th>Whether JV has been passed</th>
+            <td>{{ "✅" if mis.boolean_jv_passed else "❌" }}</td>
+        </tr>
+        <tr>
+            <th>Bank balance confirmation</th>
+            <td>
+                {% if mis.str_bank_confirmation_file_upload %}
+                <a class="button is-link is-small is-outlined"
+                    href="{{ url_for('ho_accounts.download_mis_documents', requirement='bank_confirmation', id=mis.id) }}">Download
+                    Bank balance certificate</a>
+                {% else %}
+                Bank confirmation not uploaded
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <th>Remarks</th>
+            <td class="word-wrap">{{ mis.text_remarks }}</td>
+        </tr>
+    </table>
+    <div class="has-text-centered">
+        <a class="button is-link" href="{{ url_for('ho_accounts.edit_mis', id=mis.id) }}">Edit</a>
+    </div>
+</div>
+{% endblock content %}

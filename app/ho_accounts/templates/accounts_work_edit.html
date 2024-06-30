@@ -1,0 +1,30 @@
+{% extends "ho_accounts_layout.html" %}
+{% block content %}
+<div class="container">
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table">
+            <tr>
+                <th>Period</th>
+                <td>{{ work.str_period }}</td>
+            </tr>
+            <tr>
+                <th>Work item</th>
+                <td>{{ work.str_work }}</td>
+            </tr>
+
+            <tr>
+                <th>{{ form.bool_current_status.label }}</th>
+                <td>{{ form.bool_current_status }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.text_remarks.label }}</th>
+                <td>{{ form.text_remarks(class="textarea") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            {{ form.submit_button(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

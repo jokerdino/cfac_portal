@@ -1,0 +1,26 @@
+{% extends "ho_accounts_layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="title">{{ title }}</h1>
+
+    <form class="mb-5" method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+
+        {{ form.mis_tracker_file_upload.label }}: {{ form.mis_tracker_file_upload(class="file") }}
+        {{ form.accounts_tracker_file_upload.label }}:{{ form.accounts_tracker_file_upload(class="file") }}
+
+        {{ form.upload_document(class="button is-success") }}
+
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock content %}
