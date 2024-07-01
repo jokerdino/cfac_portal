@@ -12,7 +12,12 @@
                 <th>Work item</th>
                 <td>{{ work.str_work }}</td>
             </tr>
-
+            {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+            <tr>
+                <th>{{ form.str_assigned_to.label }}</th>
+                <td>{{ form.str_assigned_to(class="select") }}</td>
+            </tr>
+            {% endif %}
             <tr>
                 <th>{{ form.bool_current_status.label }}</th>
                 <td>{{ form.bool_current_status }}</td>

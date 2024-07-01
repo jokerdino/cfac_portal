@@ -28,6 +28,8 @@ from app.ho_accounts.ho_accounts_model import (
     HeadOfficeAccountsTracker,
 )
 
+from app.users.user_model import User
+
 
 @ho_accounts_bp.route("/bulk_upload_trackers", methods=["POST", "GET"])
 @login_required
@@ -41,7 +43,8 @@ def bulk_upload_trackers():
 
         # TODO: define python data types at the time of reading
         df_mis_tracker = pd.read_excel(
-            mis_tracker, dtype={"str_gl_code": str, "str_sl_code": str}
+            mis_tracker,
+            dtype={"str_gl_code": str, "str_sl_code": str, "str_customer_id": str},
         )
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
@@ -142,7 +145,14 @@ def edit_accounts_work(id):
 
     work = HeadOfficeAccountsTracker.query.get_or_404(id)
     form = AccountsTrackerForm()
+    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
+    form.str_assigned_to.choices = [
+        person.username.upper() for person in ho_staff if "admin" not in person.username
+    ]
     if form.validate_on_submit():
+        work.str_person = (
+            form.str_assigned_to.data if form.str_assigned_to.data else None
+        )
         work.bool_current_status = form.bool_current_status.data
         work.text_remarks = form.text_remarks.data
         work.updated_by = current_user.username
@@ -151,6 +161,7 @@ def edit_accounts_work(id):
         return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
     form.bool_current_status.data = work.bool_current_status
     form.text_remarks.data = work.text_remarks
+    form.str_assigned_to.data = work.str_person
     return render_template("accounts_work_edit.html", form=form, work=work)
 
 
@@ -161,10 +172,17 @@ def edit_mis(id):
 
     mis = HeadOfficeBankReconTracker.query.get_or_404(id)
     form = BRSTrackerForm()
+    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
+    form.str_assigned_to.choices = [
+        person.username.upper() for person in ho_staff if "admin" not in person.username
+    ]
     if form.validate_on_submit():
         mis.boolean_mis_shared = form.boolean_mis_shared.data
         mis.boolean_jv_passed = form.boolean_jv_passed.data
         mis.text_remarks = form.text_remarks.data
+        mis.str_person = (
+            form.str_assigned_to.data if form.str_assigned_to.data else None
+        )
 
         if form.data["str_brs_file_upload"]:
 
@@ -206,6 +224,7 @@ def edit_mis(id):
     form.boolean_mis_shared.data = mis.boolean_mis_shared
     form.boolean_jv_passed.data = mis.boolean_jv_passed
     form.text_remarks.data = mis.text_remarks
+    form.str_assigned_to.data = mis.str_person
     return render_template("mis_status_edit.html", form=form, mis=mis)
 
 

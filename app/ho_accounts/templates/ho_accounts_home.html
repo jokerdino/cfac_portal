@@ -15,12 +15,14 @@
             <li id="accounts_work_tab"><a onclick="show_accounts_work()">General</a></li>
         </ul>
     </div>
-    <div class="container" id="brs_content">
+    <div class="container is-fluid" id="brs_content">
         <table class="table is-fullwidth is-bordered" id="brs_table">
             <thead>
                 <tr>
                     <th>Period</th>
                     <th>Name of bank</th>
+                    <th>Purpose</th>
+                    <th>Assigned to</th>
                     <th>GL Code</th>
                     <th>SL Code</th>
                     <th>Bank account number</th>
@@ -33,10 +35,20 @@
                 </tr>
             </thead>
             <tbody>
+                {% for item in mis_tracker %}
+
+                {% if item['str_person'] == current_user.username.upper() %}
+                 <!-- djlint:off -->
+                <tr class="has-background-info">
+                    {% else %}
+                     <!-- djlint:on -->
                 <tr>
-                    {% for item in mis_tracker %}
+                    {% endif %}
+
                     <td>{{ item['str_period'] }}</td>
                     <td>{{ item['str_name_of_bank'] }}</td>
+                    <td>{{ item['str_purpose'] or "" }}</td>
+                    <td>{{ item['str_person'] or "" }}</td>
                     <td>{{ item['str_gl_code'] }}</td>
                     <td>{{ item['str_sl_code'] }}</td>
                     <td>{{ item['str_bank_account_number'] }}</td>
@@ -67,21 +79,32 @@
 
         </table>
     </div>
-    <div class="container is-hidden" id="accounts_content">
-        <table class="table is-fullwidth is-bordered" id="accounts_table">
+    <div class="container is-fluid is-fullwidth is-hidden" id="accounts_content">
+        <table class="table is-fullwidth is-bordered" width="100%" id="accounts_table">
             <thead>
                 <tr>
-                    <th>Period</th>
-                    <th>Work</th>
-                    <th>Current status</th>
-                    <th>View</th>
-                    <th>Edit</th>
+                    <th class="has-text-centered">Period</th>
+                    <th class="has-text-centered">Work</th>
+                    <th class="has-text-centered">Assigned to</th>
+                    <th class="has-text-centered">Current status</th>
+                    <th class="has-text-centered">View</th>
+                    <th class="has-text-centered">Edit</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>{% for item in accounts_work_tracker %}
+                {% for item in accounts_work_tracker %}
+                {% if item['str_person'] == current_user.username.upper() %}
+
+                  <!-- djlint:off -->
+                <tr class="has-background-info">
+                    {% else %}
+                     <!-- djlint:on -->
+
+                <tr>
+                    {% endif %}
                     <td>{{ item['str_period'] }}</td>
                     <td>{{ item['str_work'] }}</td>
+                    <td>{{ item['str_person'] or "" }}</td>
                     <td class="has-text-centered">{{ "✅" if item['bool_current_status'] else "❌" }}</td>
                     <td><a class="button is-link is-outlined is-small"
                             href="{{ url_for('ho_accounts.view_accounts_work', id=item['id'] )}}">View</a></td>

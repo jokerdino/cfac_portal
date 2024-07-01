@@ -15,6 +15,8 @@ from wtforms.validators import DataRequired, Optional, ValidationError
 
 class BRSTrackerForm(FlaskForm):
 
+    str_assigned_to = SelectField("Assign to", validators=[Optional()])
+
     boolean_mis_shared = BooleanField(
         "Whether MIS has been shared", validators=[Optional()]
     )
@@ -30,6 +32,8 @@ class BRSTrackerForm(FlaskForm):
 
 
 class AccountsTrackerForm(FlaskForm):
+    str_assigned_to = SelectField("Assign to", validators=[Optional()])
+
     bool_current_status = BooleanField("Completed", validators=[Optional()])
     text_remarks = TextAreaField("Enter remarks", validators=[Optional()])
     submit_button = SubmitField("Submit")

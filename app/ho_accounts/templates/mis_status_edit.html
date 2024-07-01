@@ -51,7 +51,12 @@
                 <th>Customer ID</th>
                 <td>{{ mis.str_customer_id }}</td>
             </tr>
-
+            {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+            <tr>
+                <th>{{ form.str_assigned_to.label }}</th>
+                <td>{{ form.str_assigned_to(class="select") }}</td>
+            </tr>
+            {% endif %}
             <tr>
                 <th>{{ form.boolean_mis_shared.label }}</th>
                 <td>{{ form.boolean_mis_shared }}</td>

@@ -5,7 +5,7 @@ class HeadOfficeAccountsTracker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     str_work = db.Column(db.String)
     str_period = db.Column(db.String)
-
+    str_person = db.Column(db.String)
     # user inputs
     bool_current_status = db.Column(db.Boolean)
     text_remarks = db.Column(db.Text)
@@ -26,6 +26,9 @@ class HeadOfficeBankReconTracker(db.Model):
 
     str_name_of_bank = db.Column(db.String)
     str_bank_address = db.Column(db.String)
+
+    str_purpose = db.Column(db.String)
+    str_person = db.Column(db.String)
 
     str_gl_code = db.Column(db.String)
     str_sl_code = db.Column(db.String)
