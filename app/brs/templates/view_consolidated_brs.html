@@ -15,6 +15,7 @@
 (current_user.user_type == "admin") %}
 
 <div class="container is-size-8 is-centered">
+
     <table class="table is-fullwidth is-bordered">
         <thead>
             <tr>
@@ -49,6 +50,7 @@
             </tr>
         </thead>
         <tbody>
+
             <tr>
                 <th class="is-vcentered">BRS bank</th>
                 <td></td>
@@ -59,6 +61,9 @@
                 <td class="has-text-centered is-vcentered">{{ brs_month.bbps_bank if bbps_brs }}</td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.local_collection_bank if local_collection_brs }}
                 </td>
+            </tr>
+            <tr>
+                <td colspan="8" class="has-text-weight-bold">Summary of General Ledger</td>
             </tr>
 
             <tr class="has-text-weight-bold">
@@ -73,7 +78,7 @@
                     local_collection_brs }}</td>
             </tr>
             <tr>
-                <th>Add: Opening On hand</th>
+                <td>Add: Opening On hand</td>
                 <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_opening_on_hand) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_opening_on_hand) if cheque_brs }}</td>
@@ -84,7 +89,7 @@
                     local_collection_brs }}</td>
             </tr>
             <tr>
-                <th>Add: Collections during the month</th>
+                <td>Add: Collections during the month</td>
                 <td>{{ brs_month.month }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_transactions) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_transactions) if cheque_brs }}</td>
@@ -95,7 +100,7 @@
                     local_collection_brs }}</td>
             </tr>
             <tr>
-                <th>Less: Cancellations / cheque dishonours during the month</th>
+                <td>Less: Cancellations / cheque dishonours during the month</td>
                 <td>{{ brs_month.month }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_cancellations) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_cancellations) if cheque_brs }}</td>
@@ -106,7 +111,7 @@
                     local_collection_brs }}</td>
             </tr>
             <tr class="has-text-weight-bold">
-                <th>Balance before fund transfer</th>
+                <td>Balance before fund transfer</td>
                 <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_opening_balance +
                     cash_brs.int_opening_on_hand + cash_brs.int_transactions - cash_brs.int_cancellations) if cash_brs
@@ -126,7 +131,7 @@
                     local_collection_brs.int_cancellations) if local_collection_brs }}</td>
             </tr>
             <tr>
-                <th>Less: Fund transfer</th>
+                <td>Less: Fund transfer</td>
                 <td>{{ brs_month.month }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_fund_transfer) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_fund_transfer) if cheque_brs }}</td>
@@ -138,7 +143,7 @@
             </tr>
 
             <tr>
-                <th>Less: Bank charges</th>
+                <td>Less: Bank charges</td>
                 <td>{{ brs_month.month }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_bank_charges) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_bank_charges) if cheque_brs }}</td>
@@ -149,7 +154,7 @@
                     local_collection_brs }}</td>
             </tr>
             <tr>
-                <th>Less: Closing On hand</th>
+                <td>Less: Closing On hand</td>
                 <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_closing_on_hand) if cash_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_closing_on_hand) if cheque_brs }}</td>
@@ -168,6 +173,67 @@
                 <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_closing_balance) if pos_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_closing_balance) if bbps_brs }}</td>
                 <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_closing_balance) if
+                    local_collection_brs }}</td>
+            </tr>
+
+            <tr>
+                <td colspan="8" class="has-text-weight-bold">Bank reconciliation statement</td>
+            </tr>
+            <tr class="has-text-weight-bold">
+                <th>Closing balance as per GL</th>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_closing_balance) if cash_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_closing_balance) if cheque_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pg_brs.int_closing_balance) if pg_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_closing_balance) if pos_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_closing_balance) if bbps_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_closing_balance) if
+                    local_collection_brs }}</td>
+            </tr>
+            <tr>
+                <td>Less: Deposited but not credited</td>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_deposited_not_credited) if cash_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_deposited_not_credited) if cheque_brs }}
+                </td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pg_brs.int_deposited_not_credited) if pg_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_deposited_not_credited) if pos_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_deposited_not_credited) if bbps_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_deposited_not_credited) if
+                    local_collection_brs }}</td>
+            </tr>
+
+            <tr>
+                <td>Less: Short credit entries</td>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_short_credited) if cash_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_short_credited) if cheque_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pg_brs.int_short_credited) if pg_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_short_credited) if pos_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_short_credited) if bbps_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_short_credited) if
+                    local_collection_brs }}</td>
+            </tr>
+            <tr>
+                <td>Add: Excess credit entries</td>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_excess_credited) if cash_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_excess_credited) if cheque_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pg_brs.int_excess_credited) if pg_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_excess_credited) if pos_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_excess_credited) if bbps_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_excess_credited) if
+                    local_collection_brs }}</td>
+            </tr>
+            <tr class="has-text-weight-bold">
+                <th>Closing balance as per bank statement</th>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cash_brs.int_balance_as_per_bank) if cash_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(cheque_brs.int_balance_as_per_bank) if cheque_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pg_brs.int_balance_as_per_bank) if pg_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(pos_brs.int_balance_as_per_bank) if pos_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(bbps_brs.int_balance_as_per_bank) if bbps_brs }}</td>
+                <td class="has-text-right">{{ "{:,.2f}".format(local_collection_brs.int_balance_as_per_bank) if
                     local_collection_brs }}</td>
             </tr>
         </tbody>

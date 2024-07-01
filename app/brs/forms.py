@@ -37,8 +37,22 @@ class BRS_entry(FlaskForm):
     closing_on_hand = DecimalField(
         "Less: Closing cash/cheques on hand", validators=[Optional()]
     )
-    outstanding_entries = FileField(
-        "Upload details of closing balance in prescribed format:",
+    int_deposited_not_credited = DecimalField(
+        "Less: Deposited but not credited", validators=[Optional()]
+    )
+    int_short_credited = DecimalField("Less: Short credit", validators=[Optional()])
+    int_excess_credited = DecimalField("Add: Excess credit", validators=[Optional()])
+
+    file_outstanding_entries = FileField(
+        "Upload details of entries which are deposited but not credited in prescribed format:",
+        validators=[Optional()],
+    )
+    file_short_credit_entries = FileField(
+        "Upload details of short credit entries in prescribed format:",
+        validators=[Optional()],
+    )
+    file_excess_credit_entries = FileField(
+        "Upload details of Excess credit in prescribed format:",
         validators=[Optional()],
     )
     remarks = TextAreaField("Enter remarks:", validators=[Optional()])

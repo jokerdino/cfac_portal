@@ -52,11 +52,24 @@ class BRS_month(db.Model):
     int_bank_charges = db.Column(db.Numeric(15, 2))
     int_closing_on_hand = db.Column(db.Numeric(15, 2))
     int_closing_balance = db.Column(db.Numeric(15, 2))
-    file_outstanding_entries = db.Column(db.String)
+
+    int_deposited_not_credited = db.Column(db.Numeric(15, 2))
+    int_short_credited = db.Column(db.Numeric(15, 2))
+    int_excess_credited = db.Column(db.Numeric(15, 2))
+
+    int_balance_as_per_bank = db.Column(db.Numeric(15, 2))
+
+    # file_outstanding_entries = db.Column(db.String)
     timestamp = db.Column(db.DateTime)
     status = db.Column(db.String)
     brs_outstanding = db.relationship(
         "Outstanding", backref="brs_month", lazy="dynamic"
+    )
+    brs_short_credit = db.relationship(
+        "BankReconShortCredit", backref="brs_month", lazy="dynamic"
+    )
+    brs_excess_credit = db.relationship(
+        "BankReconExcessCredit", backref="brs_month", lazy="dynamic"
     )
     remarks = db.Column(db.Text)
     prepared_by = db.Column(db.String)
@@ -73,3 +86,30 @@ class Outstanding(db.Model):
     instrument_amount = db.Column(db.Numeric(15, 2))
     date_of_instrument = db.Column(db.Date)
     date_of_collection = db.Column(db.Date)
+    remarks = db.Column(db.Text)
+
+
+class BankReconShortCredit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    brs_month_id = db.Column(db.Integer, db.ForeignKey("brs_month.id"))
+
+    # instrument number and date of instrument is optional for cash alone.
+    # other modes of collection must provide all the columns
+    instrument_number = db.Column(db.String)
+    instrument_amount = db.Column(db.Numeric(15, 2))
+    date_of_instrument = db.Column(db.Date)
+    date_of_collection = db.Column(db.Date)
+    remarks = db.Column(db.Text)
+
+
+class BankReconExcessCredit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    brs_month_id = db.Column(db.Integer, db.ForeignKey("brs_month.id"))
+
+    # instrument number and date of instrument is optional for cash alone.
+    # other modes of collection must provide all the columns
+    instrument_number = db.Column(db.String)
+    instrument_amount = db.Column(db.Numeric(15, 2))
+    date_of_instrument = db.Column(db.Date)
+    date_of_collection = db.Column(db.Date)
+    remarks = db.Column(db.Text)

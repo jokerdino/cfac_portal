@@ -6,10 +6,10 @@
 <form class="mb-5" method="post" enctype="multipart/form-data">
     {{ form.csrf_token }}
     {{ form.month.label }}: {{ form.month(class='select') }}
-    <button class="is-success is-outlined is-hoverable button is-small ">Refresh</button>
+    <button class="is-success is-outlined is-hoverable button is-small">Refresh</button>
 </form>
 
-<table class="table is-bordered" id="brs_table">
+<table class="table is-bordered is-hoverable" id="brs_table">
     <thead>
         <tr class="has-text-centered">
             <th class="is-vcentered" rowspan="2">Regional office</th>

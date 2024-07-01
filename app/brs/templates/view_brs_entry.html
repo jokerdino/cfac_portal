@@ -31,7 +31,7 @@
             </td>
         </tr>
     </table>
-
+    <strong>Summary of General Ledger</strong>
     <table class="table is-bordered is-hoverable">
 
         <tr>
@@ -40,39 +40,39 @@
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td>
         </tr>
         <tr>
-            <th>Add: Opening On hand</th>
+            <td>Add: Opening On hand</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "previous") }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td>
         </tr>
         <tr>
-            <th>Add: Collections during the month</th>
+            <td>Add: Collections during the month</td>
             <td>{{ brs_entry.brs.month }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_transactions) }}</td>
         </tr>
         <tr>
-            <th>Less: Cancellations / cheque dishonours during the month</th>
+            <td>Less: Cancellations / cheque dishonours during the month</td>
             <td>{{ brs_entry.brs.month }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td>
         </tr>
         <tr>
-            <th>Balance before fund transfer</th>
+            <td>Balance before fund transfer</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand
                 + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td>
         </tr>
 
         <tr>
-            <th>Less: Fund transfer</th>
+            <td>Less: Fund transfer</td>
             <td>{{ brs_entry.brs.month }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td>
         </tr>
         <tr>
-            <th>Less: Bank charges</th>
+            <td>Less: Bank charges</td>
             <td>{{ brs_entry.brs.month }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td>
         </tr>
         <tr>
-            <th>Less: Closing On hand</th>
+            <td>Less: Closing On hand</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td>
         </tr>
@@ -80,6 +80,34 @@
             <th>Closing balance as per GL</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
             <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td>
+        </tr>
+    </table>
+    <strong>Bank reconciliation statement</strong>
+    <table class="table is-bordered is-hoverable">
+        <tr>
+            <th>Closing balance as per GL</th>
+            <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td>
+        </tr>
+        <tr>
+            <td>Less: Deposited but not credited</td>
+            <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_deposited_not_credited) }}</td>
+        </tr>
+        <tr>
+            <td>Less: Short credit entries</td>
+            <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_short_credited) }}</td>
+        </tr>
+        <tr>
+            <td>Add: Excess credit entries</td>
+            <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_excess_credited) }}</td>
+        </tr>
+        <tr>
+            <th>Closing balance as per bank statement</th>
+            <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
+            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_balance_as_per_bank) }}</td>
         </tr>
         {% if brs_entry.remarks %}
         <tr>
@@ -89,9 +117,11 @@
         {% endif %}
     </table>
 
-    {% if brs_entry.int_closing_balance > 0 %}
-    {% if brs_entry.brs_outstanding %}
-    <h3 class="title is-5">Details of closing balance:</h3>
+    {% if brs_entry.int_closing_balance != 0 %}
+
+    <h3 class="title is-size-5">Details of closing balance:</h3>
+    {% if brs_entry.int_deposited_not_credited > 0 %}
+    <h3 class="title is-size-6">Deposited but not credited</h3>
     <table class="table is-bordered">
         <thead>
             <tr>
@@ -101,6 +131,7 @@
                 <th>Date of instrument</th>
                 {% endif %}
                 <th>Instrument amount</th>
+                <th>Remarks</th>
 
             </tr>
         </thead>
@@ -126,6 +157,7 @@
                     {% endif %}
                 </td>
                 <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td>{{ item.remarks or "" }}</td>
             </tr>
         </tbody>
         {% endfor %}
@@ -139,6 +171,117 @@
                 {% endif %}
                 <td class="has-text-right has-text-weight-bold">
                     {{ "{:,.2f}".format(brs_entry.brs_outstanding | sum(attribute="instrument_amount")) }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% endif %}
+    {% if brs_entry.int_short_credited > 0 %}
+    <h3 class="title is-size-6">Short credited</h3>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>Date of collection</th>
+                {% if not brs_entry.brs_type == "cash" %}
+                <th>Instrument number</th>
+                <th>Date of instrument</th>
+                {% endif %}
+                <th>Instrument amount</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in brs_entry.brs_short_credit %}
+                <td class="has-text-centered">
+                    {% if item.date_of_collection %}
+                    {{ item.date_of_collection.strftime("%d/%m/%Y") }}
+                    {% else %}
+                    No date of collection available
+                    {% endif %}
+                </td>
+
+                {% if not brs_entry.brs_type == "cash" %}
+                <td class="has-text-centered">{{ item.instrument_number }}</td>
+                <td class="has-text-centered">
+                    {% if item.date_of_instrument %}
+                    {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
+                    {% else %}
+                    No date of instrument available
+                    {% endif %}
+                    {% endif %}
+                </td>
+                <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td>{{ item.remarks or "" }}</td>
+            </tr>
+        </tbody>
+        {% endfor %}
+        <tfoot>
+            <tr>
+                {% if not brs_entry.brs_type == "cash" %}
+                <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
+                {% else %}
+                <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
+                {% endif %}
+                <td class="has-text-right has-text-weight-bold">
+                    {{ "{:,.2f}".format(brs_entry.brs_short_credit | sum(attribute="instrument_amount")) }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% endif %}
+    {% if brs_entry.int_excess_credited > 0 %}
+    <h3 class="title is-size-6"> Excess credited</h3>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>Date of collection</th>
+                {% if not brs_entry.brs_type == "cash" %}
+                <th>Instrument number</th>
+                <th>Date of instrument</th>
+                {% endif %}
+                <th>Instrument amount</th>
+                <th>Remarks</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in brs_entry.brs_excess_credit %}
+                <td class="has-text-centered">
+                    {% if item.date_of_collection %}
+                    {{ item.date_of_collection.strftime("%d/%m/%Y") }}
+                    {% else %}
+                    No date of collection available
+                    {% endif %}
+                </td>
+
+                {% if not brs_entry.brs_type == "cash" %}
+                <td class="has-text-centered">{{ item.instrument_number }}</td>
+                <td class="has-text-centered">
+                    {% if item.date_of_instrument %}
+                    {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
+                    {% else %}
+                    No date of instrument available
+                    {% endif %}
+                    {% endif %}
+                </td>
+                <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td>{{ item.remarks or "" }}</td>
+            </tr>
+        </tbody>
+        {% endfor %}
+        <tfoot>
+            <tr>
+
+                {% if not brs_entry.brs_type == "cash" %}
+                <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
+                {% else %}
+                <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
+                {% endif %}
+                <td class="has-text-right has-text-weight-bold">
+                    {{ "{:,.2f}".format(brs_entry.brs_excess_credit | sum(attribute="instrument_amount")) }}</td>
+                <td></td>
             </tr>
         </tfoot>
     </table>
