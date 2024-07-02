@@ -11,7 +11,7 @@ from app.cfac_flask_admin.model_views import (
 )
 
 from extensions import admin, db
-from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries
+from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries, BankReconShortCredit, BankReconExcessCredit
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
     Settlement,
@@ -68,6 +68,12 @@ admin.add_view(
 )
 admin.add_view(
     ModelView(DeleteEntries, db.session, endpoint="delete_entries_", category="BRS")
+)
+admin.add_view(
+    ModelView(BankReconExcessCredit, db.session, endpoint="excess_credit_entries_", category="BRS")
+)
+admin.add_view(
+    ModelView(BankReconShortCredit, db.session, endpoint="short_credit_entries_", category="BRS")
 )
 
 # coinsurance models
