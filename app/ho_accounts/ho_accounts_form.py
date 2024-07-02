@@ -41,10 +41,10 @@ class AccountsTrackerForm(FlaskForm):
 
 class BulkUploadFileForm(FlaskForm):
     mis_tracker_file_upload = FileField(
-        "Upload MIS tracker", validators=[DataRequired()]
+        "Upload MIS tracker", validators=[Optional()]
     )
     accounts_tracker_file_upload = FileField(
-        "Upload Accounts tracker", validators=[DataRequired()]
+        "Upload Accounts tracker", validators=[Optional()]
     )
     upload_document = SubmitField("Upload")
 
