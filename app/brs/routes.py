@@ -661,17 +661,21 @@ def enter_brs(requirement, brs_id):
         deposited_not_credited = form.data["int_deposited_not_credited"] or 0
         short_credited = form.data["int_short_credited"] or 0
         excess_credited = form.data["int_excess_credited"] or 0
+
+        # for local collection, we are collecting balance as per bank statement
+        if requirement == "local_collection":
+            closing_balance_bank_statement = form.data["int_closing_balance_bank_statement"] or 0
         bank_balance = (
             closing_balance + excess_credited - deposited_not_credited - short_credited
         )
 
         closing_balance_breakup = (
-            deposited_not_credited + short_credited - excess_credited
+            deposited_not_credited + short_credited - excess_credited + closing_balance_bank_statement
         )
 
         brs_remarks = form.data["remarks"] or None
         if (fabs(float(closing_balance_breakup) - float(closing_balance))) > 0.001:
-            flash("Closing balance must tally with closing balance breakup.")
+            flash(f"Closing balance {closing_balance} must tally with closing balance breakup {closing_balance_breakup}.")
         else:
             brs = BRS_month(
                 brs_id=brs_id,

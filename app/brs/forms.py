@@ -43,20 +43,22 @@ class BRS_entry(FlaskForm):
     int_short_credited = DecimalField("Less: Short credit", validators=[Optional()])
     int_excess_credited = DecimalField("Add: Excess credit", validators=[Optional()])
 
+    int_closing_balance_bank_statement = DecimalField("Add: Closing balance as per bank statement (local collection)", validators=[Optional()])
+
     file_outstanding_entries = FileField(
-        "Upload details of entries which are deposited but not credited in prescribed format:",
+        "Upload outstanding entries in prescribed format",
         validators=[Optional()],
     )
     file_short_credit_entries = FileField(
-        "Upload details of short credit entries in prescribed format:",
+        "Upload short credit entries in prescribed format",
         validators=[Optional()],
     )
     file_excess_credit_entries = FileField(
-        "Upload details of Excess credit in prescribed format:",
+        "Upload excess credit entries in prescribed format",
         validators=[Optional()],
     )
-    remarks = TextAreaField("Enter remarks:", validators=[Optional()])
-    prepared_by = StringField("Prepared by:", validators=[DataRequired()])
+    remarks = TextAreaField("Enter remarks", validators=[Optional()])
+    prepared_by = StringField("Prepared by", validators=[DataRequired()])
     prepared_by_employee_number = IntegerField(
         "Employee number",
         validators=[NumberRange(min=10000, max=99999), DataRequired()],

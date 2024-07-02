@@ -140,6 +140,19 @@
                 </tr>
 
                 <tr>
+                    <th>{{ form.int_closing_balance_bank_statement.label }}</th>
+                    <td></td>
+                    <td onload="calculateClosingBalance()" onkeyup="calculateClosingBalance()">
+                        {% if requirement == "local_collection" %}
+                        {{ form.int_closing_balance_bank_statement(class="input") }}
+                        {% else %}
+                        {{ form.int_closing_balance_bank_statement(class="input", disabled=disabled) }}
+                        {% endif %}
+                    </td>
+                    <td></td>
+                </tr>
+
+                <tr>
                     <th colspan="2">Total</th>
                     <td><label id="cal_closing_bal_breakup"></label></td>
                     <td></td>
@@ -218,6 +231,7 @@
         var not_credited = parseFloat(document.getElementById("int_deposited_not_credited").value === "" ? 0 : document.getElementById("int_deposited_not_credited").value);
         var short_credited = parseFloat(document.getElementById("int_short_credited").value === "" ? 0 : document.getElementById("int_short_credited").value);
         var excess_credited = parseFloat(document.getElementById("int_excess_credited").value === "" ? 0 : document.getElementById("int_excess_credited").value);
+        var closing_balance_bank_statement = parseFloat(document.getElementById("int_closing_balance_bank_statement").value === "" ? 0 : document.getElementById("int_closing_balance_bank_statement").value);
 
         if (not_credited > 0) {
             document.getElementById("file_outstanding_entries").disabled = false;
@@ -240,7 +254,7 @@
             document.getElementById("file_short_credit_entries").disabled = true;
         }
 
-        var closing_balance_breakup = not_credited + short_credited - excess_credited;
+        var closing_balance_breakup = not_credited + short_credited - excess_credited + closing_balance_bank_statement;
 
         document.getElementById("cal_closing_bal_breakup").innerText = formatter.format(closing_balance_breakup);
         return closing_balance_breakup;
