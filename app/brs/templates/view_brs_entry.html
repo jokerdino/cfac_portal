@@ -37,49 +37,49 @@
         <tr>
             <th>Opening balance as per GL</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "previous") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_opening_balance | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Add: Opening On hand</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "previous") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_on_hand) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_opening_on_hand | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Add: Collections during the month</td>
             <td>{{ brs_entry.brs.month }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_transactions) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_transactions | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Less: Cancellations / cheque dishonours during the month</td>
             <td>{{ brs_entry.brs.month }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_cancellations) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_cancellations | indian_number_format }}</td>
         </tr>
         <tr>
-            <td>Balance before fund transfer</td>
+            <th>Balance before fund transfer</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_opening_balance + brs_entry.int_opening_on_hand
-                + brs_entry.int_transactions - brs_entry.int_cancellations) }}</td>
+            <td class="has-text-right">{{ (brs_entry.int_opening_balance + brs_entry.int_opening_on_hand
+                + brs_entry.int_transactions - brs_entry.int_cancellations) | indian_number_format }}</td>
         </tr>
 
         <tr>
             <td>Less: Fund transfer</td>
             <td>{{ brs_entry.brs.month }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_fund_transfer) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_fund_transfer | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Less: Bank charges</td>
             <td>{{ brs_entry.brs.month }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_bank_charges) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_bank_charges | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Less: Closing On hand</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_on_hand) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_closing_on_hand | indian_number_format }}</td>
         </tr>
         <tr>
             <th>Closing balance as per GL</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_closing_balance | indian_number_format }}</td>
         </tr>
     </table>
     <strong>Bank reconciliation statement</strong>
@@ -87,27 +87,27 @@
         <tr>
             <th>Closing balance as per GL</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_closing_balance) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_closing_balance | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Less: Deposited but not credited</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_deposited_not_credited) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_deposited_not_credited | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Less: Short credit entries</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_short_credited) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_short_credited | indian_number_format }}</td>
         </tr>
         <tr>
             <td>Add: Excess credit entries</td>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_excess_credited) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_excess_credited | indian_number_format }}</td>
         </tr>
         <tr>
             <th>Closing balance as per bank statement</th>
             <td>{{ brs_entry.brs.month | datetime_format("%B-%Y", "current") }}</td>
-            <td class="has-text-right">{{ "{:,.2f}".format(brs_entry.int_balance_as_per_bank) }}</td>
+            <td class="has-text-right">{{ brs_entry.int_balance_as_per_bank | indian_number_format }}</td>
         </tr>
         {% if brs_entry.remarks %}
         <tr>
@@ -156,7 +156,7 @@
                     {% endif %}
                     {% endif %}
                 </td>
-                <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
                 <td>{{ item.remarks or "" }}</td>
             </tr>
         </tbody>
@@ -170,7 +170,7 @@
                 <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
                 {% endif %}
                 <td class="has-text-right has-text-weight-bold">
-                    {{ "{:,.2f}".format(brs_entry.brs_outstanding | sum(attribute="instrument_amount")) }}</td>
+                    {{ (brs_entry.brs_outstanding | sum(attribute="instrument_amount")) | indian_number_format }}</td>
                 <td></td>
             </tr>
         </tfoot>
@@ -211,7 +211,7 @@
                     {% endif %}
                     {% endif %}
                 </td>
-                <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
                 <td>{{ item.remarks or "" }}</td>
             </tr>
         </tbody>
@@ -224,7 +224,7 @@
                 <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
                 {% endif %}
                 <td class="has-text-right has-text-weight-bold">
-                    {{ "{:,.2f}".format(brs_entry.brs_short_credit | sum(attribute="instrument_amount")) }}</td>
+                    {{ (brs_entry.brs_short_credit | sum(attribute="instrument_amount")) | indian_number_format }}</td>
                 <td></td>
             </tr>
         </tfoot>
@@ -266,7 +266,7 @@
                     {% endif %}
                     {% endif %}
                 </td>
-                <td class="has-text-right">{{ "{:,.2f}".format(item.instrument_amount) }}</td>
+                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
                 <td>{{ item.remarks or "" }}</td>
             </tr>
         </tbody>
@@ -280,7 +280,7 @@
                 <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
                 {% endif %}
                 <td class="has-text-right has-text-weight-bold">
-                    {{ "{:,.2f}".format(brs_entry.brs_excess_credit | sum(attribute="instrument_amount")) }}</td>
+                    {{ (brs_entry.brs_excess_credit | sum(attribute="instrument_amount")) | indian_number_format }}</td>
                 <td></td>
             </tr>
         </tfoot>

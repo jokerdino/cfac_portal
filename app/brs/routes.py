@@ -21,7 +21,14 @@ from flask_login import current_user, login_required
 from sqlalchemy import create_engine, func
 
 from app.brs import brs_bp
-from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries
+from app.brs.models import (
+    BRS,
+    BRS_month,
+    Outstanding,
+    DeleteEntries,
+    BankReconExcessCredit,
+    BankReconShortCredit,
+)
 from app.brs.forms import (
     BRSForm,
     BRS_entry,
@@ -663,19 +670,26 @@ def enter_brs(requirement, brs_id):
         excess_credited = form.data["int_excess_credited"] or 0
 
         # for local collection, we are collecting balance as per bank statement
-        if requirement == "local_collection":
-            closing_balance_bank_statement = form.data["int_closing_balance_bank_statement"] or 0
+        # if requirement == "local_collection":
+        closing_balance_bank_statement = (
+            form.data["int_closing_balance_bank_statement"] or 0
+        )
         bank_balance = (
             closing_balance + excess_credited - deposited_not_credited - short_credited
         )
 
         closing_balance_breakup = (
-            deposited_not_credited + short_credited - excess_credited + closing_balance_bank_statement
+            deposited_not_credited
+            + short_credited
+            - excess_credited
+            + closing_balance_bank_statement
         )
 
         brs_remarks = form.data["remarks"] or None
         if (fabs(float(closing_balance_breakup) - float(closing_balance))) > 0.001:
-            flash(f"Closing balance {closing_balance} must tally with closing balance breakup {closing_balance_breakup}.")
+            flash(
+                f"Closing balance {closing_balance} must tally with closing balance breakup {closing_balance_breakup}."
+            )
         else:
             brs = BRS_month(
                 brs_id=brs_id,
@@ -1099,6 +1113,92 @@ def list_outstanding_entries():
     return render_template("brs_raw_data_form.html", form=form)
 
 
+@brs_bp.route("/dashboard/short_credit", methods=["POST", "GET"])
+@login_required
+def list_short_credit_entries():
+    form = RawDataForm()
+
+    month_choices = BRS.query.with_entities(BRS.month).distinct()
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.month.choices = [item.strftime("%B-%Y") for item in list_period]
+
+    if form.validate_on_submit():
+        month = form.data["month"]
+        brs_type = form.data["brs_type"]
+
+        short_credit_entries = (
+            BankReconShortCredit.query.join(
+                BRS_month, BRS_month.id == BankReconShortCredit.brs_month_id
+            )
+            .join(BRS, BRS_month.brs_id == BRS.id)
+            .filter(
+                BRS_month.status.is_(None)
+                & (BRS.month == month)
+                & (BRS_month.brs_type == brs_type)
+            )
+        )
+        if current_user.user_type == "ro_user":
+            outstanding_entries = outstanding_entries.filter(
+                BRS.uiic_regional_code == current_user.ro_code
+            )
+
+        return render_template(
+            "view_outstanding_entries.html",
+            outstanding=short_credit_entries,
+            get_brs_bank=get_brs_bank,
+        )
+    return render_template("brs_raw_data_form.html", form=form)
+
+
+@brs_bp.route("/dashboard/excess_credit", methods=["POST", "GET"])
+@login_required
+def list_excess_credit_entries():
+    form = RawDataForm()
+
+    month_choices = BRS.query.with_entities(BRS.month).distinct()
+
+    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.month.choices = [item.strftime("%B-%Y") for item in list_period]
+
+    if form.validate_on_submit():
+        month = form.data["month"]
+        brs_type = form.data["brs_type"]
+
+        excess_credit_entries = (
+            BankReconExcessCredit.query.join(
+                BRS_month, BRS_month.id == BankReconExcessCredit.brs_month_id
+            )
+            .join(BRS, BRS_month.brs_id == BRS.id)
+            .filter(
+                BRS_month.status.is_(None)
+                & (BRS.month == month)
+                & (BRS_month.brs_type == brs_type)
+            )
+        )
+        if current_user.user_type == "ro_user":
+            outstanding_entries = outstanding_entries.filter(
+                BRS.uiic_regional_code == current_user.ro_code
+            )
+
+        return render_template(
+            "view_outstanding_entries.html",
+            outstanding=excess_credit_entries,
+            get_brs_bank=get_brs_bank,
+        )
+    return render_template("brs_raw_data_form.html", form=form)
+
+
 def get_brs_bank(brs_id, requirement):
     brs_entry = BRS.query.get_or_404(brs_id)
     if requirement == "cash":
@@ -1120,7 +1220,8 @@ def get_brs_bank(brs_id, requirement):
 )
 def get_brs_closing_balance(office_code, month, brs_type):
     """for feeding into E-Formats
-    returns closing balance if office code, month and type of BRS is provided"""
+    returns closing balance if office code, month and type of BRS is provided
+    Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/get_closing_balance/500200/January-2024/local_collection"""
 
     filtered_brs = BRS.query.filter(
         (BRS.uiic_office_code == office_code) & (BRS.month == month)

@@ -22,10 +22,21 @@
 
                         <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                         <a class="navbar-item" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
+
                         {% if current_user.user_type in ["admin", "ro_user"] %}
                         <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
-                        <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
-                            entries</a>
+
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link">List of entries</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
+                                    entries</a>
+                                <a class="navbar-item" href="{{ url_for('brs.list_short_credit_entries') }}">Short
+                                    credit entries</a>
+                                <a class="navbar-item" href="{{ url_for('brs.list_excess_credit_entries') }}">Excess
+                                    credit entries</a>
+                            </div>
+                        </div>
                         {% endif %}
                         {% if current_user.user_type == "admin" %}
 

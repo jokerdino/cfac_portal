@@ -14,6 +14,7 @@
             <th>Instrument number</th>
             <th>Date of instrument</th>
             <th>Instrument amount</th>
+            <th>Remarks</th>
             <th>View BRS</th>
         </tr>
     </thead>
@@ -30,6 +31,7 @@
             <td>{{ entries.instrument_number }}</td>
             <td>{{ entries.date_of_instrument }}</td>
             <td class="has-text-right">{{ entries.instrument_amount }}</td>
+            <td>{{ entries.remarks or "" }}</td>
             <td><a href="{{ url_for('brs.view_brs', brs_key = entries.brs_month.id) }}">View</a></td>
         </tr>
         {% endfor %}

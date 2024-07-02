@@ -22,10 +22,15 @@
                                 <th class="is-vcentered">Bank charges</th>
                                 <th class="is-vcentered">On hand</th>
                                 <th class="is-vcentered">Closing balance</th>
+                                <th class="is-vcentered">Outstanding</th>
+                                <th class="is-vcentered">Short credit</th>
+                                <th class="is-vcentered">Excess credit</th>
+                                <th class="is-vcentered">Closing balance as per bank statement</th>
+
                                 <th class="is-vcentered">Remarks</th>
                                 <th class="is-vcentered">Time stamp</th>
                                 <th class="is-vcentered">Status</th>
-                                <th class="is-vcentered">No. of outstanding entries</th>
+
                         </tr>
                 </thead>
                 <tbody>
@@ -46,12 +51,15 @@
                                 <td class="has-text-right">{{ entry.int_bank_charges }}</td>
                                 <td class="has-text-right">{{ entry.int_closing_on_hand }}</td>
                                 <td class="has-text-right">{{ entry.int_closing_balance }}</td>
+                                <td class="has-text-right">{{ entry.int_deposited_not_credited }}</td>
+                                <td class="has-text-right">{{ entry.int_short_credited }}</td>
+                                <td class="has-text-right">{{ entry.int_excess_credited }}</td>
+                                <td class="has-text-right">{{ entry.int_balance_as_per_bank }}</td>
                                 <td>{{ entry.remarks or "" }}</td>
                                 <td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}"
                                                 href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{
                                                 humanize_datetime(entry.timestamp) }}</a></td>
                                 <td>{{ entry.status or "Submitted" }}</td>
-                                <td>{{ entry.brs_outstanding.count() }}</td>
 
                         </tr>
 
@@ -71,7 +79,7 @@
                         { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
                         { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
                         { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-                order: [[15, 'desc']],
+                order: [[19, 'desc']],
                 pagingType: 'full_numbers',
                 lengthMenu: [
                         [10, 25, 50, 100, -1],
