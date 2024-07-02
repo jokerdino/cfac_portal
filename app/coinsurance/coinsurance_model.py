@@ -91,6 +91,9 @@ class Coinsurance_log(db.Model):
 
 class CoinsuranceBalances(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    str_zone = db.Column(db.String)
+    str_regional_office_code = db.Column(db.String)
+
     office_code = db.Column(db.String)
     company_name = db.Column(db.String)
     period = db.Column(db.String)
@@ -101,6 +104,15 @@ class CoinsuranceBalances(db.Model):
     oo_due_to = db.Column(db.Float)
     oo_due_from = db.Column(db.Float)
     net_amount = db.Column(db.Float)
+
+    created_by = db.Column(db.String)
+    created_on = db.Column(db.DateTime)
+
+    updated_by = db.Column(db.String)
+    updated_on = db.Column(db.DateTime)
+
+    deleted_by = db.Column(db.String)
+    deleted_on = db.Column(db.DateTime)
 
 
 class CoinsuranceCashCall(db.Model):

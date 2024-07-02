@@ -1,6 +1,6 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
-<div class="container">
+<div class="container is-fluid">
 
     <form action="" method="post">
         {{ form.csrf_token }}
@@ -16,7 +16,7 @@
         </ul>
     </div>
     {% if coinsurance_balance %}
-    <div id="summary" class="container">
+    <div id="summary" class="container is-fluid">
 
         <table class="mt-5 mb-5 table is-bordered">
             <thead>
@@ -39,10 +39,12 @@
         </table>
 
     </div>
-    <div class="is-hidden" id="balances">
-        <table class="table is-fullwidth is-bordered" id="coinsurance_balance_table">
+    <div class="is-hidden is-fluid" id="balances">
+        <table class="table is-fullwidth is-bordered" width="100%" id="coinsurance_balance_table">
             <thead>
                 <tr>
+                    <th>Zone</th>
+                    <th>Regional Office Code</th>
                     <th>Office Code</th>
                     <th>Company name</th>
                     <th>Period</th>
@@ -58,6 +60,8 @@
             <tbody>
                 {% for entry in coinsurance_balance %}
                 <tr>
+                    <td>{{ entry.str_zone }}</td>
+                    <td>{{ entry.str_regional_office_code }}</td>
                     <td>{{ entry.office_code }}</td>
                     <td>{{ entry.company_name }}</td>
                     <td>{{ entry.period }}</td>
@@ -74,8 +78,17 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <th class="has-text-right" colspan="9"></th>
-
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th></th>
                     <th></th>
                 </tr>
             </tfoot>
@@ -96,7 +109,7 @@
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-        order: [[9, 'asc']],
+        order: [[1, 'asc'], [2, 'asc']],
         pagingType: 'full_numbers',
         lengthMenu: [
             [10, 25, 50, 100, -1],
@@ -110,16 +123,46 @@
             };
 
             // Total over all pages
-            total = api
-                .column(9)
+
+            hubDueToPremiumTotal = api
+                .column(5, { page: 'current' })
                 .data()
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
                 }, 0);
-
-            // Total over this page
-            pageTotal = api
+            hubDueToClaimsTotal = api
+                .column(6, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            hubDueFromPremiumTotal = api
+                .column(7, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            hubDueFromClaimsTotal = api
+                .column(8, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            ooDueToTotal = api
                 .column(9, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            ooDueFromTotal = api
+                .column(10, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            // Total over this page
+            netTotal = api
+                .column(11, { page: 'current' })
                 .data()
                 .reduce(function (a, b) {
                     return intVal(a) + intVal(b);
@@ -133,9 +176,14 @@
                 maximumFractionDigits: 2,
                 trailingZeroDisplay: 'stripIfInteger'
             });
-
-            $(api.column(9).footer()).html('Page Total: ' + formatter.format(pageTotal));
-            $(api.column(0).footer()).html('Total: ' + formatter.format(total));
+            $(api.column(5).footer()).html(formatter.format(hubDueToPremiumTotal));
+            $(api.column(6).footer()).html(formatter.format(hubDueToClaimsTotal));
+            $(api.column(7).footer()).html(formatter.format(hubDueFromPremiumTotal));
+            $(api.column(8).footer()).html(formatter.format(hubDueFromClaimsTotal));
+            $(api.column(9).footer()).html(formatter.format(ooDueToTotal));
+            $(api.column(10).footer()).html(formatter.format(ooDueFromTotal));
+            $(api.column(11).footer()).html(formatter.format(netTotal));
+            //$(api.column(0).footer()).html('Total: ' + formatter.format(total));
         },
 
     });

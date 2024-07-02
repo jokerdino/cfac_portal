@@ -36,6 +36,7 @@ from app.coinsurance.coinsurance_model import (
 from app.funds.funds_model import FundBankStatement
 from server import indian_number_format
 
+
 @coinsurance_bp.route("/")
 @login_required
 def home_page():
@@ -301,7 +302,6 @@ def view_coinsurance_entry(coinsurance_id):
         remarks=remarks,
         settlement=settlement,
         enable_edit_button=enable_edit_button,
-
     )
 
 
@@ -625,7 +625,6 @@ def edit_coinsurance_entry(coinsurance_id):
         change_status=change_status,
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
-
         edit=True,
     )
 
@@ -1007,6 +1006,8 @@ def upload_coinsurance_balance():
                 "OO Due from": float,
                 "Net": float,
                 "Period": str,
+                "Regional Code": str,
+                "Zone": str,
             },
         )
         df_coinsurance_balance.rename(
@@ -1021,9 +1022,13 @@ def upload_coinsurance_balance():
                 "OO Due from": "oo_due_from",
                 "Net": "net_amount",
                 "Period": "period",
+                "Regional Code":"str_regional_office_code",
+                "Zone":"str_zone"
             },
             inplace=True,
         )
+        df_coinsurance_balance['created_by'] = current_user.username
+        df_coinsurance_balance['created_on'] = datetime.now()
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_coinsurance_balance.to_sql(
             "coinsurance_balances", engine, if_exists="append", index=False
@@ -1050,16 +1055,25 @@ def query_view_coinsurance_balance():
     form.period.choices = [
         (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
     ]
-    period = CoinsuranceBalances.query.with_entities(
-        CoinsuranceBalances.period
-    ).order_by(CoinsuranceBalances.id.desc()).first()[0]
+    period = (
+        CoinsuranceBalances.query.with_entities(CoinsuranceBalances.period)
+        .order_by(CoinsuranceBalances.id.desc())
+        .first()[0]
+    )
 
     if form.validate_on_submit():
         period = form.data["period"]
     coinsurance_balance = CoinsuranceBalances.query.filter(
-    CoinsuranceBalances.period == period
+        CoinsuranceBalances.period == period
     )
-    summary = CoinsuranceBalances.query.with_entities(CoinsuranceBalances.company_name, func.sum(CoinsuranceBalances.net_amount)).filter(CoinsuranceBalances.period == period).group_by(CoinsuranceBalances.company_name).order_by(CoinsuranceBalances.company_name)
+    summary = (
+        CoinsuranceBalances.query.with_entities(
+            CoinsuranceBalances.company_name, func.sum(CoinsuranceBalances.net_amount)
+        )
+        .filter(CoinsuranceBalances.period == period)
+        .group_by(CoinsuranceBalances.company_name)
+        .order_by(CoinsuranceBalances.company_name)
+    )
     return render_template(
         "view_coinsurance_balance.html",
         coinsurance_balance=coinsurance_balance,
@@ -1067,6 +1081,7 @@ def query_view_coinsurance_balance():
         form=form,
         period=period,
     )
+
 
 # @coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
 # @login_required
