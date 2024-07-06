@@ -16,7 +16,7 @@
         </ul>
     </div>
     <div class="container is-fluid" id="brs_content">
-        <table class="table is-fullwidth is-bordered" id="brs_table">
+        <table class="table is-fullwidth is-bordered is-narrow" width="100%" id="brs_table">
             <thead>
                 <tr>
                     <th>Period</th>
@@ -38,10 +38,10 @@
                 {% for item in mis_tracker %}
 
                 {% if item['str_person'] == current_user.username.upper() %}
-                 <!-- djlint:off -->
+                <!-- djlint:off -->
                 <tr class="has-background-info">
                     {% else %}
-                     <!-- djlint:on -->
+                    <!-- djlint:on -->
                 <tr>
                     {% endif %}
 
@@ -80,7 +80,7 @@
         </table>
     </div>
     <div class="container is-fluid is-fullwidth is-hidden" id="accounts_content">
-        <table class="table is-fullwidth is-bordered" width="100%" id="accounts_table">
+        <table class="table is-fullwidth is-bordered is-narrow" width="100%" id="accounts_table">
             <thead>
                 <tr>
                     <th class="has-text-centered">Period</th>
@@ -95,10 +95,10 @@
                 {% for item in accounts_work_tracker %}
                 {% if item['str_person'] == current_user.username.upper() %}
 
-                  <!-- djlint:off -->
+                <!-- djlint:off -->
                 <tr class="has-background-info">
                     {% else %}
-                     <!-- djlint:on -->
+                    <!-- djlint:on -->
 
                 <tr>
                     {% endif %}
@@ -106,9 +106,9 @@
                     <td>{{ item['str_work'] }}</td>
                     <td>{{ item['str_person'] or "" }}</td>
                     <td class="has-text-centered">{{ "✅" if item['bool_current_status'] else "❌" }}</td>
-                    <td><a class="button is-link is-outlined is-small"
+                    <td class="has-text-centered"><a class="button is-link is-outlined is-small"
                             href="{{ url_for('ho_accounts.view_accounts_work', id=item['id'] )}}">View</a></td>
-                    <td><a class="button is-link is-outlined is-small"
+                    <td class="has-text-centered"><a class="button is-link is-outlined is-small"
                             href="{{ url_for('ho_accounts.edit_accounts_work', id=item['id'] )}}">Edit</a></td>
                 </tr>
                 {% endfor %}
@@ -127,7 +127,7 @@
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-        order: [[9, 'asc']],
+        order: [[11, 'asc']],
 
     });
 
@@ -139,7 +139,7 @@
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-        order: [[3, 'asc']],
+        order: [[4, 'asc']],
 
     });
 

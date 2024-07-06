@@ -22,6 +22,8 @@ from app.ho_accounts.ho_accounts_form import (
     AccountsTrackerForm,
     BulkUploadFileForm,
     FilterPeriodForm,
+    BRSAddForm,
+    WorkAddForm,
 )
 from app.ho_accounts.ho_accounts_model import (
     HeadOfficeBankReconTracker,
@@ -82,12 +84,17 @@ def bulk_upload_trackers():
 @ho_accounts_bp.route("/", methods=["POST", "GET"])
 @login_required
 def ho_accounts_tracker_home():
+    from extensions import db
+
     form = FilterPeriodForm()
 
-    period_list_query = HeadOfficeBankReconTracker.query.with_entities(
+    period_list_query_brs = HeadOfficeBankReconTracker.query.with_entities(
         HeadOfficeBankReconTracker.str_period
     ).distinct()
-
+    period_list_query_work = HeadOfficeAccountsTracker.query.with_entities(
+        HeadOfficeAccountsTracker.str_period
+    ).distinct()
+    period_list_query = period_list_query_work.union(period_list_query_brs)
     # converting the period from string to datetime object
     list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
 
@@ -98,14 +105,7 @@ def ho_accounts_tracker_home():
     form.period.choices = [
         (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
     ]
-
-    period = (
-        HeadOfficeAccountsTracker.query.with_entities(HeadOfficeAccountsTracker.id,
-            HeadOfficeAccountsTracker.str_period
-        )
-        .distinct().order_by(HeadOfficeAccountsTracker.id.desc())
-        .first()[1]
-    )
+    period = list_period[0].strftime("%b-%y")
 
     if form.validate_on_submit():
         period = form.data["period"]
@@ -151,8 +151,9 @@ def edit_accounts_work(id):
         person.username.upper() for person in ho_staff if "admin" not in person.username
     ]
     if form.validate_on_submit():
+        work.str_work = form.str_work.data if form.str_work.data else work.str_work
         work.str_person = (
-            form.str_assigned_to.data if form.str_assigned_to.data else None
+            form.str_assigned_to.data if form.str_assigned_to.data else work.str_person
         )
         work.bool_current_status = form.bool_current_status.data
         work.text_remarks = form.text_remarks.data
@@ -163,7 +164,77 @@ def edit_accounts_work(id):
     form.bool_current_status.data = work.bool_current_status
     form.text_remarks.data = work.text_remarks
     form.str_assigned_to.data = work.str_person
+    form.str_work.data = work.str_work
     return render_template("accounts_work_edit.html", form=form, work=work)
+
+
+@ho_accounts_bp.route("/add_work", methods=["POST", "GET"])
+@login_required
+def add_work():
+    form = WorkAddForm()
+    from extensions import db
+
+    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
+    form.str_assigned_to.choices = [
+        person.username.upper() for person in ho_staff if "admin" not in person.username
+    ]
+    if form.validate_on_submit():
+        str_period = f"{form.str_month.data}-{form.str_year.data}"
+        str_work = form.str_work.data
+        str_person = form.str_assigned_to.data
+        work = HeadOfficeAccountsTracker(
+            str_period=str_period,
+            str_work=str_work,
+            str_person=str_person,
+            created_by=current_user.username,
+            date_created_date=datetime.now(),
+        )
+        db.session.add(work)
+        db.session.commit()
+
+        return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
+    return render_template("accounts_work_add.html", form=form)
+
+
+@ho_accounts_bp.route("/add_mis", methods=["POST", "GET"])
+@login_required
+def add_mis():
+    from extensions import db
+
+    form = BRSAddForm()
+    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
+    form.str_assigned_to.choices = [
+        person.username.upper() for person in ho_staff if "admin" not in person.username
+    ]
+    if form.validate_on_submit():
+        str_period = f"{form.str_month.data}-{form.str_year.data}"
+        str_name_of_bank = form.str_name_of_bank.data
+        str_purpose = form.str_purpose.data
+        str_person = form.str_assigned_to.data
+        str_bank_address = form.str_bank_address.data
+        str_gl_code = form.str_gl_code.data
+        str_sl_code = form.str_sl_code.data
+
+        str_bank_account_number = form.str_bank_account_number.data
+        str_customer_id = form.str_customer_id.data
+
+        mis = HeadOfficeBankReconTracker(
+            str_period=str_period,
+            str_name_of_bank=str_name_of_bank,
+            str_purpose=str_purpose,
+            str_person=str_person,
+            str_bank_address=str_bank_address,
+            str_gl_code=str_gl_code,
+            str_sl_code=str_sl_code,
+            str_bank_account_number=str_bank_account_number,
+            str_customer_id=str_customer_id,
+            date_created_date=datetime.now(),
+            created_by=current_user.username,
+        )
+        db.session.add(mis)
+        db.session.commit()
+        return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
+    return render_template("mis_status_add.html", form=form)
 
 
 @ho_accounts_bp.route("/edit_mis/<int:id>/", methods=["POST", "GET"])
@@ -178,11 +249,19 @@ def edit_mis(id):
         person.username.upper() for person in ho_staff if "admin" not in person.username
     ]
     if form.validate_on_submit():
+        mis.str_purpose = (
+            form.str_purpose.data if form.str_purpose.data else mis.str_purpose
+        )
+        mis.str_name_of_bank = (
+            form.str_name_of_bank.data
+            if form.str_name_of_bank.data
+            else mis.str_name_of_bank
+        )
         mis.boolean_mis_shared = form.boolean_mis_shared.data
         mis.boolean_jv_passed = form.boolean_jv_passed.data
         mis.text_remarks = form.text_remarks.data
         mis.str_person = (
-            form.str_assigned_to.data if form.str_assigned_to.data else None
+            form.str_assigned_to.data if form.str_assigned_to.data else mis.str_person
         )
 
         if form.data["str_brs_file_upload"]:
@@ -226,6 +305,9 @@ def edit_mis(id):
     form.boolean_jv_passed.data = mis.boolean_jv_passed
     form.text_remarks.data = mis.text_remarks
     form.str_assigned_to.data = mis.str_person
+    form.str_purpose.data = mis.str_purpose
+    form.str_name_of_bank.data = mis.str_name_of_bank
+
     return render_template("mis_status_edit.html", form=form, mis=mis)
 
 

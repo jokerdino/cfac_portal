@@ -23,7 +23,10 @@
                         home</a>
                     <a class="navbar-item" href="{{ url_for('ho_accounts.bulk_upload_trackers') }}">Bulk upload
                         trackers</a>
-
+                    {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+                    <a class="navbar-item" href="{{ url_for('ho_accounts.add_mis') }}">Add bank account</a>
+                    <a class="navbar-item" href="{{ url_for('ho_accounts.add_work') }}">Add general item</a>
+                    {% endif %}
                 </div>
             </div>
             </div>

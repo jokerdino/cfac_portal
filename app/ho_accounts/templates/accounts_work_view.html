@@ -12,6 +12,10 @@
             <td>{{ work.str_work }}</td>
         </tr>
         <tr>
+            <th>Assigned to</th>
+            <td>{{ work.str_person }}</td>
+        </tr>
+        <tr>
             <th>Current status</th>
             <td>{{ "✅" if work.bool_current_status else "❌" }}</td>
         </tr>
