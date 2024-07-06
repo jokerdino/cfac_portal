@@ -66,6 +66,9 @@
                         </div>
 
                     </div>
+                    {% if current_user.username == "bar44515" %}
+                    <a class="navbar-item" href="{{ url_for('funds.modify_dates') }}">Modify dates</a>
+                    {% endif %}
                 </div>
             </div>
 

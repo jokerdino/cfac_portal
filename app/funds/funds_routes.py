@@ -39,6 +39,7 @@ from app.funds.funds_form import (
     FlagForm,
     ReportsForm,
     FundsJVForm,
+    FundsModifyDatesForm,
 )
 
 outflow_labels = [
@@ -49,7 +50,7 @@ outflow_labels = [
     "TNCMCHIS",
     "AXIS CENTRALISED CHEQUE",
     "AXIS CENTRALISED CHEQUE 521",
-    "AXIS TDS GST",
+    "AXIS TDS RO",
     "PENSION",
     "GRATUITY",
     "RO BHOPAL CROP",
@@ -236,9 +237,9 @@ def upload_bank_statement():
         df_bank_statement["created_by"] = current_user.username
 
         # debit entries to be moved to credit entries
-        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "credit"] = (
-            df_bank_statement["debit"]
-        )
+        df_bank_statement.loc[
+            df_bank_statement["debit"].notnull(), "credit"
+        ] = df_bank_statement["debit"]
         df_bank_statement.loc[df_bank_statement["debit"].notnull(), "debit"] = None
 
         # adding flag from flag_sheet table
@@ -1492,6 +1493,41 @@ def prepare_inflow_jv(
     df_merged = pd.concat([df_inflow_actual, df_inflow])
 
     return df_merged
+
+
+@funds_bp.route("/modify_dates", methods=["POST", "GET"])
+@login_required
+def modify_dates():
+    from extensions import db
+
+    form = FundsModifyDatesForm()
+
+    if form.validate_on_submit():
+        old_date = form.old_date.data
+        new_date = form.new_date.data
+
+        bank_statement = FundBankStatement.query.filter(
+            FundBankStatement.date_uploaded_date == old_date
+        )
+        daily_outflow = FundDailyOutflow.query.filter(
+            FundDailyOutflow.outflow_date == old_date
+        )
+        daily_sheet = FundDailySheet.query.filter(
+            FundDailySheet.date_current_date == old_date
+        )
+
+        for item in bank_statement:
+            item.date_uploaded_date = new_date
+        for item in daily_outflow:
+            item.outflow_date = new_date
+        for item in daily_sheet:
+            item.date_current_date = new_date
+
+        db.session.commit()
+
+        flash(f"Dates have been changed from {old_date} to {new_date}.")
+
+    return render_template("modify_dates.html", form=form)
 
 
 # @funds_bp.route("/horo", methods=["POST", "GET"])

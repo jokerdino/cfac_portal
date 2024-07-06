@@ -73,7 +73,7 @@ class OutflowForm(FlaskForm):
     amount_axis_centralised_cheque_521 = DecimalField(
         "AXIS Centralised Cheque 521", validators=[Optional()]
     )
-    amount_axis_tds_gst = DecimalField("AXIS TDS GST", validators=[Optional()])
+    amount_axis_tds_gst = DecimalField("AXIS TDS RO", validators=[Optional()])
     amount_pension = DecimalField("Pension", validators=[Optional()])
     amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
     amount_ro_bhopal_crop = DecimalField("RO Bhopal Crop", validators=[Optional()])
@@ -155,3 +155,8 @@ class AmountGivenToInvestmentForm(FlaskForm):
     current_status = SelectField(
         "Status", choices=["Pending", "Received"], validators=[DataRequired()]
     )
+
+class FundsModifyDatesForm(FlaskForm):
+    old_date = DateField("Enter old date", validators=[DataRequired()])
+    new_date = DateField("Enter new date", validators=[DataRequired()])
+    submit_button = SubmitField("Submit")
