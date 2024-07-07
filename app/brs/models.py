@@ -113,3 +113,11 @@ class BankReconExcessCredit(db.Model):
     date_of_instrument = db.Column(db.Date)
     date_of_collection = db.Column(db.Date)
     remarks = db.Column(db.Text)
+
+class BankReconAccountDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    str_name_of_bank = db.Column(db.String)
+    str_brs_type = db.Column(db.String)
+
+    str_bank_account_number = db.Column(db.String)
+    str_ifsc_code = db.Column(db.String)

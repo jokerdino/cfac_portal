@@ -11,7 +11,15 @@ from app.cfac_flask_admin.model_views import (
 )
 
 from extensions import admin, db
-from app.brs.models import BRS, BRS_month, Outstanding, DeleteEntries, BankReconShortCredit, BankReconExcessCredit
+from app.brs.models import (
+    BRS,
+    BRS_month,
+    Outstanding,
+    DeleteEntries,
+    BankReconShortCredit,
+    BankReconExcessCredit,
+    BankReconAccountDetails,
+)
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
     Settlement,
@@ -41,7 +49,10 @@ from app.funds.funds_model import (
 
 from app.mis_tracker.mis_model import MisTracker
 from app.announcements.announcements_model import Announcements
-from app.ho_accounts.ho_accounts_model import HeadOfficeAccountsTracker, HeadOfficeBankReconTracker
+from app.ho_accounts.ho_accounts_model import (
+    HeadOfficeAccountsTracker,
+    HeadOfficeBankReconTracker,
+)
 
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
@@ -70,10 +81,26 @@ admin.add_view(
     ModelView(DeleteEntries, db.session, endpoint="delete_entries_", category="BRS")
 )
 admin.add_view(
-    ModelView(BankReconExcessCredit, db.session, endpoint="excess_credit_entries_", category="BRS")
+    ModelView(
+        BankReconExcessCredit,
+        db.session,
+        endpoint="excess_credit_entries_",
+        category="BRS",
+    )
 )
 admin.add_view(
-    ModelView(BankReconShortCredit, db.session, endpoint="short_credit_entries_", category="BRS")
+    ModelView(
+        BankReconShortCredit,
+        db.session,
+        endpoint="short_credit_entries_",
+        category="BRS",
+    )
+)
+
+admin.add_view(
+    ModelView(
+        BankReconAccountDetails, db.session, endpoint="bank_account_", category="BRS"
+    )
 )
 
 # coinsurance models
@@ -176,7 +203,10 @@ admin.add_view(
 )
 admin.add_view(
     DefaultModelView(
-        FundJournalVoucherFlagSheet, db.session, endpoint="funds_jv_flag_sheet", category="Funds"
+        FundJournalVoucherFlagSheet,
+        db.session,
+        endpoint="funds_jv_flag_sheet",
+        category="Funds",
     )
 )
 
@@ -185,5 +215,19 @@ admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
 admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
 
 # ho_checklist models
-admin.add_view(DefaultModelView(HeadOfficeBankReconTracker, db.session, endpoint="recon", category="HO_checklist"))
-admin.add_view(DefaultModelView(HeadOfficeAccountsTracker, db.session, endpoint="general", category="HO_checklist"))
+admin.add_view(
+    DefaultModelView(
+        HeadOfficeBankReconTracker,
+        db.session,
+        endpoint="recon",
+        category="HO_checklist",
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        HeadOfficeAccountsTracker,
+        db.session,
+        endpoint="general",
+        category="HO_checklist",
+    )
+)
