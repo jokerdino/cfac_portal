@@ -1,0 +1,88 @@
+{% extends "ho_ro_recon_layout.html" %}
+
+{% block content %}
+<div class="container">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table">
+            <tr>
+                <th>Period</th>
+                <td>{{ recon.str_period }}</td>
+            </tr>
+            <tr>
+                <th>Source Regional Office</th>
+                <td>{{ recon.str_regional_office_code }}</td>
+            </tr>
+            <tr>
+                <th>Accepting Regional Office</th>
+                <td>{{ recon.str_target_ro_code }}</td>
+            </tr>
+            <tr>
+                <th>Debit / Credit</th>
+                <td>{{ recon.str_debit_credit }}</td>
+            </tr>
+            <tr>
+                <th>Amount</th>
+                <td>{{ recon.amount_recon }}</td>
+            </tr>
+            <tr>
+                <th>Remarks</th>
+                <td>{{ recon.txt_remarks }}</td>
+            </tr>
+
+            <tr>
+                <th>{{ form.str_assigned_to.label }}</th>
+                <td>
+                    {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+                    {{ form.str_assigned_to(class="select") }}
+                    {% else %}
+                    {{ recon.str_assigned_to or "" }}
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <th>{{ form.str_head_office_status.label }}</th>
+                <td>{{ form.str_head_office_status }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.text_head_office_remarks.label }}</th>
+                <td>{{ form.text_head_office_remarks(class="textarea") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_head_office_voucher_number.label }}</th>
+                <td>{{ form.str_head_office_voucher_number(class="input") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.date_head_office_voucher.label }}</th>
+                <td>{{ form.date_head_office_voucher(class="input") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            {% if check_for_status(recon) %}
+            {{ form.submit_button(class="button is-success") }}
+            {% else %}
+            {{ form.submit_button(class="button is-success", disabled=disabled) }}
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock content %}

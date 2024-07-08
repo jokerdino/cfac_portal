@@ -1,0 +1,76 @@
+{% extends "ho_ro_recon_layout.html" %}
+
+{% block content %}
+<div class="container">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form method="post">
+        {{ form.csrf_token }}
+
+        <table class="table">
+
+            <tr>
+                <th>{{ form.str_period.label }}</th>
+                <td>{{ form.str_period(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_department_inter_region.label }}</th>
+                <td>{{ form.str_department_inter_region }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_ro_code.label }}</th>
+                <td>{{ form.str_ro_code(class="select") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_department.label }}</th>
+                <td>{{ form.str_department(class="select") }}</td>
+            </tr>
+
+            <tr>
+                <th>{{ form.str_debit_credit.label }}</th>
+                <td>{{ form.str_debit_credit }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.amount_recon.label }}</th>
+                <td>{{ form.amount_recon(class="input") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.text_remarks.label }}</th>
+                <td>{{ form.text_remarks(class="textarea") }}</td>
+
+            </tr>
+
+        </table>
+
+        <div class="has-text-centered">
+            {% if not edit %}
+            {{ form.submit_button(class="button is-success") }}
+            {% else %}
+            {% if check_for_status(recon) %}
+            {{ form.submit_button(class="button is-success") }}
+            {{ form.delete_button(class="button is-danger") }}
+            {% else %}
+            {{ form.submit_button(class="button is-success", disabled=disabled) }}
+            {{ form.delete_button(class="button is-danger", disabled=disabled) }}
+            {% endif %}
+            {% endif %}
+        </div>
+    </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,151 @@
+{% extends "funds_layout.html" %}
+
+{% block content %}
+
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+{% for message in messages %}
+<div class="notification is-success">
+    <p>{{ message }}</p>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+<form id="form" method="post">
+
+    <table class="table is-outlined" id="mytable">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Year</th>
+                <th>Period</th>
+                <th>RO Code</th>
+                <th>RO name</th>
+                <th>Department</th>
+                <th>Remarks</th>
+                <th>Debit / Credit</th>
+                <th>Amount</th>
+                <th>Additional remarks</th>
+                <th>HO voucher number</th>
+                <th>RO voucher number</th>
+                <th>Concerned person (HO)</th>
+                <th>HO remarks</th>
+                <th>Date of passing voucher at Head Office</th>
+                <th>HO status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><button class="button" value="Delete" onclick="deleterow()">Delete</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <button class="button" value="Add new row" onclick="addrow()">Add new row</button>
+    <div class="has-text-centered">
+        <button class="button is-success">Submit</button>
+    </div>
+
+</form>
+{% block scripts %}
+<script>
+
+    function addrow() {
+        var mytable = document.getElementById("mytable");
+        var rows = mytable.rows.length;
+        var r = mytable.insertRow(rows);
+        var c1 = r.insertCell(0);
+        var c2 = r.insertCell(1);
+        var c3 = r.insertCell(2);
+        var c4 = r.insertCell(3);
+        var c5 = r.insertCell(4);
+        var c6 = r.insertCell(5);
+        var c7 = r.insertCell(6);
+        var c8 = r.insertCell(7);
+        var c9 = r.insertCell(8);
+        var c10 = r.insertCell(9);
+        var c11 = r.insertCell(10);
+        var c12 = r.insertCell(11);
+        var c13 = r.insertCell(12);
+        var c14 = r.insertCell(13);
+        var c15 = r.insertCell(14);
+
+        var year = document.createElement("input");
+        var period = document.createElement("input");
+        var ro_code = document.createElement("input");
+        var ro_name = document.createElement("input");
+        var department = document.createElement("input");
+        var remarks = document.createElement("input");
+        var dr_cr = document.createElement("input");
+        var amount = document.createElement("input");
+        var additional_remarks = document.createElement("input");
+        var ho_voucher_number = document.createElement("input");
+        var ro_voucher_number = document.createElement("input");
+        var concerned_person = document.createElement("input");
+        var ho_remarks = document.createElement("input");
+        var date_of_voucher = document.createElement("input");
+        var ho_status = document.createElement("input");
+
+
+        year.type = "input";
+        period.type = "input";
+        ro_code.type = "input";
+        ro_name.type = "input";
+        department.type = "input";
+        remarks.type = "input";
+        dr_cr.type = "input";
+        amount.type = "input";
+        additional_remarks.type = "input";
+        ho_voucher_number.type = "input";
+        ro_voucher_number.type = "input";
+        concerned_person.type = "input";
+        ho_remarks.type = "input";
+        date_of_voucher.type = "input";
+        ho_status.type = "input";
+
+        c2.appendChild(year);
+        c3.appendChild(period);
+        c4.appendChild(ro_code);
+        c5.appendChild(ro_name);
+        c6.appendChild(department);
+        c7.appendChild(remarks);
+        c8.appendChild(dr_cr);
+        c9.appendChild(amount);
+        c10.appendChild(additional_remarks);
+        c11.appendChild(ho_voucher_number);
+        c12.appendChild(ro_voucher_number);
+        c13.appendChild(concerned_person);
+        c14.appendChild(ho_remarks);
+        c15.appendChild(date_of_voucher);
+
+        year.classList.add("input");
+        period.classList.add("input");
+        ro_code.classList.add("input");
+        ro_name.classList.add("input");
+        department.classList.add("input");
+        remarks.classList.add("input");
+        dr_cr.classList.add("input");
+        amount.classList.add("input");
+        additional_remarks.classList.add("input");
+        ho_voucher_number.classList.add("input");
+        ro_voucher_number.classList.add("input");
+        concerned_person.classList.add("input");
+        ho_remarks.classList.add("input");
+        date_of_voucher.classList.add("input");
+
+        year.id = 'year' + rows;
+        year.value = 'year' + rows;
+        year.name = "year" + rows;
+    }
+
+    // function delrow() {
+    //     var mytable = document.getElementById("mytable");
+    //     var rows = mytable.rows.length;
+    //     for (var i = rows - 1; i > 0; i--) {
+    //         if (mytable.rows[i].cells[0].children[0].checked) {
+    //             mytable.deleteRow(i);
+    //         }
+    //     }
+    // }
+</script>
+{% endblock scripts %}
+{% endblock content %}
