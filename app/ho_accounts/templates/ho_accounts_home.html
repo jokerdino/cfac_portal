@@ -51,7 +51,7 @@
                     <td>{{ item['str_person'] or "" }}</td>
                     <td>{{ item['str_gl_code'] }}</td>
                     <td>{{ item['str_sl_code'] }}</td>
-                    <td>{{ item['str_bank_account_number'] }}</td>
+                    <td>{{ mask_account_number(item['str_bank_account_number']) }}</td>
                     <td class="has-text-centered">{{ "✅" if item['boolean_mis_shared'] else "❌" }}</td>
                     <td class="has-text-centered">
                         {% if item['str_brs_file_upload'] %}

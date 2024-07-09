@@ -81,6 +81,12 @@ def bulk_upload_trackers():
     return render_template("ho_accounts_bulk_upload.html", form=form)
 
 
+def mask_account_number(account_number: str) -> str:
+
+    if not account_number:
+        return None
+    return (account_number[:2] + ((len(account_number)-6) * '*') + account_number[-4:])
+
 @ho_accounts_bp.route("/", methods=["POST", "GET"])
 @login_required
 def ho_accounts_tracker_home():
@@ -122,6 +128,7 @@ def ho_accounts_tracker_home():
         accounts_work_tracker=accounts_work_tracker,
         form=form,
         period=period,
+        mask_account_number=mask_account_number,
     )
 
 
