@@ -19,16 +19,16 @@ class TicketsForm(FlaskForm):
     department = SelectField(
         "Select department",
         choices=[
-            "Coinsurance",
-            "GST",
-            "TDS",
-            "Payment gateway",
-            "Centralised cheque",
-            "Claims",
-            "Voucher cancellation",
-            "NEFT rejection",
-            "JV for blocked GL codes",
-            "Others",
+            ("Coinsurance","Coinsurance"),
+            ("GST","GST"),
+            ("TDS","TDS"),
+            ("Payment gateway","Payment gateway"),
+            ("Centralised cheque", "Centralised cheque"),
+            ("Claims","Claims"),
+            ("Voucher cancellation","Voucher cancellation (other than centralised SWD)"),
+            ("NEFT rejection","NEFT rejection"),
+            ("JV for blocked GL codes","JV for blocked GL codes"),
+            ("Others","Others")
         ],
     )
     status = SelectField(

@@ -72,8 +72,8 @@
                 <td>{{ ticket.status }}</td>
                 <td data-sort="{{ ticket.date_of_creation }}" title="{{ ticket.date_of_creation }}">{{
                     humanize_datetime(ticket.date_of_creation) }}</td>
-                <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}">View</a></td>
-                <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}">Edit</a></td>
+                <td><a href="{{ url_for('tickets.view_ticket', ticket_id=ticket.id ) }}" target="_blank">View</a></td>
+                <td><a href="{{ url_for('tickets.edit_ticket', ticket_id=ticket.id ) }}" target="_blank">Edit</a></td>
                 {% endfor %}
             </tr>
         </tbody>
