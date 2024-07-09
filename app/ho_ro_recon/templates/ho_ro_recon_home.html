@@ -6,60 +6,65 @@
     <table class="table is-fullwidth is-bordered is-hoverable" id="recon_table">
         <thead>
             <tr>
-                <th></th>
-                <th>Period</th>
-                <th>RO Code</th>
-                <th>Department / Region</th>
-                <th>Debit / Credit</th>
-                <th>Amount</th>
-                <th>Remarks</th>
-                <th>Status</th>
-                <th>Assigned to</th>
-                <th>HO remarks</th>
-                <th>HO voucher number</th>
-                <th>Date of passing HO voucher</th>
-                <th>View</th>
-                <th>Edit</th>
+                <th class="has-text-centered is-vcentered">Period</th>
+                <th class="has-text-centered is-vcentered">RO Code</th>
+                <th class="has-text-centered is-vcentered">Department / Region</th>
+                <th class="has-text-centered is-vcentered">Debit / Credit</th>
+                <th class="has-text-centered is-vcentered">Amount</th>
+                <th class="has-text-centered is-vcentered">Remarks by RO</th>
+                <th class="has-text-centered is-vcentered">Current status</th>
+                <th class="has-text-centered is-vcentered">Remarks by accepting office</th>
+                {% if current_user.user_type == "admin" %}
+                <th class="has-text-centered is-vcentered">Assigned to</th>
+                <th class="has-text-centered is-vcentered">HO voucher number</th>
+                <th class="has-text-centered is-vcentered">Date of passing HO voucher</th>
+                {% endif %}
+                <th class="has-text-centered is-vcentered">Added on</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
             </tr>
         </thead>
         <tbody>{% for item in query %}
-
-            {% if (current_user.ro_code == item['str_regional_office_code']) and
-            (item['str_head_office_status'] == "Not accepted") %}
             <!-- djlint:off -->
-            <tr class="has-background-danger-light">
-                {% elif item['str_assigned_to'] == current_user.username.upper() %}
+            {% if item['str_assigned_to'] == current_user.username.upper() %}
             <tr class="has-background-info">
+                {% elif (current_user.ro_code == item['str_regional_office_code']) and
+                (item['str_head_office_status'] == "Not accepted") %}
+
+            <tr class="has-background-danger-light">
+
                 <!-- djlint:on -->
                 {% else %}
             <tr>
                 {% endif %}
-                <td>{{ item['id'] }}</td>
                 <td>{{ item['str_period'] }}</td>
                 <td>{{ item['str_regional_office_code'] }}</td>
                 <td>{{ item['str_department'] or item['str_target_ro_code'] }} </td>
                 <td>{{ item['str_debit_credit'] }}</td>
-                <td>{{ item['amount_recon'] }}</td>
+                <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td>{{ item['txt_remarks'] }}</td>
                 <td>{{ item['str_head_office_status'] }}</td>
-                <td>{{ item['str_assigned_to'] }}</td>
                 <td>{{ item['txt_head_office_remarks'] }}</td>
+                {% if current_user.user_type == "admin" %}
+                <td>{{ item['str_assigned_to'] }}</td>
                 <td>{{ item['str_head_office_voucher'] }}</td>
                 <td>{{ item['date_head_office_voucher'] }}</td>
-                <td>View</td>
+                {% endif %}
+                <td data-sort="{{ item['date_created_date'] }}" title="{{ item['date_created_date'] }}">
+                    {{ item['date_created_date'] | humanize_datetime }}</td>
                 <td>
-                    {% if item['str_regional_office_code'] == current_user.ro_code %}
 
-                    <a href="{{ url_for('ho_ro_recon.update_source_ro', key=item['id']) }}">
+                    {% if current_user.user_type == "admin" %}
+                    <a href="{{ url_for('ho_ro_recon.update_ho', key=item['id']) }}" target="_blank">
+                        Edit</a>
+                    {% elif item['str_regional_office_code'] == current_user.ro_code %}
+
+                    <a href="{{ url_for('ho_ro_recon.update_source_ro', key=item['id']) }}" target="_blank">
                         Edit</a>
                     {% elif item['str_target_ro_code'] == current_user.ro_code %}
-                    <a href="{{ url_for('ho_ro_recon.update_target_ro', key=item['id']) }}">
+                    <a href="{{ url_for('ho_ro_recon.update_target_ro', key=item['id']) }}" target="_blank">
 
                         Edit</a>
-                    {% elif current_user.user_type == "admin" %}
-                    <a href="{{ url_for('ho_ro_recon.update_ho', key=item['id']) }}">
 
-                        Edit</a>
                     {% endif %}
                 </td>
             </tr>
@@ -67,4 +72,25 @@
         </tbody>
     </table>
 </div>
+
+{% block scripts %}
+<script>
+    var brs_table = new DataTable('#recon_table', {
+        dom: 'fBrti',
+        fixedHeader: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+
+{% if current_user.user_type == "admin" %}
+    order: [[11, 'asc']],
+        {% else %}
+    order: [[8, 'asc']],
+        {% endif %}
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}

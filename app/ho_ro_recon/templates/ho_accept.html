@@ -53,6 +53,8 @@
                 <td>
                     {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
                     {{ form.str_assigned_to(class="select") }}
+                    {% elif not recon.str_assigned_to %}
+                    {{ form.str_assigned_to(class="select") }}
                     {% else %}
                     {{ recon.str_assigned_to or "" }}
                     {% endif %}
@@ -77,11 +79,9 @@
             </tr>
         </table>
         <div class="has-text-centered">
-            {% if check_for_status(recon) %}
+
             {{ form.submit_button(class="button is-success") }}
-            {% else %}
-            {{ form.submit_button(class="button is-success", disabled=disabled) }}
-            {% endif %}
+
         </div>
     </form>
 </div>

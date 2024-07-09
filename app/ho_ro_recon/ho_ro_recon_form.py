@@ -96,7 +96,7 @@ class HeadOfficeAcceptForm(FlaskForm):
     str_assigned_to = SelectField("Assign to", validators=[Optional()])
     str_head_office_status = RadioField(
         "Head office status",
-        choices=["Accepted", "Not accepted"],
+        choices=["Pending","Accepted", "Not accepted"],
         validators=[Optional()],
     )
     text_head_office_remarks = TextAreaField(

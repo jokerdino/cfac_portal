@@ -3,6 +3,8 @@ from datetime import datetime
 from flask import render_template, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 
+from wtforms.validators import DataRequired
+
 from sqlalchemy import func
 
 from app.ho_ro_recon import ho_ro_recon_bp
@@ -25,7 +27,13 @@ def add_ho_ro_recon():
 
     form = ReconEntriesForm()
 
-    if form.validate_on_submit():
+    if form.str_department_inter_region.data == "RO":
+        form.str_ro_code.validators = [DataRequired()]
+    elif form.str_department_inter_region.data == "HO":
+        form.str_department.validators = [DataRequired()]
+    if form.str_ro_code.data == current_user.ro_code:
+        flash("Selected RO code cannot be same as the RO code of the user.")
+    elif form.validate_on_submit():
         str_period = form.str_period.data
         str_target_ro_code = (
             form.str_ro_code.data
@@ -80,8 +88,14 @@ def update_source_ro(key):
     if not recon.str_regional_office_code == current_user.ro_code:
         abort(404)
     form = ReconEntriesForm()
+    if form.str_department_inter_region.data == "RO":
+        form.str_ro_code.validators = [DataRequired()]
+    elif form.str_department_inter_region.data == "HO":
+        form.str_department.validators = [DataRequired()]
     if not check_for_status(recon):
         flash("Cannot edit the entry as the status is no longer pending.")
+    elif form.str_ro_code.data == current_user.ro_code:
+        flash("Selected RO code cannot be same as the RO code of the user.")
     elif form.validate_on_submit():
         print(form.data)
         if form.delete_button.data:
@@ -140,7 +154,7 @@ def update_target_ro(key):
 
     elif form.validate_on_submit():
         recon.str_head_office_status = form.str_accept.data
-        recon.txt_head_office_remarks = form.text_remarks.data
+        recon.txt_head_office_remarks = f"{form.text_remarks.data}; {form.str_accept.data} by {current_user.ro_code}"
         recon.updated_by = current_user.username
         recon.date_updated_date = datetime.now()
 
@@ -155,7 +169,7 @@ def update_target_ro(key):
                 txt_remarks=recon.txt_remarks,
                 amount_recon=recon.amount_recon,
                 str_head_office_status="Accepted",
-                txt_head_office_remarks="Accepted contra entry",
+                txt_head_office_remarks=f"Accepted original entry of {recon.str_regional_office_code} by {current_user.ro_code}",
                 created_by=current_user.username,
                 date_created_date=datetime.now(),
             )
@@ -186,14 +200,16 @@ def update_ho(key):
     form.str_assigned_to.choices = [
         person.username.upper() for person in ho_staff if "admin" not in person.username
     ]
-    if not check_for_status(recon):
-        flash("Cannot edit the entry as the status is no longer pending.")
-    elif form.validate_on_submit():
+    if current_user.username not in ['bar44515', 'hem27596', 'jan27629','ush25768']:
+        form.str_assigned_to.choices = [current_user.username.upper()]
+  #  if not check_for_status(recon):
+   #     flash("Cannot edit the entry as the status is no longer pending.")
+    if form.validate_on_submit():
 
-        recon.str_assigned_to = form.str_assigned_to.data
+        recon.str_assigned_to = form.str_assigned_to.data if form.str_assigned_to.data else recon.str_assigned_to
         recon.str_head_office_status = form.str_head_office_status.data
         recon.txt_head_office_remarks = form.text_head_office_remarks.data
-        recon.str_head_office_voucher_number = form.str_head_office_voucher_number.data
+        recon.str_head_office_voucher = form.str_head_office_voucher_number.data
         recon.date_head_office_voucher = form.date_head_office_voucher.data
 
         recon.updated_by = current_user.username
@@ -231,8 +247,8 @@ def recon_home():
 @login_required
 def recon_pending_at_ro():
     query = ReconEntries.query.filter(
-        (ReconEntries.str_head_office_status != "Deleted")
-        & (ReconEntries.str_head_office_status == "Pending")
+        ReconEntries.str_head_office_status != "Deleted"
+        #& (ReconEntries.str_head_office_status == "Pending")
     ).order_by(ReconEntries.id)
     if current_user.user_type == "ro_user":
         query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
