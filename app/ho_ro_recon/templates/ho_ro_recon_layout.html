@@ -22,8 +22,12 @@
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO Recon home</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">Pending Inter Region
                         entries</a>
+                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.add_ho_ro_recon') }}">Add new recon entry</a>
-
+                    {% if current_user.username == "bar44515" %}
+                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.upload_summary_template') }}">Upload summary
+                        template</a>
+                    {% endif %}
                 </div>
             </div>
             <div class="navbar-end">

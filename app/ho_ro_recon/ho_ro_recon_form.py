@@ -55,17 +55,23 @@ ro_list = [
 ]
 
 department_list = [
-    "Coinsurance",
     "Housing Loan",
     "Establishment",
+    "TDS",
     "GST",
     "Asset",
-    "TDS",
-    "FCS",
+    "HDFC - FCS",
+    "Other than HDFC - FCS",
+    "Centralised cheque",
+    "NEFT",
+    "Bank of America - RTGS",
+    "IndusInd - RTGS",
     "Payment gateway",
-    "Foreign remittance",
     "POS",
     "BBPS",
+    "Foreign remittance",
+    "Coinsurance",
+    "Reinsurance",
     "Others",
 ]
 
@@ -74,7 +80,7 @@ class ReconEntriesForm(FlaskForm):
     str_period = SelectField("Period", choices=["Jun-24"], validators=[DataRequired()])
 
     str_department_inter_region = RadioField(
-        "HO department / Inter region",
+        "Other region / HO department",
         choices=[("RO", "Other region"), ("HO", "Head office department")],
         validators=[DataRequired()],
     )
@@ -83,7 +89,7 @@ class ReconEntriesForm(FlaskForm):
     )
     str_ro_code = SelectField("Region", choices=ro_list, validators=[Optional()])
     str_debit_credit = RadioField(
-        "Debit / Credit", choices=["DR", "CR"], validators=[DataRequired()]
+        "Debit / Credit", choices=[("DR","DR / Add"), ("CR","CR / Less")], validators=[DataRequired()]
     )
     amount_recon = DecimalField("Amount", validators=[DataRequired()])
     text_remarks = TextAreaField("Remarks", validators=[Optional()])
@@ -119,6 +125,19 @@ class RegionalOfficeAcceptForm(FlaskForm):
     text_remarks = TextAreaField("Remarks", validators=[Optional()])
     submit_button = SubmitField("Submit")
 
+
+class ReconSummaryForm(FlaskForm):
+    str_ro_balance_dr_cr = SelectField(choices=["DR","CR"], validators=[DataRequired()])
+    float_ro_balance = DecimalField("Enter balance as per RO", validators=[DataRequired()])
+    str_ho_balance_dr_cr = SelectField(choices=["DR","CR"], validators=[DataRequired()])
+    float_ho_balance = DecimalField("Enter balance as per HO", validators=[DataRequired()])
+
+    text_remarks = TextAreaField("Remarks", validators=[Optional()])
+    submit_button = SubmitField("Submit")
+
+class UploadFileForm(FlaskForm):
+    file_upload = FileField("Upload summary template", validators=[DataRequired()])
+    upload_document = SubmitField("Upload")
 
 # class ReconEntriesForm(FlaskForm):
 #     add_entries = FieldList(FormField(IndividualEntriesForm), min_entries=5) # type: ignore

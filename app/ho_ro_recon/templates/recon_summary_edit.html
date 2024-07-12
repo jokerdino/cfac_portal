@@ -1,0 +1,215 @@
+{% extends "ho_ro_recon_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% block content %}
+<div class="container">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>RO Code</th>
+                <th>Period</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ summary.str_regional_office_code }}</td>
+                <td>{{ summary.str_period }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <form method="post" onsubmit="validateForm()">
+        {{ form.csrf_token }}
+        <table class="table is-bordered">
+            <tr>
+                <th colspan="3">{{ form.float_ro_balance.label }}</th>
+                <td></td>
+                <td class="has-text-right">{{ form.str_ro_balance_dr_cr(class="select") }}
+                </td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.float_ro_balance(class="input") }}</td>
+            </tr>
+            <tr>{% for item in pending_dr %}
+                <td>Pending</td>
+                <td>{{ item['str_department'] or "" }}{{ item['str_target_ro_code'] or "" }}
+                </td>
+                <td>{{ item['txt_remarks'] }}</td>
+                <td>{{ item['str_debit_credit'] }}</td>
+                <td class="has-text-right">{{ item['amount_recon'] }}</td>
+                <td></td>
+
+            </tr>
+
+            {% endfor %}
+
+            <tr>{% for item in pending_cr %}
+                <td>Pending</td>
+                <td>{{ item['str_department'] or "" }}{{ item['str_target_ro_code'] or "" }}
+                </td>
+                <td>{{ item['txt_remarks'] }}</td>
+                <td>{{ item['str_debit_credit'] }}</td>
+                <td class="has-text-right">{{ item['amount_recon'] }}</td>
+                <td></td>
+
+            </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Pending entries</td>
+                <td class="has-text-right" id="int_pending">{{ ((pending_dr | sum(attribute="amount_recon")) -
+                    (pending_cr |
+                    sum(attribute="amount_recon"))) }}
+                </td>
+            </tr>
+            <tr>{% for item in not_passed_dr %}
+                <td>Approved but not passed</td>
+                <td>{{ item['str_department'] or "" }}{{ item['str_target_ro_code'] or "" }}
+                </td>
+                <td>{{ item['txt_remarks'] }}</td>
+                <td>{{ item['str_debit_credit'] }}</td>
+                <td class="has-text-right">{{ item['amount_recon'] }}</td>
+                <td></td>
+
+            </tr>
+            {% endfor %}
+
+            <tr>{% for item in not_passed_cr %}
+                <td>Accepted but not passed</td>
+                <td>{{ item['str_department'] or "" }}{{ item['str_target_ro_code'] or "" }}
+                </td>
+                <td>{{ item['txt_remarks'] }}</td>
+                <td>{{ item['str_debit_credit'] }}</td>
+                <td class="has-text-right">{{ item['amount_recon'] }}</td>
+                <td></td>
+
+            </tr>
+            {% endfor %}
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>Accepted but not passed by HO</td>
+                <td class="has-text-right" id="int_not_passed">{{ ((not_passed_dr | sum(attribute="amount_recon")) -
+                    (not_passed_cr |
+                    sum(attribute="amount_recon")))
+                    }}</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="has-text-right" id="cal_ho_balance"></td>
+            </tr>
+            <tr>
+                <th colspan="3">{{ form.float_ho_balance.label }}</th>
+                <td></td>
+                <td class="has-text-right">{{ form.str_ho_balance_dr_cr(class="select") }}
+                </td>
+
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.float_ho_balance(class="input") }}</td>
+            </tr>
+            <tr>
+                <td colspan="3">Difference</td>
+                <td></td>
+                <td></td>
+                <td class="has-text-right" id="int_diff"></td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            {{ form.submit_button(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        calculateSum();
+    });
+
+    document.getElementById('str_ro_balance_dr_cr').addEventListener('change', (event) => {
+        calculateSum();
+    })
+
+    document.getElementById('str_ho_balance_dr_cr').addEventListener('change', (event) => {
+        calculateSum();
+    })
+    function calculateSum() {
+        var ro_balance = parseFloat(document.getElementById("float_ro_balance").value === "" ? 0 : document.getElementById("float_ro_balance").value);
+        var ho_balance = parseFloat(document.getElementById("float_ho_balance").value === "" ? 0 : document.getElementById("float_ho_balance").value);
+
+        var pending_amount = parseFloat(document.getElementById("int_pending").innerText === "" ? 0 : document.getElementById("int_pending").innerText);
+        var not_passed_amount = parseFloat(document.getElementById("int_not_passed").innerText === "" ? 0 : document.getElementById("int_not_passed").innerText);
+
+        var cal_ho_balance;
+        var ro_balance_type = document.getElementById("str_ro_balance_dr_cr").value;
+
+        if (ro_balance_type == "DR") {
+            cal_ho_balance = ro_balance + pending_amount + not_passed_amount;
+        } else if (ro_balance_type == "CR") {
+            cal_ho_balance = -ro_balance + pending_amount + not_passed_amount;
+        }
+
+        var ho_balance_type = document.getElementById("str_ho_balance_dr_cr").value;
+        var diff;
+        if (ho_balance_type == "CR") {
+            diff = cal_ho_balance - ho_balance;
+        }
+        else if (ho_balance_type == "DR") {
+            diff = cal_ho_balance + ho_balance;
+        }
+
+        const formatter = new Intl.NumberFormat('en-IN', {
+            //style: 'currency',
+            //currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            //trailingZeroDisplay: 'stripIfInteger'
+        });
+        document.getElementById("cal_ho_balance").innerText = formatter.format(cal_ho_balance);
+        document.getElementById("int_diff").innerText = formatter.format(diff);
+        //document.getElementById("hidden_float_diff").innerText = diff;
+        return diff
+    }
+    function validateForm() {
+        final_diff = calculateSum();
+        const formatter = new Intl.NumberFormat('en-IN', {
+            //style: 'currency',
+            //currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            //trailingZeroDisplay: 'stripIfInteger'
+        });
+
+        if (final_diff === 0) {
+            return true;
+        }
+        else {
+            alert(`Difference of ${formatter.format(final_diff)} is present.`)
+            event.preventDefault();
+            return false;
+        }
+    }
+</script>
+{% endblock scripts %}
+{% endblock content %}

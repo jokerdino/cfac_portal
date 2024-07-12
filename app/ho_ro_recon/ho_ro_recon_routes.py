@@ -1,11 +1,13 @@
 from datetime import datetime
+from math import fabs
 
-from flask import render_template, redirect, url_for, flash, abort
+import pandas as pd
+from flask import render_template, redirect, url_for, flash, abort, current_app
 from flask_login import login_required, current_user
 
 from wtforms.validators import DataRequired
 
-from sqlalchemy import func
+from sqlalchemy import func, create_engine
 
 from app.ho_ro_recon import ho_ro_recon_bp
 
@@ -13,8 +15,10 @@ from app.ho_ro_recon.ho_ro_recon_form import (
     ReconEntriesForm,
     RegionalOfficeAcceptForm,
     HeadOfficeAcceptForm,
+    ReconSummaryForm,
+    UploadFileForm,
 )
-from app.ho_ro_recon.ho_ro_recon_model import ReconEntries
+from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
 
 from app.users.user_model import User
 
@@ -97,7 +101,7 @@ def update_source_ro(key):
     elif form.str_ro_code.data == current_user.ro_code:
         flash("Selected RO code cannot be same as the RO code of the user.")
     elif form.validate_on_submit():
-        print(form.data)
+        # print(form.data)
         if form.delete_button.data:
 
             recon.str_head_office_status = "Deleted"
@@ -200,13 +204,17 @@ def update_ho(key):
     form.str_assigned_to.choices = [
         person.username.upper() for person in ho_staff if "admin" not in person.username
     ]
-    if current_user.username not in ['bar44515', 'hem27596', 'jan27629','ush25768']:
+    if current_user.username not in ["bar44515", "hem27596", "jan27629", "ush25768"]:
         form.str_assigned_to.choices = [current_user.username.upper()]
-  #  if not check_for_status(recon):
-   #     flash("Cannot edit the entry as the status is no longer pending.")
+    #  if not check_for_status(recon):
+    #     flash("Cannot edit the entry as the status is no longer pending.")
     if form.validate_on_submit():
 
-        recon.str_assigned_to = form.str_assigned_to.data if form.str_assigned_to.data else recon.str_assigned_to
+        recon.str_assigned_to = (
+            form.str_assigned_to.data
+            if form.str_assigned_to.data
+            else recon.str_assigned_to
+        )
         recon.str_head_office_status = form.str_head_office_status.data
         recon.txt_head_office_remarks = form.text_head_office_remarks.data
         recon.str_head_office_voucher = form.str_head_office_voucher_number.data
@@ -247,8 +255,8 @@ def recon_home():
 @login_required
 def recon_pending_at_ro():
     query = ReconEntries.query.filter(
-        ReconEntries.str_head_office_status != "Deleted"
-        #& (ReconEntries.str_head_office_status == "Pending")
+        (ReconEntries.str_head_office_status != "Deleted")
+        & (ReconEntries.str_head_office_status == "Pending")
     ).order_by(ReconEntries.id)
     if current_user.user_type == "ro_user":
         query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
@@ -258,25 +266,181 @@ def recon_pending_at_ro():
     )
 
 
-# @ho_ro_recon_bp.route("/pending_count", methods=["POST", "GET"])
-# @login_required
-def count_recon_pending_at_ro():
-    count = (
-        ReconEntries.query.with_entities(
-            func.count(ReconEntries.str_target_ro_code)
-        ).filter(
-            (ReconEntries.str_head_office_status != "Deleted")
-            & (ReconEntries.str_head_office_status == "Pending")
-        )
-        # .order_by(ReconEntries.id)
+@ho_ro_recon_bp.route("/summary/")
+@login_required
+def list_recon_summary():
+    query = ReconSummary.query.filter(ReconSummary.str_period == "Jun-24").order_by(
+        ReconSummary.id
     )
     if current_user.user_type == "ro_user":
-        count = count.filter(
-            ReconEntries.str_target_ro_code == current_user.ro_code
-        ).group_by(ReconEntries.str_target_ro_code)
-    #    print(query)
-    print(count[0][0])
-    # print(f"{count[0][0]}")
-    return f"{count[0][0]}"
-    # dict_count = {'count':count[0][0]}
-    # return dict_count
+        query = query.filter(
+            ReconSummary.str_regional_office_code == current_user.ro_code
+        )
+
+    return render_template("ho_ro_recon_summary_list.html", query=query)
+
+
+def calculate_amount(ro_code):
+    query = (
+        ReconEntries.query.with_entities(func.sum(ReconEntries.amount_recon))
+        .filter(ReconEntries.str_regional_office_code == ro_code)
+        .group_by(ReconEntries.str_head_office_status)
+    )
+
+    pending_amount = query.filter(ReconEntries.str_head_office_status == "Pending")
+    pending_amount_dr = pending_amount.filter(
+        ReconEntries.str_debit_credit == "DR"
+    ).first() or [0]
+    pending_amount_cr = pending_amount.filter(
+        ReconEntries.str_debit_credit == "CR"
+    ).first() or [0]
+    # print(pending_amount_dr[0], pending_amount_cr[0])
+    not_passed = query.filter(
+        (ReconEntries.str_head_office_status == "Accepted")
+        & (ReconEntries.str_head_office_voucher.is_(None))
+    )
+    #    print(not_passed.all())
+    not_passed_dr = not_passed.filter(
+        ReconEntries.str_debit_credit == "DR"
+    ).first() or [0]
+    not_passed_cr = not_passed.filter(
+        ReconEntries.str_debit_credit == "CR"
+    ).first() or [0]
+    #   print(not_passed_dr.all(), not_passed_cr.all())
+    return (
+        pending_amount_dr[0]
+        - pending_amount_cr[0]
+        + not_passed_dr[0]
+        - not_passed_cr[0]
+    )
+
+
+@ho_ro_recon_bp.route("/summary/edit/<int:id>", methods=["POST", "GET"])
+@login_required
+def update_recon_summary(id):
+    from extensions import db
+
+    summary = ReconSummary.query.get_or_404(id)
+    if current_user.user_type == "ro_user":
+        if current_user.ro_code != summary.str_regional_office_code:
+            abort(404)
+
+    recon_entries = ReconEntries.query.filter(
+        ReconEntries.str_regional_office_code == summary.str_regional_office_code
+    ).order_by(ReconEntries.id)
+    pending_entries = recon_entries.filter(
+        ReconEntries.str_head_office_status == "Pending"
+    )
+    pending_entries_debit = pending_entries.filter(
+        ReconEntries.str_debit_credit == "DR"
+    )
+    pending_entries_credit = pending_entries.filter(
+        ReconEntries.str_debit_credit == "CR"
+    )
+    accepted_but_not_passed_entries = recon_entries.filter(
+        (ReconEntries.str_head_office_status == "Accepted")
+        & (ReconEntries.str_head_office_voucher.is_(None))
+    )
+    accepted_but_not_passed_entries_dr = accepted_but_not_passed_entries.filter(
+        ReconEntries.str_debit_credit == "DR"
+    )
+    accepted_but_not_passed_entries_cr = accepted_but_not_passed_entries.filter(
+        ReconEntries.str_debit_credit == "CR"
+    )
+    form = ReconSummaryForm()
+
+    if (
+        not fabs(
+            int_diff := (
+                (form.float_ro_balance.data or 0)
+                - calculate_amount(summary.str_regional_office_code)
+            )
+            - (form.float_ho_balance.data or 0)
+        )
+        > 0.05
+    ):
+        flash(f"Amount mismatch {int_diff}.")
+    elif form.validate_on_submit():
+        summary.input_ro_balance_dr_cr = form.str_ro_balance_dr_cr.data
+        summary.input_float_ro_balance = form.float_ro_balance.data
+        summary.input_ho_balance_dr_cr = form.str_ho_balance_dr_cr.data
+        summary.input_float_ho_balance = form.float_ho_balance.data
+        summary.updated_by = current_user.username
+        summary.date_updated_date = datetime.now()
+
+        # summary.float_ho_balance =
+        db.session.commit()
+        return redirect(url_for("ho_ro_recon.list_recon_summary"))
+
+    form.str_ro_balance_dr_cr.data = summary.input_ro_balance_dr_cr
+    form.float_ro_balance.data = summary.input_float_ro_balance or 0
+    form.str_ho_balance_dr_cr.data = summary.input_ho_balance_dr_cr
+    form.float_ho_balance.data = summary.input_float_ho_balance or 0
+
+    return render_template(
+        "recon_summary_edit.html",
+        form=form,
+        summary=summary,
+        pending_dr=pending_entries_debit,
+        pending_cr=pending_entries_credit,
+        not_passed_dr=accepted_but_not_passed_entries_dr,
+        not_passed_cr=accepted_but_not_passed_entries_cr,
+    )
+
+
+@ho_ro_recon_bp.route("/upload_summary_template", methods=["GET", "POST"])
+@login_required
+def upload_summary_template():
+
+    form = UploadFileForm()
+
+    if form.validate_on_submit():
+        jv_flag_sheet = form.data["file_upload"]
+        df_jv_flag_sheet = pd.read_excel(
+            jv_flag_sheet,
+            dtype={
+                "str_period": str,
+                "str_regional_office_code": str,
+            },
+        )
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+        df_jv_flag_sheet["date_created_date"] = datetime.now()
+        df_jv_flag_sheet["created_by"] = current_user.username
+
+        df_jv_flag_sheet.to_sql(
+            "recon_summary",
+            engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("HO RO recon summary has been uploaded successfully.")
+    return render_template(
+        "ho_ro_upload_file_template.html",
+        form=form,
+        title="Upload HO RO recon summary",
+    )
+
+
+# # @ho_ro_recon_bp.route("/pending_count", methods=["POST", "GET"])
+# # @login_required
+# def count_recon_pending_at_ro():
+#     count = (
+#         ReconEntries.query.with_entities(
+#             func.count(ReconEntries.str_target_ro_code)
+#         ).filter(
+#             (ReconEntries.str_head_office_status != "Deleted")
+#             & (ReconEntries.str_head_office_status == "Pending")
+#         )
+#         # .order_by(ReconEntries.id)
+#     )
+#     if current_user.user_type == "ro_user":
+#         count = count.filter(
+#             ReconEntries.str_target_ro_code == current_user.ro_code
+#         ).group_by(ReconEntries.str_target_ro_code)
+#     #    print(query)
+#     print(count[0][0])
+#     # print(f"{count[0][0]}")
+#     return f"{count[0][0]}"
+#     # dict_count = {'count':count[0][0]}
+#     # return dict_count

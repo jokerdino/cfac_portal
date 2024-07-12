@@ -1,0 +1,30 @@
+{% extends "ho_ro_recon_layout.html" %}
+{% block content %}
+<div class="container">
+    <table class="table is-bordered is-fullwidth is-hoverable">
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Regional Office code</th>
+                <th>Balance as per RO</th>
+                <th>Balance as per HO</th>
+                <th>Difference</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in query %}
+            <tr>
+                <td>{{ item['str_period'] }}</td>
+                <td>{{ item['str_regional_office_code'] }}</td>
+                <td class="has-text-right">{{ item['input_float_ro_balance'] or "" }}</td>
+                <td class="has-text-right">{{ item['input_float_ho_balance'] or "" }}</td>
+                <td class="has-text-right">{{ (item['input_float_ro_balance'] or 0)
+                    - (item['input_float_ho_balance'] or 0) }}</td>
+                <td><a href="{{ url_for('ho_ro_recon.update_recon_summary', id=item['id']) }}">Edit</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
