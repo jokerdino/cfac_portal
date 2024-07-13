@@ -35,7 +35,7 @@
             </tr>
             <tr>
                 <th>{{ form.str_ro_code.label }}</th>
-                <td>{% if edit and recon.str_ro_code %}
+                <td>{% if edit and recon.str_target_ro_code %}
                     {{ form.str_ro_code(class="select") }}
                     {% else %}
                     {{ form.str_ro_code(class="select", disabled=disabled) }}

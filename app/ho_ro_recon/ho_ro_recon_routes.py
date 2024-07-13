@@ -106,7 +106,7 @@ def update_source_ro(key):
 
             recon.str_head_office_status = "Deleted"
             recon.deleted_by = current_user.username
-            recon.date_deleted_by = datetime.now()
+            recon.date_deleted_date = datetime.now()
 
         else:
             recon.str_period = form.str_period.data
@@ -216,9 +216,9 @@ def update_ho(key):
             else recon.str_assigned_to
         )
         recon.str_head_office_status = form.str_head_office_status.data
-        recon.txt_head_office_remarks = form.text_head_office_remarks.data
-        recon.str_head_office_voucher = form.str_head_office_voucher_number.data
-        recon.date_head_office_voucher = form.date_head_office_voucher.data
+        recon.txt_head_office_remarks = form.text_head_office_remarks.data or None
+        recon.str_head_office_voucher = form.str_head_office_voucher_number.data or None
+        recon.date_head_office_voucher = form.date_head_office_voucher.data or None
 
         recon.updated_by = current_user.username
         recon.date_updated_date = datetime.now()
@@ -395,9 +395,9 @@ def upload_summary_template():
     form = UploadFileForm()
 
     if form.validate_on_submit():
-        jv_flag_sheet = form.data["file_upload"]
-        df_jv_flag_sheet = pd.read_excel(
-            jv_flag_sheet,
+        summary_template = form.data["file_upload"]
+        df_summary_template = pd.read_excel(
+            summary_template,
             dtype={
                 "str_period": str,
                 "str_regional_office_code": str,
@@ -405,10 +405,10 @@ def upload_summary_template():
         )
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
-        df_jv_flag_sheet["date_created_date"] = datetime.now()
-        df_jv_flag_sheet["created_by"] = current_user.username
+        df_summary_template["date_created_date"] = datetime.now()
+        df_summary_template["created_by"] = current_user.username
 
-        df_jv_flag_sheet.to_sql(
+        df_summary_template.to_sql(
             "recon_summary",
             engine,
             if_exists="append",

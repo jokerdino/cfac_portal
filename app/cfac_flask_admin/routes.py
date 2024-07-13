@@ -54,6 +54,8 @@ from app.ho_accounts.ho_accounts_model import (
     HeadOfficeBankReconTracker,
 )
 
+from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
+
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="Users", parent_name="Users")
@@ -62,6 +64,8 @@ admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
+admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
+
 # User models
 admin.add_view(UserView(User, db.session, category="Users"))  # , name="User"))
 admin.add_view(
@@ -229,5 +233,18 @@ admin.add_view(
         db.session,
         endpoint="general",
         category="HO_checklist",
+    )
+)
+
+
+# HO RO recon models
+admin.add_view(
+    DefaultModelView(
+        ReconEntries, db.session, endpoint="entries", category="HORO_recon"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        ReconSummary, db.session, endpoint="summary", category="HORO_recon"
     )
 )

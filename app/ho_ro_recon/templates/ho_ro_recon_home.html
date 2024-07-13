@@ -43,11 +43,14 @@
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td>{{ item['txt_remarks'] }}</td>
                 <td>{{ item['str_head_office_status'] }}</td>
-                <td>{{ item['txt_head_office_remarks'] }}</td>
+                <td>{{ item['txt_head_office_remarks'] or "" }}</td>
                 {% if current_user.user_type == "admin" %}
-                <td>{{ item['str_assigned_to'] }}</td>
-                <td>{{ item['str_head_office_voucher'] }}</td>
-                <td>{{ item['date_head_office_voucher'] }}</td>
+                <td>{{ item['str_assigned_to'] or "" }}</td>
+                <td>{{ item['str_head_office_voucher'] or "" }}</td>
+                <td data-sort="{{ item['date_head_office_voucher'] }}">
+                    {{ item['date_head_office_voucher'].strftime("%d/%m/%Y")
+                    if item['date_head_office_voucher'] else "" }}
+                </td>
                 {% endif %}
                 <td data-sort="{{ item['date_created_date'] }}" title="{{ item['date_created_date'] }}">
                     {{ item['date_created_date'] | humanize_datetime }}</td>

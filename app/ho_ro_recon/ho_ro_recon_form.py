@@ -1,10 +1,7 @@
-from flask_wtf import FlaskForm, Form
+from flask_wtf import FlaskForm
 
 from wtforms import (
-    BooleanField,
     FileField,
-    FieldList,
-    FormField,
     RadioField,
     StringField,
     SelectField,
@@ -13,7 +10,7 @@ from wtforms import (
     DecimalField,
     SubmitField,
 )
-from wtforms.validators import DataRequired, Optional, ValidationError
+from wtforms.validators import DataRequired, Optional
 
 ro_list = [
     "010000",
@@ -89,7 +86,9 @@ class ReconEntriesForm(FlaskForm):
     )
     str_ro_code = SelectField("Region", choices=ro_list, validators=[Optional()])
     str_debit_credit = RadioField(
-        "Debit / Credit", choices=[("DR","DR / Add"), ("CR","CR / Less")], validators=[DataRequired()]
+        "Debit / Credit",
+        choices=[("DR", "DR / Add"), ("CR", "CR / Less")],
+        validators=[DataRequired()],
     )
     amount_recon = DecimalField("Amount", validators=[DataRequired()])
     text_remarks = TextAreaField("Remarks", validators=[Optional()])
@@ -102,7 +101,7 @@ class HeadOfficeAcceptForm(FlaskForm):
     str_assigned_to = SelectField("Assign to", validators=[Optional()])
     str_head_office_status = RadioField(
         "Head office status",
-        choices=["Pending","Accepted", "Not accepted"],
+        choices=["Pending", "Accepted", "Not accepted"],
         validators=[Optional()],
     )
     text_head_office_remarks = TextAreaField(
@@ -127,17 +126,27 @@ class RegionalOfficeAcceptForm(FlaskForm):
 
 
 class ReconSummaryForm(FlaskForm):
-    str_ro_balance_dr_cr = SelectField(choices=["DR","CR"], validators=[DataRequired()])
-    float_ro_balance = DecimalField("Enter balance as per RO", validators=[DataRequired()])
-    str_ho_balance_dr_cr = SelectField(choices=["DR","CR"], validators=[DataRequired()])
-    float_ho_balance = DecimalField("Enter balance as per HO", validators=[DataRequired()])
+    str_ro_balance_dr_cr = SelectField(
+        choices=["DR", "CR"], validators=[DataRequired()]
+    )
+    float_ro_balance = DecimalField(
+        "Enter balance as per RO", validators=[DataRequired()]
+    )
+    str_ho_balance_dr_cr = SelectField(
+        choices=["DR", "CR"], validators=[DataRequired()]
+    )
+    float_ho_balance = DecimalField(
+        "Enter balance as per HO", validators=[DataRequired()]
+    )
 
     text_remarks = TextAreaField("Remarks", validators=[Optional()])
     submit_button = SubmitField("Submit")
 
+
 class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload summary template", validators=[DataRequired()])
     upload_document = SubmitField("Upload")
+
 
 # class ReconEntriesForm(FlaskForm):
 #     add_entries = FieldList(FormField(IndividualEntriesForm), min_entries=5) # type: ignore
