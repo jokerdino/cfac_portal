@@ -131,6 +131,7 @@ def add_coinsurance_entry():
             regional_office_code = form.data["regional_office_code"]
             oo_code = form.data["oo_code"]
 
+        str_period = form.data["period_of_settlement"] or None
         type_of_transaction = form.data["type_of_transaction"]
         coinsurer_name = form.data["coinsurer_name"]
         coinsurer_office_code = form.data["coinsurer_office_code"]
@@ -201,6 +202,7 @@ def add_coinsurance_entry():
             uiic_office_code=oo_code,
             follower_company_name=coinsurer_name,
             follower_office_code=coinsurer_office_code,
+            str_period=str_period,
             payable_amount=payable_amount,
             receivable_amount=receivable_amount,
             request_id=request_id,
@@ -246,6 +248,7 @@ def add_coinsurance_entry():
             boolean_reinsurance_involved=bool_ri_involved,
             int_ri_payable_amount=ri_payable_amount,
             int_ri_receivable_amount=ri_receivable_amount,
+            str_period=str_period,
         )
         db.session.add(coinsurance_log)
         db.session.commit()
@@ -463,6 +466,7 @@ def edit_coinsurance_entry(coinsurance_id):
         type_of_transaction = form.data["type_of_transaction"]
         name_of_insured = form.data["name_of_insured"]
 
+        str_period = form.data["period_of_settlement"]
         bool_ri_involved = form.data["bool_reinsurance"]
         ri_payable_amount = form.data["int_ri_payable_amount"] or 0
         ri_receivable_amount = form.data["int_ri_receivable_amount"] or 0
@@ -531,6 +535,7 @@ def edit_coinsurance_entry(coinsurance_id):
         coinsurance.follower_company_name = coinsurer_name
         coinsurance.follower_office_code = coinsurer_office_code
 
+        coinsurance.str_period = str_period
         coinsurance.type_of_transaction = type_of_transaction
         coinsurance.payable_amount = payable_amount
         coinsurance.receivable_amount = receivable_amount
@@ -577,6 +582,7 @@ def edit_coinsurance_entry(coinsurance_id):
             int_ri_payable_amount=ri_payable_amount,
             int_ri_receivable_amount=ri_receivable_amount,
             utr_number=form.data["settlement"],
+            str_period=str_period,
         )
         db.session.add(coinsurance_log)
         db.session.commit()
@@ -597,6 +603,7 @@ def edit_coinsurance_entry(coinsurance_id):
     form.request_id.data = coinsurance.request_id
     form.current_status.data = coinsurance.current_status
 
+    form.period_of_settlement.data = coinsurance.str_period
     form.bool_reinsurance.data = coinsurance.boolean_reinsurance_involved
     form.name_of_insured.data = coinsurance.insured_name
 
@@ -1022,13 +1029,13 @@ def upload_coinsurance_balance():
                 "OO Due from": "oo_due_from",
                 "Net": "net_amount",
                 "Period": "period",
-                "Regional Code":"str_regional_office_code",
-                "Zone":"str_zone"
+                "Regional Code": "str_regional_office_code",
+                "Zone": "str_zone",
             },
             inplace=True,
         )
-        df_coinsurance_balance['created_by'] = current_user.username
-        df_coinsurance_balance['created_on'] = datetime.now()
+        df_coinsurance_balance["created_by"] = current_user.username
+        df_coinsurance_balance["created_on"] = datetime.now()
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_coinsurance_balance.to_sql(
             "coinsurance_balances", engine, if_exists="append", index=False
@@ -1108,6 +1115,7 @@ def add_cash_call():
             txt_hub=form.data["hub"],
             txt_ro_code=form.data["ro_code"],
             txt_oo_code=form.data["oo_code"],
+            str_leader_follower=form.data["str_leader_follower"],
             txt_insured_name=form.data["insured_name"],
             date_policy_start_date=form.data["policy_start_date"],
             date_policy_end_date=form.data["policy_end_date"],
@@ -1165,6 +1173,8 @@ def edit_cash_call(cash_call_key):
         cash_call.txt_ro_code = form.ro_code.data
         cash_call.txt_oo_code = form.oo_code.data
 
+        cash_call.str_leader_follower = form.str_leader_follower.data
+
         cash_call.txt_insured_name = form.insured_name.data
         cash_call.date_policy_start_date = form.policy_start_date.data
         cash_call.date_policy_end_date = form.policy_end_date.data
@@ -1196,6 +1206,7 @@ def edit_cash_call(cash_call_key):
     form.ro_code.data = cash_call.txt_ro_code
     form.oo_code.data = cash_call.txt_oo_code
 
+    form.str_leader_follower.data = cash_call.str_leader_follower
     form.insured_name.data = cash_call.txt_insured_name
     form.policy_start_date.data = cash_call.date_policy_start_date
     form.policy_end_date.data = cash_call.date_policy_end_date

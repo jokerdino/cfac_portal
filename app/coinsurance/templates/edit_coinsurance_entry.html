@@ -41,13 +41,13 @@
                         {% if current_user.user_type == "oo_user" %}
                         {{ form.oo_code.data }}
                         {% else %}
-                        {{ form.oo_code(class='input')}}
+                        {{ form.oo_code(class='input') }}
                         {% endif %}
                     </td>
                 </tr>
                 <tr>
                     <th>{{ form.type_of_transaction.label }}</th>
-                    <td>{{ form.type_of_transaction(class='select')}}</td>
+                    <td>{{ form.type_of_transaction(class='select') }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.coinsurer_name.label }}</th>
@@ -57,10 +57,14 @@
                     <th>{{ form.coinsurer_office_code.label }}</th>
                     <td>{{ form.coinsurer_office_code(class='input') }}</td>
                 </tr>
+                <tr>
+                    <th>{{ form.period_of_settlement.label }}</th>
+                    <td>{{ form.period_of_settlement(class='input') }}</td>
+                </tr>
 
                 <tr>
                     <th>{{ form.name_of_insured.label }}</th>
-                    <td>{{ form.name_of_insured(class='input')}}</td>
+                    <td>{{ form.name_of_insured(class='input') }}</td>
                 </tr>
                 <tr>
                     <th>{{ form.payable_amount.label }}</th>
@@ -77,7 +81,7 @@
                 </tr>
                 <tr>
                     <th>{{ form.request_id.label }}</th>
-                    <td>{{ form.request_id(class='textarea')}}</td>
+                    <td>{{ form.request_id(class='textarea') }}</td>
                 </tr>
 
             </table>
@@ -193,13 +197,13 @@
                 {% if change_status %}
                 <tr>
                     <th>{{ form.current_status.label }}</th>
-                    <td>{{ form.current_status(class='select')}}</td>
+                    <td>{{ form.current_status(class='select') }}</td>
                 </tr>
                 {% endif %}
                 {% if update_settlement %}
                 <tr>
                     <th>{{ form.settlement.label }}</th>
-                    <td>{{ form.settlement(class='select')}}</td>
+                    <td>{{ form.settlement(class='select') }}</td>
                 </tr>
                 {% endif %}
             </table>

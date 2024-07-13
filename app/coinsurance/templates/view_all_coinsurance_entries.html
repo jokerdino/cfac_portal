@@ -66,6 +66,7 @@
                 <th>Coinsurer office code</th>
                 <th>Leader / follower </th>
                 <th>Request ID</th>
+                <th>Period</th>
                 <th>Name of insured</th>
                 <th>Payable amount</th>
                 <th>Receivable amount</th>
@@ -102,6 +103,7 @@
                 <td> {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
                 <td> {{ entry.type_of_transaction }}</td>
                 <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
+                <td> {{ entry.str_period or "" }}</td>
                 <td> {{ entry.insured_name }}</td>
                 <td class="has-text-right">{{ entry.payable_amount| indian_number_format }}</td>
                 <td class="has-text-right">{{ entry.receivable_amount| indian_number_format }}</td>

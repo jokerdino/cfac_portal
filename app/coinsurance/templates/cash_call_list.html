@@ -1,6 +1,6 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
-<h1 class="title">List of cash calls raised</h1>
+<h1 class="title">List of cash calls</h1>
 
 <table class="table is-fullwidth is-bordered" id="cash_call_table">
     <thead>
@@ -9,9 +9,11 @@
             <th class="has-text-centered">Coinsurance Hub</th>
             <th class="has-text-centered">Regional Office</th>
             <th class="has-text-centered">Operating Office</th>
+            <th class="has-text-centered">Leader / Follower</th>
             <th class="has-text-centered">Insured name</th>
             <th class="has-text-centered">100% Claims amount</th>
             <th class="has-text-centered">Coinsurer name</th>
+            <th class="has-text-centered">Coinsurer percent</th>
             <th class="has-text-centered">Cash call amount</th>
             <th class="has-text-centered">Date of cash call raised</th>
             <th class="has-text-centered">Current status</th>
@@ -26,9 +28,11 @@
             <td>{{ item['txt_hub'] }}</td>
             <td>{{ item['txt_ro_code'] }}</td>
             <td>{{ item['txt_oo_code'] }}</td>
+            <td>{{ item['str_leader_follower'] }}</td>
             <td>{{ item['txt_insured_name'] }}</td>
             <td>{{ item['amount_total_paid']|indian_number_format }}</td>
             <td>{{ item['txt_coinsurer_name'] }}</td>
+            <td>{{ item['percent_share'] }}%</td>
             <td>{{ item['amount_of_share']|indian_number_format }}</td>
             <td class="has-text-centered" data-sort="{{ item['date_of_cash_call_raised'] }}">{{
                 item['date_of_cash_call_raised'].strftime("%d/%m/%Y") }}</td>
@@ -52,7 +56,7 @@
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
-        order: [[7, 'asc']],
+        order: [[9, 'desc']],
         pagingType: 'full_numbers',
         pageLength: 50,
         lengthMenu: [

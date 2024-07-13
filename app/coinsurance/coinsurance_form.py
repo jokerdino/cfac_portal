@@ -59,15 +59,16 @@ class CoinsuranceForm(FlaskForm):
         "No longer valid",
     ]
 
-    regional_office_code = StringField("Regional Office Code")
-    oo_code = StringField("Operating Office Code")
+    regional_office_code = StringField("Regional office code")
+    oo_code = StringField("Operating office code")
     coinsurer_name = SelectField("Name of coinsurer", choices=coinsurer_list)
-    coinsurer_office_code = StringField("Coinsurer Office Code")
+    coinsurer_office_code = StringField("Coinsurer office code")
 
     type_of_transaction = SelectField(
         "Select whether United India is leader or follower",
         choices=["Leader", "Follower"],
     )
+    period_of_settlement = StringField("Period of settlement")
     name_of_insured = StringField("Name of insured")
     request_id = TextAreaField("Request ID")
     statement = FileField("Upload statement", validators=[Optional()])
@@ -123,7 +124,7 @@ class CoinsuranceBalanceQueryForm(FlaskForm):
 
 class CoinsurerSelectForm(FlaskForm):
     coinsurer_name = SelectField("Select coinsurer")
-    filter_coinsurer = SubmitField("Refresh")
+    filter_coinsurer = SubmitField("Submit")
 
 
 class CoinsuranceCashCallForm(FlaskForm):
@@ -135,6 +136,11 @@ class CoinsuranceCashCallForm(FlaskForm):
     ro_code = StringField("Regional Office Code", validators=[DataRequired()])
     oo_code = StringField("Operating Office Code", validators=[DataRequired()])
 
+    str_leader_follower = SelectField(
+        "Whether United India is leader or follower",
+        choices=["Leader", "Follower"],
+        validators=[DataRequired()],
+    )
     insured_name = StringField("Name of insured", validators=[DataRequired()])
     policy_start_date = DateField("Policy start date", validators=[DataRequired()])
     policy_end_date = DateField("Policy end date", validators=[DataRequired()])

@@ -8,6 +8,7 @@ class Coinsurance(db.Model):
     follower_company_name = db.Column(db.String)
     follower_office_code = db.Column(db.String)
 
+    str_period = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
     request_id = db.Column(db.String)
     payable_amount = db.Column(db.Integer)
@@ -70,6 +71,7 @@ class Coinsurance_log(db.Model):
     follower_company_name = db.Column(db.String)
     follower_office_code = db.Column(db.String)
 
+    str_period = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
     request_id = db.Column(db.String)
     payable_amount = db.Column(db.Integer)
@@ -122,6 +124,7 @@ class CoinsuranceCashCall(db.Model):
     txt_ro_code = db.Column(db.String)
     txt_oo_code = db.Column(db.String)
 
+    str_leader_follower = db.Column(db.String)
     txt_insured_name = db.Column(db.String)
     date_policy_start_date = db.Column(db.Date)
     date_policy_end_date = db.Column(db.Date)
