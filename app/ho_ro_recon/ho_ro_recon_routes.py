@@ -357,7 +357,7 @@ def update_recon_summary(id):
             )
             - (form.float_ho_balance.data or 0)
         )
-        > 0.05
+        > 0.001
     ):
         flash(f"Amount mismatch {int_diff}.")
     elif form.validate_on_submit():

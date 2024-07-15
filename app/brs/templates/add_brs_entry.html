@@ -260,9 +260,10 @@
         return closing_balance_breakup;
     }
     function validateForm() {
+        const threshold = 0.001
         closing_balance_gl = calculateSum();
         closing_balance_breakup = calculateClosingBalance();
-        if (closing_balance_gl != closing_balance_breakup) {
+        if (Math.abs(closing_balance_gl - closing_balance_breakup) > threshold) {
             alert(`Closing balance ${closing_balance_gl} and closing balance breakup ${closing_balance_breakup} is not tallying.`)
             return false;
         }

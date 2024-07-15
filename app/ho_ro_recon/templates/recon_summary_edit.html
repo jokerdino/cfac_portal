@@ -201,7 +201,9 @@
             //trailingZeroDisplay: 'stripIfInteger'
         });
 
-        if (final_diff === 0) {
+        const threshold = 0.001;
+
+        if ((final_diff < threshold) && (final_diff > -threshold)) {
             return true;
         }
         else {
