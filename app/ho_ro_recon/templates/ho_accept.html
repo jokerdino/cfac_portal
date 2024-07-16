@@ -32,8 +32,13 @@
                 <td>{{ recon.str_regional_office_code }}</td>
             </tr>
             <tr>
+                {% if recon.str_target_ro_code %}
                 <th>Accepting Regional Office</th>
                 <td>{{ recon.str_target_ro_code }}</td>
+                {% elif recon.str_department %}
+                <th>Department</th>
+                <td>{{ recon.str_department }}</td>
+                {% endif %}
             </tr>
             <tr>
                 <th>Debit / Credit</th>

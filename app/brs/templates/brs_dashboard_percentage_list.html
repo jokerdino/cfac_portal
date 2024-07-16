@@ -1,0 +1,23 @@
+{% extends "brs_layout.html" %}
+{% block content %}
+<div class="container mt-5 mb-5">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>RO Code</th>
+                <th>Consolidated percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ro_code in ro_list %}
+            <tr>
+
+                <td>{{ ro_code }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(get_percentage_completion(ro_code) | float) }}%</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

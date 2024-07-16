@@ -52,6 +52,9 @@
                 <td>{{ item['str_debit_credit'] }}</td>
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
+                {% if current_user.user_type == "admin" %}
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                {% endif %}
 
             </tr>
 
@@ -65,6 +68,9 @@
                 <td>{{ item['str_debit_credit'] }}</td>
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
+                {% if current_user.user_type == "admin" %}
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                {% endif %}
 
             </tr>
             {% endfor %}
@@ -80,13 +86,16 @@
                 </td>
             </tr>
             <tr>{% for item in not_passed_dr %}
-                <td>Approved but not passed</td>
+                <td>Accepted but not passed</td>
                 <td>{{ item['str_department'] or "" }}{{ item['str_target_ro_code'] or "" }}
                 </td>
                 <td>{{ item['txt_remarks'] }}</td>
                 <td>{{ item['str_debit_credit'] }}</td>
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
+                {% if current_user.user_type == "admin" %}
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                {% endif %}
 
             </tr>
             {% endfor %}
@@ -99,6 +108,9 @@
                 <td>{{ item['str_debit_credit'] }}</td>
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
+                {% if current_user.user_type == "admin" %}
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                {% endif %}
 
             </tr>
             {% endfor %}

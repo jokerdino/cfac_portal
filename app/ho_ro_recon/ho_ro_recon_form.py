@@ -54,10 +54,13 @@ ro_list = [
 department_list = [
     "Housing Loan",
     "Establishment",
+    "Learning Centre",
+    "Reinsurance",
     "TDS",
     "GST",
     "Asset",
     "HDFC - FCS",
+    "HDFC Pool account / UII688",
     "Other than HDFC - FCS",
     "Centralised cheque",
     "NEFT",
@@ -68,7 +71,6 @@ department_list = [
     "BBPS",
     "Foreign remittance",
     "Coinsurance",
-    "Reinsurance",
     "Others",
 ]
 

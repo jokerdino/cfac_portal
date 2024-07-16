@@ -1145,7 +1145,7 @@ def list_short_credit_entries():
             )
         )
         if current_user.user_type == "ro_user":
-            outstanding_entries = outstanding_entries.filter(
+            short_credit_entries = short_credit_entries.filter(
                 BRS.uiic_regional_code == current_user.ro_code
             )
 
@@ -1188,7 +1188,7 @@ def list_excess_credit_entries():
             )
         )
         if current_user.user_type == "ro_user":
-            outstanding_entries = outstanding_entries.filter(
+            excess_credit_entries = excess_credit_entries.filter(
                 BRS.uiic_regional_code == current_user.ro_code
             )
 
@@ -1222,7 +1222,8 @@ def get_brs_bank(brs_id, requirement):
 def get_brs_closing_balance(office_code, month, brs_type):
     """for feeding into E-Formats
     returns closing balance if office code, month and type of BRS is provided
-    Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/get_closing_balance/500200/January-2024/local_collection"""
+    Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/get_closing_balance/500200/January-2024/local_collection
+    """
 
     filtered_brs = BRS.query.filter(
         (BRS.uiic_office_code == office_code) & (BRS.month == month)
@@ -1265,7 +1266,6 @@ def get_bank_account_detail(requirement: str, bank_name: str) -> str:
 
 @brs_bp.route("/api/v1/brs/<string:office_code>/<string:month>/")
 def get_schedule_bbc(office_code: str, month: str) -> dict:
-
     """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
     Function for entering BBC schedule in E formats
     Input: Office code and month
@@ -1410,3 +1410,50 @@ def get_percent_completion(regional_office_code):
 
     percent_complete = (query[0][1] / query[0][0]) * 100 if query else 0
     return f"{percent_complete}"
+
+
+@brs_bp.route("/percent_list/")
+def get_percent_completion_list():
+
+    ro_list = [
+    "010000",
+    "020000",
+    "030000",
+    "040000",
+    "050000",
+    "060000",
+    "070000",
+    "080000",
+    "090000",
+    "100000",
+    "110000",
+    "120000",
+    "130000",
+    "140000",
+    "150000",
+    "160000",
+    "170000",
+    "180000",
+    "190000",
+    "200000",
+    "210000",
+    "220000",
+    "230000",
+    "240000",
+    "250000",
+    "260000",
+    "270000",
+    "280000",
+    "290000",
+    "300000",
+    "500100",
+    "500200",
+    "500300",
+    "500400",
+    "500500",
+    "500700",
+]
+    return render_template(
+        "brs_dashboard_percentage_list.html",
+        get_percentage_completion=get_percent_completion,ro_list=ro_list,
+    )

@@ -42,8 +42,15 @@
 
                         <a class="navbar-item" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
                             entries</a>
-                        <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Percentage
-                            completion</a>
+                        <div class="navbar-item has-dropdown is-hoverable">
+                            <a class="navbar-link">Percent completion</a>
+                            <div class="navbar-dropdown">
+                                <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Monthwise percentage
+                                    completion</a>
+                                <a class="navbar-item" href="{{ url_for('brs.get_percent_completion_list') }}">
+                                    Consolidated percentage completion</a>
+                            </div>
+                        </div>
                         {% endif %}
                         {% if current_user.username == "bar44515" %}
 
