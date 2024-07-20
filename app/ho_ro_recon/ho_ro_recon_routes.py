@@ -2,7 +2,7 @@ from datetime import datetime
 from math import fabs
 
 import pandas as pd
-from flask import render_template, redirect, url_for, flash, abort, current_app
+from flask import render_template, redirect, url_for, flash, abort, current_app, request
 from flask_login import login_required, current_user
 
 from wtforms.validators import DataRequired
@@ -101,7 +101,7 @@ def update_source_ro(key):
     elif form.str_ro_code.data == current_user.ro_code:
         flash("Selected RO code cannot be same as the RO code of the user.")
     elif form.validate_on_submit():
-        # print(form.data)
+
         if form.delete_button.data:
 
             recon.str_head_office_status = "Deleted"
@@ -206,8 +206,7 @@ def update_ho(key):
     ]
     if current_user.username not in ["bar44515", "hem27596", "jan27629", "ush25768"]:
         form.str_assigned_to.choices = [current_user.username.upper()]
-    #  if not check_for_status(recon):
-    #     flash("Cannot edit the entry as the status is no longer pending.")
+
     if form.validate_on_submit():
 
         recon.str_assigned_to = (
@@ -294,19 +293,19 @@ def calculate_amount(ro_code):
     pending_amount_cr = pending_amount.filter(
         ReconEntries.str_debit_credit == "CR"
     ).first() or [0]
-    # print(pending_amount_dr[0], pending_amount_cr[0])
+
     not_passed = query.filter(
         (ReconEntries.str_head_office_status == "Accepted")
         & (ReconEntries.str_head_office_voucher.is_(None))
     )
-    #    print(not_passed.all())
+
     not_passed_dr = not_passed.filter(
         ReconEntries.str_debit_credit == "DR"
     ).first() or [0]
     not_passed_cr = not_passed.filter(
         ReconEntries.str_debit_credit == "CR"
     ).first() or [0]
-    #   print(not_passed_dr.all(), not_passed_cr.all())
+
     return (
         pending_amount_dr[0]
         - pending_amount_cr[0]
@@ -349,28 +348,37 @@ def update_recon_summary(id):
     )
     form = ReconSummaryForm()
 
-    if (
-        not fabs(
-            int_diff := (
-                (form.float_ro_balance.data or 0)
-                - calculate_amount(summary.str_regional_office_code)
-            )
-            - (form.float_ho_balance.data or 0)
-        )
-        > 0.001
-    ):
-        flash(f"Amount mismatch {int_diff}.")
-    elif form.validate_on_submit():
-        summary.input_ro_balance_dr_cr = form.str_ro_balance_dr_cr.data
-        summary.input_float_ro_balance = form.float_ro_balance.data
-        summary.input_ho_balance_dr_cr = form.str_ho_balance_dr_cr.data
-        summary.input_float_ho_balance = form.float_ho_balance.data
-        summary.updated_by = current_user.username
-        summary.date_updated_date = datetime.now()
+    if request.method == "POST":
+        if form.str_ro_balance_dr_cr.data == "CR":
+            ro_balance = form.float_ro_balance.data or 0
+        elif form.str_ro_balance_dr_cr.data == "DR":
+            ro_balance = -(form.float_ro_balance.data) or 0
+        if form.str_ho_balance_dr_cr.data == "DR":
+            ho_balance = form.float_ho_balance.data or 0
+        elif form.str_ho_balance_dr_cr.data == "CR":
+            ho_balance = -(form.float_ho_balance.data) or 0
 
-        # summary.float_ho_balance =
-        db.session.commit()
-        return redirect(url_for("ho_ro_recon.list_recon_summary"))
+        if (
+            fabs(
+                int_diff := (
+                    (ro_balance)
+                    - calculate_amount(summary.str_regional_office_code)
+                    - (ho_balance)
+                )
+            )
+            > 0.001
+        ):
+            flash(f"Amount mismatch {int_diff}.")
+        elif form.validate_on_submit():
+            summary.input_ro_balance_dr_cr = form.str_ro_balance_dr_cr.data
+            summary.input_float_ro_balance = form.float_ro_balance.data
+            summary.input_ho_balance_dr_cr = form.str_ho_balance_dr_cr.data
+            summary.input_float_ho_balance = form.float_ho_balance.data
+            summary.updated_by = current_user.username
+            summary.date_updated_date = datetime.now()
+
+            db.session.commit()
+            return redirect(url_for("ho_ro_recon.list_recon_summary"))
 
     form.str_ro_balance_dr_cr.data = summary.input_ro_balance_dr_cr
     form.float_ro_balance.data = summary.input_float_ro_balance or 0

@@ -62,6 +62,7 @@ department_list = [
     "HDFC - FCS",
     "HDFC Pool account / UII688",
     "Other than HDFC - FCS",
+    "AXIS - PMSBY",
     "Centralised cheque",
     "NEFT",
     "Bank of America - RTGS",

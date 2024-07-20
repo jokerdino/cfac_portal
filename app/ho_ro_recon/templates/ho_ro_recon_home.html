@@ -79,7 +79,14 @@
 {% block scripts %}
 <script>
     var brs_table = new DataTable('#recon_table', {
-        dom: 'fBrti',
+//        dom: 'lfBrtip',
+            layout: {
+                    top1Start: 'pageLength',
+                    //topEnd: 'search',
+                    topStart: 'buttons',
+                    //bottomStart: 'info',
+                    //bottomEnd: 'paging',
+                },
         fixedHeader: true,
         pageLength: 100,
         buttons: [
