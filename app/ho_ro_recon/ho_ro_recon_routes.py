@@ -89,8 +89,9 @@ def update_source_ro(key):
     from extensions import db
 
     recon = ReconEntries.query.get_or_404(key)
-    if not recon.str_regional_office_code == current_user.ro_code:
-        abort(404)
+    if current_user.user_type == "ro_user":
+        if not recon.str_regional_office_code == current_user.ro_code:
+            abort(404)
     form = ReconEntriesForm()
     if form.str_department_inter_region.data == "RO":
         form.str_ro_code.validators = [DataRequired()]
@@ -200,11 +201,15 @@ def update_ho(key):
     recon = ReconEntries.query.get_or_404(key)
 
     form = HeadOfficeAcceptForm()
-    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-    form.str_assigned_to.choices = [
-        person.username.upper() for person in ho_staff if "admin" not in person.username
-    ]
-    if current_user.username not in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+
+    if current_user.username in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+        ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
+        form.str_assigned_to.choices = [
+            person.username.upper()
+            for person in ho_staff
+            if "admin" not in person.username
+        ]
+    elif current_user.username not in ["bar44515", "hem27596", "jan27629", "ush25768"]:
         form.str_assigned_to.choices = [current_user.username.upper()]
 
     if form.validate_on_submit():
@@ -237,6 +242,29 @@ def update_ho(key):
 @ho_ro_recon_bp.route("/", methods=["POST", "GET"])
 @login_required
 def recon_home():
+    from extensions import db
+
+    # initialize form
+    if current_user.user_type == "admin":
+        form = HeadOfficeAcceptForm()
+
+        if current_user.username in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+            ho_staff = User.query.filter(User.user_type == "admin").order_by(
+                User.username
+            )
+            form.str_assigned_to.choices = [
+                person.username.upper()
+                for person in ho_staff
+                if "admin" not in person.username
+            ]
+        elif current_user.username not in [
+            "bar44515",
+            "hem27596",
+            "jan27629",
+            "ush25768",
+        ]:
+            form.str_assigned_to.choices = [current_user.username.upper()]
+
     query = ReconEntries.query.filter(
         ReconEntries.str_head_office_status != "Deleted"
     ).order_by(ReconEntries.id)
@@ -244,9 +272,47 @@ def recon_home():
         query = query.filter(
             ReconEntries.str_regional_office_code == current_user.ro_code
         )
+
+    if form.validate_on_submit():
+
+        list_recon_keys = request.form.getlist("recon_keys")
+        updated_time = datetime.now()
+        for key in list_recon_keys:
+            recon_entry = ReconEntries.query.get_or_404(key)
+
+            recon_entry.str_head_office_voucher = (
+                form.str_head_office_voucher_number.data
+                if form.str_head_office_voucher_number.data
+                else recon_entry.str_head_office_voucher
+            )
+
+            # if recon entry is already assigned to someone, dont assign it in bulk update
+            # if recon entry is not assigned to anyone, assign to self in bulk update
+            if not recon_entry.str_assigned_to:
+                recon_entry.str_assigned_to = (
+                    form.str_assigned_to.data
+                    if form.str_assigned_to.data
+                    else recon_entry.str_assigned_to
+                )
+            recon_entry.str_head_office_status = (
+                form.str_head_office_status.data
+                if form.str_head_office_status.data
+                else recon_entry.str_head_office_status
+            )
+            recon_entry.date_head_office_voucher = (
+                form.date_head_office_voucher.data
+                if form.date_head_office_voucher.data
+                else recon_entry.date_head_office_voucher
+            )
+            recon_entry.updated_by = current_user.username
+            recon_entry.date_updated_date = updated_time
+            db.session.commit()
+        return redirect(url_for("ho_ro_recon.recon_home"))
+
     return render_template(
         "ho_ro_recon_home.html",
         query=query,
+        form=form,
     )
 
 

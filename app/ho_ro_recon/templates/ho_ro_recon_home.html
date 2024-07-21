@@ -3,90 +3,161 @@
 
 <div class="container is-fluid">
 
-    <table class="table is-fullwidth is-bordered is-hoverable" id="recon_table">
-        <thead>
-            <tr>
-                <th class="has-text-centered is-vcentered">Period</th>
-                <th class="has-text-centered is-vcentered">RO Code</th>
-                <th class="has-text-centered is-vcentered">Department / Region</th>
-                <th class="has-text-centered is-vcentered">Debit / Credit</th>
-                <th class="has-text-centered is-vcentered">Amount</th>
-                <th class="has-text-centered is-vcentered">Remarks by RO</th>
-                <th class="has-text-centered is-vcentered">Current status</th>
-                <th class="has-text-centered is-vcentered">Remarks by accepting office</th>
-                {% if current_user.user_type == "admin" %}
-                <th class="has-text-centered is-vcentered">Assigned to</th>
-                <th class="has-text-centered is-vcentered">HO voucher number</th>
-                <th class="has-text-centered is-vcentered">Date of passing HO voucher</th>
-                {% endif %}
-                <th class="has-text-centered is-vcentered">Added on</th>
-                <th class="has-text-centered is-vcentered">Edit</th>
-            </tr>
-        </thead>
-        <tbody>{% for item in query %}
-            <!-- djlint:off -->
-            {% if item['str_assigned_to'] == current_user.username.upper() %}
-            <tr class="has-background-info">
-                {% elif (current_user.ro_code == item['str_regional_office_code']) and
-                (item['str_head_office_status'] == "Not accepted") %}
+    {% if form and current_user.user_type == "admin" %}
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        <button class="delete"></button>
+        {{ field.label }}: {{ field.errors[0] }}
+    </div>
+    {% endif %}
+    {% endfor %}
 
-            <tr class="has-background-danger-light">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <div class="has-text-right">
+        <a class="button is-success js-modal-trigger" id="bulk_update" data-target="bulk_update_form">Bulk
+            update</a>
+    </div>
+    <form method="post">
+        {{ form.csrf_token }}
 
-                <!-- djlint:on -->
-                {% else %}
-            <tr>
-                {% endif %}
-                <td>{{ item['str_period'] }}</td>
-                <td>{{ item['str_regional_office_code'] }}</td>
-                <td>{{ item['str_department'] or item['str_target_ro_code'] }} </td>
-                <td>{{ item['str_debit_credit'] }}</td>
-                <td class="has-text-right">{{ item['amount_recon'] }}</td>
-                <td>{{ item['txt_remarks'] }}</td>
-                <td>{{ item['str_head_office_status'] }}</td>
-                <td>{{ item['txt_head_office_remarks'] or "" }}</td>
-                {% if current_user.user_type == "admin" %}
-                <td>{{ item['str_assigned_to'] or "" }}</td>
-                <td>{{ item['str_head_office_voucher'] or "" }}</td>
-                <td data-sort="{{ item['date_head_office_voucher'] }}">
-                    {{ item['date_head_office_voucher'].strftime("%d/%m/%Y")
-                    if item['date_head_office_voucher'] else "" }}
-                </td>
-                {% endif %}
-                <td data-sort="{{ item['date_created_date'] }}" title="{{ item['date_created_date'] }}">
-                    {{ item['date_created_date'] | humanize_datetime }}</td>
-                <td>
+        <div class="modal" id="bulk_update_form">
+            <div class="modal-background"></div>
+            <div class="modal-content">
+                <div class="box">
+                    <table class="table">
+                        <tr>
+                            <td>{{ form.str_assigned_to.label }}</td>
+                            <td>{{ form.str_assigned_to }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form.str_head_office_status.label }}</td>
+                            <td>{{ form.str_head_office_status }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form.str_head_office_voucher_number.label }}</td>
+                            <td>{{ form.str_head_office_voucher_number(class="input") }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>{{ form.date_head_office_voucher.label }}</td>
+                            <td>{{ form.date_head_office_voucher(class="input") }}</td>
+                        </tr>
 
-                    {% if current_user.user_type == "admin" %}
-                    <a href="{{ url_for('ho_ro_recon.update_ho', key=item['id']) }}" target="_blank">
-                        Edit</a>
-                    {% elif item['str_regional_office_code'] == current_user.ro_code %}
+                    </table>
+                    <div class="has-text-centered">
+                        {{ form.submit_button(class="button is-success") }}
+                    </div>
+                    <button class="modal-close is-large" aria-label="close"></button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <table class="table is-fullwidth is-bordered is-hoverable" id="recon_table">
+            <thead>
+                <tr>
 
-                    <a href="{{ url_for('ho_ro_recon.update_source_ro', key=item['id']) }}" target="_blank">
-                        Edit</a>
-                    {% elif item['str_target_ro_code'] == current_user.ro_code %}
-                    <a href="{{ url_for('ho_ro_recon.update_target_ro', key=item['id']) }}" target="_blank">
-
-                        Edit</a>
-
+                    {% if current_user.user_type == "admin" and form %}
+                    <th class="has-text-centered is-vcentered">Select</th>
                     {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    <th class="has-text-centered is-vcentered">Period</th>
+                    <th class="has-text-centered is-vcentered">RO Code</th>
+                    <th class="has-text-centered is-vcentered">Department / Region</th>
+                    <th class="has-text-centered is-vcentered">Debit / Credit</th>
+                    <th class="has-text-centered is-vcentered">Amount</th>
+                    <th class="has-text-centered is-vcentered">Remarks by RO</th>
+                    <th class="has-text-centered is-vcentered">Current status</th>
+                    <th class="has-text-centered is-vcentered">Remarks by accepting office</th>
+                    {% if current_user.user_type == "admin" %}
+                    <th class="has-text-centered is-vcentered">Assigned to</th>
+                    <th class="has-text-centered is-vcentered">HO voucher number</th>
+                    <th class="has-text-centered is-vcentered">Date of passing HO voucher</th>
+                    {% endif %}
+                    <th class="has-text-centered is-vcentered">Added on</th>
+                    <th class="has-text-centered is-vcentered">Edit</th>
+                </tr>
+            </thead>
+            <tbody>{% for item in query %}
+
+                <tr {% if item['str_assigned_to']==current_user.username.upper() %} class="has-background-info" {% elif
+                    (current_user.ro_code==item['str_regional_office_code']) and
+                    (item['str_head_office_status']=="Not accepted" ) %} class="has-background-danger-light" {% endif
+                    %}>
+                    {% if current_user.user_type == "admin" and form %}
+                    <td class="has-text-centered">
+                        <label class="checkbox">
+                            <input type="checkbox" name="recon_keys" onchange="callFunction()" value="{{ item.id }}" />
+                        </label>
+                    </td>
+                    {% endif %}
+                    <td>{{ item['str_period'] }}</td>
+                    <td>{{ item['str_regional_office_code'] }}</td>
+                    <td>{{ item['str_department'] or item['str_target_ro_code'] }} </td>
+                    <td>{{ item['str_debit_credit'] }}</td>
+                    <td class="has-text-right">{{ item['amount_recon'] }}</td>
+                    <td>{{ item['txt_remarks'] }}</td>
+                    <td>{{ item['str_head_office_status'] }}</td>
+                    <td>{{ item['txt_head_office_remarks'] or "" }}</td>
+                    {% if current_user.user_type == "admin" %}
+                    <td>{{ item['str_assigned_to'] or "" }}</td>
+                    <!-- djlint:off -->
+                    <td>{{ "'" ~ item['str_head_office_voucher'] if item['str_head_office_voucher'] else "" }}
+                        <!-- djlint:on -->
+                    </td>
+                    <td data-sort="{{ item['date_head_office_voucher'] }}">
+                        {{ item['date_head_office_voucher'].strftime("%d/%m/%Y")
+                        if item['date_head_office_voucher'] else "" }}
+                    </td>
+                    {% endif %}
+                    <td data-sort="{{ item['date_created_date'] }}" title="{{ item['date_created_date'] }}">
+                        {{ item['date_created_date'] | humanize_datetime }}</td>
+                    <td>
+
+                        {% if current_user.user_type == "admin" %}
+                        <a href="{{ url_for('ho_ro_recon.update_ho', key=item['id']) }}" target="_blank">
+                            Edit</a>
+                        {% elif item['str_regional_office_code'] == current_user.ro_code %}
+
+                        <a href="{{ url_for('ho_ro_recon.update_source_ro', key=item['id']) }}" target="_blank">
+                            Edit</a>
+                        {% elif item['str_target_ro_code'] == current_user.ro_code %}
+                        <a href="{{ url_for('ho_ro_recon.update_target_ro', key=item['id']) }}" target="_blank">
+
+                            Edit</a>
+
+                        {% endif %}
+                    </td>
+                    <!-- djlint:off -->
+                </tr>
+                <!-- djlint:on -->
+                {% endfor %}
+            </tbody>
+        </table>
+        {% if form and current_user.user_type == "admin" %}
+    </form>
+    {% endif %}
 </div>
 
 {% block scripts %}
 <script>
     var brs_table = new DataTable('#recon_table', {
-//        dom: 'lfBrtip',
-            layout: {
-                    top1Start: 'pageLength',
-                    //topEnd: 'search',
-                    topStart: 'buttons',
-                    //bottomStart: 'info',
-                    //bottomEnd: 'paging',
-                },
+        //        dom: 'lfBrtip',
+        layout: {
+            top1Start: 'pageLength',
+            //topEnd: 'search',
+            topStart: 'buttons',
+            //bottomStart: 'info',
+            //bottomEnd: 'paging',
+        },
+        stateSave: true,
         fixedHeader: true,
         pageLength: 100,
         buttons: [
@@ -94,7 +165,9 @@
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
 
-{% if current_user.user_type == "admin" %}
+{% if current_user.user_type == "admin" and form %}
+    order: [[12, 'asc']],
+        {% elif current_user.user_type == "admin" %}
     order: [[11, 'asc']],
         {% else %}
     order: [[8, 'asc']],
@@ -102,5 +175,54 @@
     });
 
 </script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Functions to open and close a modal
+        function openModal($el) {
+            $el.classList.add('is-active');
+        }
+
+        function closeModal($el) {
+            $el.classList.remove('is-active');
+        }
+
+        function closeAllModals() {
+            (document.querySelectorAll('.modal') || []).forEach(($modal) => {
+                closeModal($modal);
+            });
+        }
+
+        // Add a click event on buttons to open a specific modal
+        (document.querySelectorAll('.js-modal-trigger') || []).forEach(($trigger) => {
+            const modal = $trigger.dataset.target;
+            const $target = document.getElementById(modal);
+
+            $trigger.addEventListener('click', () => {
+                openModal($target);
+            });
+        });
+
+        // Add a click event on various child elements to close the parent modal
+        (document.querySelectorAll('.modal-background, .modal-close, .modal-card-head .delete, .modal-card-foot .button') || []).forEach(($close) => {
+            const $target = $close.closest('.modal');
+
+            $close.addEventListener('click', () => {
+                closeModal($target);
+            });
+        });
+
+        // Add a keyboard event to close all modals
+        document.addEventListener('keydown', (event) => {
+            const e = event || window.event;
+
+            if (e.keyCode === 27) { // Escape key
+                closeAllModals();
+            }
+        });
+    });
+
+</script>
+
 {% endblock scripts %}
 {% endblock content %}
