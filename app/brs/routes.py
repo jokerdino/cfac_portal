@@ -1408,9 +1408,10 @@ def get_percent_completion(regional_office_code):
         .group_by(BRS.uiic_regional_code)
     )
 
+    # add filter to remove FY23-24 out of BRS percentage calculations
+    query = query.filter(BRS.financial_year != "23-24")
+
     percent_complete = (query[0][1] / query[0][0]) * 100 if query else 0
-    # if regional_office_code == "140000":
-    #     percent_complete = 100
     return f"{percent_complete}"
 
 
