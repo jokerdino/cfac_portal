@@ -24,3 +24,14 @@ class OSView(DefaultModelView):
 
 class FundBankStatementView(DefaultModelView):
     column_searchable_list = ["flag_description", "description"]
+
+
+class ReconSummaryView(DefaultModelView):
+    can_export = True
+    column_editable_list = [
+        "input_float_ro_balance",
+        "input_float_ho_balance",
+        "input_ro_balance_dr_cr",
+        "input_ho_balance_dr_cr",
+    ]
+    column_searchable_list = ["str_period", "str_regional_office_code"]

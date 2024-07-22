@@ -8,6 +8,7 @@ from app.cfac_flask_admin.model_views import (
     UserView,
     OSView,
     FundBankStatementView,
+    ReconSummaryView,
 )
 
 from extensions import admin, db
@@ -244,7 +245,7 @@ admin.add_view(
     )
 )
 admin.add_view(
-    DefaultModelView(
+    ReconSummaryView(
         ReconSummary, db.session, endpoint="summary", category="HORO_recon"
     )
 )
