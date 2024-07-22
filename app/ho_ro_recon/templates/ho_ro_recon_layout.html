@@ -25,8 +25,18 @@
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.add_ho_ro_recon') }}">Add new recon entry</a>
                     {% if current_user.username == "bar44515" %}
-                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.upload_summary_template') }}">Upload summary
-                        template</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Bulk upload</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('ho_ro_recon.upload_summary_template') }}">Upload
+                                summary
+                                template</a>
+                            <a class="navbar-item"
+                                href="{{ url_for('ho_ro_recon.upload_new_ho_balance_summary') }}">Upload
+                                HO
+                                balances</a>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
             </div>

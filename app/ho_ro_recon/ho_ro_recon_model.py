@@ -29,6 +29,7 @@ class ReconEntries(db.Model):
     deleted_by = db.Column(db.String)
     date_deleted_date = db.Column(db.DateTime)
 
+
 class ReconSummary(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
@@ -40,7 +41,7 @@ class ReconSummary(db.Model):
     input_ho_balance_dr_cr = db.Column(db.String)
     input_float_ho_balance = db.Column(db.Numeric(20, 2))
 
-    float_ho_balance = db.Column(db.Numeric(20, 2)) # calculated value
+    float_ho_balance = db.Column(db.Numeric(20, 2))  # calculated value
 
     # meta data
     created_by = db.Column(db.String)
@@ -51,3 +52,12 @@ class ReconSummary(db.Model):
 
     deleted_by = db.Column(db.String)
     date_deleted_date = db.Column(db.DateTime)
+
+
+class ReconUpdateBalance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    str_period = db.Column(db.String)
+    str_regional_office_code = db.Column(db.String)
+
+    #    ro_balance = db.Column(db.Numeric(20, 2))
+    ho_balance = db.Column(db.Numeric(20, 2))

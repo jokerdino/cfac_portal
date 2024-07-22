@@ -17,8 +17,13 @@ from app.ho_ro_recon.ho_ro_recon_form import (
     HeadOfficeAcceptForm,
     ReconSummaryForm,
     UploadFileForm,
+    ro_list,
 )
-from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
+from app.ho_ro_recon.ho_ro_recon_model import (
+    ReconEntries,
+    ReconSummary,
+    ReconUpdateBalance,
+)
 
 from app.users.user_model import User
 
@@ -493,6 +498,64 @@ def upload_summary_template():
         "ho_ro_upload_file_template.html",
         form=form,
         title="Upload HO RO recon summary",
+    )
+
+
+@ho_ro_recon_bp.route("/upload_updated_ho_balance", methods=["GET", "POST"])
+@login_required
+def upload_new_ho_balance_summary():
+    from extensions import db
+
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        db.session.query(ReconUpdateBalance).delete()
+        db.session.commit()
+        summary_template = form.data["file_upload"]
+        df_summary_template = pd.read_excel(
+            summary_template,
+            dtype={
+                "str_period": str,
+                "str_regional_office_code": str,
+            },
+        )
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+        #  df_summary_template["date_created_date"] = datetime.now()
+        #  df_summary_template["created_by"] = current_user.username
+
+        df_summary_template.to_sql(
+            "recon_update_balance",
+            engine,
+            if_exists="append",
+            index=False,
+        )
+        # flash("HO RO recon summary has been uploaded successfully.")
+        str_period = (
+            db.session.query(ReconUpdateBalance)
+            .with_entities(ReconUpdateBalance.str_period)
+            .distinct()
+        )
+        for regional_office in ro_list:
+            recon_summary = ReconSummary.query.filter(
+                (ReconSummary.str_regional_office_code == regional_office)
+                & (ReconSummary.str_period == str_period)
+            ).first()
+            updated_recon_ho_balance = ReconUpdateBalance.query.filter(
+                (ReconUpdateBalance.str_regional_office_code == regional_office)
+                & (ReconUpdateBalance.str_period == str_period)
+            ).first()
+            if updated_recon_ho_balance:
+                recon_summary.input_float_ho_balance = (
+                    updated_recon_ho_balance.ho_balance
+                )
+                recon_summary.updated_by = current_user.username
+                recon_summary.date_updated_date = datetime.now()
+        db.session.commit()
+        flash("Balances have been updated.")
+    return render_template(
+        "ho_ro_upload_file_template.html",
+        form=form,
+        title="Upload fresh HO balances",
     )
 
 
