@@ -43,7 +43,10 @@ class BRS_entry(FlaskForm):
     int_short_credited = DecimalField("Less: Short credit", validators=[Optional()])
     int_excess_credited = DecimalField("Add: Excess credit", validators=[Optional()])
 
-    int_closing_balance_bank_statement = DecimalField("Add: Closing balance as per bank statement (local collection)", validators=[Optional()])
+    int_closing_balance_bank_statement = DecimalField(
+        "Add: Closing balance as per bank statement (local collection)",
+        validators=[Optional()],
+    )
 
     file_outstanding_entries = FileField(
         "Upload outstanding entries in prescribed format",
@@ -80,6 +83,7 @@ class RawDataForm(FlaskForm):
             ("pos", "POS"),
             ("bbps", "BBPS"),
             ("local_collection", "Local collection"),
+            ("View all", "View all"),
         ],
     )
 

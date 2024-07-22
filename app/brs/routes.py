@@ -1098,9 +1098,13 @@ def list_outstanding_entries():
             .filter(
                 BRS_month.status.is_(None)
                 & (BRS.month == month)
-                & (BRS_month.brs_type == brs_type)
+                # & (BRS_month.brs_type == brs_type)
             )
         )
+        if brs_type != "View all":
+            outstanding_entries = outstanding_entries.filter(
+                BRS_month.brs_type == brs_type
+            )
         if current_user.user_type == "ro_user":
             outstanding_entries = outstanding_entries.filter(
                 BRS.uiic_regional_code == current_user.ro_code
@@ -1141,9 +1145,13 @@ def list_short_credit_entries():
             .filter(
                 BRS_month.status.is_(None)
                 & (BRS.month == month)
-                & (BRS_month.brs_type == brs_type)
+                #   & (BRS_month.brs_type == brs_type)
             )
         )
+        if brs_type != "View all":
+            short_credit_entries = short_credit_entries.filter(
+                BRS_month.brs_type == brs_type
+            )
         if current_user.user_type == "ro_user":
             short_credit_entries = short_credit_entries.filter(
                 BRS.uiic_regional_code == current_user.ro_code
@@ -1184,9 +1192,13 @@ def list_excess_credit_entries():
             .filter(
                 BRS_month.status.is_(None)
                 & (BRS.month == month)
-                & (BRS_month.brs_type == brs_type)
+                # & (BRS_month.brs_type == brs_type)
             )
         )
+        if brs_type != "View all":
+            excess_credit_entries = excess_credit_entries.filter(
+                BRS_month.brs_type == brs_type
+            )
         if current_user.user_type == "ro_user":
             excess_credit_entries = excess_credit_entries.filter(
                 BRS.uiic_regional_code == current_user.ro_code

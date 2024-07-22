@@ -244,9 +244,9 @@ def update_ho(key):
 def recon_home():
     from extensions import db
 
+    form = HeadOfficeAcceptForm()
     # initialize form
     if current_user.user_type == "admin":
-        form = HeadOfficeAcceptForm()
 
         if current_user.username in ["bar44515", "hem27596", "jan27629", "ush25768"]:
             ho_staff = User.query.filter(User.user_type == "admin").order_by(
