@@ -320,6 +320,21 @@ def recon_home():
         form=form,
     )
 
+@ho_ro_recon_bp.route("/pending_voucher", methods=["POST", "GET"])
+@login_required
+def recon_pending_for_voucher():
+    query = ReconEntries.query.filter(
+        (ReconEntries.str_head_office_status != "Deleted")
+        & (ReconEntries.str_head_office_status == "Accepted") & (ReconEntries.str_head_office_voucher.is_(None))
+    ).order_by(ReconEntries.id)
+    if current_user.user_type == "ro_user":
+        query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
+    return render_template(
+        "ho_ro_recon_home.html",
+        query=query,
+    )
+
+
 
 @ho_ro_recon_bp.route("/pending", methods=["POST", "GET"])
 @login_required
@@ -501,7 +516,7 @@ def upload_summary_template():
     )
 
 
-@ho_ro_recon_bp.route("/upload_updated_ho_balance", methods=["GET", "POST"])
+@ho_ro_recon_bp.route("/upload_updated_summary_balance", methods=["GET", "POST"])
 @login_required
 def upload_new_ho_balance_summary():
     from extensions import db
@@ -538,16 +553,28 @@ def upload_new_ho_balance_summary():
         for regional_office in ro_list:
             recon_summary = ReconSummary.query.filter(
                 (ReconSummary.str_regional_office_code == regional_office)
-                & (ReconSummary.str_period == str_period)
+                & (ReconSummary.str_period == str_period.scalar_subquery())
             ).first()
-            updated_recon_ho_balance = ReconUpdateBalance.query.filter(
+            updated_recon_summary_balance = ReconUpdateBalance.query.filter(
                 (ReconUpdateBalance.str_regional_office_code == regional_office)
-                & (ReconUpdateBalance.str_period == str_period)
+                & (ReconUpdateBalance.str_period == str_period.scalar_subquery())
             ).first()
-            if updated_recon_ho_balance:
-                recon_summary.input_float_ho_balance = (
-                    updated_recon_ho_balance.ho_balance
+            if updated_recon_summary_balance:
+
+                recon_summary.input_ro_balance_dr_cr = (
+                    updated_recon_summary_balance.ro_dr_cr
                 )
+                recon_summary.input_float_ro_balance = (
+                    updated_recon_summary_balance.ro_balance
+                )
+
+                recon_summary.input_ho_balance_dr_cr = (
+                    updated_recon_summary_balance.ho_dr_cr
+                )
+                recon_summary.input_float_ho_balance = (
+                    updated_recon_summary_balance.ho_balance
+                )
+
                 recon_summary.updated_by = current_user.username
                 recon_summary.date_updated_date = datetime.now()
         db.session.commit()

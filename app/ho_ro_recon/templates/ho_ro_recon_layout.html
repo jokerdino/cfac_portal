@@ -20,6 +20,10 @@
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO Recon home</a>
+                    {% if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_for_voucher') }}">Accepted but
+                        not yet passed</a>
+                    {% endif %}
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">Pending Inter Region
                         entries</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
@@ -33,8 +37,7 @@
                                 template</a>
                             <a class="navbar-item"
                                 href="{{ url_for('ho_ro_recon.upload_new_ho_balance_summary') }}">Upload
-                                HO
-                                balances</a>
+                                summary balances</a>
                         </div>
                     </div>
                     {% endif %}

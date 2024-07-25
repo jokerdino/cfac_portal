@@ -59,5 +59,7 @@ class ReconUpdateBalance(db.Model):
     str_period = db.Column(db.String)
     str_regional_office_code = db.Column(db.String)
 
-    #    ro_balance = db.Column(db.Numeric(20, 2))
+    ro_balance = db.Column(db.Numeric(20, 2))
+    ro_dr_cr = db.Column(db.String)
     ho_balance = db.Column(db.Numeric(20, 2))
+    ho_dr_cr = db.Column(db.String)
