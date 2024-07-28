@@ -320,12 +320,13 @@ def recon_home():
         form=form,
     )
 
+
 @ho_ro_recon_bp.route("/pending_voucher", methods=["POST", "GET"])
 @login_required
 def recon_pending_for_voucher():
     query = ReconEntries.query.filter(
-        (ReconEntries.str_head_office_status != "Deleted")
-        & (ReconEntries.str_head_office_status == "Accepted") & (ReconEntries.str_head_office_voucher.is_(None))
+        (ReconEntries.str_head_office_status == "Accepted")
+        & (ReconEntries.str_head_office_voucher.is_(None))
     ).order_by(ReconEntries.id)
     if current_user.user_type == "ro_user":
         query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
@@ -335,13 +336,11 @@ def recon_pending_for_voucher():
     )
 
 
-
 @ho_ro_recon_bp.route("/pending", methods=["POST", "GET"])
 @login_required
 def recon_pending_at_ro():
     query = ReconEntries.query.filter(
-        (ReconEntries.str_head_office_status != "Deleted")
-        & (ReconEntries.str_head_office_status == "Pending")
+        ReconEntries.str_head_office_status == "Pending"
     ).order_by(ReconEntries.id)
     if current_user.user_type == "ro_user":
         query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
@@ -586,25 +585,23 @@ def upload_new_ho_balance_summary():
     )
 
 
-# # @ho_ro_recon_bp.route("/pending_count", methods=["POST", "GET"])
-# # @login_required
-# def count_recon_pending_at_ro():
-#     count = (
-#         ReconEntries.query.with_entities(
-#             func.count(ReconEntries.str_target_ro_code)
-#         ).filter(
-#             (ReconEntries.str_head_office_status != "Deleted")
-#             & (ReconEntries.str_head_office_status == "Pending")
-#         )
-#         # .order_by(ReconEntries.id)
-#     )
-#     if current_user.user_type == "ro_user":
-#         count = count.filter(
-#             ReconEntries.str_target_ro_code == current_user.ro_code
-#         ).group_by(ReconEntries.str_target_ro_code)
-#     #    print(query)
-#     print(count[0][0])
-#     # print(f"{count[0][0]}")
-#     return f"{count[0][0]}"
-#     # dict_count = {'count':count[0][0]}
-#     # return dict_count
+@ho_ro_recon_bp.route("/count/<string:status>")
+def recon_pending_count(status: str) -> str:
+    count = ReconEntries.query.with_entities(func.count(ReconEntries.id))
+
+    if status == "pending":
+        count = count.filter(ReconEntries.str_head_office_status == "Pending")
+    elif status == "voucher_pending":
+        count = count.filter(
+            (ReconEntries.str_head_office_status == "Accepted")
+            & (ReconEntries.str_head_office_voucher.is_(None))
+        )
+    else:
+        return "0"
+
+    if current_user.user_type == "ro_user":
+        count = count.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
+    elif current_user.user_type != "admin":
+        return "0"
+
+    return f"{count[0][0]}"

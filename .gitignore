@@ -2,6 +2,7 @@
 *~
 *.swp
 .cfac_portal/*
+.cfac_portal_v2/*
 settlements/*
 ri_confirmations/*
 statements/*

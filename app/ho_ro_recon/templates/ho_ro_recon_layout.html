@@ -22,10 +22,12 @@
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO Recon home</a>
                     {% if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_for_voucher') }}">Accepted but
-                        not yet passed</a>
+                        not yet passed (<label id="voucher_pending_count"></label>) </a>
                     {% endif %}
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">Pending Inter Region
-                        entries</a>
+                        entries
+                        (<label id="pending_count"></label>)
+                    </a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.add_ho_ro_recon') }}">Add new recon entry</a>
                     {% if current_user.username == "bar44515" %}
@@ -63,11 +65,47 @@
 
     <div class="container is-fluid mt-5 mb-5">
         {% if current_user.is_authenticated %}
+        {% if current_user.user_type in ["admin","ro_user"] %}
         {% block content %}{% endblock content %}
+        {% endif %}
+
         {% endif %}
     </div>
     <script type="text/javascript" charset="utf8"
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    <script>
+
+        fetch('https://cfac.uiic.in/recon/count/voucher_pending')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // console.log('Data received:', data);
+                document.getElementById("voucher_pending_count").innerHTML = data;
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+
+        fetch('https://cfac.uiic.in/recon/count/pending')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                //console.log('Data received:', data);
+                document.getElementById("pending_count").innerHTML = data;
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+
+    </script>
 
     {% block scripts %}
 

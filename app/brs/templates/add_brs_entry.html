@@ -59,13 +59,15 @@
             <tr>
                 <th>{{ form.opening_balance.label }}</th>
                 <td>{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_balance(class='input is-small') }}
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_balance(class='input is-small',
+                    readonly=true) }}
                 </td>
             </tr>
             <tr>
                 <th>{{ form.opening_on_hand.label }}</th>
                 <td>{{ brs_entry.month|datetime_format("%B-%Y", "previous") }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_on_hand(class='input is-small') }}
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_on_hand(class='input is-small',
+                    readonly=true) }}
                 </td>
             </tr>
             <tr>
