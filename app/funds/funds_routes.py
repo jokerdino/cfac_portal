@@ -1,45 +1,42 @@
 # from datetime import datetime
-from math import fabs
 import datetime
-from dateutil.relativedelta import relativedelta
+from math import fabs
 
 import pandas as pd
-
+from dateutil.relativedelta import relativedelta
 from flask import (
     current_app,
-    render_template,
     flash,
     redirect,
-    url_for,
+    render_template,
     request,
     send_from_directory,
+    url_for,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, func, distinct, text, case, union, cast, String
+from sqlalchemy import String, case, cast, create_engine, distinct, func, text, union
 
 from app.funds import funds_bp
-
+from app.funds.funds_form import (
+    AmountGivenToInvestmentForm,
+    DailySummaryForm,
+    FlagForm,
+    FundsJVForm,
+    FundsModifyDatesForm,
+    MajorOutgoForm,
+    OutflowForm,
+    ReportsForm,
+    UploadFileForm,
+)
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
+    FundBankAccountNumbers,
     FundBankStatement,
     FundDailyOutflow,
     FundDailySheet,
     FundFlagSheet,
-    FundMajorOutgo,
-    FundBankAccountNumbers,
     FundJournalVoucherFlagSheet,
-)
-
-from app.funds.funds_form import (
-    DailySummaryForm,
-    MajorOutgoForm,
-    AmountGivenToInvestmentForm,
-    UploadFileForm,
-    OutflowForm,
-    FlagForm,
-    ReportsForm,
-    FundsJVForm,
-    FundsModifyDatesForm,
+    FundMajorOutgo,
 )
 
 outflow_labels = [
@@ -237,9 +234,9 @@ def upload_bank_statement():
         df_bank_statement["created_by"] = current_user.username
 
         # debit entries to be moved to credit entries
-        df_bank_statement.loc[
-            df_bank_statement["debit"].notnull(), "credit"
-        ] = df_bank_statement["debit"]
+        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "credit"] = (
+            df_bank_statement["debit"]
+        )
         df_bank_statement.loc[df_bank_statement["debit"].notnull(), "debit"] = None
 
         # adding flag from flag_sheet table
@@ -249,10 +246,8 @@ def upload_bank_statement():
             datetime.date.today() + relativedelta(days=1), "HDFC"
         )
         # display_inflow(datetime.date.today())
-        # print(df_bank_statement.columns)
         sum_credits = df_bank_statement["credit"].sum()
         sum_debits = df_bank_statement["debit"].sum()
-        # print(df_bank_statement.loc[df_bank_statement['flag_description'] == "CLOSING BALANCE", 'ledger_balance'])
         closing_balance_statement = df_bank_statement.loc[
             df_bank_statement["flag_description"] == "HDFC CLOSING BAL",
             "ledger_balance",
@@ -282,6 +277,22 @@ def upload_bank_statement():
                 engine,
                 if_exists="append",
                 index=False,
+            )
+
+            # upload other receipts to pool_credits table
+
+            # filter other receipts
+            df_other_receipts = df_bank_statement[
+                df_bank_statement["flag_description"] == "OTHER RECEIPTS"
+            ]
+
+            # match it against JV table
+            df_unidentified_credits = filter_unidentified_credits(
+                df_other_receipts, engine
+            )
+            # if still assigned to others, to be uploaded to pool_credits table
+            df_unidentified_credits.to_sql(
+                "pool_credits", engine, if_exists="append", index=False
             )
 
             from extensions import db
@@ -1264,7 +1275,9 @@ def download_jv():
             db.session.query(FundBankStatement)
             .with_entities(
                 FundBankStatement.value_date.label("Date"),
-                FundBankStatement.description.label("Bank Description"),
+                func.concat(
+                    FundBankStatement.description, FundBankStatement.reference_no
+                ).label("Bank Description"),
                 FundBankStatement.credit.label("Amount"),
                 case_inflow,
             )
@@ -1348,25 +1361,27 @@ def download_jv():
         df_funds["Office Location"] = "000100"
 
         df_funds["Date"] = pd.to_datetime(df_funds["Date"], format="%d/%m/%Y")
-        df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
 
-        df_flags = df_flags[
-            ["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]
-        ]
-        df_flags = df_flags.drop_duplicates()
+        df_flags, flag_description = prepare_jv_flag(engine)
+        # df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
 
-        df_flags = df_flags.rename(
-            columns={
-                "txt_description": "DESCRIPTION",
-                "txt_flag": "FLAG",
-                "txt_gl_code": "GL Code",
-                "txt_sl_code": "SL Code",
-            }
-        )
+        # df_flags = df_flags[
+        #     ["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]
+        # ]
+        # df_flags = df_flags.drop_duplicates()
 
-        flag_description: list[str] = (
-            df_flags["DESCRIPTION"].astype(str).unique().tolist()
-        )
+        # df_flags = df_flags.rename(
+        #     columns={
+        #         "txt_description": "DESCRIPTION",
+        #         "txt_flag": "FLAG",
+        #         "txt_gl_code": "GL Code",
+        #         "txt_sl_code": "SL Code",
+        #     }
+        # )
+
+        # flag_description: list[str] = (
+        #     df_flags["DESCRIPTION"].astype(str).unique().tolist()
+        # )
 
         df_merged = pd.concat(
             [
@@ -1396,6 +1411,44 @@ def download_jv():
             return "no data"
 
     return render_template("jv_download_jv.html", form=form)
+
+
+def prepare_jv_flag(engine) -> tuple[pd.DataFrame, list[str]]:
+    df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
+
+    df_flags = df_flags[["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]]
+    df_flags = df_flags.drop_duplicates()
+
+    df_flags = df_flags.rename(
+        columns={
+            "txt_description": "DESCRIPTION",
+            "txt_flag": "FLAG",
+            "txt_gl_code": "GL Code",
+            "txt_sl_code": "SL Code",
+        }
+    )
+
+    flag_description: list[str] = df_flags["DESCRIPTION"].astype(str).unique().tolist()
+
+    return df_flags, flag_description
+
+
+def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame:
+    # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
+    flag_description: list[str] = prepare_jv_flag(engine)[1]
+
+    df_inflow["DESCRIPTION"] = df_inflow["description"].apply(
+        lambda x: "".join([part for part in flag_description if part in str(x)])
+    )
+
+    df_unidentified_credits = df_inflow[df_inflow["DESCRIPTION"] == ""]
+
+    df_unidentified_credits = df_unidentified_credits.drop(columns=["DESCRIPTION"])
+    df_unidentified_credits["date_created_date"] = datetime.datetime.now()
+    df_unidentified_credits["created_by"] = current_user.username
+
+    return df_unidentified_credits
 
 
 def prepare_investment_jv(df_funds_excel: pd.DataFrame) -> pd.DataFrame:
@@ -1471,10 +1524,13 @@ def prepare_inflow_jv(
     df_inflow["DESCRIPTION"] = df_inflow["Bank Description"].apply(
         lambda x: "".join([part for part in flag_description if part in str(x)])
     )
+
     df_inflow["DESCRIPTION"] = df_inflow["DESCRIPTION"].replace(
         r"^\s*$", "OTHERS", regex=True
     )
+
     df_inflow = df_inflow.merge(df_flags, on="DESCRIPTION", how="left")
+
     df_inflow["Remarks"] = (
         df_inflow["FLAG"] + " " + df_inflow["Date"].dt.strftime("%d/%m/%Y").astype(str)
     )
@@ -1491,7 +1547,6 @@ def prepare_inflow_jv(
     df_inflow_actual.loc[df_inflow["DR/CR"] == "CR", "DR/CR"] = "DR"
 
     df_merged = pd.concat([df_inflow_actual, df_inflow])
-
     return df_merged
 
 
@@ -1528,15 +1583,3 @@ def modify_dates():
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
     return render_template("modify_dates.html", form=form)
-
-
-# @funds_bp.route("/horo", methods=["POST", "GET"])
-# def hororecon():
-
-#     if request.method == "POST":
-
-
-#         print(request.form.to_dict())
-
-
-#     return render_template("hororecon.html")

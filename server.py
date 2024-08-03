@@ -1,17 +1,15 @@
-from datetime import datetime
 import calendar
+from datetime import datetime
 
-from babel.numbers import format_decimal
 import humanize
-
+from babel.numbers import format_decimal
 from flask import Flask
-
 from waitress import serve
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
 from config import Config
-from extensions import db, lm, migrate, admin
+from extensions import admin, db, lm, migrate
 
 
 @lm.user_loader
@@ -129,6 +127,10 @@ def create_app(config_class=Config):
     from app.ho_ro_recon import ho_ro_recon_bp
 
     app.register_blueprint(ho_ro_recon_bp, url_prefix="/recon")
+
+    from app.pool_credits import pool_credits_bp
+
+    app.register_blueprint(pool_credits_bp, prefix="/pool_credits")
 
     from app.errors import errors_bp
 

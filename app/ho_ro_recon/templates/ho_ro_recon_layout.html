@@ -75,7 +75,7 @@
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
     <script>
 
-        fetch('https://cfac.uiic.in/recon/count/voucher_pending')
+        fetch("{{ url_for('ho_ro_recon.recon_pending_count', status='voucher_pending') }}")
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -90,7 +90,7 @@
                 console.error('There was a problem with the fetch operation:', error);
             });
 
-        fetch('https://cfac.uiic.in/recon/count/pending')
+        fetch("{{ url_for('ho_ro_recon.recon_pending_count', status='pending') }}")
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
