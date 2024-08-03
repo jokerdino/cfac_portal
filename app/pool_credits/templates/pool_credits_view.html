@@ -1,0 +1,45 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+
+    <table class="table">
+        <tr>
+            <th>Book date</th>
+            <td>{{ entry.book_date.strftime("%d/%m/%Y") }}</td>
+        </tr>
+        <tr>
+            <th>Description </th>
+            <td>{{ entry.description }}</td>
+        </tr>
+        <tr>
+            <th>Credit</th>
+            <td>{{ entry.credit | indian_number_format }}</td>
+        </tr>
+        {% if entry.debit %}
+        <tr>
+            <th>Debit </th>
+            <td>{{ entry.debit | indian_number_format }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+            <th>Value date</th>
+            <td>{{ entry.value_date.strftime("%d/%m/%Y") }}</td>
+        </tr>
+        <tr>
+            <th>Reference number</th>
+            <td>{{ entry.reference_no }}</td>
+        </tr>
+        <tr>
+            <th>Regional office code</th>
+            <td>{{ entry.str_regional_office_code or "" }}</td>
+        </tr>
+        <tr>
+            <th>Remarks</th>
+            <td class="word-wrap">{{ entry.text_remarks or "" }}</td>
+        </tr>
+    </table>
+    <div class="has-text-centered">
+        <a class="button is-link" href="{{ url_for('pool_credits.update_pool_credit', id=entry.id) }}">Edit</a>
+    </div>
+</div>
+{% endblock content %}

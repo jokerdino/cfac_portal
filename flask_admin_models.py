@@ -1,8 +1,7 @@
 from flask import redirect, url_for
-from flask_login import current_user
-
+from flask_admin import AdminIndexView, expose
 from flask_admin.contrib import sqla
-from flask_admin import expose, AdminIndexView
+from flask_login import current_user
 
 
 class DefaultModelView(sqla.ModelView):

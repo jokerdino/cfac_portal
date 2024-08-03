@@ -130,7 +130,7 @@ def create_app(config_class=Config):
 
     from app.pool_credits import pool_credits_bp
 
-    app.register_blueprint(pool_credits_bp, prefix="/pool_credits")
+    app.register_blueprint(pool_credits_bp, url_prefix="/pool_credits")
 
     from app.errors import errors_bp
 

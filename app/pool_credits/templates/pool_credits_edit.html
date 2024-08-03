@@ -1,0 +1,57 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+    <form method="post">
+        {{ form.csrf_token }}
+
+        <table class="table">
+            <tr>
+                <th>Book date</th>
+                <td>{{ entry.book_date.strftime("%d/%m/%Y") }}</td>
+            </tr>
+            <tr>
+                <th>Description </th>
+                <td>{{ entry.description }}</td>
+            </tr>
+            <tr>
+                <th>Credit</th>
+                <td>{{ entry.credit | indian_number_format }}</td>
+            </tr>
+            {% if entry.debit %}
+            <tr>
+                <th>Debit </th>
+                <td>{{ entry.debit | indian_number_format }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>Value date</th>
+                <td>{{ entry.value_date.strftime("%d/%m/%Y") }}</td>
+            </tr>
+            <tr>
+                <th>Reference number</th>
+                <td>{{ entry.reference_no }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.str_regional_office_code.label }}</th>
+                <td>{{ form.str_regional_office_code(class="input") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.text_remarks.label }}</th>
+                <td>{{ form.text_remarks(class="textarea") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

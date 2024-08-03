@@ -59,6 +59,7 @@
           </li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
           <li><a href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO recon</a></li>
+          <li><a href="{{ url_for('pool_credits.pool_credits_list_unidentified') }}">Unidentified credits</a></li>
           {% endif %}
         </ul>
         <p class="menu-label">Information</p>
