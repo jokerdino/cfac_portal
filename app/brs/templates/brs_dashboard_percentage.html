@@ -42,7 +42,11 @@
 {% block scripts %}
 <script>
     new DataTable('#brs_percent_table', {
-        dom: 'lfBrtip',
+        //dom: 'lfBrtip',
+        layout: {
+            top1Start: 'pageLength',
+            topStart: 'buttons',
+        },
         fixedHeader: true,
         pageLength: 36,
         scrollY: true,

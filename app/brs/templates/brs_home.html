@@ -154,7 +154,9 @@
 <script>
 
     new DataTable('#brs_table', {
-        dom: 'lfBrtip',
+        // dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+
         fixedHeader: true,
         pageLength: 50,
         scrollY: true,

@@ -1,6 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 {% if outstanding %}
+<h1 class="title">List of {{ title }} entries</h1>
 <table class="table is-fullwidth" id="outstanding">
     <thead>
         <tr>
@@ -41,7 +42,10 @@
 {% block scripts %}
 <script>
     new DataTable('#outstanding', {
-        dom: 'lfBrtip',
+        //dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+        scrollY: true,
+        fixedHeader: true,
         buttons: [
             { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },

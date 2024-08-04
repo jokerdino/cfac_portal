@@ -968,9 +968,13 @@ def list_brs_entries():
         ).filter(
             (BRS_month.status.is_(None))
             & (BRS.month == month)
-            & (BRS_month.brs_type == brs_type)
+            # & (BRS_month.brs_type == brs_type)
         )
 
+        if brs_type != "View all":
+            list_all_brs_entries = list_all_brs_entries.filter(
+                BRS_month.brs_type == brs_type
+            )
         subquery = (
             Outstanding.query.with_entities(Outstanding.brs_month_id)
             .distinct()
@@ -1114,6 +1118,7 @@ def list_outstanding_entries():
             "view_outstanding_entries.html",
             outstanding=outstanding_entries,
             get_brs_bank=get_brs_bank,
+            title="outstanding",
         )
     return render_template("brs_raw_data_form.html", form=form)
 
@@ -1161,6 +1166,7 @@ def list_short_credit_entries():
             "view_outstanding_entries.html",
             outstanding=short_credit_entries,
             get_brs_bank=get_brs_bank,
+            title="short credit",
         )
     return render_template("brs_raw_data_form.html", form=form)
 
@@ -1208,6 +1214,7 @@ def list_excess_credit_entries():
             "view_outstanding_entries.html",
             outstanding=excess_credit_entries,
             get_brs_bank=get_brs_bank,
+            title="excess credit",
         )
     return render_template("brs_raw_data_form.html", form=form)
 

@@ -74,7 +74,10 @@
 {% block scripts %}
 <script>
         new DataTable('#brs_table', {
-                dom: 'lfBrtip',
+                //dom: 'lfBrtip',
+                layout: { top1Start: 'pageLength', topStart: 'buttons' },
+                scrollY: true,
+                fixedHeader: true,
                 buttons: [
                         { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
                         { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
