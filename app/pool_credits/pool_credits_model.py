@@ -33,3 +33,19 @@ class PoolCredits(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
+    def to_dict(self):
+        return {
+            "book_date": self.book_date,
+            "description": self.description,
+            "credit": self.credit,
+            "debit": self.debit,
+            "value_date": self.value_date,
+            "reference_no": self.reference_no,
+            "transaction_branch": self.transaction_branch,
+            "str_regional_office_code": self.str_regional_office_code,
+            "text_remarks": self.text_remarks,
+            "date_updated_date": self.date_updated_date,
+            "updated_by": self.updated_by,
+            "id": self.id,
+        }
