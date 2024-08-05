@@ -19,12 +19,6 @@
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    {% if current_user.username =="bar44515" %}
-                    <a class="navbar-item"
-                        href="{{ url_for('pool_credits.pool_credits_list_unidentified') }}">Unidentified entries</a>
-                    <a class="navbar-item" href="{{ url_for('pool_credits.pool_credits_list_identified') }}">Identified
-                        entries</a>
-                    {% endif %}
                     <a class="navbar-item"
                         href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='unidentified') }}">Unidentified
                         entries</a>

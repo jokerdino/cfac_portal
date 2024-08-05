@@ -125,6 +125,8 @@ def update_pool_credit(id):
     id = int(id)
     entry = db.session.query(PoolCredits).get_or_404(id)
     form = UpdatePoolCreditsForm()
+    if current_user.user_type != "admin":
+        form.str_regional_office_code.choices = [current_user.ro_code]
     if form.validate_on_submit():
         entry.date_updated_date = datetime.now()
         entry.updated_by = current_user.username
