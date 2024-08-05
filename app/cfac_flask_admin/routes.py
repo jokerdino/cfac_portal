@@ -1,42 +1,34 @@
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 
-from flask_admin_models import DefaultModelView
-
-from app.cfac_flask_admin.model_views import (
-    BRSView,
-    UserView,
-    OSView,
-    FundBankStatementView,
-    ReconSummaryView,
-)
-
-from extensions import admin, db
+from app.announcements.announcements_model import Announcements
+from app.bank_guarantee.bg_models import BankGuarantee
 from app.brs.models import (
     BRS,
-    BRS_month,
-    Outstanding,
-    DeleteEntries,
-    BankReconShortCredit,
-    BankReconExcessCredit,
     BankReconAccountDetails,
+    BankReconExcessCredit,
+    BankReconShortCredit,
+    BRS_month,
+    DeleteEntries,
+    Outstanding,
+)
+from app.cfac_flask_admin.model_views import (
+    BRSView,
+    FundBankStatementView,
+    OSView,
+    ReconSummaryView,
+    UserView,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
-    Settlement,
-    Remarks,
     Coinsurance_log,
     CoinsuranceBalances,
     CoinsuranceCashCall,
+    Remarks,
+    Settlement,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
-from app.users.user_model import User, Log_user
-from app.tickets.tickets_model import Tickets, TicketRemarks
-from app.knowledge_base.knowledge_base_model import KnowledgeBase
-from app.bank_guarantee.bg_models import BankGuarantee
-from app.outstanding_expenses.os_model import OutstandingExpenses
-
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
     FundBankAccountNumbers,
@@ -44,18 +36,22 @@ from app.funds.funds_model import (
     FundDailyOutflow,
     FundDailySheet,
     FundFlagSheet,
-    FundMajorOutgo,
     FundJournalVoucherFlagSheet,
+    FundMajorOutgo,
 )
-
-from app.mis_tracker.mis_model import MisTracker
-from app.announcements.announcements_model import Announcements
 from app.ho_accounts.ho_accounts_model import (
     HeadOfficeAccountsTracker,
     HeadOfficeBankReconTracker,
 )
-
 from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
+from app.knowledge_base.knowledge_base_model import KnowledgeBase
+from app.mis_tracker.mis_model import MisTracker
+from app.outstanding_expenses.os_model import OutstandingExpenses
+from app.pool_credits.pool_credits_model import PoolCredits
+from app.tickets.tickets_model import TicketRemarks, Tickets
+from app.users.user_model import Log_user, User
+from extensions import admin, db
+from flask_admin_models import DefaultModelView
 
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
@@ -247,5 +243,13 @@ admin.add_view(
 admin.add_view(
     ReconSummaryView(
         ReconSummary, db.session, endpoint="summary", category="HORO_recon"
+    )
+)
+
+# Pool Credits module
+
+admin.add_view(
+    DefaultModelView(
+        PoolCredits, db.session, endpoint="pool_credits_", category="Pool credits"
     )
 )

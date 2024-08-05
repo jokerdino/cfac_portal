@@ -1,0 +1,36 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+<div class="container is-fluid is-size-6 mt-5 mb-5">
+    <h1 class="title">{{ title }}</h1>
+    <table class="table is-bordered is_authenticated is-fullwidth" id="pool_credits_table">
+
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">Book date</th>
+                <th class="has-text-centered is-vcentered">Description</th>
+                <th class="has-text-centered is-vcentered">Credit</th>
+                <th class="has-text-centered is-vcentered">Debit</th>
+                <th class="has-text-centered is-vcentered">Value date</th>
+                <th class="has-text-centered is-vcentered">Reference number</th>
+                <th class="has-text-centered is-vcentered">Confirmed by</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in query %}
+            <tr>
+                <td data-sort="{{ item.book_date }}">{{ item.book_date.strftime("%d/%m/%Y") }}</td>
+                <td>{{ item.description }}</td>
+                <td class="has-text-right">{{ item.credit }}</td>
+                <td>{{ item.debit or "" }}</td>
+                <td data-sort="{{ item.value_date }}">{{ item.value_date.strftime("%d/%m/%Y") }}</td>
+                <td>{{ item.reference_no }}</td>
+                <td>{{ item.str_regional_office_code or "" }}</td>
+                <td><a class="is-small button"
+                        href="{{ url_for('pool_credits.update_pool_credit', id=item.id) }}">Edit</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

@@ -3,6 +3,7 @@
 *.swp
 .cfac_portal/*
 .cfac_portal_v2/*
+.vscode/*
 settlements/*
 ri_confirmations/*
 statements/*
@@ -15,3 +16,5 @@ python-packages/*
 *.csv
 *.txt
 data/*
+funds_jv/*
+*.sql
