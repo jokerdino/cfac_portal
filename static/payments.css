@@ -20,3 +20,17 @@ input[type=number] {
 td.word-wrap {
     white-space:pre-wrap;
 }
+
+summary {
+    align-items: center;
+    background-color: hsl(var(--bulma-message-h),var(--bulma-message-s),var(--bulma-message-header-background-l));
+    border-start-end-radius: var(--bulma-message-header-radius);
+    border-start-start-radius: var(--bulma-message-header-radius);
+    color: hsl(var(--bulma-message-h),var(--bulma-message-s),var(--bulma-message-header-color-l));
+    /* display: flex;  */
+    font-weight: var(--bulma-message-header-weight);
+    justify-content: space-between;
+    line-height: 1.25;
+    padding: var(--bulma-message-header-padding);
+    position: relative;
+}
