@@ -38,7 +38,7 @@
     {% if current_user.user_type in ["admin", "coinsurance_hub_user"] %}
 
     <h3 class="title is-size-5">Last 50 credits received in HDFC Pool account</h3>
-    <table class="table is-bordered is-hoverable">
+    <table class="table is-bordered is-hoverable" id="coinsurance_table">
         <thead>
             <tr>
                 <th>Value date</th>
@@ -49,7 +49,7 @@
         </thead>
         <tbody>
             <tr>{% for item in fund_query %}
-                <td>{{ item.value_date.strftime("%d/%m/%Y") }}</td>
+                <td data-sort="{{ item.value_date }}">{{ item.value_date.strftime("%d/%m/%Y") }}</td>
                 <td>{{ item.description }}</td>
                 <td class="has-text-right">{{ item.credit|indian_number_format }}</td>
                 <td>{{ item.reference_no }}</td>
@@ -65,16 +65,17 @@
         <table class="table is-bordered">
             <thead>
                 <tr>
-                    <th>Period</th>
-                    <th>Type of transaction</th>
-                    <th>Settled amount</th>
+                    <th class="has-text-centered">Period</th>
+                    <th class="has-text-centered">Paid</th>
+                    <th class="has-text-centered">Received</th>
                 </tr>
             </thead>
             <tbody>
                 {% for entry in settlement_query %}
                 <tr>
                     <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
-                    <td>{{ entry[2] }}</td>
+
+                    <td class="has-text-right">{{ entry[2]|indian_number_format }}</td>
                     <td class="has-text-right">{{ entry[3]|indian_number_format }}</td>
                     {% endfor %}
                 </tr>
@@ -84,4 +85,30 @@
     {% endif %}
     <div class="mb-5"></div>
 </div>
+{% block scripts %}
+<script>
+
+    new DataTable('#coinsurance_table', {
+        //        dom: 'lfBrtip',
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[9, 'desc']],
+        pagingType: 'full_numbers',
+        pageLength: 10,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
 {% endblock content %}

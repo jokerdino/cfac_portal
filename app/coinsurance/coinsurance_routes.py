@@ -1,6 +1,6 @@
 from datetime import datetime
 import pandas as pd
-from sqlalchemy import func, distinct, select, create_engine
+from sqlalchemy import func, distinct, select, create_engine, case
 
 from flask import (
     current_app,
@@ -77,15 +77,29 @@ def home_page():
             .all()
         )
 
+    case_paid = case(
+        (
+            Settlement.type_of_transaction == "Paid",
+            Settlement.settled_amount,
+        ),
+        else_=0,
+    ).label("Paid")
+    case_received = case(
+        (
+            Settlement.type_of_transaction == "Received",
+            Settlement.settled_amount,
+        ),
+        else_=0,
+    ).label("Received")
     settlement_query = (
-        db.session.query(
+        db.session.query(Settlement)
+        .with_entities(
             func.date_trunc("month", Settlement.date_of_settlement),
             func.date_trunc("year", Settlement.date_of_settlement),
-            Settlement.type_of_transaction,
-            func.sum(Settlement.settled_amount),
+            func.sum(case_paid),
+            func.sum(case_received),
         )
         .group_by(
-            Settlement.type_of_transaction,
             func.date_trunc("month", Settlement.date_of_settlement),
             func.date_trunc("year", Settlement.date_of_settlement),
         )
