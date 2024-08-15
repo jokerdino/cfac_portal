@@ -161,9 +161,9 @@
         fixedHeader: true,
         pageLength: 100,
         buttons: [
-            { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
-            { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
 
 {% if current_user.user_type == "admin" and form %}
     order: [[12, 'asc']],

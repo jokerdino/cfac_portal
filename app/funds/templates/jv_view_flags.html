@@ -3,7 +3,7 @@
 {% block content %}
 {% if current_user.user_type == "admin" %}
 <div class="table-container mb-5">
-    <table class="table is-fullwidth is-striped is-bordered" id="gst_table">
+    <table class="table is-fullwidth is-striped is-bordered" id="jv_flag_table">
         <thead>
             <tr>
                 {% for i in column_names %}
@@ -30,4 +30,25 @@
     </table>
 </div>
 {% endif %}
+{% block scripts %}
+<script>
+    new DataTable('#jv_flag_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[10, 'desc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
+        pageLength: 50,
+
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}
