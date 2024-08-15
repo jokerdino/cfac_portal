@@ -3,57 +3,61 @@
 {% if contacts %}
 
 <table class="table is-fullwidth is-hoverable is-bordered" id="contacts_table">
-<thead>
-<tr class="has-text-centered">
-    <th>Office Code</th>
-    <th>Office name</th>
-    <th>Name</th>
-    <th>Employee number</th>
-    <th>Role</th>
-    <th>Zone</th>
-    <th>Designation</th>
-    <th>Email address</th>
-    <th>Mobile number</th>
-{% if current_user.user_type == "admin" %}
-    <th>Edit</th>
-    {% endif %}
-</tr>
-</thead>
+    <thead>
+        <tr class="has-text-centered">
+            <th>Office Code</th>
+            <th>Office name</th>
+            <th>Name</th>
+            <th>Employee number</th>
+            <th>Role</th>
+            <th>Zone</th>
+            <th>Designation</th>
+            <th>Email address</th>
+            <th>Mobile number</th>
+            {% if current_user.user_type == "admin" %}
+            <th>Edit</th>
+            {% endif %}
+        </tr>
+    </thead>
     <tbody>
-    {% for contact in contacts %}
-    <tr>
-        <td>{{ contact.office_code }}</td>
-        <td>{{ contact.office_name }}</td>
-        <td>{{ contact.name }}</td>
-        <td>{{ contact.employee_number }}</td>
-        <td>{{ contact.role }}</td>
-        <td>{{ contact.zone }}</td>
-        <td>{{ contact.designation }}</td>
-        <td>{{ contact.email_address }}</td>
-        <td>{{ contact.mobile_number }}</td>
-{% if current_user.user_type == "admin" %}
-        <td><a href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a></td>
-{% endif %}
-        {% endfor %}
-    </tr>
+        {% for contact in contacts %}
+        <tr>
+            <td>{{ contact.office_code }}</td>
+            <td>{{ contact.office_name }}</td>
+            <td>{{ contact.name }}</td>
+            <td>{{ contact.employee_number }}</td>
+            <td>{{ contact.role }}</td>
+            <td>{{ contact.zone }}</td>
+            <td>{{ contact.designation }}</td>
+            <td>{{ contact.email_address }}</td>
+            <td>{{ contact.mobile_number }}</td>
+            {% if current_user.user_type == "admin" %}
+            <td><a href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a></td>
+            {% endif %}
+            {% endfor %}
+        </tr>
     </tbody>
 </table>
 {% endif %}
 {% block scripts %}
-    <script>
+<script>
 
-new DataTable('#contacts_table', {
-    dom: 'lfBrtip',
-    paging: false,
-    buttons: [
-         { extend: 'copyHtml5', className: 'is-danger is-rounded', title:''},
-         { extend: 'csvHtml5', className: 'is-info is-rounded', title:''},
-         { extend: 'excelHtml5', className: 'is-primary is-rounded', title:''}],
-    order: [[0,'asc']],
-    pagingType: 'full_numbers',
+    new DataTable('#contacts_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
 
-});
+        },
+        paging: false,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
 
-    </script>
-    {% endblock scripts %}
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}
