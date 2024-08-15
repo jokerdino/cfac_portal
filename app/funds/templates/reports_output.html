@@ -2,6 +2,7 @@
 
 {% block content %}
 <div class="table-container">
+    <h1 class="title">Funds - Reports</h1>
     <table class="table is-striped is-bordered is-fullwidth" id="reports_table">
         <thead>
             <tr>
@@ -45,6 +46,10 @@
         pagingType: 'full_numbers',
         lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
         pageLength: 50,
+        columnDefs: [{
+            "defaultContent": "-",
+            "targets": "_all"
+        }]
 
     });
 
