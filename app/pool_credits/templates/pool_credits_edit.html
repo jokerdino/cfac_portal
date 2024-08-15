@@ -50,7 +50,11 @@
             </tr>
         </table>
         <div class="has-text-centered">
+            {% if entry.bool_jv_passed %}
+            <button class="button is-success" disabled>Submit</button>
+            {% else %}
             <button class="button is-success">Submit</button>
+            {% endif %}
         </div>
     </form>
 </div>

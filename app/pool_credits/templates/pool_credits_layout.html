@@ -25,7 +25,12 @@
                     <a class="navbar-item"
                         href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='identified') }}">Identified
                         entries</a>
-
+                    <a class="navbar-item"
+                        href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='jv_passed') }}">JV
+                        passed entries</a>
+                    {% if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('pool_credits.view_pool_credit_summary') }}">Summary</a>
+                    {% endif %}
                 </div>
             </div>
 

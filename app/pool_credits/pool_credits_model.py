@@ -25,14 +25,18 @@ class PoolCredits(db.Model):
     str_regional_office_code = db.Column(db.String)
     text_remarks = db.Column(db.Text)
 
+    bool_jv_passed = db.Column(db.Boolean, default=False)
+
     # meta data
     date_created_date = db.Column(db.DateTime)
     date_updated_date = db.Column(db.DateTime)
     date_deleted_date = db.Column(db.DateTime)
+    date_jv_passed_date = db.Column(db.DateTime)
 
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+    jv_passed_by = db.Column(db.String)
 
     def to_dict(self):
         return {
@@ -48,4 +52,5 @@ class PoolCredits(db.Model):
             "date_updated_date": self.date_updated_date,
             "updated_by": self.updated_by,
             "id": self.id,
+            "bool_jv_passed": self.bool_jv_passed,
         }

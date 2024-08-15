@@ -59,9 +59,6 @@
           </li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
           <li><a href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO recon</a></li>
-          <li><a
-              href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='unidentified') }}">HDFC Pool - Unidentified
-              credits</a></li>
           {% endif %}
         </ul>
         <p class="menu-label">Information</p>
@@ -88,6 +85,9 @@
           <li><a href="{{ url_for('contracts.view_contracts', status='active') }}">Contracts</a></li>
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
               checklist</a></li>
+          <li><a href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='unidentified') }}">HDFC Pool
+              - Unidentified
+              credits</a></li>
           {% if current_user.username in ["bar44515", "vin38405", "sug29777", "sud45327", "jan27629", "hem27596"] %}
 
           <li><a href="{{ url_for('funds.funds_home') }}">Funds</a></li>

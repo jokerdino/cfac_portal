@@ -3,29 +3,39 @@
 {% block content %}
 
 <div class="container is-fluid mt-5 pb-5">
-    <h1 class="title">HDFC Pool account - List of {{ status }} entries</h1>
-    <table class="table is-bordered is-striped is-fullwidth" id="pool_credits_table">
-        <thead>
-            <tr>
-                <th class="has-text-centered is-vcentered">Book date</th>
-                <th class="has-text-centered is-vcentered">Description</th>
-                <th class="has-text-centered is-vcentered">Credit</th>
-                <th class="has-text-centered is-vcentered">Debit</th>
-                <th class="has-text-centered is-vcentered">Value date</th>
-                <th class="has-text-centered is-vcentered">Reference number</th>
-                <th class="has-text-centered is-vcentered">Confirmed by</th>
-                <th class="has-text-centered is-vcentered">Edit</th>
-            </tr>
-        </thead>
+    <h1 class="title">HDFC Pool account - List of {{ status | replace("jv_", "JV ")}} entries</h1>
+    <form method="post">
+        {% if status == "identified" and current_user.user_type == "admin" %}
+        <div class="has-text-right">
 
-    </table>
+            <button class="button is-success is-outlined">Mark selected entries as JV passed</button>
+        </div>
+        {% endif %}
+        <table class="table is-bordered is-striped is-hoverable is-fullwidth" id="pool_credits_table">
+            <thead>
+                <tr>
+                    {% if status == "identified" and current_user.user_type == "admin" %}
+                    <th class="has-text-centered is-vcentered"><input type="checkbox" onclick="select_all()"
+                            id="select_all_button" /></th>
+                    {% endif %}
+                    <th class="has-text-centered is-vcentered">Book date</th>
+                    <th class="has-text-centered is-vcentered">Description</th>
+                    <th class="has-text-centered is-vcentered">Credit</th>
+                    <th class="has-text-centered is-vcentered">Debit</th>
+                    <th class="has-text-centered is-vcentered">Value date</th>
+                    <th class="has-text-centered is-vcentered">Reference number</th>
+                    <th class="has-text-centered is-vcentered">Confirmed by</th>
+                    <th class="has-text-centered is-vcentered">Edit</th>
+                </tr>
+            </thead>
+
+        </table>
+    </form>
 </div>
 {% block scripts %}
 <script>
     $(document).ready(function () {
         new DataTable('#pool_credits_table', {
-            // $('#pool_credits_table').DataTable({
-
             ajax: "{{ url_for('pool_credits.get_data', status=status) }}",
             serverSide: true,
             stateSave: true,
@@ -34,42 +44,65 @@
                 topStart: 'pageLength',
                 top2Start: {
                     buttons: [
-                        { extend: 'copyHtml5', className: 'is-danger is-rounded', title: '' },
-                        { extend: 'csvHtml5', className: 'is-info is-rounded', title: '' },
-                        { extend: 'excelHtml5', className: 'is-primary is-rounded', title: '' }],
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
                 }
             },
 
             columns: [
+                {% if status == "identified" and current_user.user_type == "admin" %}
                 {
-                    data: 'book_date',
-                    className: 'dt-body-center',
-                    render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
-                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
-
-                },
-                { data: 'description' },
-                { data: 'credit', className: 'dt-body-right', },
-                { data: 'debit', className: 'dt-body-right', },
-                {
-                    data: 'value_date',
-                    className: 'dt-body-center',
-                    render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
-                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
-                },
-                { data: 'reference_no' },
-
-                { data: 'str_regional_office_code' },
-                {
-                    data: 'id',
-                    render: function (data, type, row, meta) {
-                        return "<a class='button is-small' href=/pool_credits/edit/" + data + "/>Edit</a>";
-                    }
+                data: 'id',
+                className: 'dt-body-center',
+                sortable: false,
+                render: function (data, type, row, meta) {
+                    return "<input type='checkbox' name='pool_keys' value=" + data + ">";
                 }
+            },
+            {% endif %}
+                {
+            data: 'book_date',
+            className: 'dt-body-center',
+            render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
+            //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
+
+        },
+        { data: 'description' },
+        { data: 'credit', className: 'dt-body-right', },
+        { data: 'debit', className: 'dt-body-right', },
+        {
+            data: 'value_date',
+            className: 'dt-body-center',
+            render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
+            //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
+        },
+        { data: 'reference_no' },
+
+        { data: 'str_regional_office_code' },
+        {
+            data: 'id',
+            render: function (data, type, row, meta) {
+                return "<a class='button is-small' href=/pool_credits/edit/" + data + "/>Edit</a>";
+            }
+        }
             ],
-            order: [[7, 'desc']]
+        order: [[7, 'desc']]
         });
     });
+</script>
+<script>
+    function select_all() {
+
+        var checkbox = document.getElementsByName('pool_keys');
+
+        for (var i = 0; i < checkbox.length; i++) {
+            if (checkbox[i].type == 'checkbox')
+
+                checkbox[i].checked = document.getElementById('select_all_button').checked;
+        }
+    }
+
 </script>
 {% endblock scripts %}
 
