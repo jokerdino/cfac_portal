@@ -1,0 +1,29 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="title is-4">HDFC Pool account - Unidentified credits - summary</h1>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Period</th>
+                <th class="has-text-centered">Unidentified</th>
+                <th class="has-text-centered">Identified</th>
+                <th class="has-text-centered">JV passed</th>
+                <th class="has-text-centered">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for item in query %}
+            <tr>
+                <td>{{ item[0].strftime("%B") }}-{{ item[1].strftime("%Y") }}</td>
+                <td class="has-text-right">{{ item[2] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[3] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[4] | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[2] + item[3] + item[4]) | indian_number_format }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
