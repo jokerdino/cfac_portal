@@ -21,15 +21,25 @@
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO Recon home</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_for_voucher') }}">Accepted but
-                        not yet passed (<label id="voucher_pending_count"></label>) </a>
+                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_for_voucher') }}">
+                        Accepted but not yet passed <label id="voucher_pending_count"></label> </a>
                     {% endif %}
-                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">Pending Inter Region
-                        entries
-                        (<label id="pending_count"></label>)
+                    <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">
+                        Pending Inter Region entries <label id="pending_count"></label>
+
                     </a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.add_ho_ro_recon') }}">Add new recon entry</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Helper tool for preparing HO RO Recon</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('ho_ro_recon.upload_csv_files') }}">Upload
+                                CSV files</a>
+                            <a class="navbar-item" href="{{ url_for('ho_ro_recon.upload_consol_file') }}">Generate
+                                summary
+                                file</a>
+                        </div>
+                    </div>
                     {% if current_user.username == "bar44515" %}
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">Bulk upload</a>
@@ -43,6 +53,7 @@
                         </div>
                     </div>
                     {% endif %}
+
                 </div>
             </div>
             <div class="navbar-end">
@@ -84,7 +95,7 @@
             })
             .then(data => {
                 // console.log('Data received:', data);
-                document.getElementById("voucher_pending_count").innerHTML = data;
+                document.getElementById("voucher_pending_count").innerHTML = "(" + data + ")";
             })
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);
@@ -99,7 +110,7 @@
             })
             .then(data => {
                 //console.log('Data received:', data);
-                document.getElementById("pending_count").innerHTML = data;
+                document.getElementById("pending_count").innerHTML = "(" + data + ")";
             })
             .catch(error => {
                 console.error('There was a problem with the fetch operation:', error);

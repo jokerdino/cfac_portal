@@ -1,8 +1,18 @@
 from datetime import datetime
 from math import fabs
+import zipfile
 
 import pandas as pd
-from flask import render_template, redirect, url_for, flash, abort, current_app, request
+from flask import (
+    render_template,
+    redirect,
+    url_for,
+    flash,
+    abort,
+    current_app,
+    request,
+    send_from_directory,
+)
 from flask_login import login_required, current_user
 
 from wtforms.validators import DataRequired
@@ -17,6 +27,8 @@ from app.ho_ro_recon.ho_ro_recon_form import (
     HeadOfficeAcceptForm,
     ReconSummaryForm,
     UploadFileForm,
+    ConsolUploadForm,
+    ReconUploadForm,
     ro_list,
 )
 from app.ho_ro_recon.ho_ro_recon_model import (
@@ -605,3 +617,192 @@ def recon_pending_count(status: str) -> str:
         return "0"
 
     return f"{count[0][0]}"
+
+
+@ho_ro_recon_bp.route("/upload_csv/", methods=["POST", "GET"])
+def upload_csv_files():
+    form = ReconUploadForm()
+    if form.validate_on_submit():
+        ro_csv = form.data["ro_csv_file"]
+        ho_csv = form.data["ho_csv_file"]
+        flag_file = form.data["flag_file"]
+        df_ro = pd.read_csv(ro_csv)
+        df_ro["Source"] = "RO"
+        df_ho = pd.read_csv(ho_csv)
+        df_ho["Source"] = "HO"
+        df_flags = pd.read_excel(flag_file)
+        consol_file, pivot_file = generate_consol_dataframe(df_ro, df_ho, df_flags)
+
+        zip_file = compress_files([consol_file, pivot_file])
+        return send_from_directory(
+            directory="ho_ro_recon/",
+            path=zip_file,
+            download_name=zip_file,
+            as_attachment=True,
+        )
+
+    return render_template("ho_ro_recon_upload_csv.html", form=form)
+
+
+def compress_files(file_list):
+
+    zip_file_name = f"zip_{datetime.now().strftime('%Y%m%d_%H%M_%S')}.zip"
+    zipf = zipfile.ZipFile(f"ho_ro_recon/{zip_file_name}", "w", zipfile.ZIP_DEFLATED)
+
+    for file in file_list:
+        zipf.write(f"ho_ro_recon/{file}")
+    zipf.close()
+    return zip_file_name
+
+
+def generate_consol_dataframe(df_ro, df_ho, df_flags):
+
+    df_consol = pd.concat([df_ro, df_ho])
+    df_consol = df_consol[
+        ~df_consol["Description Of Accounting"].str.contains(
+            "Opening Balance", na=False
+        )
+    ]
+
+    df_consol["Credit Amount"] = (
+        df_consol["Opeining Balance Credit"] + df_consol["Credit Amount"]
+    )
+    df_consol["Debit Amount"] = (
+        df_consol["Opeining Balance Debit"] + df_consol["Debit Amount"]
+    )
+    df_consol["Voucher Date"] = pd.to_datetime(
+        df_consol["Voucher Date"], format="mixed"
+    )
+    df_consol["Month"] = df_consol["Voucher Date"].dt.strftime("%m-%Y")
+
+    df_consol["Net Credit"] = df_consol["Credit Amount"] - df_consol["Debit Amount"]
+    df_consol = df_consol[
+        [
+            "Description Of Accounting",
+            "Voucher Number",
+            "Voucher Date",
+            "Debit Amount",
+            "Credit Amount",
+            "Net Credit",
+            "Source",
+            "Month",
+        ]
+    ]
+
+    reg_exp: list[str] = df_flags["PATTERN"].str.upper().unique().tolist()
+
+    df_flags["HEAD"] = df_flags["HEAD"].str.upper().str.strip()
+    df_flags["PATTERN"] = df_flags["PATTERN"].str.upper().str.strip()
+
+    df_consol["PATTERN"] = (
+        df_consol["Description Of Accounting"]
+        .str.upper()
+        .str.replace("_", " ")
+        .apply(lambda x: "".join([part for part in reg_exp if part in str(x)]))
+    )
+    df_consol = df_consol.merge(df_flags, on="PATTERN", how="left")
+
+    df_consol.loc[
+        df_consol["Description Of Accounting"] == "Closing Balance", "HEAD"
+    ] = "Closing Balance"
+    df_consol["HEAD"] = df_consol["HEAD"].fillna("OTHERS")
+
+    current_date_file = f"consol_{datetime.now().strftime('%Y%m%d_%H%M_%S')}.xlsx"
+    with pd.ExcelWriter(
+        f"ho_ro_recon/{current_date_file}", datetime_format="dd/mm/yyyy"
+    ) as writer:
+        df_consol.sort_values(
+            ["Voucher Date", "Voucher Number"],
+            ascending=[True, True],
+        ).to_excel(writer, sheet_name="consolidated", index=False)
+        worksheet_formatter(writer, "consolidated")
+    pivot_file = prepare_pivot(df_consol)
+    return current_date_file, pivot_file
+
+
+def worksheet_formatter(writer, sheet_name):
+
+    format_workbook = writer.book
+    format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
+
+    format_worksheet = writer.sheets[sheet_name]
+
+    if sheet_name == "pivot":
+        format_worksheet.set_column("B:Z", 11, format_currency)
+    elif sheet_name == "consolidated":
+        format_worksheet.freeze_panes(1, 0)
+        format_worksheet.autofilter("A1:J2")
+    elif sheet_name == "recon":
+        format_worksheet.set_column("B:B", 11, format_currency)
+
+    format_worksheet.autofit()
+
+
+def prepare_pivot(df_consol):
+
+    df_consol_closing_balance = df_consol[df_consol["HEAD"] == "Closing Balance"]
+    int_closing_balance_ro = df_consol_closing_balance[
+        df_consol_closing_balance["Source"] == "RO"
+    ]["Net Credit"].sum()
+    int_closing_balance_ho = df_consol_closing_balance[
+        df_consol_closing_balance["Source"] == "HO"
+    ]["Net Credit"].sum()
+
+    df_consol = df_consol[df_consol["HEAD"] != "Closing Balance"]
+    df_pivot = df_consol.pivot_table(
+        values="Net Credit",
+        columns=["Month"],
+        index=["HEAD"],
+        aggfunc="sum",
+        fill_value=0,
+        margins=True,
+        margins_name="Total",
+        # add source if required to index
+    )
+    df_recon = pd.DataFrame(
+        [
+            {
+                "Particulars": "Closing balance as per RO",
+                "Net Credit": int_closing_balance_ro,
+            }
+        ]
+    )
+    df_recon_2 = pd.DataFrame(
+        [
+            {
+                "Particulars": "Closing balance as per HO",
+                "Net Credit": int_closing_balance_ho,
+            }
+        ]
+    )
+
+    df_pivot_flat = df_pivot.copy().reset_index()
+    df_pivot_flat = df_pivot_flat[["HEAD", "Total"]]
+    df_pivot_flat = df_pivot_flat[df_pivot_flat["HEAD"] != "Total"]
+    df_pivot_flat.columns = ["Particulars", "Net Credit"]
+    df_pivot_flat["Net Credit"] = df_pivot_flat["Net Credit"] * -1
+    df_combined = pd.concat([df_recon, df_pivot_flat, df_recon_2], ignore_index=True)
+
+    current_date_file = f"summary_{datetime.now().strftime('%Y%m%d_%H%M_%S')}.xlsx"
+    with pd.ExcelWriter(f"ho_ro_recon/{current_date_file}") as writer:
+        df_pivot.to_excel(writer, sheet_name="pivot")
+        df_combined.to_excel(writer, sheet_name="recon", index=False)
+        worksheet_formatter(writer, "pivot")
+        worksheet_formatter(writer, "recon")
+    return current_date_file
+
+
+@ho_ro_recon_bp.route("/upload_consol/", methods=["POST", "GET"])
+def upload_consol_file():
+    form = ConsolUploadForm()
+    if form.validate_on_submit():
+        consol_file = form.data["consol_file"]
+        df_consol = pd.read_excel(consol_file)
+        pivot_file = prepare_pivot(df_consol)
+        return send_from_directory(
+            directory="ho_ro_recon/",
+            path=pivot_file,
+            download_name=pivot_file,
+            as_attachment=True,
+        )
+    return render_template("ho_ro_recon_upload_consol.html", form=form)

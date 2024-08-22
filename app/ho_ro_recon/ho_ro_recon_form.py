@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import (
-    FileField,
+    # FileField,
     RadioField,
     StringField,
     SelectField,
@@ -149,6 +149,26 @@ class ReconSummaryForm(FlaskForm):
 class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload summary template", validators=[DataRequired()])
     upload_document = SubmitField("Upload")
+
+
+class ReconUploadForm(FlaskForm):
+    ro_csv_file = FileField(
+        "Upload RO CSV file", validators=[FileRequired(), FileAllowed(["csv"])]
+    )
+    ho_csv_file = FileField(
+        "Upload HO CSV file", validators=[FileRequired(), FileAllowed(["csv"])]
+    )
+    flag_file = FileField(
+        "Upload Flag file", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )
+    upload_document = SubmitField("Submit")
+
+
+class ConsolUploadForm(FlaskForm):
+    consol_file = FileField(
+        "Upload Consolidated file", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )
+    upload_document = SubmitField("Submit")
 
 
 # class ReconEntriesForm(FlaskForm):
