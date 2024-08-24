@@ -71,7 +71,7 @@
                     </div>
                     {% endif %}
                     <a class="navbar-item" href="{{ url_for('funds.funds_reports') }}">Funds - Reports</a>
-                    {% if current_user.username == "bar44515" %}
+                    {% if current_user.username in ["bar44515", "sud45327"] %}
                     <a class="navbar-item" href="{{ url_for('funds.modify_dates') }}">Modify dates</a>
                     {% endif %}
                 </div>
