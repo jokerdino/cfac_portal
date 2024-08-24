@@ -184,7 +184,7 @@
                 return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
             };
 
-            var columnID = 15;
+            var columnID = 16;
             {% if status == "To be settled" and current_user.user_type in ["admin", "coinsurance_hub_user"] %}
             columnID += 1;
             {% endif %}
