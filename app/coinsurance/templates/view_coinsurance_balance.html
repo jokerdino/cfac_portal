@@ -5,8 +5,20 @@
     <form action="" method="post">
         {{ form.csrf_token }}
 
-        {{ form.period.label }} : {{ form.period(class="select") }}
-        <button class="ml-5 button is-success">Query</button>
+        <div class="container is-fluid">
+            <table class="table">
+                <tr>
+                    <td class="is-vcentered">{{ form.period.label }}
+                    </td>
+                    <td>
+                        <div class="select"> {{ form.period }} </div>
+                    </td>
+                    <td>
+                        <button class="ml-5 button is-success">Query</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </form>
     <h1 class="title mt-2"> Coinsurance balances for the month {{ period }}</h1>
     <div class="tabs is-boxed">
@@ -43,28 +55,28 @@
         <table class="table is-fullwidth is-bordered" width="100%" id="coinsurance_balance_table">
             <thead>
                 <tr>
-                    <th>Zone</th>
-                    <th>Regional Office Code</th>
-                    <th>Office Code</th>
-                    <th>Company name</th>
-                    <th>Period</th>
-                    <th>Hub Due to premium</th>
-                    <th>Hub Due to claims</th>
-                    <th>Hub Due from premium</th>
-                    <th>Hub Due from claims</th>
-                    <th>OO Due to</th>
-                    <th>OO Due from</th>
-                    <th>Net amount</th>
+                    <th class="has-text-centered is-vcentered">Zone</th>
+                    <th class="has-text-centered is-vcentered">Regional Office Code</th>
+                    <th class="has-text-centered is-vcentered">Office Code</th>
+                    <th class="has-text-centered is-vcentered">Company name</th>
+                    <th class="has-text-centered is-vcentered">Period</th>
+                    <th class="has-text-centered is-vcentered">Hub Due to premium</th>
+                    <th class="has-text-centered is-vcentered">Hub Due to claims</th>
+                    <th class="has-text-centered is-vcentered">Hub Due from premium</th>
+                    <th class="has-text-centered is-vcentered">Hub Due from claims</th>
+                    <th class="has-text-centered is-vcentered">OO Due to</th>
+                    <th class="has-text-centered is-vcentered">OO Due from</th>
+                    <th class="has-text-centered is-vcentered">Net amount</th>
                 </tr>
             </thead>
             <tbody>
                 {% for entry in coinsurance_balance %}
                 <tr>
-                    <td>{{ entry.str_zone }}</td>
-                    <td>{{ entry.str_regional_office_code }}</td>
-                    <td>{{ entry.office_code }}</td>
+                    <td class="has-text-centered">{{ entry.str_zone }}</td>
+                    <td class="has-text-centered">{{ entry.str_regional_office_code }}</td>
+                    <td class="has-text-centered">{{ entry.office_code }}</td>
                     <td>{{ entry.company_name }}</td>
-                    <td>{{ entry.period }}</td>
+                    <td class="has-text-centered">{{ entry.period }}</td>
                     <td class="has-text-right">{{ entry.hub_due_to_premium|indian_number_format }}</td>
                     <td class="has-text-right">{{ entry.hub_due_to_claims|indian_number_format }}</td>
                     <td class="has-text-right">{{ entry.hub_due_from_premium|indian_number_format }}</td>

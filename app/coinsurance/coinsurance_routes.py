@@ -1061,17 +1061,21 @@ def upload_coinsurance_balance():
 @coinsurance_bp.route("/view_coinsurance_balance", methods=["POST", "GET"])
 @login_required
 def query_view_coinsurance_balance():
+
     form = CoinsuranceBalanceQueryForm()
+
     # Querying distinct list of periods from the table
     period_list_query = CoinsuranceBalances.query.with_entities(
         CoinsuranceBalances.period
     ).distinct()
+
     # converting the period from string to datetime object
     list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
 
     # sorting the items of list_period in reverse order
     # newer months will be above
     list_period.sort(reverse=True)
+
     # list_period is now dynamically added as dropdown choice list to the SelectField
     form.period.choices = [
         (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
@@ -1087,6 +1091,10 @@ def query_view_coinsurance_balance():
     coinsurance_balance = CoinsuranceBalances.query.filter(
         CoinsuranceBalances.period == period
     )
+    if current_user.user_type == "ro_user":
+        coinsurance_balance = coinsurance_balance.filter(
+            CoinsuranceBalances.str_regional_office_code == current_user.ro_code
+        )
     summary = (
         CoinsuranceBalances.query.with_entities(
             CoinsuranceBalances.company_name, func.sum(CoinsuranceBalances.net_amount)
@@ -1095,6 +1103,10 @@ def query_view_coinsurance_balance():
         .group_by(CoinsuranceBalances.company_name)
         .order_by(CoinsuranceBalances.company_name)
     )
+    if current_user.user_type == "ro_user":
+        summary = summary.filter(
+            CoinsuranceBalances.str_regional_office_code == current_user.ro_code
+        )
     return render_template(
         "view_coinsurance_balance.html",
         coinsurance_balance=coinsurance_balance,
@@ -1254,7 +1266,7 @@ def edit_cash_call(cash_call_key):
 def bulk_upload_cash_call():
     form = UploadFileForm()
     if form.validate_on_submit():
-        df_cash_call = pd.read_csv(form.data["file_upload"])
+        df_cash_call = pd.read_excel(form.data["file_upload"])
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_cash_call["created_on"] = datetime.now()
@@ -1280,7 +1292,7 @@ def bulk_upload_cash_call():
 def bulk_upload_settlements():
     form = UploadFileForm()
     if form.validate_on_submit():
-        df_settlement = pd.read_csv(form.data["file_upload"])
+        df_settlement = pd.read_excel(form.data["file_upload"])
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_settlement["created_on"] = datetime.now()
