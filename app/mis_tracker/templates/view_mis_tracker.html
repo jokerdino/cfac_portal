@@ -8,8 +8,11 @@
                 <th class="has-text-centered">MIS</th>
                 <th class="has-text-centered">MIS has been shared</th>
                 {% if current_user.user_type == "admin" %}
+                <th class="has-text-centered">Date of sharing MIS</th>
                 <th class="has-text-centered">BRS completed</th>
+                <th class="has-text-centered">Date of BRS completion</th>
                 <th class="has-text-centered">JV passed</th>
+                <th class="has-text-centered">Date of passing JV</th>
                 <th class="has-text-centered">View</th>
                 <th class="has-text-centered">Edit</th>
                 {% endif %}
@@ -22,8 +25,15 @@
                 <td>{{ item.txt_mis_type }}</td>
                 <td class="has-text-centered">{{ "✅" if item.bool_mis_shared else "❌" }}</td>
                 {% if current_user.user_type == "admin" %}
+                <td class="has-text-centered" title="{{ item.date_mis_shared }}" data-sort="{{ item.date_mis_shared }}">
+                    {{ item.date_mis_shared | humanize_datetime if item.date_mis_shared }}</td>
                 <td class="has-text-centered">{{ "✅" if item.bool_brs_completed else "❌" }}</td>
+                <td class="has-text-centered" title="{{ item.date_brs_completed }}"
+                    data-sort="{{ item.date_brs_completed }}">{{ item.date_brs_completed | humanize_datetime if
+                    item.date_brs_completed }}</td>
                 <td class="has-text-centered">{{ "✅" if item.bool_jv_passed else "❌" }}</td>
+                <td class="has-text-centered" title="{{ item.date_jv_passed }}" data-sort="{{ item.date_jv_passed }}">{{
+                    item.date_jv_passed | humanize_datetime if item.date_jv_passed }}</td>
 
                 <td><a href="{{ url_for('mis.view_mis_entry', mis_key=item.id) }}">View</a></td>
                 <td><a href="{{ url_for('mis.edit_mis_entry', mis_key=item.id) }}">Edit</a></td>
@@ -47,7 +57,7 @@
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[5, 'asc']],
+        order: [[8, 'asc']],
         pagingType: 'full_numbers',
         pageLength: 50,
         lengthMenu: [

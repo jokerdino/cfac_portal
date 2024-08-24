@@ -51,4 +51,5 @@ weasyprint==62.3
 webencodings==0.5.1
 Werkzeug==3.0.3
 WTForms==3.1.2
+XlsxWriter==3.2.0
 zopfli==0.2.3
