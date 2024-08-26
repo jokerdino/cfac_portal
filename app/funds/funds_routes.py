@@ -40,6 +40,8 @@ from app.funds.funds_model import (
     FundMajorOutgo,
 )
 
+from app.pool_credits.pool_credits_portal import prepare_dataframe
+
 outflow_labels = [
     "CITI HEALTH",
     "MRO1 HEALTH",
@@ -310,6 +312,12 @@ def upload_bank_statement():
                 "pool_credits", engine, if_exists="append", index=False
             )
 
+            # prepare dataframe for uploading to pool credits portal
+
+            df_pool_credits_portal = prepare_dataframe(df_unidentified_credits)
+            df_pool_credits_portal.to_sql(
+                "pool_credits_portal", engine, if_exists="append", index=False
+            )
             from extensions import db
 
             # if there is no daily sheet created for the day, initiate blank daily sheet
@@ -1473,11 +1481,13 @@ def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame
 
     flag_description: list[str] = prepare_jv_flag(engine)[1]
 
-    df_inflow["DESCRIPTION"] = df_inflow["description"].apply(
+    df_inflow_copy = df_inflow.copy()
+
+    df_inflow_copy["DESCRIPTION"] = df_inflow_copy["description"].apply(
         lambda x: "".join([part for part in flag_description if part in str(x)])
     )
 
-    df_unidentified_credits = df_inflow[df_inflow["DESCRIPTION"] == ""]
+    df_unidentified_credits = df_inflow_copy[df_inflow_copy["DESCRIPTION"] == ""].copy()
 
     df_unidentified_credits = df_unidentified_credits.drop(columns=["DESCRIPTION"])
     df_unidentified_credits["date_created_date"] = datetime.datetime.now()

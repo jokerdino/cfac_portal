@@ -9,7 +9,7 @@ from sqlalchemy import cast, String
 
 from app.pool_credits import pool_credits_bp
 from app.pool_credits.pool_credits_form import UpdatePoolCreditsForm
-from app.pool_credits.pool_credits_model import PoolCredits
+from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 
 
 # @pool_credits_bp.route("/unidentified/")
@@ -68,6 +68,91 @@ def pool_credits_list_identified_api(status):
             db.session.commit()
 
     return render_template("pool_credits_list_ajax.html", status=status)
+
+
+@pool_credits_bp.route("/api/data/pool_credits_portal/", methods=["GET"])
+def pool_credits_portal():
+
+    # http://0.0.0.0:8080/pool_credits/api/data/pool_credits_portal/?date_added=2024-08-26T15:11:11Z
+    from extensions import db
+
+    entries = db.session.query(PoolCreditsPortal)
+    request_param = request.args
+
+    request_param_dict = {}
+    for key, value in request_param.items():
+        try:
+            param, operator = key.split("__")
+        except ValueError:
+            param, operator = key, None
+
+        request_param_dict[param] = {"operator": operator, "value": value}
+
+    amount_credit = set_value("amount_credit", request_param_dict)
+    txt_reference_number = set_value("reference_no", request_param_dict)
+    id = set_value("id", request_param_dict)
+    date_value_date = set_value("value_date", request_param_dict)
+    txt_name_of_remitter = set_value("remitter", request_param_dict)
+    date_created_date = set_value("created_date", request_param_dict)
+
+    if amount_credit:
+        entries = dynamic_query_column(entries, "amount_credit", amount_credit)
+    if txt_reference_number:
+        entries = dynamic_query_column(
+            entries, "txt_reference_number", txt_reference_number
+        )
+    if date_value_date:
+        entries = dynamic_query_column(entries, "date_value_date", date_value_date)
+    if txt_name_of_remitter:
+        entries = dynamic_query_column(
+            entries, "txt_name_of_remitter", txt_name_of_remitter
+        )
+    if date_created_date:
+        entries = dynamic_query_column(entries, "date_created_date", date_created_date)
+    if id:
+        entries = dynamic_query_column(entries, "id", id)
+
+    entries_count = entries.count()
+    return {
+        "recordsTotal": entries_count,
+        "data": [entry.to_dict() for entry in entries],
+    }
+
+
+def set_value(string, dict):
+    return dict[string] if string in dict.keys() else False
+
+
+def dynamic_query_column(entries, col_name, dict_param):
+    operator = dict_param["operator"] if dict_param["operator"] else "eq"
+    value = dict_param["value"]
+    # in, eq, not, gte, lte, gt, lt, like, ilike
+
+    if operator == "eq":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) == value)
+    elif operator == "gt":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) > value)
+    elif operator == "gte":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) >= value)
+    elif operator == "lt":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) < value)
+    elif operator == "lte":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) <= value)
+    elif operator == "like":
+        entries = entries.filter(
+            getattr(PoolCreditsPortal, col_name).like(f"%{value}%")
+        )
+    elif operator == "ilike":
+        entries = entries.filter(
+            getattr(PoolCreditsPortal, col_name).ilike(f"%{value}%")
+        )
+    # elif operator == "in":
+    #     entries = entries.filter(getattr(PoolCreditsPortal, col_name).in_(value))
+    elif operator == "not":
+        entries = entries.filter(getattr(PoolCreditsPortal, col_name) != value)
+    elif operator is None:
+        entries = entries
+    return entries
 
 
 @pool_credits_bp.route("/api/data/<string:status>/", methods=["GET"])

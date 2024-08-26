@@ -54,3 +54,30 @@ class PoolCredits(db.Model):
             "id": self.id,
             "bool_jv_passed": self.bool_jv_passed,
         }
+
+
+class PoolCreditsPortal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    txt_reference_number = db.Column(db.String)
+    date_value_date = db.Column(db.Date)
+    amount_credit = db.Column(db.Numeric(20, 2))
+    txt_name_of_remitter = db.Column(db.String)
+
+    date_created_date = db.Column(db.DateTime)
+    date_updated_date = db.Column(db.DateTime)
+    date_deleted_date = db.Column(db.DateTime)
+
+    created_by = db.Column(db.String)
+    updated_by = db.Column(db.String)
+    deleted_by = db.Column(db.String)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "txt_reference_number": self.txt_reference_number,
+            "date_value_date": self.date_value_date,
+            "amount_credit": self.amount_credit,
+            "txt_name_of_remitter": self.txt_name_of_remitter,
+            "date_created_date": self.date_created_date,
+        }
