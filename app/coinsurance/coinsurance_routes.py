@@ -1080,11 +1080,9 @@ def query_view_coinsurance_balance():
     form.period.choices = [
         (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
     ]
-    period = (
-        CoinsuranceBalances.query.with_entities(CoinsuranceBalances.period)
-        .order_by(CoinsuranceBalances.id.desc())
-        .first()[0]
-    )
+
+    # default choice is set from the top most option in form.period.choices
+    period = form.period.choices[0][0]
 
     if form.validate_on_submit():
         period = form.data["period"]
