@@ -1406,43 +1406,29 @@ def download_jv():
         df_funds["Date"] = pd.to_datetime(df_funds["Date"], format="%d/%m/%Y")
 
         df_flags, flag_description = prepare_jv_flag(engine)
-        # df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
-
-        # df_flags = df_flags[
-        #     ["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]
-        # ]
-        # df_flags = df_flags.drop_duplicates()
-
-        # df_flags = df_flags.rename(
-        #     columns={
-        #         "txt_description": "DESCRIPTION",
-        #         "txt_flag": "FLAG",
-        #         "txt_gl_code": "GL Code",
-        #         "txt_sl_code": "SL Code",
-        #     }
-        # )
-
-        # flag_description: list[str] = (
-        #     df_flags["DESCRIPTION"].astype(str).unique().tolist()
-        # )
-
+        df_inflow = prepare_inflow_jv(df_funds, df_flags, flag_description)
         df_merged = pd.concat(
             [
-                prepare_inflow_jv(df_funds, df_flags, flag_description),
+                # prepare_inflow_jv(df_funds, df_flags, flag_description),
+                df_inflow,
                 prepare_outflow_jv(df_funds, df_flags, flag_description),
                 prepare_investment_jv(df_funds),
             ]
         )
+
         if not df_merged.empty:
+
             df_merged = df_merged[
                 ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
             ]
             df_merged["GL Code"] = pd.to_numeric(df_merged["GL Code"])
             df_merged["SL Code"] = pd.to_numeric(df_merged["SL Code"])
             datetime_string = datetime.datetime.now()
-            df_merged.to_excel(
-                f"funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx", index=False
-            )
+            with pd.ExcelWriter(
+                f"funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
+            ) as writer:
+                df_merged.to_excel(writer, sheet_name="JV", index=False)
+                df_inflow.to_excel(writer, sheet_name="inflow", index=False)
             return send_from_directory(
                 directory="funds_jv/",
                 path=f"HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx",

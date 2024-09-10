@@ -156,6 +156,7 @@ class AmountGivenToInvestmentForm(FlaskForm):
         "Status", choices=["Pending", "Received"], validators=[DataRequired()]
     )
 
+
 class FundsModifyDatesForm(FlaskForm):
     old_date = DateField("Enter old date", validators=[DataRequired()])
     new_date = DateField("Enter new date", validators=[DataRequired()])
