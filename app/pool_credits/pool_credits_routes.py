@@ -70,7 +70,7 @@ def pool_credits_list_identified_api(status):
     return render_template("pool_credits_list_ajax.html", status=status)
 
 
-@pool_credits_bp.route("/api/data/pool_credits_portal/", methods=["GET"])
+@pool_credits_bp.route("/api/v1/data/pool_credits_portal/", methods=["GET"])
 def pool_credits_portal():
 
     # http://0.0.0.0:8080/pool_credits/api/data/pool_credits_portal/?date_added=2024-08-26T15:11:11Z
