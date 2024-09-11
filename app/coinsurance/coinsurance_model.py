@@ -29,6 +29,64 @@ class Coinsurance(db.Model):
 
     utr_number = db.Column(db.String)
 
+    def get_zone(self):
+        self.ro_code = self.uiic_regional_code
+
+        if self.ro_code in [
+            "020000",
+            "060000",
+            "120000",
+            "160000",
+            "180000",
+            "190000",
+            "230000",
+            "270000",
+            "500100",
+            "020051",
+        ]:
+            return "West"
+        elif self.ro_code in [
+            "010000",
+            "050000",
+            "070000",
+            "090000",
+            "100000",
+            "150000",
+            "170000",
+            "240000",
+            "280000",
+            "300000",
+            "500200",
+            "500400",
+            "500500",
+            "050051",
+        ]:
+            return "South"
+        elif self.ro_code in [
+            "040000",
+            "080000",
+            "110000",
+            "140000",
+            "200000",
+            "220000",
+            "250000",
+            "290000",
+            "500300",
+            "040051",
+        ]:
+            return "North"
+        elif self.ro_code in [
+            "030000",
+            "130000",
+            "210000",
+            "260000",
+            "500700",
+            "030051",
+        ]:
+            return "East"
+        else:
+            return "NA"
+
 
 class Settlement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
