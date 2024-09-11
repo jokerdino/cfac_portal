@@ -35,7 +35,52 @@ from app.coinsurance.coinsurance_model import (
 )
 
 from app.funds.funds_model import FundBankStatement
+
 from server import indian_number_format
+
+ro_list = [
+    "010000",
+    "020000",
+    "030000",
+    "040000",
+    "050000",
+    "060000",
+    "070000",
+    "080000",
+    "090000",
+    "100000",
+    "110000",
+    "120000",
+    "130000",
+    "140000",
+    "150000",
+    "160000",
+    "170000",
+    "180000",
+    "190000",
+    "200000",
+    "210000",
+    "220000",
+    "230000",
+    "240000",
+    "250000",
+    "260000",
+    "270000",
+    "280000",
+    "290000",
+    "300000",
+    "500100",
+    "500200",
+    "500300",
+    "500400",
+    "500500",
+    "500700",
+    "020051",
+    "030051",
+    "040051",
+    "050051",
+    "000100",
+]
 
 
 @coinsurance_bp.route("/")
@@ -210,7 +255,10 @@ def add_coinsurance_entry():
             )
         else:
             ri_confirmation_filename = None
-        current_status = "To be reviewed by coinsurance hub"
+        if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+            current_status = "To be settled"
+        else:
+            current_status = "To be reviewed by coinsurance hub"
         form_remarks = form.data["remarks"]
         coinsurance = Coinsurance(
             uiic_regional_code=regional_office_code,
@@ -276,11 +324,13 @@ def add_coinsurance_entry():
         form.oo_code.data = current_user.oo_code
     elif current_user.user_type == "ro_user":
         form.regional_office_code.data = current_user.ro_code
+
     return render_template(
         "edit_coinsurance_entry.html",
         form=form,
         #  change_status=False,
         enable_save_button=True,
+        ro_list=ro_list,
         # update_settlement=False,
     )
 
@@ -648,6 +698,7 @@ def edit_coinsurance_entry(coinsurance_id):
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
         edit=True,
+        ro_list=ro_list,
     )
 
 

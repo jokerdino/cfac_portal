@@ -115,7 +115,7 @@
                 <td class="has-text-right">{{ entry.int_ri_receivable_amount|indian_number_format }}</td>
                 <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
                 <td>{{ entry.current_status or '' }}</td>
-                <td>{{ entry.get_zone() }}</td>
+                <td>{{ entry.zone }}</td>
 
             </tr>
             {% endfor %}

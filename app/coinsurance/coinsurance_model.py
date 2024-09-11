@@ -29,7 +29,8 @@ class Coinsurance(db.Model):
 
     utr_number = db.Column(db.String)
 
-    def get_zone(self):
+    @property
+    def zone(self):
         self.ro_code = self.uiic_regional_code
 
         if self.ro_code in [

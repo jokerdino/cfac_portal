@@ -29,7 +29,12 @@
                     <th> {{ form.regional_office_code.label }} </th>
                     <td>
                         {% if current_user.user_type in ["admin","coinsurance_hub_user"] %}
-                        {{ form.regional_office_code(class='input') }}
+                        {{ form.regional_office_code(class='input', list="ro_list") }}
+                        <datalist id="ro_list">
+                            {% for ro_code in ro_list %}
+                            <option value="{{ ro_code }}"></option>
+                            {% endfor %}
+                        </datalist>
                         {% else %}
                         {{ form.regional_office_code.data }}
                         {% endif %}
