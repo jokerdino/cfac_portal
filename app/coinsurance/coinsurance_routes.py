@@ -23,6 +23,7 @@ from app.coinsurance.coinsurance_form import (
     CoinsurerSelectForm,
     CoinsuranceCashCallForm,
     UploadFileForm,
+    QueryForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -1352,3 +1353,45 @@ def bulk_upload_settlements():
         form=form,
         title="Bulk upload settlement details",
     )
+
+
+@coinsurance_bp.route("/query/", methods=["POST", "GET"])
+@login_required
+def query_coinsurance_entries():
+    form = QueryForm()
+    if form.validate_on_submit():
+        from extensions import db
+
+        status_list = form.status.data
+        coinsurers_list = form.coinsurer_name.data
+        # coinsurance_entries = Coinsurance.query.order_by(
+        #     Coinsurance.follower_company_name.desc
+        # )
+        coinsurance_entries = db.session.query(Coinsurance)
+        # zone = form.zone.data
+        if status_list:
+            coinsurance_entries = coinsurance_entries.filter(
+                Coinsurance.current_status.in_(status_list)
+            )
+        if coinsurers_list:
+            coinsurance_entries = coinsurance_entries.filter(
+                Coinsurance.follower_company_name.in_(coinsurers_list)
+            )
+        # coinsurance_entries = coinsurance_entries.filter(Coinsurance.get_zone.in_(zone))
+
+        form_select_coinsurer = CoinsurerSelectForm()
+        coinsurance_entries = select_coinsurers(
+            coinsurance_entries, form_select_coinsurer
+        )
+        #        custom_title = ""
+
+        return render_template(
+            "view_all_coinsurance_entries.html",
+            coinsurance_entries=coinsurance_entries,
+            update_settlement=False,
+            form_select_coinsurer=form_select_coinsurer,
+            title="Results of query",
+            # show_zones=show_zones,
+        )
+
+    return render_template("query_coinsurance_entries.html", form=form)

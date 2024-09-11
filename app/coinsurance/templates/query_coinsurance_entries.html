@@ -1,0 +1,19 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title is-4">
+        Select multiple options by holding <kbd>Ctrl</kbd> button
+    </h1>
+    <form method="post">
+        {{ form.csrf_token }}
+
+        {{ form.coinsurer_name(class="select is-multiple", size=32) }}
+        {{ form.status(class="select is-multiple", size=20) }}
+
+        <div class="has-text-centered">
+            {{ form.submit(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

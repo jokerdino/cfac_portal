@@ -7,6 +7,7 @@ from wtforms import (
     IntegerField,
     RadioField,
     SelectField,
+    SelectMultipleField,
     StringField,
     SubmitField,
     TextAreaField,
@@ -48,16 +49,26 @@ coinsurer_list = [
     "Universal Sompo",
 ]
 
+status_list = [
+    "To be reviewed by coinsurance hub",
+    "Needs clarification from RO or OO",
+    "To be approved in GC Core",
+    "To be settled",
+    "Settled",
+    "No longer valid",
+]
+
+
+class QueryForm(FlaskForm):
+    coinsurer_name = SelectMultipleField(
+        "Name of coinsurer", choices=sorted(coinsurer_list)
+    )
+    status = SelectMultipleField("Select status", choices=status_list)
+
+    submit = SubmitField("Submit")
+
 
 class CoinsuranceForm(FlaskForm):
-    status_list = [
-        "To be reviewed by coinsurance hub",
-        "Needs clarification from RO or OO",
-        "To be approved in GC Core",
-        "To be settled",
-        "Settled",
-        "No longer valid",
-    ]
 
     regional_office_code = StringField("Regional office code")
     oo_code = StringField("Operating office code")
