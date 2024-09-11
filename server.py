@@ -14,7 +14,8 @@ from extensions import admin, db, lm, migrate
 
 @lm.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    #    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 
 def indian_number_format(input_number):
