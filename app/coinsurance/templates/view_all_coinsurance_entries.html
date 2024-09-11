@@ -48,7 +48,7 @@
     {{ form.update_settlement(class="ml-5 button is-danger") }}
 
     {% endif %}
-    <table class="table is-striped is-narrow is-hoverable is-fullwidth" id="coinsurance_table">
+    <table class="table is-striped is-bordered is-hoverable is-fullwidth" id="coinsurance_table">
 
         <thead>
             <tr>
@@ -156,7 +156,7 @@
             //bottomStart: 'info',
             //bottomEnd: 'paging',
         },
-        fixedHeader: false,
+        fixedHeader: true,
         scrollY: true,
         columnDefs: [
             {

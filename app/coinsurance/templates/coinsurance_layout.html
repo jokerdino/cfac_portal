@@ -13,9 +13,9 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
 </head>
 
-<body {% block body_attrs %}{% endblock body_attrs %}>
+<body class="has-navbar-fixed-top" {% block body_attrs %}{% endblock body_attrs %}>
     <header>
-        <nav class="navbar is-dark has-shadow" aria-label="main navigation">
+        <nav class="navbar is-fixed-top is-dark has-shadow" aria-label="main navigation">
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
