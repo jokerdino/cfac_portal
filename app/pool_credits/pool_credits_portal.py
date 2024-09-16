@@ -134,18 +134,22 @@ def prepare_dataframe(df_credits_copy):
         [df_credits_neft, df_credits_rtgs, df_credits_p, df_credits_others],
         ignore_index=True,
     )
+    if not df_merged.empty:
+        df_merged = df_merged[
+            ["reference_no", "value_date", "credit", "Name of remitter"]
+        ]
+        df_merged.rename(
+            columns={
+                "reference_no": "txt_reference_number",
+                "value_date": "date_value_date",
+                "credit": "amount_credit",
+                "Name of remitter": "txt_name_of_remitter",
+            },
+            inplace=True,
+        )
 
-    df_merged = df_merged[["reference_no", "value_date", "credit", "Name of remitter"]]
-    df_merged.rename(
-        columns={
-            "reference_no": "txt_reference_number",
-            "value_date": "date_value_date",
-            "credit": "amount_credit",
-            "Name of remitter": "txt_name_of_remitter",
-        },
-        inplace=True,
-    )
-
-    df_merged["date_created_date"] = datetime.now()
-    df_merged["created_by"] = current_user.username
-    return df_merged
+        df_merged["date_created_date"] = datetime.now()
+        df_merged["created_by"] = current_user.username
+        return df_merged
+    else:
+        return pd.DataFrame()
