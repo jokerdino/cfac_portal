@@ -52,12 +52,10 @@ def prepare_dataframe_others(df_credits_others):
     return df_credits_others
 
 
-def prepare_dataframe(df_credits):
+def prepare_dataframe(df_credits_copy):
+    #    date_columns = ["book_date", "value_date"]
 
-    date_columns = ["book_date", "value_date"]
-    df_credits = pd.read_excel(
-        "unidentified.xlsx", parse_dates=date_columns, date_format="dd/mm/yyyy"
-    )
+    df_credits = df_credits_copy.copy()
 
     # df_credits = df_credits[~df_credits["description"].str.contains("UII688")]
     df_credits = df_credits[df_credits["credit"].gt(0)]
@@ -110,10 +108,27 @@ def prepare_dataframe(df_credits):
     # print(len_df_credits)
     # print(len_df_total)
 
-    df_credits_neft = prepare_dataframe_neft(df_credits_neft)
-    df_credits_rtgs = prepare_dataframe_rtgs(df_credits_rtgs)
-    df_credits_p = prepare_dataframe_hdfc(df_credits_p)
-    df_credits_others = prepare_dataframe_others(df_credits_others)
+    df_credits_neft = (
+        prepare_dataframe_neft(df_credits_neft)
+        if not df_credits_neft.empty
+        else pd.DataFrame()
+    )
+    df_credits_rtgs = (
+        prepare_dataframe_rtgs(df_credits_rtgs)
+        if not df_credits_rtgs.empty
+        else pd.DataFrame()
+    )
+    df_credits_p = (
+        prepare_dataframe_hdfc(df_credits_p)
+        if not df_credits_p.empty
+        else pd.DataFrame()
+    )
+
+    df_credits_others = (
+        prepare_dataframe_others(df_credits_others)
+        if not df_credits_others.empty
+        else pd.DataFrame()
+    )
 
     df_merged = pd.concat(
         [df_credits_neft, df_credits_rtgs, df_credits_p, df_credits_others],
