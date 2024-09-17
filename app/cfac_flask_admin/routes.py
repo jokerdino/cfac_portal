@@ -47,9 +47,10 @@ from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
 from app.knowledge_base.knowledge_base_model import KnowledgeBase
 from app.mis_tracker.mis_model import MisTracker
 from app.outstanding_expenses.os_model import OutstandingExpenses
-from app.pool_credits.pool_credits_model import PoolCredits
+from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 from app.tickets.tickets_model import TicketRemarks, Tickets
 from app.users.user_model import Log_user, User
+from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -62,6 +63,8 @@ admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
+admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
+admin.add_sub_category(name="Budget", parent_name="Budget")
 
 # User models
 admin.add_view(UserView(User, db.session, category="Users"))  # , name="User"))
@@ -251,5 +254,34 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         PoolCredits, db.session, endpoint="pool_credits_", category="Pool credits"
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        PoolCreditsPortal,
+        db.session,
+        endpoint="pool_credits_portal_",
+        category="Pool credits",
+    )
+)
+
+
+# Budget module
+admin.add_view(
+    DefaultModelView(
+        BudgetAllocation,
+        db.session,
+        endpoint="budget_allocation_",
+        category="Budget",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        BudgetUtilization,
+        db.session,
+        endpoint="budget_utilization_",
+        category="Budget",
     )
 )
