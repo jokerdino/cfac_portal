@@ -82,6 +82,7 @@
         {% if current_user.user_type in ["admin"] %}
         <p class="menu-label">Head Office only</p>
         <ul class="menu-list">
+          <li><a href="{{ url_for('budget.view_budget_utilization') }}">Budget</a></li>
           <li><a href="{{ url_for('contracts.view_contracts', status='active') }}">Contracts</a></li>
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
               checklist</a></li>

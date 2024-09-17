@@ -146,6 +146,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(pool_credits_bp, url_prefix="/pool_credits")
 
+    from app.budget import budget_bp
+
+    app.register_blueprint(budget_bp, url_prefix="/budget")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")
