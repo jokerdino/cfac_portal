@@ -1,9 +1,10 @@
 import calendar
 from datetime import datetime
-
+from functools import wraps
 import humanize
 from babel.numbers import format_decimal
-from flask import Flask
+from flask import Flask, redirect, url_for
+from flask_login import current_user
 from waitress import serve
 
 from app.portal_admin.admin_routes import admin_check
@@ -43,6 +44,18 @@ def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
         #     res = calendar.monthrange(return_value.year, return_value.month - 1)
         #     date_string = f"{res[1]}/{return_value.month - 1:02}/{return_value.year}"
         return date_string
+
+
+def admin_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if current_user.user_type == "admin":
+            return f(*args, **kwargs)
+        else:
+            # flash("You need to be an admin to view this page")
+            return redirect(url_for("main.index"))
+
+    return wrap
 
 
 def create_app(config_class=Config):

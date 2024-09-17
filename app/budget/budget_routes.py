@@ -1,12 +1,23 @@
 from datetime import datetime
 import pandas as pd
 
-from flask import render_template, abort, url_for, request, redirect, flash, current_app
+from functools import wraps
+from flask import (
+    render_template,
+    abort,
+    url_for,
+    request,
+    redirect,
+    flash,
+    current_app,
+)
 
 from flask_login import current_user, login_required
 
+
 from sqlalchemy import create_engine, case, func, and_
 
+from server import admin_required
 from app.budget import budget_bp
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 
@@ -19,6 +30,7 @@ from app.budget.budget_form import (
 
 @budget_bp.route("/upload_allocation", methods=["POST", "GET"])
 @login_required
+@admin_required
 def upload_allocation():
     form = BudgetAllocationForm()
     if form.validate_on_submit():
