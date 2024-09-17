@@ -1,0 +1,71 @@
+{% extends "budget_layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">Budget utilization</h1>
+    <table class="table is-bordered" id="budget_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered" rowspan="2">FY</th>
+                <th class="has-text-centered is-vcentered" rowspan="2">RO Code</th>
+                <th class="has-text-centered is-vcentered" rowspan="2">Expense head</th>
+                <th class="has-text-centered" colspan="2">Budget allocated</th>
+                <th class="has-text-centered" colspan="4">Budget utilized</th>
+
+            </tr>
+            <tr>
+                <th class="has-text-centered">Original</th>
+                <th class="has-text-centered">Revised</th>
+                <th class="has-text-centered">I</th>
+                <th class="has-text-centered">II</th>
+                <th class="has-text-centered">III</th>
+                <th class="has-text-centered">IV</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in budget %}
+            <tr>
+                <td class="has-text-centered">{{ item[0] }}</td>
+                <td class="has-text-centered">{{ item[1] }}</td>
+                <td>{{ item[2] }}</td>
+
+                <td class="has-text-right">{{ item[3] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[4] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[5] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[6] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[7] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[8] | indian_number_format }}</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% block scripts %}
+<script>
+
+    new DataTable('#budget_table', {
+        //        dom: 'lfBrtip',
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[9, 'desc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

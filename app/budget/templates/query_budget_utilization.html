@@ -1,0 +1,37 @@
+{% extends "budget_layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="title">View budget utilization (Hold <kbd>Ctrl</kbd> button to select multiple entries)</h1>
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="columns">
+            <div class="column is-half">
+                <table class="table">
+                    <tr>
+                        <th>{{ form.str_financial_year.label }}</th>
+                        <td>{{ form.str_financial_year }}</td>
+
+                    </tr>
+                    <tr>
+                        <th>{{ form.str_ro_code.label }}</th>
+                        <td class="has-text-centered">{{ form.str_ro_code(class="select is-multiple", size=18) }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="column is-half">
+                <table class="table">
+                    <tr>
+                        <th>{{ form.str_expense_head.label }}</th>
+                        <td>{{ form.str_expense_head(class="select is-multiple", size=18) }}</td>
+                    </tr>
+                </table>
+
+            </div>
+
+        </div>
+        <div class="has-text-centered">
+            {{ form.submit(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}
