@@ -126,28 +126,28 @@ def view_budget_utilization():
                 BudgetUtilization.str_quarter == "I",
                 BudgetUtilization.int_budget_utilized,
             ),
-            else_=0,
+            else_=None,
         )
         case_second_quarter = case(
             (
                 BudgetUtilization.str_quarter == "II",
                 BudgetUtilization.int_budget_utilized,
             ),
-            else_=0,
+            else_=None,
         )
         case_third_quarter = case(
             (
                 BudgetUtilization.str_quarter == "III",
                 BudgetUtilization.int_budget_utilized,
             ),
-            else_=0,
+            else_=None,
         )
         case_fourth_quarter = case(
             (
                 BudgetUtilization.str_quarter == "IV",
                 BudgetUtilization.int_budget_utilized,
             ),
-            else_=0,
+            else_=None,
         )
 
         budget = (
