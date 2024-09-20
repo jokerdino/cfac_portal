@@ -11,7 +11,7 @@ from app.portal_admin import admin_bp
 from app.portal_admin.admin_forms import UpdateUserForm
 from app.users.user_model import Log_user, User
 
-from app.tickets.tickets_routes import humanize_datetime
+# from app.tickets.tickets_routes import humanize_datetime
 
 
 @admin_bp.route("/upload", methods=["POST", "GET"])
@@ -42,7 +42,6 @@ def upload_users():
             except IntegrityError:
                 flash("Upload unique username only.")
 
-
     return render_template("upload.html")
 
 
@@ -54,7 +53,9 @@ def view_user_page(user_key):
 
     user = User.query.get_or_404(user_key)
 
-    if current_user.user_type == "ro_user" and (user.user_type != "oo_user" or user.ro_code != current_user.ro_code):
+    if current_user.user_type == "ro_user" and (
+        user.user_type != "oo_user" or user.ro_code != current_user.ro_code
+    ):
         abort(404)
     user_log = (
         db.session.query(Log_user).filter(Log_user.user_id == user.username).all()
@@ -75,7 +76,7 @@ def view_user_page(user_key):
 
         user.user_type = user_type
         # user.reset_password = reset_password_page
-#        db.session.add(user)
+        #        db.session.add(user)
         db.session.commit()
         admin_check()
     #  return redirect(url_for("portal_admin.view_list_users"))
@@ -83,13 +84,12 @@ def view_user_page(user_key):
     form.change_user_type.data = user.user_type
     form.reset_password_page.data = user.reset_password
 
-
     return render_template(
         "user_page.html",
         user=user,
         form=form,
         user_log=user_log,
-        humanize_datetime=humanize_datetime,
+        #       humanize_datetime=humanize_datetime,
     )
 
 
@@ -99,11 +99,13 @@ def view_list_users():
     # TODO: delete button
     users = User.query.order_by(User.user_type)
     if current_user.user_type == "ro_user":
-        users = users.filter((User.ro_code == current_user.ro_code) & (User.user_type == "oo_user"))
+        users = users.filter(
+            (User.ro_code == current_user.ro_code) & (User.user_type == "oo_user")
+        )
     return render_template(
         "view_all_users.html",
         users=users,
-        humanize_datetime=humanize_datetime,
+        #      humanize_datetime=humanize_datetime,
     )
 
 

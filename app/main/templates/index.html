@@ -122,7 +122,7 @@
             <tr>
               {% for item in query %}
               <td>{{ item.created_by.upper() }}</td>
-              <td title="{{ item.created_on }}">{{ humanize_datetime(item.created_on) }}</td>
+              <td title="{{ item.created_on }}">{{ item.created_on | humanize_datetime }}</td>
               <td>{{ item.txt_title }}</td>
               <td>{{ item.txt_message }}</td>
             </tr>

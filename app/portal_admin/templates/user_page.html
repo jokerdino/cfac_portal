@@ -24,7 +24,7 @@
                 <th>Last login time</th>
 
                 {% if user.time_last_login %}
-                <td title="{{ user.time_last_login }}">{{ humanize_datetime(user.time_last_login) }}</td>
+                <td title="{{ user.time_last_login }}">{{ user.time_last_login | humanize_datetime }}</td>
                 {% else %}
                 <td>{{ user.time_last_login }}</td>
                 {% endif %}
@@ -74,7 +74,7 @@
             <td>{{ item.user_id }}</td>
             <td>{{ item.type_of_action }}</td>
             <td data-sort="{{ item.time_of_action }}" title="{{ item.time_of_action }}">{{
-                humanize_datetime(item.time_of_action) }}</td>
+                item.time_of_action | humanize_datetime }}</td>
         </tr>
 
         {% endfor %}

@@ -51,7 +51,7 @@
                         {% for item in remarks %}
                         <tr>
 
-                            <td title="{{ item.time_of_remark }}">{{ humanize_datetime(item.time_of_remark) }}</td>
+                            <td title="{{ item.time_of_remark }}">{{ item.time_of_remark | humanize_datetime }}</td>
                             <td>{{ item.user }}</td>
                             <td class="word-wrap">{{ item.remarks }}</td>
                             {% endfor %}
@@ -65,7 +65,7 @@
         {% endif %}
         <tr>
             <th>Date of creation</th>
-            <td title="{{ ticket.date_of_creation }}">{{ humanize_datetime(ticket.date_of_creation) }}</td>
+            <td title="{{ ticket.date_of_creation }}">{{ ticket.date_of_creation | humanize_datetime }}</td>
         </tr>
     </table>
     <div class="has-text-centered">

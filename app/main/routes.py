@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from app.main import main_bp
 
-from app.tickets.tickets_routes import humanize_datetime
+# from app.tickets.tickets_routes import humanize_datetime
 from app.announcements.announcements_model import Announcements
 from app.mis_tracker.mis_model import MisTracker
 
@@ -18,7 +18,9 @@ def index():
             .limit(20)
         )
         return render_template(
-            "index.html", query=query, humanize_datetime=humanize_datetime, list=list
+            "index.html",
+            query=query,
+            list=list,  # humanize_datetime=humanize_datetime,
         )
     else:
         return redirect(url_for("users.login_page"))

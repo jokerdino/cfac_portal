@@ -72,7 +72,7 @@
                             {% for item in remarks %}
                             <tr>
 
-                                <td title="{{ item.time_of_remark }}">{{ humanize_datetime(item.time_of_remark) }}</td>
+                                <td title="{{ item.time_of_remark }}">{{ item.time_of_remark | humanize_datetime }}</td>
                                 <td>{{ item.user }}</td>
                                 <td class="word-wrap">{{ item.remarks }}</td>
                                 {% endfor %}

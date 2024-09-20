@@ -13,7 +13,7 @@ from app.knowledge_base import knowledge_base_bp
 from app.knowledge_base.knowledge_base_form import KnowledgeBaseForm
 from app.knowledge_base.knowledge_base_model import KnowledgeBase
 
-from app.tickets.tickets_routes import humanize_datetime
+# from app.tickets.tickets_routes import humanize_datetime
 
 
 @knowledge_base_bp.route("/add", methods=["POST", "GET"])
@@ -66,7 +66,8 @@ def add_knowledge_base_document():
 def view_knowledge_base_entry(key):
     kb = KnowledgeBase.query.get_or_404(key)
     return render_template(
-        "kb_view_entry.html", kb=kb, humanize_datetime=humanize_datetime
+        "kb_view_entry.html",
+        kb=kb,  # humanize_datetime=humanize_datetime
     )
 
 
@@ -103,7 +104,8 @@ def knowledge_base_home_page():
     if current_user.user_type != "admin":
         kb_query = kb_query.filter(KnowledgeBase.is_visible.is_not(False))
     return render_template(
-        "kb_homepage.html", kb_query=kb_query, humanize_datetime=humanize_datetime
+        "kb_homepage.html",
+        kb_query=kb_query,  # humanize_datetime=humanize_datetime
     )
 
 

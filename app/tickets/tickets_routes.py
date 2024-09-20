@@ -1,6 +1,6 @@
 from datetime import datetime
 
-import humanize
+# import humanize
 
 from flask import flash, redirect, render_template, url_for, send_file
 from flask_login import current_user, login_required
@@ -68,7 +68,7 @@ def view_ticket(ticket_id):
         "view_ticket.html",
         ticket=ticket,
         remarks=remarks,
-        humanize_datetime=humanize_datetime,
+        # humanize_datetime=humanize_datetime,
     )
 
 
@@ -129,11 +129,11 @@ def edit_ticket(ticket_id):
         form=form,
         title="Edit ticket details",
         remarks=remarks,
-        humanize_datetime=humanize_datetime,
+        # humanize_datetime=humanize_datetime,
     )
 
 
-@tickets_bp.route("/status/all/<string:department>", methods=["POST","GET"])
+@tickets_bp.route("/status/all/<string:department>", methods=["POST", "GET"])
 @login_required
 def tickets_homepage(department):
     form = TicketFilterForm()
@@ -154,11 +154,16 @@ def tickets_homepage(department):
         return redirect(url_for("tickets.tickets_homepage", department=department))
 
     return render_template(
-        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime, form=form
+        "tickets_homepage.html",
+        tickets=tickets,
+        # humanize_datetime=humanize_datetime,
+        form=form,
     )
 
 
-@tickets_bp.route("/status/<string:status>/<string:department>", methods=["GET", "POST"])
+@tickets_bp.route(
+    "/status/<string:status>/<string:department>", methods=["GET", "POST"]
+)
 @login_required
 def filter_by_status(status, department):
     form = TicketFilterForm()
@@ -176,22 +181,25 @@ def filter_by_status(status, department):
 
     if form.validate_on_submit():
         department = form.data["department"]
-        return redirect(url_for("tickets.filter_by_status", status=status, department=department))
+        return redirect(
+            url_for("tickets.filter_by_status", status=status, department=department)
+        )
 
     return render_template(
-        "tickets_homepage.html", tickets=tickets, humanize_datetime=humanize_datetime, form=form
+        "tickets_homepage.html",
+        tickets=tickets,
+        # humanize_datetime=humanize_datetime,
+        form=form,
     )
 
 
-def humanize_datetime(input_datetime):
-    return humanize.naturaltime(datetime.now() - input_datetime)
+# def humanize_datetime(input_datetime):
+#     return humanize.naturaltime(datetime.now() - input_datetime)
 
 
 def select_department(query, form):
     department = query.distinct(Tickets.department)
-    form.department.choices = ["View all"] + [
-        x.department for x in department
-    ]
+    form.department.choices = ["View all"] + [x.department for x in department]
 
 
 @tickets_bp.route("/download_jv_format/<string:requirement>")

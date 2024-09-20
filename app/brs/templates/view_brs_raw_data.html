@@ -58,7 +58,7 @@
                                 <td>{{ entry.remarks or "" }}</td>
                                 <td data-sort="{{ entry.timestamp }}"><a title="{{ entry.timestamp }}"
                                                 href="{{ url_for('brs.view_brs', brs_key = entry.id) }}">{{
-                                                humanize_datetime(entry.timestamp) }}</a></td>
+                                                entry.timestamp | humanize_datetime }}</a></td>
                                 <td>{{ entry.status or "Submitted" }}</td>
 
                         </tr>

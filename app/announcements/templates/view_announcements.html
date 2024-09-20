@@ -17,7 +17,7 @@
                 {% for item in list %}
                 <td>{{ item.created_by.upper() }}</td>
                 <td data-sort="{{ item.created_on }}" title="{{ item.created_on }}">{{
-                    humanize_datetime(item.created_on) }}</td>
+                    item.created_on | humanize_datetime }}</td>
                 <td>{{ item.txt_title }}</td>
                 <td>{{ item.txt_message }}</td>
             </tr>

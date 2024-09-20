@@ -38,7 +38,7 @@ from app.brs.forms import (
     EnableDeleteMonthForm,
 )
 
-from app.tickets.tickets_routes import humanize_datetime
+# from app.tickets.tickets_routes import humanize_datetime
 from app.brs.brs_helper_functions import upload_brs_file
 
 
@@ -1002,7 +1002,7 @@ def list_brs_entries():
             "view_brs_raw_data.html",
             brs_entries=list_all_brs_entries,
             get_brs_bank=get_brs_bank,
-            humanize_datetime=humanize_datetime,
+            # humanize_datetime=humanize_datetime,
         )
     return render_template("brs_raw_data_form.html", form=form)
 
@@ -1037,7 +1037,7 @@ def list_brs_entries_exceptions():
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
         get_brs_bank=get_brs_bank,
-        humanize_datetime=humanize_datetime,
+        # humanize_datetime=humanize_datetime,
     )
 
 
@@ -1076,7 +1076,7 @@ def list_brs_entries_exceptions2():
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
         get_brs_bank=get_brs_bank,
-        humanize_datetime=humanize_datetime,
+        # humanize_datetime=humanize_datetime,
     )
 
 

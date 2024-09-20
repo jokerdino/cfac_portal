@@ -29,7 +29,7 @@
                 <td>{{ user.reset_password }}</td>
                 {% if user.time_last_login %}
                 <td data-sort="{{ user.time_last_login }}" title="{{ user.time_last_login }}">
-                    {{ humanize_datetime(user.time_last_login) }}</td>
+                    {{ user.time_last_login | humanize_datetime }}</td>
                 {% else %}
                 <td> {{ user.time_last_login }} </td>
                 {% endif %}
