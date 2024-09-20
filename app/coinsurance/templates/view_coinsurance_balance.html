@@ -13,9 +13,17 @@
                     <td>
                         <div class="select"> {{ form.period }} </div>
                     </td>
-                    <td>
-                        <button class="ml-5 button is-success">Query</button>
-                    </td>
+
+                    {% if current_user.user_type == "admin" %}
+                <tr>
+                    <td>{{ form.head_office_balance.label }}</td>
+                    <td>{{ form.head_office_balance }}</td>
+                </tr>
+
+                {% endif %}
+                <td>
+                    <button class="ml-5 button is-success">Query</button>
+                </td>
                 </tr>
             </table>
         </div>
@@ -30,10 +38,12 @@
     {% if coinsurance_balance %}
     <div id="summary" class="container is-fluid">
 
-        <table class="mt-5 mb-5 table is-bordered">
+        <table class="mt-5 mb-5 table is-bordered is-hoverable" id="coinsurance_summary_table">
             <thead>
                 <tr>
                     <th>Name of company</th>
+                    <th>Gross amount (payable)</th>
+                    <th>Gross amount (receivable)</th>
                     <th>Net amount (payable)</th>
                     <th>Net amount (receivable)</th>
                 </tr>
@@ -41,18 +51,27 @@
             <tbody>
                 <tr>{% for item in summary %}
                     <td>{{ item[0] }}</td>
-                    <td class="has-text-right">{{ item[1]|indian_number_format if item[1] > 0 else 0 |
+                    <td>{{ (item[1] + item[2] + item[3]) | indian_number_format }}</td>
+                    <td>{{ ((item[4] + item[5] + item[6])*-1) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ item[7] |indian_number_format if item[7] > 0 else 0 |
                         indian_number_format }}</td>
-                    <td class="has-text-right">{{ (item[1]*-1)|indian_number_format if item[1] < 0 else 0 |
+                    <td class="has-text-right">{{ (item[7]*-1)|indian_number_format if item[7] < 0 else 0 |
                             indian_number_format }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
+            <tfoot>
+                <th>Total</th>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th></th>
+            </tfoot>
         </table>
 
     </div>
     <div class="is-hidden is-fluid" id="balances">
-        <table class="table is-fullwidth is-bordered" width="100%" id="coinsurance_balance_table">
+        <table class="table is-fullwidth is-bordered is-hoverable" width="100%" id="coinsurance_balance_table">
             <thead>
                 <tr>
                     <th class="has-text-centered is-vcentered">Zone</th>
@@ -112,6 +131,74 @@
 {% block scripts %}
 
 <script>
+
+    new DataTable('#coinsurance_summary_table', {
+        layout: {
+            topStart: 'buttons',
+        },
+        stateSave: true,
+        fixedHeader: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+        footerCallback: function (row, data, start, end, display) {
+            var api = this.api();
+
+            // Remove the formatting to get integer data for summation
+            var intVal = function (i) {
+                return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
+            };
+
+            // Total over all pages
+            grossDueTo = api
+                .column(1, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            grossDueFrom = api
+                .column(2, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+            netDueTo = api
+                .column(3, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+            netDueFrom = api
+                .column(4, { page: 'current' })
+                .data()
+                .reduce(function (a, b) {
+                    return intVal(a) + intVal(b);
+                }, 0);
+
+
+
+            // Update footer
+            const formatter = new Intl.NumberFormat('en-IN', {
+                //style: 'currency',
+                //currency: 'INR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+                //trailingZeroDisplay: 'stripIfInteger'
+            });
+            $(api.column(1).footer()).html(formatter.format(grossDueTo));
+            $(api.column(2).footer()).html(formatter.format(grossDueFrom));
+
+            $(api.column(3).footer()).html(formatter.format(netDueTo));
+            $(api.column(4).footer()).html(formatter.format(netDueFrom));
+
+        },
+
+    })
+
 
     var data_table = new DataTable('#coinsurance_balance_table', {
         //        dom: 'lfBrtip',

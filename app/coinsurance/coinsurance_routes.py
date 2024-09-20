@@ -1154,7 +1154,7 @@ def upload_coinsurance_balance():
     return render_template("coinsurance_balance_upload.html")
 
 
-@coinsurance_bp.route("/view_coinsurance_balance", methods=["POST", "GET"])
+@coinsurance_bp.route("/view_coinsurance_balance/", methods=["POST", "GET"])
 @login_required
 def query_view_coinsurance_balance():
 
@@ -1185,20 +1185,36 @@ def query_view_coinsurance_balance():
     coinsurance_balance = CoinsuranceBalances.query.filter(
         CoinsuranceBalances.period == period
     )
-    if current_user.user_type == "ro_user":
-        coinsurance_balance = coinsurance_balance.filter(
-            CoinsuranceBalances.str_regional_office_code == current_user.ro_code
-        )
+
     summary = (
         CoinsuranceBalances.query.with_entities(
-            CoinsuranceBalances.company_name, func.sum(CoinsuranceBalances.net_amount)
+            CoinsuranceBalances.company_name,
+            func.sum(CoinsuranceBalances.hub_due_to_claims),
+            func.sum(CoinsuranceBalances.hub_due_to_premium),
+            func.sum(CoinsuranceBalances.oo_due_to),
+            func.sum(CoinsuranceBalances.hub_due_from_claims),
+            func.sum(CoinsuranceBalances.hub_due_from_premium),
+            func.sum(CoinsuranceBalances.oo_due_from),
+            func.sum(CoinsuranceBalances.net_amount),
         )
         .filter(CoinsuranceBalances.period == period)
         .group_by(CoinsuranceBalances.company_name)
         .order_by(CoinsuranceBalances.company_name)
     )
+
+    if form.data["head_office_balance"] == False:
+        summary = summary.filter(
+            CoinsuranceBalances.office_code.not_in(("000100", "660000", "001900"))
+        )
+        coinsurance_balance = coinsurance_balance.filter(
+            CoinsuranceBalances.office_code.not_in(("000100", "660000", "001900"))
+        )
+
     if current_user.user_type == "ro_user":
         summary = summary.filter(
+            CoinsuranceBalances.str_regional_office_code == current_user.ro_code
+        )
+        coinsurance_balance = coinsurance_balance.filter(
             CoinsuranceBalances.str_regional_office_code == current_user.ro_code
         )
     return render_template(
