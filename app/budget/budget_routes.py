@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 
-from functools import wraps
+# from functools import wraps
 from flask import (
     render_template,
     abort,
@@ -17,7 +17,7 @@ from flask_login import current_user, login_required
 
 from sqlalchemy import create_engine, case, func, and_
 
-from server import admin_required
+from set_view_permissions import admin_required
 from app.budget import budget_bp
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 
@@ -28,7 +28,7 @@ from app.budget.budget_form import (
 )
 
 
-@budget_bp.route("/upload_allocation", methods=["POST", "GET"])
+@budget_bp.route("/upload_allocation/", methods=["POST", "GET"])
 @login_required
 @admin_required
 def upload_allocation():
@@ -62,8 +62,9 @@ def upload_allocation():
     return render_template("allocation_upload.html", form=form)
 
 
-@budget_bp.route("/upload_utilization", methods=["POST", "GET"])
+@budget_bp.route("/upload_utilization/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def upload_utilization():
     form = BudgetUtilizationForm()
     if form.validate_on_submit():
@@ -95,8 +96,9 @@ def upload_utilization():
     return render_template("utilization_upload.html", form=form)
 
 
-@budget_bp.route("/budget_utilization", methods=["POST", "GET"])
+@budget_bp.route("/budget_utilization/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def view_budget_utilization():
     form = BudgetQueryForm()
     from extensions import db
