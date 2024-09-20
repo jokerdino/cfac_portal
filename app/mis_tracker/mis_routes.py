@@ -10,7 +10,9 @@ from app.mis_tracker import mis_bp
 from app.mis_tracker.mis_model import MisTracker
 from app.mis_tracker.mis_form import MISTrackerForm, FileUploadForm
 
-from app.tickets.tickets_routes import humanize_datetime
+# from app.tickets.tickets_routes import humanize_datetime
+
+from app.mis_tracker.mis_helper_functions import upload_mis_file
 
 
 @mis_bp.route("/bulk_upload", methods=["POST", "GET"])
@@ -20,9 +22,11 @@ def bulk_upload_mis_tracker():
     if form.validate_on_submit():
         df_mis_tracker = pd.read_csv(form.data["file_upload"])
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_mis_tracker["created_by"] = current_user.username
-        df_mis_tracker["created_on"] = datetime.now()
-        df_mis_tracker.to_sql("mis_tracker", engine, if_exists="append", index=False)
+        upload_mis_file(df_mis_tracker, engine, current_user.username)
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # df_mis_tracker["created_by"] = current_user.username
+        # df_mis_tracker["created_on"] = datetime.now()
+        # df_mis_tracker.to_sql("mis_tracker", engine, if_exists="append", index=False)
         flash("MIS tracker has been uploaded successfully.")
 
     return render_template(
@@ -86,5 +90,6 @@ def edit_mis_entry(mis_key):
 def view_mis_entry(mis_key):
     mis_entry = MisTracker.query.get_or_404(mis_key)
     return render_template(
-        "view_mis_entry.html", mis_entry=mis_entry, humanize_datetime=humanize_datetime
+        "view_mis_entry.html",
+        mis_entry=mis_entry,  # humanize_datetime=humanize_datetime
     )

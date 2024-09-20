@@ -39,6 +39,7 @@ from app.brs.forms import (
 )
 
 from app.tickets.tickets_routes import humanize_datetime
+from app.brs.brs_helper_functions import upload_brs_file
 
 
 @brs_bp.route("/home", methods=["POST", "GET"])
@@ -227,16 +228,18 @@ def bulk_upload_brs():
         df_brs_upload = pd.read_csv(
             upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
         )
-        df_brs_upload["timestamp"] = datetime.now()
-
-        df_month = df_brs_upload["month"].drop_duplicates().to_frame()
-        df_month = df_month.rename(columns={"month": "txt_month"})
-        df_month["bool_enable_delete"] = True
-        df_month["created_by"] = current_user.username
-        df_month["created_on"] = datetime.now()
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_brs_upload.to_sql("brs", engine, if_exists="append", index=False)
-        df_month.to_sql("delete_entries", engine, if_exists="append", index=False)
+        upload_brs_file(df_brs_upload, engine, current_user.username)
+        # df_brs_upload["timestamp"] = datetime.now()
+
+        # df_month = df_brs_upload["month"].drop_duplicates().to_frame()
+        # df_month = df_month.rename(columns={"month": "txt_month"})
+        # df_month["bool_enable_delete"] = True
+        # df_month["created_by"] = current_user.username
+        # df_month["created_on"] = datetime.now()
+
+        # df_brs_upload.to_sql("brs", engine, if_exists="append", index=False)
+        # df_month.to_sql("delete_entries", engine, if_exists="append", index=False)
         flash("BRS records have been uploaded to database.")
 
     return render_template("bulk_brs_upload.html")

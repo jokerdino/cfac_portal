@@ -20,7 +20,7 @@
         {% if mis_entry.bool_mis_shared %}
         <tr>
             <th>MIS shared on</th>
-            <td title="{{ mis_entry.date_mis_shared }}">{{ humanize_datetime(mis_entry.date_mis_shared) }}</td>
+            <td title="{{ mis_entry.date_mis_shared }}">{{ mis_entry.date_mis_shared | humanize_datetime }}</td>
         </tr>
         <tr>
             <th>MIS shared by</th>
@@ -35,7 +35,7 @@
         {% if mis_entry.bool_brs_completed %}
         <tr>
             <th>BRS completed on</th>
-            <td title="{{ mis_entry.date_brs_completed }}">{{ humanize_datetime(mis_entry.date_brs_completed) }}</td>
+            <td title="{{ mis_entry.date_brs_completed }}">{{ mis_entry.date_brs_completed | humanize_datetime }}</td>
         </tr>
         <tr>
             <th>BRS completed by</th>
@@ -50,7 +50,7 @@
         {% if mis_entry.bool_jv_passed %}
         <tr>
             <th>JV passed on</th>
-            <td title="{{ mis_entry.date_jv_passed }}">{{ humanize_datetime(mis_entry.date_jv_passed) }}</td>
+            <td title="{{ mis_entry.date_jv_passed }}">{{ mis_entry.date_jv_passed | humanize_datetime }}</td>
         </tr>
         <tr>
             <th>JV passed by</th>
