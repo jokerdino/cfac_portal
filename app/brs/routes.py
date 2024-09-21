@@ -461,9 +461,9 @@ def view_consolidated_brs_pdf(brs_key):
 @login_required
 def download_format(requirement):
     if requirement == "cash":
-        return send_file("outstanding_cash_upload_format.csv")
+        return send_file("download_formats/outstanding_cash_upload_format.csv")
     else:
-        return send_file("outstanding_cheques_upload_format.csv")
+        return send_file("download_formats/outstanding_cheques_upload_format.csv")
 
 
 @brs_bp.route("/view/<int:brs_key>")

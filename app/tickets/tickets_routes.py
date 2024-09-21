@@ -206,8 +206,8 @@ def select_department(query, form):
 @login_required
 def download_jv_format(requirement):
     if requirement == "premium":
-        return send_file("jv_format_premium.xlsx")
+        return send_file("download_formats/jv_format_premium.xlsx")
     elif requirement == "bulk":
-        return send_file("jv_bulk_jv_format.xlsx")
+        return send_file("download_formats/jv_bulk_jv_format.xlsx")
     else:
         return None
