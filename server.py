@@ -138,6 +138,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(budget_bp, url_prefix="/budget")
 
+    from app.pg_tieup import pg_tieup_bp
+
+    app.register_blueprint(pg_tieup_bp, url_prefix="/pg_tieup")
+
     from app.errors import errors_bp
 
     app.register_blueprint(errors_bp, url_prefix="/error")

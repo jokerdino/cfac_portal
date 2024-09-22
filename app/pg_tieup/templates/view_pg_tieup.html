@@ -1,0 +1,20 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+<div class="container">
+
+    <table class="table is-bordered">
+        {% for col in pg_tieup.columns() if col not in ['id',
+        'created_by','updated_by','deleted_by','date_created_date','date_updated_date','date_deleted_date','current_status']
+        %}
+        <tr>
+            <th>{{ col | replace("_", " ") | upper }}
+            </th>
+            <td>{{ pg_tieup[col] or "" }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <div class="has-text-centered">
+        <a class="button is-link" href="{{ url_for('pg_tieup.edit_pg_tieup', key=pg_tieup.id) }}">Edit</a>
+    </div>
+</div>
+{% endblock content %}

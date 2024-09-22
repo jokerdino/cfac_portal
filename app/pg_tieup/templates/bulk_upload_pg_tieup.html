@@ -1,0 +1,38 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+<div class="container">
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <table class="table">
+
+            <tr>
+                <td>{{ form.file_upload.label }}</td>
+                <td>{{ form.file_upload(class="file", accept=".xlsx") }}</td>
+            </tr>
+        </table>
+
+        <div class="has-text-centered">
+            {{ form.upload_document(class="button is-success") }}
+
+        </div>
+    </form>
+
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        {{ field.label }}: {{ field.errors }}.
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock content %}

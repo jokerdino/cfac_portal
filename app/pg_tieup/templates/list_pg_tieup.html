@@ -1,0 +1,57 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+<div class="table-container is-fluid">
+    <table class="table is-fullwidth is-bordered" id="pg_tieup_table">
+        <thead>
+            <tr>
+                <th>View</th>
+                <th>Edit</th>
+                {% for column in column_names %}
+                <th>{{ column | upper }}</th>
+
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in query %}
+
+                <td><a class="button is-link is-outlined is-small"
+                        href="{{ url_for('pg_tieup.view_pg_tieup', key=item['id'] )}}">View</a>
+                </td>
+                <td><a class="button is-link is-outlined is-small"
+                        href="{{ url_for('pg_tieup.edit_pg_tieup', key=item['id'] )}}">Edit</a>
+                </td>
+
+                {% for column in column_names %}
+
+                <td>{{ item[column] or "" }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+
+{% block scripts %}
+<script>
+    new DataTable('#pg_tieup_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        stateSave: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'desc']],
+        pagingType: 'full_numbers',
+
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}
