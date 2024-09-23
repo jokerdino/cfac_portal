@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from flask import flash, redirect, render_template, request, url_for
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_user, logout_user, login_required
 from sqlalchemy import or_
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -86,7 +86,8 @@ def login_page():
 
 @user_bp.route("/logout", methods=["POST", "GET"])
 def logout_page():
-    logger_user_actions(current_user.username, "Logged out", datetime.now())
+    if current_user.is_authenticated:
+        logger_user_actions(current_user.username, "Logged out", datetime.now())
     logout_user()
 
     # flash("You have logged out.")
