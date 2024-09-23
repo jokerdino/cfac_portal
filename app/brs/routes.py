@@ -1,5 +1,6 @@
 from math import fabs
 from datetime import datetime
+from dateutil import relativedelta
 import calendar
 from sqlalchemy.sql import exists, select
 import sqlalchemy
@@ -552,11 +553,21 @@ def prevent_duplicate_brs(requirement: str, brs_id: int) -> bool:
 
 
 def validate_outstanding_entries(
-    df_form_data_os_entries: pd.DataFrame, requirement: str, closing_balance: float
+    df_form_data_os_entries: pd.DataFrame,
+    requirement: str,
+    closing_balance: float,
+    brs_id: int,
 ):
     # for cash, instrument amount and date of collection is mandatory
     # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
     # negative values are not allowed to be entered
+    from extensions import db
+
+    # find month of BRS period to test if date_of_instrument and date_of_collection are within that time frame
+    brs = db.session.query(BRS).get_or_404(brs_id)
+    brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta.relativedelta(
+        months=1, day=1
+    )
 
     if requirement == "cash":
         date_columns = ["date_of_collection"]
@@ -601,6 +612,12 @@ def validate_outstanding_entries(
     if len(df_na_date_of_collection) > 0:
         return (4, pd.DataFrame, sum_os_entries)
 
+    df_future_date_of_collection = df_os_entries[
+        df_os_entries["date_of_collection"] >= brs_month
+    ]
+
+    if len(df_future_date_of_collection) > 0:
+        return (7, pd.DataFrame, sum_os_entries)
     if requirement != "cash":
         df_na_instrument_date = df_os_entries[
             df_os_entries["date_of_instrument"].isnull()
@@ -614,6 +631,13 @@ def validate_outstanding_entries(
 
         elif len(df_na_instrument_number) > 0:
             return (2, pd.DataFrame, sum_os_entries)
+
+        df_future_date_of_instrument = df_os_entries[
+            df_os_entries["date_of_instrument"] >= brs_month
+        ]
+
+        if len(df_future_date_of_instrument) > 0:
+            return (8, pd.DataFrame, sum_os_entries)
     return 10, df_os_entries, sum_os_entries
 
 
@@ -740,6 +764,7 @@ def enter_brs(requirement, brs_id):
                             form.data["file_outstanding_entries"],
                             requirement,
                             deposited_not_credited,
+                            brs_id,
                         )
                         if status_validate_os_entries == 1:
                             flash(
@@ -762,6 +787,10 @@ def enter_brs(requirement, brs_id):
                             flash(
                                 "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
                             )
+                        elif status_validate_os_entries == 7:
+                            flash("Date of collection cannot be after BRS period.")
+                        elif status_validate_os_entries == 8:
+                            flash("Date of instrument cannot be after BRS period.")
                 if short_credited > 0:
                     if not form.data["file_short_credit_entries"]:
                         flash("Please upload details of short credited entries.")
@@ -774,6 +803,7 @@ def enter_brs(requirement, brs_id):
                             form.data["file_short_credit_entries"],
                             requirement,
                             short_credited,
+                            brs_id,
                         )
                         if status_validate_short_credited == 1:
                             flash(
@@ -796,6 +826,10 @@ def enter_brs(requirement, brs_id):
                             flash(
                                 "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
                             )
+                        elif status_validate_short_credited == 7:
+                            flash("Date of collection cannot be after BRS period.")
+                        elif status_validate_short_credited == 8:
+                            flash("Date of instrument cannot be after BRS period.")
                 if excess_credited > 0:
                     if not form.data["file_excess_credit_entries"]:
                         flash("Please upload details of excess credited entries.")
@@ -808,6 +842,7 @@ def enter_brs(requirement, brs_id):
                             form.data["file_excess_credit_entries"],
                             requirement,
                             excess_credited,
+                            brs_id,
                         )
                         if status_validate_excess_credited == 1:
                             flash(
@@ -826,11 +861,14 @@ def enter_brs(requirement, brs_id):
                                 f"Excess credit amount {excess_credited} is not matching with sum of excess credited entries {sum_excess_credits}."
                             )
 
-                        elif status_validate_short_credited == 6:
+                        elif status_validate_excess_credited == 6:
                             flash(
                                 "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
                             )
-
+                        elif status_validate_excess_credited == 7:
+                            flash("Date of collection cannot be after BRS period.")
+                        elif status_validate_excess_credited == 8:
+                            flash("Date of instrument cannot be after BRS period.")
                 if (
                     status_validate_os_entries
                     == status_validate_short_credited
