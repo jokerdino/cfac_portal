@@ -279,6 +279,8 @@ def add_coinsurance_entry():
             int_ri_payable_amount=ri_payable_amount,
             int_ri_receivable_amount=ri_receivable_amount,
             insured_name=name_of_insured,
+            created_by=current_user.username,
+            date_created_date=datetime.now(),
         )
         db.session.add(coinsurance)
         db.session.commit()

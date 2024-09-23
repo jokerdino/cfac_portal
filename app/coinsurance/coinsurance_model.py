@@ -29,6 +29,9 @@ class Coinsurance(db.Model):
 
     utr_number = db.Column(db.String)
 
+    created_by = db.Column(db.String)
+    date_created_date = db.Column(db.DateTime)
+
     @property
     def zone(self):
         self.ro_code = self.uiic_regional_code

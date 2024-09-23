@@ -59,6 +59,7 @@
                 {% endif %}
 
                 <th class="is-vcentered">Entry ID</th>
+                <th class="is-vcentered">Date of entry</th>
                 <th></th>
                 <th class="is-vcentered">RO code</th>
                 <th class="is-vcentered">OO code</th>
@@ -92,6 +93,8 @@
                 </td>
                 {% endif %}
                 <td class="has-text-right"> {{ entry.id }}</td>
+                <td data-sort="{{ entry.date_created_date }}">{{ entry.date_created_date.strftime('%d/%m/%Y') if
+                    entry.date_created_date }}</td>
                 <td>
                     <a class="button is-small is-info"
                         href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">
@@ -143,7 +146,7 @@
 {% block scripts %}
 <script>
 
-    var column_number = 13
+    var column_number = 14
     {% if status == "To be settled" and current_user.user_type in ["admin", "coinsurance_hub_user"] %}
     column_number += 1
     {% endif %}
@@ -184,7 +187,7 @@
                 return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
             };
 
-            var columnID = 16;
+            var columnID = 17;
             {% if status == "To be settled" and current_user.user_type in ["admin", "coinsurance_hub_user"] %}
             columnID += 1;
             {% endif %}
