@@ -12,7 +12,7 @@ prev_month = date.today() - relativedelta(months=1)
 engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
 
 
-df_mis = pd.read_csv("/home/jokerdino/Projects/cfac_portal/mis_monthly_template.csv")
+df_mis = pd.read_csv("/home/barneedhar/Projects/mis_monthly_template.csv")
 df_mis["txt_period"] = prev_month.strftime("%B-%Y")
 
 upload_mis_file(df_mis, engine, "AUTOUPLOAD")

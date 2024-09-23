@@ -22,7 +22,7 @@ def get_financial_year(date):
 
 
 df_mis = pd.read_csv(
-    "/home/jokerdino/Projects/cfac_portal/brs_monthly_template.csv",
+    "/home/barneedhar/Projects/brs_monthly_template.csv",
     dtype={"uiic_regional_code": str, "uiic_office_code": str},
 )
 df_mis["month"] = prev_month.strftime("%B-%Y")
