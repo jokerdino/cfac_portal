@@ -596,7 +596,10 @@ def validate_outstanding_entries(
         except ValueError as e:
             return (6, pd.DataFrame, 0)
 
-    sum_os_entries = df_os_entries["instrument_amount"].sum()
+    try:
+        sum_os_entries = df_os_entries["instrument_amount"].sum()
+    except KeyError as e:
+        return (9, pd.DataFrame, 0)
     # if not float(sum_os_entries) == float(closing_balance):
     if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
         return (5, pd.DataFrame, sum_os_entries)
@@ -791,6 +794,8 @@ def enter_brs(requirement, brs_id):
                             flash("Date of collection cannot be after BRS period.")
                         elif status_validate_os_entries == 8:
                             flash("Date of instrument cannot be after BRS period.")
+                        elif status_validate_os_entries == 9:
+                            flash("instrument_amount is not entered in uploaded file.")
                 if short_credited > 0:
                     if not form.data["file_short_credit_entries"]:
                         flash("Please upload details of short credited entries.")
@@ -830,6 +835,8 @@ def enter_brs(requirement, brs_id):
                             flash("Date of collection cannot be after BRS period.")
                         elif status_validate_short_credited == 8:
                             flash("Date of instrument cannot be after BRS period.")
+                        elif status_validate_short_credited == 9:
+                            flash("instrument_amount is not entered in uploaded file.")
                 if excess_credited > 0:
                     if not form.data["file_excess_credit_entries"]:
                         flash("Please upload details of excess credited entries.")
@@ -869,6 +876,8 @@ def enter_brs(requirement, brs_id):
                             flash("Date of collection cannot be after BRS period.")
                         elif status_validate_excess_credited == 8:
                             flash("Date of instrument cannot be after BRS period.")
+                        elif status_validate_excess_credited == 9:
+                            flash("instrument_amount is not entered in uploaded file.")
                 if (
                     status_validate_os_entries
                     == status_validate_short_credited
