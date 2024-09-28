@@ -1,0 +1,29 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<div class="container">
+
+    <h1 class="title">Upload CSV files and flag sheet</h1>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+
+        <table class="table is-fullwidth">
+            <tr>
+                <th>{{ form.period.label }}</th>
+                <td>{{ form.period(class="input", placeholder=form.period.description) }}
+                </td>
+            </tr>
+            <tr>
+                <th>{{ form.csv_files_upload.label }}</th>
+                <td>{{ form.csv_files_upload(class="file", accept=".csv") }}</td>
+            </tr>
+            <tr>
+                <th>{{ form.flag_sheet_file.label }}</th>
+                <td>{{ form.flag_sheet_file(class="file", accept=".xlsx") }}</td>
+            </tr>
+        </table>
+        <div class="has-text-centered"> {{ form.upload_document(class="button is-success") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

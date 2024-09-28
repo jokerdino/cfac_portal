@@ -1,5 +1,7 @@
 from datetime import datetime
 import pandas as pd
+import numpy as np
+
 from sqlalchemy import func, distinct, select, create_engine, case
 
 from flask import (
@@ -14,6 +16,8 @@ from flask import (
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
+from set_view_permissions import admin_required
+
 from app.coinsurance import coinsurance_bp
 from app.coinsurance.coinsurance_form import (
     CoinsuranceForm,
@@ -24,6 +28,7 @@ from app.coinsurance.coinsurance_form import (
     CoinsuranceCashCallForm,
     UploadFileForm,
     QueryForm,
+    CoinsuranceBalanceForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -1464,3 +1469,148 @@ def query_coinsurance_entries():
         )
 
     return render_template("query_coinsurance_entries.html", form=form)
+
+
+@coinsurance_bp.route("/generate_coinsurance_balance/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def generate_coinsurance_balance():
+
+    form = CoinsuranceBalanceForm()
+
+    if form.validate_on_submit():
+        period = form.period.data
+        flag_sheet = form.flag_sheet_file.data
+
+        list_df = [pd.read_csv(file) for file in form.csv_files_upload.data]
+
+        # Concatenate all DataFrames into a single DataFrame
+        df_concat = pd.concat(list_df, ignore_index=True)
+
+        # Adjust credit and debit by dividing by 2 where the office code is 100
+        df_concat.loc[df_concat["Office Code"] == 100, "Credit"] = (
+            df_concat["Credit"] / 2
+        )
+        df_concat.loc[df_concat["Office Code"] == 100, "Debit"] = df_concat["Debit"] / 2
+
+        # Calculate the net amount by subtracting debits from credits
+        df_concat["Net amount"] = df_concat["Credit"] - df_concat["Debit"]
+
+        # Remove rows where the net amount is zero
+        df_concat = df_concat[df_concat["Net amount"] != 0]
+
+        # Load additional data for GL codes and zones from an Excel file
+        df_flag_sheet = pd.read_excel(flag_sheet, sheet_name="GLCodes")
+        df_zones = pd.read_excel(
+            flag_sheet, sheet_name="Zones", dtype={"Regional Code": str}
+        )
+
+        # Merge the concatenated data with the flag sheet on GLCode
+        df_merged = df_concat.merge(df_flag_sheet, on="GLCode", how="left")
+
+        # Generate office-wise and company-wise pivot tables
+        pivot_df_merged_office = prepare_pivot(
+            df_merged, df_zones, ["Office Code", "Company name"], period
+        )
+        pivot_df_merged = prepare_pivot(
+            df_merged, df_zones, ["Company name", "Office Code"], period
+        )
+
+        # Generate a company-wise summary
+        pivot_companywise = pivot_df_merged.pivot_table(
+            index="Company name", values="Net", aggfunc="sum"
+        )
+        pivot_companywise.reset_index(inplace=True)
+
+        # Write the pivot tables and summary to an Excel file
+        with pd.ExcelWriter(
+            f"coinsurance_balances/coinsurance_balance_{period}.xlsx"
+        ) as writer:
+            pivot_df_merged_office.to_excel(
+                writer, sheet_name="office_wise", index=False
+            )
+            pivot_df_merged.to_excel(writer, sheet_name="company_wise", index=False)
+            pivot_companywise.to_excel(writer, sheet_name="summary", index=False)
+
+            # Apply formatting to the Excel sheets
+            format_workbook = writer.book
+            format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
+
+            format_worksheet_oo = writer.sheets["office_wise"]
+            format_worksheet_oo.set_column("C:I", 11, format_currency)
+            format_worksheet_oo.autofit()
+
+            format_worksheet_company = writer.sheets["company_wise"]
+            format_worksheet_company.set_column("C:I", 11, format_currency)
+            format_worksheet_company.autofit()
+
+            format_worksheet_summary = writer.sheets["summary"]
+            format_worksheet_summary.set_column("B:B", 11, format_currency)
+            format_worksheet_summary.autofit()
+
+        return send_from_directory(
+            directory="coinsurance_balances/",
+            path=f"coinsurance_balance_{period}.xlsx",
+            download_name=f"coinsurance_balance_{period}.xlsx",
+            as_attachment=True,
+        )
+
+    return render_template("generate_coinsurance_balance.html", form=form)
+
+
+def prepare_pivot(df_merged, df_zones, index_list, period):
+    """
+    Prepares a pivot table summarizing the net amounts.
+
+    Parameters:
+        df_merged (DataFrame): The merged DataFrame containing financial data.
+        index_list (list): List of columns to group by in the pivot table.
+        period (str): The accounting period.
+
+    Returns:
+        DataFrame: A pivot table summarizing net amounts by the specified indices.
+    """
+
+    # Create a pivot table based on the specified index columns and descriptions
+    pivot_df_merged_office = df_merged.pivot_table(
+        index=index_list,
+        columns="Description",
+        values="Net amount",
+        aggfunc="sum",
+    )
+
+    # Replace NaN values with 0 and calculate the net amount
+    pivot_df_merged_office.fillna(0, inplace=True)
+    pivot_df_merged_office["Net"] = (
+        pivot_df_merged_office["OO Due to"]
+        + pivot_df_merged_office["Hub Due to Premium"]
+        + pivot_df_merged_office["Hub Due to Claims"]
+        + pivot_df_merged_office["OO Due from"]
+        + pivot_df_merged_office["Hub Due from Premium"]
+        + pivot_df_merged_office["Hub Due from Claims"]
+    )
+
+    pivot_df_merged_office.reset_index(inplace=True)
+
+    # Derive the regional code by dividing the office code by 10000 and rounding
+    pivot_df_merged_office["Regional Code"] = np.where(
+        pivot_df_merged_office["Office Code"].between(10000, 310000),
+        (pivot_df_merged_office["Office Code"] // 10000) * 10000,
+        pivot_df_merged_office["Office Code"],
+    )
+    pivot_df_merged_office["Regional Code"] = (
+        pivot_df_merged_office["Regional Code"].astype(int).astype(str).str.zfill(6)
+    )
+    pivot_df_merged_office["Office Code"] = (
+        pivot_df_merged_office["Office Code"].astype(str).str.zfill(6)
+    )
+
+    # Merge the calculated regional codes with the zones data from the flag sheet
+    pivot_df_merged_office = pivot_df_merged_office.merge(
+        df_zones, on="Regional Code", how="left"
+    )
+
+    # Add the period to the pivot table
+    pivot_df_merged_office["Period"] = period
+
+    return pivot_df_merged_office

@@ -36,6 +36,9 @@
                             {% if current_user.user_type == "admin" %}
                             <a class="navbar-item" href="{{ url_for('coinsurance.upload_coinsurance_balance') }}">Upload
                                 coinsurance balance</a>
+                            <a class="navbar-item"
+                                href="{{ url_for('coinsurance.generate_coinsurance_balance') }}">Generate
+                                coinsurance balance</a>
                             {% endif %}
                         </div>
                     </div>
@@ -74,6 +77,8 @@
 
                     <a class="navbar-item" href="{{ url_for('coinsurance.query_coinsurance_entries') }}">Query
                         coinsurance confirmations</a>
+
+                    <a class="navbar-item">Bank mandates</a>
                     {% endif %}
 
                 </div>

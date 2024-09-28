@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField
+from flask_wtf.file import FileField, MultipleFileField, FileAllowed, FileRequired
 from wtforms import (
     BooleanField,
     DateField,
@@ -189,4 +189,20 @@ class CoinsuranceCashCallForm(FlaskForm):
 
 class UploadFileForm(FlaskForm):
     file_upload = FileField("Upload document", validators=[DataRequired()])
+    upload_document = SubmitField("Upload")
+
+
+class CoinsuranceBalanceForm(FlaskForm):
+
+    period = StringField(
+        description="Enter in mmm-yy format (example: 'Aug-24')",
+        validators=[DataRequired()],
+    )
+    csv_files_upload = MultipleFileField(
+        "Upload CSV files", validators=[FileRequired(), FileAllowed(["csv"])]
+    )
+
+    flag_sheet_file = FileField(
+        "Upload Flag sheet", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )
     upload_document = SubmitField("Upload")
