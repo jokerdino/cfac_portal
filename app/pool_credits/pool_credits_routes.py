@@ -1,4 +1,5 @@
 from datetime import datetime
+from dataclasses import asdict
 
 from sqlalchemy import func, distinct, select, create_engine, case
 
@@ -112,15 +113,15 @@ def pool_credits_portal():
     if id:
         entries = dynamic_query_column(entries, "id", id)
 
-    entries_count = entries.count()
+    entries_count = entries.count()  # if entries else 0
     return {
         "recordsTotal": entries_count,
-        "data": [entry.to_dict() for entry in entries],
+        "data": [asdict(entry) for entry in entries],
     }
 
 
-def set_value(string, dict):
-    return dict[string] if string in dict.keys() else False
+def set_value(string, dict_values):
+    return dict_values[string] if string in dict_values.keys() else False
 
 
 def dynamic_query_column(entries, col_name, dict_param):
@@ -219,7 +220,7 @@ def get_data(status):
 
     # response
     return {
-        "data": [entry.to_dict() for entry in entries],
+        "data": [asdict(entry) for entry in entries],
         "recordsFiltered": total_filtered,
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
