@@ -23,32 +23,36 @@
             <div class="column">
                 <table class="table is-fullwidth">
                     <tr>
-                        <th>{{ form.hub.label }}</th>
-                        <td>{{ form.hub(class="select") }}</td>
+                        <th>{{ form.txt_hub.label }}</th>
+                        <td>
+                            <div class="select is-fullwidth">{{ form.txt_hub }}</div>
+                        </td>
                     </tr>
                     <tr>
-                        <th>{{ form.ro_code.label }}</th>
-                        <td>{{ form.ro_code(class="input") }}</td>
+                        <th>{{ form.txt_ro_code.label }}</th>
+                        <td>{{ form.txt_ro_code(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.oo_code.label }}</th>
-                        <td>{{ form.oo_code(class="input") }}</td>
+                        <th>{{ form.txt_oo_code.label }}</th>
+                        <td>{{ form.txt_oo_code(class="input") }}</td>
                     </tr>
                     <tr>
                         <th>{{ form.str_leader_follower.label }}</th>
-                        <td>{{ form.str_leader_follower(class="select") }}</td>
+                        <td>
+                            <div class="select is-fullwidth">{{ form.str_leader_follower }}</div>
+                        </td>
                     </tr>
                     <tr>
-                        <th>{{ form.insured_name.label }}</th>
-                        <td>{{ form.insured_name(class="input") }}</td>
+                        <th>{{ form.txt_insured_name.label }}</th>
+                        <td>{{ form.txt_insured_name(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.policy_start_date.label }}</th>
-                        <td>{{ form.policy_start_date(class="input") }}</td>
+                        <th>{{ form.date_policy_start_date.label }}</th>
+                        <td>{{ form.date_policy_start_date(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.policy_end_date.label }}</th>
-                        <td>{{ form.policy_end_date(class="input") }}</td>
+                        <th>{{ form.date_policy_end_date.label }}</th>
+                        <td>{{ form.date_policy_end_date(class="input") }}</td>
                     </tr>
                     <tr>
                         <th>{{ form.amount_total_paid.label }}</th>
@@ -59,16 +63,18 @@
                         <td>{{ form.date_claim_payment(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.remarks.label }}</th>
-                        <td>{{ form.remarks(class="textarea") }}</td>
+                        <th>{{ form.txt_remarks.label }}</th>
+                        <td>{{ form.txt_remarks(class="textarea") }}</td>
                     </tr>
                 </table>
             </div>
             <div class="column">
                 <table class="table is-fullwidth">
                     <tr>
-                        <th>{{ form.coinsurer_name.label }}</th>
-                        <td>{{ form.coinsurer_name(class="select") }}</td>
+                        <th>{{ form.txt_coinsurer_name.label }}</th>
+                        <td>
+                            <div class="select is-fullwidth">{{ form.txt_coinsurer_name }}</div>
+                        </td>
                     </tr>
                     <tr>
                         <th>{{ form.percent_share.label }}</th>
@@ -79,28 +85,30 @@
                         <td>{{ form.amount_of_share(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.request_id.label }}</th>
-                        <td>{{ form.request_id(class="input") }}</td>
+                        <th>{{ form.txt_request_id.label }}</th>
+                        <td>{{ form.txt_request_id(class="input") }}</td>
                     </tr>
                     <tr>
                         <th>{{ form.date_of_cash_call_raised.label }}</th>
                         <td>{{ form.date_of_cash_call_raised(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.current_status.label }}</th>
-                        <td>{{ form.current_status(class="select") }}</td>
+                        <th>{{ form.txt_current_status.label }}</th>
+                        <td>
+                            <div class="select is-fullwidth">{{ form.txt_current_status }}</div>
+                        </td>
                     </tr>
                     <tr>
-                        <th>{{ form.utr_number.label }}</th>
-                        <td>{{ form.utr_number(class="input") }}</td>
+                        <th>{{ form.txt_utr_number.label }}</th>
+                        <td>{{ form.txt_utr_number(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.date_of_settlement.label }}</th>
-                        <td>{{ form.date_of_settlement(class="input") }}</td>
+                        <th>{{ form.date_of_cash_call_settlement.label }}</th>
+                        <td>{{ form.date_of_cash_call_settlement(class="input") }}</td>
                     </tr>
                     <tr>
-                        <th>{{ form.amount_settled.label }}</th>
-                        <td>{{ form.amount_settled(class="input") }}</td>
+                        <th>{{ form.amount_settlement.label }}</th>
+                        <td>{{ form.amount_settlement(class="input") }}</td>
                     </tr>
 
                 </table>

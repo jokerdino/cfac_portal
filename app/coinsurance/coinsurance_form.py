@@ -140,28 +140,28 @@ class CoinsurerSelectForm(FlaskForm):
 
 
 class CoinsuranceCashCallForm(FlaskForm):
-    hub = SelectField(
+    txt_hub = SelectField(
         "Coinsurance Hub",
         choices=["West Zone", "East Zone", "North Zone", "South Zone"],
         validators=[DataRequired()],
     )
-    ro_code = StringField("Regional Office Code", validators=[DataRequired()])
-    oo_code = StringField("Operating Office Code", validators=[DataRequired()])
+    txt_ro_code = StringField("Regional Office Code", validators=[DataRequired()])
+    txt_oo_code = StringField("Operating Office Code", validators=[DataRequired()])
 
     str_leader_follower = SelectField(
         "Whether United India is leader or follower",
         choices=["Leader", "Follower"],
         validators=[DataRequired()],
     )
-    insured_name = StringField("Name of insured", validators=[DataRequired()])
-    policy_start_date = DateField("Policy start date", validators=[DataRequired()])
-    policy_end_date = DateField("Policy end date", validators=[DataRequired()])
+    txt_insured_name = StringField("Name of insured", validators=[DataRequired()])
+    date_policy_start_date = DateField("Policy start date", validators=[DataRequired()])
+    date_policy_end_date = DateField("Policy end date", validators=[DataRequired()])
 
     amount_total_paid = DecimalField("100% claim amount", validators=[DataRequired()])
-    remarks = TextAreaField("Remarks", validators=[DataRequired()])
+    txt_remarks = TextAreaField("Remarks", validators=[DataRequired()])
     date_claim_payment = DateField("Date of claim payment", validators=[Optional()])
 
-    coinsurer_name = SelectField(
+    txt_coinsurer_name = SelectField(
         "Coinsurer name", choices=coinsurer_list, validators=[DataRequired()]
     )
     percent_share = DecimalField(
@@ -170,21 +170,23 @@ class CoinsuranceCashCallForm(FlaskForm):
     amount_of_share = DecimalField(
         "Amount of share to be settled", validators=[DataRequired()]
     )
-    request_id = StringField("Request ID", validators=[Optional()])
+    txt_request_id = StringField("Request ID", validators=[Optional()])
 
     date_of_cash_call_raised = DateField(
         "Date when cash call was raised", validators=[DataRequired()]
     )
-    current_status = SelectField(
+    txt_current_status = SelectField(
         "Current status",
         validators=[DataRequired()],
         choices=["Pending", "Paid", "Received"],
     )
-    utr_number = StringField("If settled, UTR Number", validators=[Optional()])
-    date_of_settlement = DateField(
+    txt_utr_number = StringField("If settled, UTR Number", validators=[Optional()])
+    date_of_cash_call_settlement = DateField(
         "If settled, date of settlement", validators=[Optional()]
     )
-    amount_settled = DecimalField("If settled, amount settled", validators=[Optional()])
+    amount_settlement = DecimalField(
+        "If settled, amount settled", validators=[Optional()]
+    )
 
 
 class UploadFileForm(FlaskForm):
