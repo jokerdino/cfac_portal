@@ -26,16 +26,18 @@
         <table class="table is-fullwidth is-hoverable">
 
             <tr>
-                <th>{{ form.coinsurer_name.label }}</th>
-                <td>{{ form.coinsurer_name(class="select") }}</td>
+                <th>{{ form.name_of_company.label }}</th>
+                <td>
+                    <div class="select is-fullwidth">{{ form.name_of_company }}</div>
+                </td>
             </tr>
             <tr>
                 <th>{{ form.date_of_settlement.label }}</th>
                 <td>{{ form.date_of_settlement(class="input") }}</td>
             </tr>
             <tr>
-                <th>{{ form.amount_settled.label }}</th>
-                <td>{{ form.amount_settled(class="input") }}</td>
+                <th>{{ form.settled_amount.label }}</th>
+                <td>{{ form.settled_amount(class="input") }}</td>
             </tr>
             <tr>
                 <th>{{ form.utr_number.label }}</th>
@@ -53,8 +55,8 @@
                 </td>
             </tr>
             <tr>
-                <th>{{ form.type_of_settlement.label }}</th>
-                <td>{{ form.type_of_settlement(class=" radio") }}</td>
+                <th>{{ form.type_of_transaction.label }}</th>
+                <td>{{ form.type_of_transaction(class="radio") }}</td>
             </tr>
             <tr>
                 <th>{{ form.notes.label }}</th>

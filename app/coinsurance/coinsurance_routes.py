@@ -992,33 +992,39 @@ def list_settled_coinsurance_entries(utr_number):
 @coinsurance_bp.route("/settlements/list")
 @login_required
 def list_settlement_entries():
-    settlement_entries = Settlement.query.all()
+    from extensions import db
+
+    settlement_entries = db.session.scalars(db.select(Settlement))  # .query.all()
 
     return render_template(
         "list_settlement_entries.html", settlement_entries=settlement_entries
     )
 
 
-@coinsurance_bp.route("/settlements/view/<int:settlement_id>")
+@coinsurance_bp.route("/settlements/view/<int:settlement_id>/")
 @login_required
 def view_settlement_entry(settlement_id):
-    settlement = Settlement.query.get_or_404(settlement_id)
+    from extensions import db
+
+    settlement = db.get_or_404(Settlement, settlement_id)
     return render_template("view_settlement_entry.html", settlement=settlement)
 
 
-@coinsurance_bp.route("/settlements/add_settlement_data", methods=["POST", "GET"])
+@coinsurance_bp.route("/settlements/add_settlement_data/", methods=["POST", "GET"])
 @login_required
 def add_settlement_data():
-    from server import db
+    from extensions import db
 
     form = SettlementForm()
     if form.validate_on_submit():
-        name_of_company = form.data["coinsurer_name"]
-        date_of_settlement = form.data["date_of_settlement"]
-        amount_settled = form.data["amount_settled"]
-        utr_number = form.data["utr_number"]
-        type_of_settlement = form.data["type_of_settlement"]
-        notes = form.data["notes"]
+        # name_of_company = form.data["coinsurer_name"]
+        # date_of_settlement = form.data["date_of_settlement"]
+        # amount_settled = form.data["amount_settled"]
+        # utr_number = form.data["utr_number"]
+        # type_of_settlement = form.data["type_of_settlement"]
+        # notes = form.data["notes"]
+        settlement = Settlement()
+        form.populate_obj(settlement)
         if form.data["settlement_file"]:
             settlement_filename_data = secure_filename(
                 form.data["settlement_file"].filename
@@ -1031,20 +1037,22 @@ def add_settlement_data():
                 + settlement_file_extension
             )
             form.settlement_file.data.save("settlements/" + settlement_filename)
-        else:
-            settlement_filename = None
+            # else:
+            #     settlement_filename = None
 
-        settlement = Settlement(
-            name_of_company=name_of_company,
-            date_of_settlement=date_of_settlement,
-            settled_amount=amount_settled,
-            file_settlement_file=settlement_filename,
-            utr_number=utr_number,
-            type_of_transaction=type_of_settlement,
-            notes=notes,
-            created_by=current_user.username,
-            created_on=datetime.now(),
-        )
+            settlement.file_settlement = settlement_filename
+
+        # settlement = Settlement(
+        #     name_of_company=name_of_company,
+        #     date_of_settlement=date_of_settlement,
+        #     settled_amount=amount_settled,
+        #     file_settlement_file=settlement_filename,
+        #     utr_number=utr_number,
+        #     type_of_transaction=type_of_settlement,
+        #     notes=notes,
+        #     created_by=current_user.username,
+        #     created_on=datetime.now(),
+        # )
 
         db.session.add(settlement)
         db.session.commit()
@@ -1055,23 +1063,25 @@ def add_settlement_data():
     return render_template("add_settlement_entry.html", form=form)
 
 
-@coinsurance_bp.route("/settlements/edit/<int:settlement_id>", methods=["POST", "GET"])
+@coinsurance_bp.route("/settlements/edit/<int:settlement_id>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_settlement_entry(settlement_id):
     from extensions import db
 
-    settlement = Settlement.query.get_or_404(settlement_id)
-    form = SettlementForm()
+    settlement = db.get_or_404(Settlement, settlement_id)
+    form = SettlementForm(obj=settlement)
     if form.validate_on_submit():
-        settlement.name_of_company = form.coinsurer_name.data
-        settlement.date_of_settlement = form.date_of_settlement.data
-        settlement.settled_amount = form.amount_settled.data
-        settlement.utr_number = form.utr_number.data
-        settlement.type_of_transaction = form.type_of_settlement.data
-        settlement.notes = form.notes.data
-        settlement.updated_by = current_user.username
-        settlement.updated_on = datetime.now()
+        # settlement.name_of_company = form.coinsurer_name.data
+        # settlement.date_of_settlement = form.date_of_settlement.data
+        # settlement.settled_amount = form.amount_settled.data
+        # settlement.utr_number = form.utr_number.data
+        # settlement.type_of_transaction = form.type_of_settlement.data
+        # settlement.notes = form.notes.data
+        # settlement.updated_by = current_user.username
+        # settlement.updated_on = datetime.now()
 
+        form.populate_obj(settlement)
         if form.data["settlement_file"]:
             settlement_filename_data = secure_filename(
                 form.data["settlement_file"].filename
@@ -1090,12 +1100,12 @@ def edit_settlement_entry(settlement_id):
         return redirect(
             url_for("coinsurance.view_settlement_entry", settlement_id=settlement.id)
         )
-    form.coinsurer_name.data = settlement.name_of_company
-    form.date_of_settlement.data = settlement.date_of_settlement
-    form.amount_settled.data = settlement.settled_amount
-    form.utr_number.data = settlement.utr_number
-    form.type_of_settlement.data = settlement.type_of_transaction
-    form.notes.data = settlement.notes
+    # form.coinsurer_name.data = settlement.name_of_company
+    # form.date_of_settlement.data = settlement.date_of_settlement
+    # form.amount_settled.data = settlement.settled_amount
+    # form.utr_number.data = settlement.utr_number
+    # form.type_of_settlement.data = settlement.type_of_transaction
+    # form.notes.data = settlement.notes
     return render_template(
         "add_settlement_entry.html", form=form, edit=True, settlement=settlement
     )
@@ -1115,6 +1125,7 @@ def view_coinsurance_log(coinsurance_id):
 
 @coinsurance_bp.route("/upload_balances", methods=["POST", "GET"])
 @login_required
+@admin_required
 def upload_coinsurance_balance():
     if request.method == "POST":
         file_upload_coinsurance_balance = request.files.get("file")
@@ -1235,19 +1246,6 @@ def query_view_coinsurance_balance():
     )
 
 
-# @coinsurance_bp.route("/view_coinsurance_balance/<string:period>")
-# @login_required
-# def view_coinsurance_balance(period):
-#     coinsurance_balance = CoinsuranceBalances.query.filter(
-#         CoinsuranceBalances.period == period
-#     )
-#     return render_template(
-#         "view_coinsurance_balance.html",
-#         coinsurance_balance=coinsurance_balance,
-#         period=period,
-#     )
-
-
 @coinsurance_bp.route("/cash_call/add", methods=["POST", "GET"])
 @login_required
 def add_cash_call():
@@ -1294,17 +1292,19 @@ def add_cash_call():
 @coinsurance_bp.route("/cash_call/view/<int:cash_call_key>")
 @login_required
 def view_cash_call(cash_call_key):
-    cash_call = CoinsuranceCashCall.query.get_or_404(cash_call_key)
+    from extensions import db
+
+    cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
     return render_template("cash_call_view.html", cash_call=cash_call)
 
 
 @coinsurance_bp.route("/cash_call/list/<string:status>")
 @login_required
 def list_cash_calls(status="all"):
+    from extensions import db
 
-    list = CoinsuranceCashCall.query.order_by(
-        CoinsuranceCashCall.date_of_cash_call_raised.asc()
-    )
+    list = db.session.scalars(db.select(CoinsuranceCashCall))
+
     return render_template("cash_call_list.html", list=list)
 
 
@@ -1385,8 +1385,6 @@ def edit_cash_call(cash_call_key):
 
 
 # bulk upload cash calls
-
-
 @coinsurance_bp.route("/cash_call/bulk_upload", methods=["POST", "GET"])
 @login_required
 def bulk_upload_cash_call():
@@ -1714,7 +1712,9 @@ def list_bank_mandates():
     from extensions import db
 
     bank_mandates = db.session.scalars(
-        db.select(CoinsuranceBankMandate).order_by(CoinsuranceBankMandate.company_name)
+        db.select(
+            CoinsuranceBankMandate
+        )  # .order_by(CoinsuranceBankMandate.company_name)
     )  # .scalars()
 
     return render_template("bank_mandate_list.html", bank_mandates=bank_mandates)

@@ -111,17 +111,17 @@ class CoinsuranceForm(FlaskForm):
 
 
 class SettlementForm(FlaskForm):
-    coinsurer_name = SelectField(
+    name_of_company = SelectField(
         "Enter coinsurer name", choices=coinsurer_list, validators=[DataRequired()]
     )
-    date_of_settlement = DateField("Date of settlement", validators=[DataRequired()])
-    amount_settled = DecimalField("Amount settled", validators=[DataRequired()])
+    date_of_settlement = DateField(validators=[DataRequired()])
+    settled_amount = DecimalField(validators=[DataRequired()])
     utr_number = StringField("UTR number", validators=[DataRequired()])
     settlement_file = FileField("Upload summary statement")
-    type_of_settlement = RadioField(
+    type_of_transaction = RadioField(
         "Paid or received", choices=["Paid", "Received"], validators=[DataRequired()]
     )
-    notes = TextAreaField("Notes", validators=[Optional()])
+    notes = TextAreaField(validators=[Optional()])
 
 
 class SettlementUTRForm(FlaskForm):

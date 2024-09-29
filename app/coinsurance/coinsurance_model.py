@@ -106,11 +106,11 @@ class Settlement(db.Model):
     type_of_transaction = db.Column(db.String)
     notes = db.Column(db.Text)
 
-    created_by = db.Column(db.String)
-    created_on = db.Column(db.DateTime)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
 
-    updated_by = db.Column(db.String)
-    updated_on = db.Column(db.DateTime)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
     deleted_by = db.Column(db.String)
     deleted_on = db.Column(db.DateTime)
