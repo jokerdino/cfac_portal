@@ -19,16 +19,19 @@ class TicketsForm(FlaskForm):
     department = SelectField(
         "Select department",
         choices=[
-            ("Coinsurance","Coinsurance"),
-            ("GST","GST"),
-            ("TDS","TDS"),
-            ("Payment gateway","Payment gateway"),
+            ("Coinsurance", "Coinsurance"),
+            ("GST", "GST"),
+            ("TDS", "TDS"),
+            ("Payment gateway", "Payment gateway"),
             ("Centralised cheque", "Centralised cheque"),
-            ("Claims","Claims"),
-            ("Voucher cancellation","Voucher cancellation (other than centralised SWD)"),
-            ("NEFT rejection","NEFT rejection"),
-            ("JV for blocked GL codes","JV for blocked GL codes"),
-            ("Others","Others")
+            ("Claims", "Claims"),
+            (
+                "Voucher cancellation",
+                "Voucher cancellation (other than centralised SWD)",
+            ),
+            ("NEFT rejection", "NEFT rejection"),
+            ("JV for blocked GL codes", "JV for blocked GL codes"),
+            ("Others", "Others"),
         ],
     )
     status = SelectField(
@@ -46,5 +49,6 @@ class TicketsForm(FlaskForm):
         "Regional Incharge approval is available", validators=[DataRequired()]
     )
 
+
 class TicketFilterForm(FlaskForm):
-    department = SelectField("Filter by department")
+    department = SelectField()

@@ -10,38 +10,41 @@
 
 <div class="container is-fluid">
     <div class="mt-5 columns">
-        <div class="column is-half"></div>
+        <div class="column is-half">
+            <form method="post" action="">
+                {{ form.csrf_token }}
+
+                <table class="table">
+                    <tr>
+                        <th class="is-vcentered">{{ form.department.label }}</th>
+                        <td>
+                            <div class="select">{{ form.department }}</div>
+                        </td>
+                        <td> <button class="button is-success is-outlined">Filter</button></td>
+                    </tr>
+                </table>
+            </form>
+
+        </div>
         <div class="column is-one-quarter"></div>
         <div class="column is-one-quarter">
             <table class="table is-bordered">
 
                 <tr>
-                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='premium') }}">Download
-                            Premium /
-                            claims JV
-                            Format</a>
+                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='premium') }}">
+                            Download Premium / claims JV Format</a>
                     </td>
 
                 </tr>
                 <tr>
-                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='bulk') }}">Download Bulk
-                            JV
-                            Format</a>
+                    <td><a href="{{ url_for('tickets.download_jv_format', requirement='bulk') }}">
+                            Download Bulk JV Format</a>
                     </td>
-
                 </tr>
-
             </table>
         </div>
-
     </div>
-    <form method="post" action="">
-        {{ form.csrf_token }}
-        {{ form.department.label }} {{ form.department(class="select") }} <button
-            class="button is-small is-success is-outlined">Filter</button>
-    </form>
-</div>
-<div class="container is-fluid">
+
     <table class="table is-bordered is-hoverable is-fullwidth" id="tickets_table">
 
         <thead>

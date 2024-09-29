@@ -153,6 +153,7 @@ def tickets_homepage(department):
         department = form.data["department"]
         return redirect(url_for("tickets.tickets_homepage", department=department))
 
+    form.department.data = department
     return render_template(
         "tickets_homepage.html",
         tickets=tickets,
@@ -185,6 +186,7 @@ def filter_by_status(status, department):
             url_for("tickets.filter_by_status", status=status, department=department)
         )
 
+    form.department.data = department
     return render_template(
         "tickets_homepage.html",
         tickets=tickets,

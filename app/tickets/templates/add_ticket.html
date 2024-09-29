@@ -45,13 +45,16 @@
             </tr>
             <tr>
                 <th>{{ form.department.label }}</th>
-                <td>{{ form.department(class="select") }}</td>
+                <td>
+                    <div class="select is-fullwidth">{{ form.department }}</div>
+                </td>
             </tr>
             <tr>
                 <th>{{ form.status.label }}</th>
                 <td>
-
-                    {{ form.status(class="select") }}
+                    <div class="select is-fullwidth">
+                        {{ form.status }}
+                    </div>
 
                 </td>
             </tr>
