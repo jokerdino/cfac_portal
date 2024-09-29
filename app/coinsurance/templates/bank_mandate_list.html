@@ -1,0 +1,57 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title">List of bank mandates</h1>
+    <table class="table is-bordered" id="bank_mandate_table">
+        <thead>
+            <tr>
+                <th>Company name</th>
+                <th>Office code</th>
+                <th>Bank name</th>
+                <th>IFSC code</th>
+                <th>Bank account number</th>
+                <th>Bank mandate</th>
+                <th>Remarks</th>
+                {% if current_user.user_type == "admin" %}
+                <th>Edit</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in bank_mandates %}
+            <tr>
+                <td>{{ entry['company_name'] }}</td>
+                <td>{{ entry['office_code'] }}</td>
+                <td>{{ entry['bank_name'] }}</td>
+                <td>{{ entry['ifsc_code'] }}</td>
+                <td>{{ entry['bank_account_number'] }}</td>
+                <td>{% if entry['bank_mandate'] %}<a class="button is-small is-success is-outlined"
+                        href="{{ url_for('coinsurance.download_bank_mandate', key=entry['id']) }}">Download</a>
+                    {% endif %}</td>
+                <td>{{ entry['remarks'] }}</td>
+                {% if current_user.user_type == "admin" %}
+                <td><a class="button is-small is-link"
+                        href="{{ url_for('coinsurance.edit_bank_mandate', key=entry['id']) }}">Edit</a></td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+    new DataTable('#bank_mandate_table', {
+        layout: {
+            topStart: 'buttons',
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}

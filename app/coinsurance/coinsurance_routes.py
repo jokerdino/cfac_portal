@@ -29,6 +29,7 @@ from app.coinsurance.coinsurance_form import (
     UploadFileForm,
     QueryForm,
     CoinsuranceBalanceForm,
+    CoinsuranceBankMandateForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -37,6 +38,7 @@ from app.coinsurance.coinsurance_model import (
     Settlement,
     CoinsuranceBalances,
     CoinsuranceCashCall,
+    CoinsuranceBankMandate,
 )
 
 from app.funds.funds_model import FundBankStatement
@@ -1614,3 +1616,98 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
     pivot_df_merged_office["Period"] = period
 
     return pivot_df_merged_office
+
+
+@coinsurance_bp.route("/bank_mandate/add/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def add_bank_mandate():
+    from extensions import db
+
+    form = CoinsuranceBankMandateForm()
+    if form.validate_on_submit():
+        bank_mandate = CoinsuranceBankMandate()
+        form.populate_obj(bank_mandate)
+        if form.data["bank_mandate_file"]:
+
+            bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
+            bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
+            bank_mandate_filename = (
+                "bank_mandate_"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + bank_mandate_file_extension
+            )
+            form.bank_mandate_file.data.save(
+                "data/coinsurance/bank_mandates/" + bank_mandate_filename
+            )
+            bank_mandate.bank_mandate = bank_mandate_filename
+
+        db.session.add(bank_mandate)
+        db.session.commit()
+
+        return redirect(url_for("coinsurance.list_bank_mandates"))
+    return render_template("bank_mandate_add.html", form=form, title="Add bank mandate")
+
+
+@coinsurance_bp.route("/bank_mandate/edit/<int:key>/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def edit_bank_mandate(key):
+    from extensions import db
+
+    bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
+    form = CoinsuranceBankMandateForm(obj=bank_mandate)
+
+    if form.validate_on_submit():
+        form.populate_obj(bank_mandate)
+
+        if form.data["bank_mandate_file"]:
+
+            bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
+            bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
+            bank_mandate_filename = (
+                "bank_mandate_"
+                + datetime.now().strftime("%d%m%Y %H%M%S")
+                + "."
+                + bank_mandate_file_extension
+            )
+            form.bank_mandate_file.data.save(
+                "data/coinsurance/bank_mandates/" + bank_mandate_filename
+            )
+            bank_mandate.bank_mandate = bank_mandate_filename
+
+        db.session.commit()
+        return redirect(url_for("coinsurance.list_bank_mandates"))
+    return render_template(
+        "bank_mandate_add.html",
+        form=form,
+        bank_mandate=bank_mandate,
+        title="Edit bank mandate",
+    )
+
+
+@coinsurance_bp.route("/bank_mandate/download/<int:key>/")
+@login_required
+def download_bank_mandate(key):
+    from extensions import db
+
+    bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
+    return send_from_directory(
+        directory="data/coinsurance/bank_mandates/",
+        path=bank_mandate.bank_mandate,
+        download_name=f"{bank_mandate.company_name}_{bank_mandate.office_code}_{bank_mandate.bank_name}_{bank_mandate.bank_account_number [-5:]}.pdf",
+        as_attachment=True,
+    )
+
+
+@coinsurance_bp.route("/bank_mandate/")
+@login_required
+def list_bank_mandates():
+    from extensions import db
+
+    bank_mandates = db.session.scalars(
+        db.select(CoinsuranceBankMandate).order_by(CoinsuranceBankMandate.company_name)
+    )  # .scalars()
+
+    return render_template("bank_mandate_list.html", bank_mandates=bank_mandates)

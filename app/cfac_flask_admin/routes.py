@@ -26,6 +26,7 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceCashCall,
     Remarks,
     Settlement,
+    CoinsuranceBankMandate,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
@@ -137,6 +138,15 @@ admin.add_view(
         CoinsuranceCashCall,
         db.session,
         endpoint="coinsurance_cashcall",
+        category="Coinsurance",
+    )
+)
+
+admin.add_view(
+    ModelView(
+        CoinsuranceBankMandate,
+        db.session,
+        endpoint="coinsurance_bankmandate",
         category="Coinsurance",
     )
 )

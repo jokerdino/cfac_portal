@@ -1,4 +1,7 @@
+from datetime import datetime
+from dataclasses import dataclass
 from extensions import db
+from flask_login import current_user
 
 
 class Coinsurance(db.Model):
@@ -215,3 +218,24 @@ class CoinsuranceCashCall(db.Model):
 
     deleted_by = db.Column(db.String)
     deleted_on = db.Column(db.DateTime)
+
+
+@dataclass
+class CoinsuranceBankMandate(db.Model):
+
+    id: int = db.Column(db.Integer, primary_key=True)
+
+    company_name: str = db.Column(db.String)
+    office_code: str = db.Column(db.String)
+    bank_name: str = db.Column(db.String)
+    ifsc_code: str = db.Column(db.String)
+    bank_account_number: str = db.Column(db.String)
+    bank_mandate: str = db.Column(db.String)
+
+    remarks: str = db.Column(db.Text)
+
+    created_by: str = db.Column(db.String, default=lambda: current_user.username)
+    created_on: datetime.time = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by: str = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on: datetime.time = db.Column(db.DateTime, onupdate=datetime.now)

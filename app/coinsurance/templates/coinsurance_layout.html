@@ -74,11 +74,18 @@
 
                         </div>
                     </div>
-
-                    <a class="navbar-item" href="{{ url_for('coinsurance.query_coinsurance_entries') }}">Query
-                        coinsurance confirmations</a>
-
-                    <a class="navbar-item">Bank mandates</a>
+                    <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link">Bank mandates</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('coinsurance.list_bank_mandates') }}">View bank
+                                mandates</a>
+                            {% if current_user.user_type in ["admin"] %}
+                            <a class="navbar-item" href="{{ url_for('coinsurance.add_bank_mandate') }}">Add bank
+                                mandate</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <a class="navbar-item" href="{{ url_for('coinsurance.query_coinsurance_entries') }}">Filter
+                        confirmations</a>
                     {% endif %}
 
                 </div>

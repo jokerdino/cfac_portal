@@ -12,7 +12,7 @@ from wtforms import (
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired, Optional, Regexp
 
 coinsurer_list = [
     "National",
@@ -206,3 +206,25 @@ class CoinsuranceBalanceForm(FlaskForm):
         "Upload Flag sheet", validators=[FileRequired(), FileAllowed(["xlsx"])]
     )
     upload_document = SubmitField("Upload")
+
+
+class CoinsuranceBankMandateForm(FlaskForm):
+
+    company_name = SelectField(choices=coinsurer_list, validators=[DataRequired()])
+    office_code = StringField(validators=[DataRequired()])
+
+    bank_name = StringField(validators=[DataRequired()])
+    ifsc_code = StringField(
+        "IFSC Code",
+        validators=[
+            DataRequired(),
+            Regexp(
+                "^[A-Z]{4}0[A-Z0-9a-z]{6}$",
+                message="Please enter IFSC code in correct pattern.",
+            ),
+        ],
+    )
+    bank_account_number = StringField(validators=[DataRequired()])
+
+    bank_mandate_file = FileField(validators=[FileAllowed(["pdf"])])
+    remarks = TextAreaField()
