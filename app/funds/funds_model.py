@@ -1,17 +1,20 @@
+from datetime import datetime
+from dataclasses import dataclass
 from extensions import db
 
 
+@dataclass
 class FundBankStatement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_uploaded_date = db.Column(db.Date)
 
     book_date = db.Column(db.Date)
-    description = db.Column(db.Text)
+    description: str = db.Column(db.Text)
     ledger_balance = db.Column(db.Numeric(20, 2))
-    credit = db.Column(db.Numeric(20, 2))
+    credit: float = db.Column(db.Numeric(20, 2))
     debit = db.Column(db.Numeric(20, 2))
-    value_date = db.Column(db.Date)
-    reference_no = db.Column(db.String)
+    value_date: datetime.date = db.Column(db.Date)
+    reference_no: str = db.Column(db.String)
     transaction_branch = db.Column(db.Text)
 
     flag_description = db.Column(db.Text)

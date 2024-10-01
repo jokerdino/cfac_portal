@@ -37,25 +37,17 @@
 
     {% if current_user.user_type in ["admin", "coinsurance_hub_user"] %}
 
-    <h3 class="title is-size-5">Last 50 credits received in HDFC Pool account</h3>
-    <table class="table is-bordered is-hoverable" id="coinsurance_table">
+    <h3 class="title is-size-5">Credits received in HDFC Pool account</h3>
+    <table class="table is-bordered is-striped is-hoverable is-fullwidth" id="coinsurance_credits_table">
         <thead>
             <tr>
-                <th>Value date</th>
-                <th>Description</th>
-                <th>Credit</th>
-                <th>Reference number</th>
+                <th class="has-text-centered is-vcentered">Value date</th>
+                <th class="has-text-centered is-vcentered">Description</th>
+                <th class="has-text-centered is-vcentered">Credit</th>
+                <th class="has-text-centered is-vcentered">Reference number</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>{% for item in fund_query %}
-                <td data-sort="{{ item.value_date }}">{{ item.value_date.strftime("%d/%m/%Y") }}</td>
-                <td>{{ item.description }}</td>
-                <td class="has-text-right">{{ item.credit|indian_number_format }}</td>
-                <td>{{ item.reference_no }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
+
     </table>
     {% endif %}
 
@@ -86,28 +78,43 @@
     <div class="mb-5"></div>
 </div>
 {% block scripts %}
+
+<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='momentum.2.30.1.js') }}"></script>
+
 <script>
+    $(document).ready(function () {
+        new DataTable('#coinsurance_credits_table', {
+            ajax: "{{ url_for('coinsurance.get_coinsurance_receipts') }}",
+            serverSide: true,
+            //stateSave: true,
+            processing: true,
+            ordering: false,
 
-    new DataTable('#coinsurance_table', {
-        //        dom: 'lfBrtip',
-        layout: {
-            top1start: 'pageLength',
-            topStart: 'buttons',
+            layout: {
+                topStart: 'pageLength',
+                top2Start: {
+                    buttons: [
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+                }
+            },
 
-        },
-        fixedHeader: true,
-        buttons: [
-            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[9, 'desc']],
-        pagingType: 'full_numbers',
-        pageLength: 10,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],]
+            columns: [
+                {
+                    data: 'value_date',
+                    className: 'dt-body-center',
+                    render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
+                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
+
+                },
+                { data: 'description' },
+                { data: 'credit', className: 'dt-body-right', },
+                { data: 'reference_no' },
+
+            ],
+        });
     });
-
 </script>
 
 {% endblock scripts %}

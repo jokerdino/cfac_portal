@@ -1,8 +1,10 @@
 from datetime import datetime
+from dataclasses import asdict
+
 import pandas as pd
 import numpy as np
 
-from sqlalchemy import func, distinct, select, create_engine, case
+from sqlalchemy import func, distinct, select, create_engine, case, String, cast
 
 from flask import (
     current_app,
@@ -161,19 +163,77 @@ def home_page():
             func.date_trunc("year", Settlement.date_of_settlement).desc(),
         )
     )
-    fund_query = (
-        FundBankStatement.query.filter(
-            FundBankStatement.flag_description == "COINSURANCE"
-        )
-        .order_by(FundBankStatement.book_date.desc())
-        .limit(50)
-    )
+    # fund_query = (
+    #     FundBankStatement.query.filter(
+    #         FundBankStatement.flag_description == "COINSURANCE"
+    #     )
+    #     .order_by(FundBankStatement.id.desc())
+    #     .limit(50)
+    # )
     return render_template(
         "coinsurance_home.html",
         dashboard=query,
         settlement_query=settlement_query,
-        fund_query=fund_query,
+        # fund_query=fund_query,
     )
+
+
+@coinsurance_bp.route("/api/data/funds/", methods=["GET"])
+@login_required
+def get_coinsurance_receipts():
+    from extensions import db
+
+    entries = (
+        db.session.query(FundBankStatement)
+        .filter(FundBankStatement.flag_description == "COINSURANCE")
+        .order_by(FundBankStatement.id.desc())
+    )
+
+    entries_count = entries.count()
+
+    # search filter
+    search = request.args.get("search[value]")
+    if search:
+        entries = entries.filter(
+            db.or_(
+                cast(FundBankStatement.book_date, String).like(f"%{search}%"),
+                FundBankStatement.description.ilike(f"%{search}%"),
+                cast(FundBankStatement.credit, String).like(f"%{search}%"),
+                FundBankStatement.reference_no.ilike(f"%{search}%"),
+            )
+        )
+
+    total_filtered = entries.count()
+
+    # sorting
+    # order = []
+    # i = 0
+    # while True:
+    #     col_index = request.args.get(f"order[{i}][column]")
+    #     if col_index is None:
+    #         break
+    #     col_name = request.args.get(f"columns[{col_index}][data]")
+    #     descending = request.args.get(f"order[{i}][dir]") == "desc"
+    #     col = getattr(FundBankStatement, col_name)
+    #     if descending:
+    #         col = col.desc()
+    #     order.append(col)
+    #     i += 1
+    # if order:
+    #     entries = entries.order_by(*order)
+
+    # pagination
+    start = request.args.get("start", type=int)
+    length = request.args.get("length", type=int)
+    entries = entries.offset(start).limit(length)
+
+    # response
+    return {
+        "data": [asdict(entry) for entry in entries],
+        "recordsFiltered": total_filtered,
+        "recordsTotal": entries_count,
+        "draw": request.args.get("draw", type=int),
+    }
 
 
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
