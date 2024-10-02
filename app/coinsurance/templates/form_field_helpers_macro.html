@@ -30,11 +30,11 @@
     <div class="control">
 
         {% if field.type == "TextAreaField" %}
-        {{ field(class="textarea") }}
+        {{ field(class="textarea", placeholder=field.description) }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field }}</div>
         {% else %}
-        {{ field(class="input") }}
+        {{ field(class="input", placeholder=field.description) }}
         {% endif %}
 
     </div>
