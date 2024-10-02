@@ -1,6 +1,9 @@
-from datetime import datetime
+import re
+
+from datetime import datetime, timedelta
 from dataclasses import asdict
 
+import requests
 import pandas as pd
 import numpy as np
 
@@ -32,6 +35,7 @@ from app.coinsurance.coinsurance_form import (
     QueryForm,
     CoinsuranceBalanceForm,
     CoinsuranceBankMandateForm,
+    CoinsuranceReceiptsForm,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -41,6 +45,7 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceBalances,
     CoinsuranceCashCall,
     CoinsuranceBankMandate,
+    CoinsuranceReceipts,
 )
 
 from app.funds.funds_model import FundBankStatement
@@ -178,8 +183,48 @@ def home_page():
     )
 
 
+@coinsurance_bp.route("/fetch_receipts/")
+def fetch_receipts():
+
+    current_time = datetime.now()
+
+    bool_old = request.args.get("old")
+
+    prev_time = current_time - timedelta(hours=1)
+    if bool_old:
+        prev_time = current_time - timedelta(days=300)
+    response = requests.get(
+        f"http://0.0.0.0:8080/coinsurance/api/data/funds/?created_after={prev_time}"
+    )
+
+    # response = requests.get(
+    #     "http://0.0.0.0:8080/coinsurance/api/data/funds/?after=2024-09-11T15:11:11Z"
+    # )
+
+    receipts = response.json()
+    from extensions import db
+
+    receipt_entries = []
+    for receipt in receipts["data"]:
+        receipt["transaction_code"] = re.findall(
+            r"UII688COINS[a-zA-Z0-9]{6}", receipt["description"]
+        )[0]
+        receipt["company_name"] = receipt["description"].split(
+            receipt["transaction_code"]
+        )[1]
+
+        new_entry = CoinsuranceReceipts(
+            **receipt,
+            status="Pending",
+            created_by="API",
+        )
+        receipt_entries.append(new_entry)
+    db.session.add_all(receipt_entries)
+    db.session.commit()
+    return response.json()
+
+
 @coinsurance_bp.route("/api/data/funds/", methods=["GET"])
-@login_required
 def get_coinsurance_receipts():
     from extensions import db
 
@@ -188,6 +233,10 @@ def get_coinsurance_receipts():
         .filter(FundBankStatement.flag_description == "COINSURANCE")
         .order_by(FundBankStatement.id.desc())
     )
+
+    created_after = request.args.get("created_after")
+    if created_after:
+        entries = entries.filter(FundBankStatement.date_created_date > created_after)
 
     entries_count = entries.count()
 
@@ -234,6 +283,36 @@ def get_coinsurance_receipts():
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
     }
+
+
+@coinsurance_bp.route("/receipts/edit/<int:id>", methods=["POST", "GET"])
+@login_required
+@admin_required
+def edit_coinsurance_receipts(id):
+
+    from extensions import db
+
+    receipt = db.get_or_404(CoinsuranceReceipts, id)
+    form = CoinsuranceReceiptsForm(obj=receipt)
+
+    if form.validate_on_submit():
+
+        form.populate_obj(receipt)
+        db.session.commit()
+        return redirect(url_for("coinsurance.list_coinsurance_receipts"))
+    return render_template(
+        "coinsurance_receipts_edit_macro.html", form=form, receipt=receipt
+    )
+
+
+@coinsurance_bp.route("/receipts/")
+@login_required
+@admin_required
+def list_coinsurance_receipts():
+    from extensions import db
+
+    receipts = db.session.scalars(db.select(CoinsuranceReceipts))
+    return render_template("coinsurance_receipts_list.html", receipts=receipts)
 
 
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])

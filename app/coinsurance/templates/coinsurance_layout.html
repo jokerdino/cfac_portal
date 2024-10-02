@@ -87,6 +87,10 @@
                     <a class="navbar-item" href="{{ url_for('coinsurance.query_coinsurance_entries') }}">Filter
                         confirmations</a>
                     {% endif %}
+                    {% if current_user.user_type in ["admin"] %}
+                    <a class="navbar-item" href="{{ url_for('coinsurance.list_coinsurance_receipts') }}">Receipts
+                        tracker</a>
+                    {% endif %}
 
                 </div>
             </div>

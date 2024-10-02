@@ -1,0 +1,65 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+<div class="container is-flexible mb-5">
+    <h1 class="title">Coinsurance receipts tracker</h1>
+    <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_table">
+        <thead>
+            <tr>
+
+                <th>Value date</th>
+                <th>Company name</th>
+                <th>Credit</th>
+                <th>Reference No</th>
+                <th>Transaction Code</th>
+                <th>Remarks</th>
+                <th>Status</th>
+                <th>Receipting office</th>
+                <th>Date of receipt</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in receipts %}
+            <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
+                <td>{{ entry['value_date'] }}</td>
+                <td>{{ entry['company_name'] }}</td>
+                <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
+                <td>{{ entry['reference_no'] }}</td>
+                <td>{{ entry['transaction_code'] }}</td>
+                <td>{{ entry['remarks'] or "" }}</td>
+                <td>{{ entry['status'] or "" }}</td>
+                <td>{{ entry['receipting_office'] or "" }}</td>
+                <td>{{ entry['date_of_receipt'] or "" }}</td>
+                <td><a class="button is-link is-small"
+                        href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id'] )}}">Edit</a></td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+    new DataTable('#coinsurance_receipts_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        fixedHeader: true,
+        order: [[0, 'desc']],
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+        pagingType: 'full_numbers',
+        pageLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}

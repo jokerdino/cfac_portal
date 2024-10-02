@@ -1,0 +1,57 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div %}
+<div class="container">
+
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-bordered">
+            <tr>
+                <th>Description</th>
+                <td>{{ receipt.description }}</td>
+            </tr>
+            <tr>
+                <th>Company name</th>
+                <td>{{ receipt.company_name }}</td>
+            </tr>
+            <tr>
+                <th>Credit</th>
+                <td>{{ receipt.credit }}</td>
+            </tr>
+            <tr>
+                <th>Value date</th>
+                <td>{{ receipt.value_date }}</td>
+            </tr>
+            <tr>
+                <th>Transaction Code</th>
+                <td>{{ receipt.transaction_code }}</td>
+            </tr>
+            <tr>
+                <th>Reference number</th>
+                <td>{{ receipt.reference_no }}</td>
+            </tr>
+        </table>
+        <h1 class="title">Edit coinsurance receipt</h1>
+        <div class="box">
+            {% for field in form if field.widget.input_type != "hidden" %}
+
+            {{ render_field_div(field) }}
+
+            {% endfor %}
+            <div class="has-text-centered">
+                <button class="button is-success">Submit</button>
+            </div>
+        </div>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+{% endblock content %}

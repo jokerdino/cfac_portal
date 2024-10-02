@@ -12,7 +12,7 @@ from wtforms import (
     SubmitField,
     TextAreaField,
 )
-from wtforms.validators import DataRequired, Optional, Regexp
+from wtforms.validators import DataRequired, Optional, Regexp, ValidationError
 
 coinsurer_list = [
     "National",
@@ -230,3 +230,14 @@ class CoinsuranceBankMandateForm(FlaskForm):
 
     bank_mandate_file = FileField(validators=[FileAllowed(["pdf"])])
     remarks = TextAreaField()
+
+
+class CoinsuranceReceiptsForm(FlaskForm):
+
+    remarks = TextAreaField(validators=[Optional()])
+    status = SelectField(choices=["Pending", "Receipted"], validators=[DataRequired()])
+    receipting_office = SelectField(
+        choices=["West", "East", "South", "North", "Head Office"],
+        validators=[Optional()],
+    )
+    date_of_receipt = DateField(validators=[Optional()])

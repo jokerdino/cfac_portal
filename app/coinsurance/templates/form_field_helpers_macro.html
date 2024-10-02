@@ -1,0 +1,51 @@
+{% macro render_field_table(field) %}
+<tr>
+    <th>{{ field.label }} </th>
+
+    <td>
+        {% if field.type == "TextAreaField" %}
+        {{ field(class="textarea") }}
+        {% elif field.type == "SelectField" %}
+        <div class="select is-fullwidth">{{ field }}</div>
+        {% else %}
+        {{ field(class="input") }}
+        {% endif %}
+
+        {% if field.errors %}
+        <div class="notification is-danger is-light">
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </td>
+</tr>
+{% endmacro %}
+
+{% macro render_field_div(field) %}
+
+<div class="field">
+    <label class="label">{{ field.label }}</label>
+    <div class="control">
+
+        {% if field.type == "TextAreaField" %}
+        {{ field(class="textarea") }}
+        {% elif field.type == "SelectField" %}
+        <div class="select is-fullwidth">{{ field }}</div>
+        {% else %}
+        {{ field(class="input") }}
+        {% endif %}
+
+    </div>
+    {% if field.errors %}
+    <div class="notification is-danger is-light">
+        {% for error in field.errors %}
+        {{ error }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+{% endmacro %}

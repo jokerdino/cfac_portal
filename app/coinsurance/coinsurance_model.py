@@ -239,3 +239,24 @@ class CoinsuranceBankMandate(db.Model):
 
     updated_by: str = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on: datetime.time = db.Column(db.DateTime, onupdate=datetime.now)
+
+
+class CoinsuranceReceipts(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    description = db.Column(db.String)
+    company_name = db.Column(db.String)
+    credit = db.Column(db.Float)
+    value_date = db.Column(db.Date)
+    reference_no = db.Column(db.String)  # , unique=True)
+    transaction_code = db.Column(db.String)
+    remarks = db.Column(db.Text)
+    status = db.Column(db.String)
+    receipting_office = db.Column(db.String)
+    date_of_receipt = db.Column(db.Date)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
