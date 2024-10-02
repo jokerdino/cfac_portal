@@ -15,58 +15,56 @@
 
 <body>
     <header>
-        <nav class="navbar has-background-danger-light" aria-label="main navigation">
+        <nav class="navbar has-background-danger-light has-shadow" aria-label="main navigation">
             <div class="navbar-brand">
                 <div class="navbar-start">
-                    <div class="navbar-item">
 
-                        <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                        <a class="navbar-item" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="navbar-item" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
 
-                        {% if current_user.user_type in ["admin", "ro_user"] %}
-                        <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
+                    {% if current_user.user_type in ["admin", "ro_user"] %}
+                    <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
 
-                        <div class="navbar-item has-dropdown is-hoverable">
-                            <a class="navbar-link">List of entries</a>
-                            <div class="navbar-dropdown">
-                                <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
-                                    entries</a>
-                                <a class="navbar-item" href="{{ url_for('brs.list_short_credit_entries') }}">Short
-                                    credit entries</a>
-                                <a class="navbar-item" href="{{ url_for('brs.list_excess_credit_entries') }}">Excess
-                                    credit entries</a>
-                            </div>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">List of entries</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
+                                entries</a>
+                            <a class="navbar-item" href="{{ url_for('brs.list_short_credit_entries') }}">Short
+                                credit entries</a>
+                            <a class="navbar-item" href="{{ url_for('brs.list_excess_credit_entries') }}">Excess
+                                credit entries</a>
                         </div>
-                        {% endif %}
-                        {% if current_user.user_type == "admin" %}
-
-                        <a class="navbar-item" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
-                            entries</a>
-                        <div class="navbar-item has-dropdown is-hoverable">
-                            <a class="navbar-link">Percent completion</a>
-                            <div class="navbar-dropdown">
-                                <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Monthwise percentage
-                                    completion</a>
-                                <a class="navbar-item" href="{{ url_for('brs.get_percent_completion_list') }}">
-                                    Consolidated percentage completion</a>
-                            </div>
-                        </div>
-                        {% endif %}
-                        {% if current_user.username == "bar44515" %}
-
-                        <div class="navbar-item has-dropdown is-hoverable">
-                            <a class="navbar-link">Enable deletion</a>
-                            <div class="navbar-dropdown">
-                                <a class="navbar-item" href="{{ url_for('brs.list_month_deletions') }}">List of
-                                    months for deletion</a>
-                                <a class="navbar-item" href="{{ url_for('brs.enable_month_deletion') }}">Enable
-                                    month deletion
-                                </a>
-                            </div>
-                        </div>
-                        {% endif %}
-
                     </div>
+                    {% endif %}
+                    {% if current_user.user_type == "admin" %}
+
+                    <a class="navbar-item" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
+                        entries</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Percent completion</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Monthwise percentage
+                                completion</a>
+                            <a class="navbar-item" href="{{ url_for('brs.get_percent_completion_list') }}">
+                                Consolidated percentage completion</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if current_user.username == "bar44515" %}
+
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Enable deletion</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('brs.list_month_deletions') }}">List of
+                                months for deletion</a>
+                            <a class="navbar-item" href="{{ url_for('brs.enable_month_deletion') }}">Enable
+                                month deletion
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
 
