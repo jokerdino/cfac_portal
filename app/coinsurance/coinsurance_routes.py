@@ -188,13 +188,9 @@ def fetch_receipts():
 
     current_time = datetime.now()
 
-    bool_old = request.args.get("old")
-
     prev_time = current_time - timedelta(hours=1)
-    if bool_old:
-        prev_time = current_time - timedelta(days=300)
     response = requests.get(
-        f"http://0.0.0.0:8080/coinsurance/api/data/funds/?created_after={prev_time}"
+        f"http://0.0.0.0:8000/coinsurance/api/data/funds/?created_after={prev_time}"
     )
 
     # response = requests.get(
@@ -211,7 +207,7 @@ def fetch_receipts():
         )[0]
         receipt["company_name"] = receipt["description"].split(
             receipt["transaction_code"]
-        )[1]
+        )[1][1:]
 
         new_entry = CoinsuranceReceipts(
             **receipt,

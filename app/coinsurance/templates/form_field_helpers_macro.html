@@ -33,6 +33,8 @@
         {{ field(class="textarea", placeholder=field.description) }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field }}</div>
+        {% elif field.type == "RadioField" %}
+            {{ field }}
         {% else %}
         {{ field(class="input", placeholder=field.description) }}
         {% endif %}

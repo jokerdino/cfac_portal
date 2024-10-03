@@ -234,9 +234,9 @@ class CoinsuranceBankMandateForm(FlaskForm):
 
 class CoinsuranceReceiptsForm(FlaskForm):
 
-    status = SelectField(choices=["Pending", "Receipted"], validators=[DataRequired()])
+    status = RadioField(choices=["Pending", "Receipted"], validators=[DataRequired()])
     receipting_office = SelectField(
-        choices=["West", "East", "South", "North", "Head Office"],
+        choices=["", "South", "West", "East", "North", "Head Office"],
         validators=[Optional()],
     )
     date_of_receipt = DateField(validators=[Optional()])
