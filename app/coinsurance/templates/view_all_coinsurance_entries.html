@@ -6,11 +6,18 @@
 
 <div class="columns">
     <div class="column">
-        <form class="mb-5" method="post" enctype="multipart/form-data">
+        <form class="mb-5" method="post">
             {{ form_select_coinsurer.csrf_token }}
-            {{ form_select_coinsurer.coinsurer_name.label }}: {{ form_select_coinsurer.coinsurer_name(class='select') }}
-
-            {{ form_select_coinsurer.filter_coinsurer(class="button is-success is-outlined is-hoverable is-small") }}
+            <table class="table">
+                <tr>
+                    <th class="is-vcentered">{{ form_select_coinsurer.coinsurer_name.label }}</th>
+                    <td>
+                        <div class="select">{{ form_select_coinsurer.coinsurer_name }}</div>
+                    </td>
+                    <td> {{ form_select_coinsurer.filter_coinsurer(class="button is-success is-outlined is-hoverable")
+                        }}</td>
+                </tr>
+            </table>
         </form>
 
     </div>
@@ -43,9 +50,15 @@
     {% endfor %}
 
     {{ form.csrf_token }}
-    {{ form.utr_number.label }} {{ form.utr_number(class='select') }}
-
-    {{ form.update_settlement(class="ml-5 button is-danger") }}
+    <table class="table">
+        <tr>
+            <th class=" is-vcentered">{{ form.utr_number.label }} </th>
+            <td>
+                <div class="select">{{ form.utr_number }}</div>
+            </td>
+            <td>{{ form.update_settlement(class="ml-5 button is-danger") }}</td>
+        </tr>
+    </table>
 
     {% endif %}
     <table class="table is-striped is-bordered is-hoverable is-fullwidth" id="coinsurance_table">
