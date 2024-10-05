@@ -36,22 +36,20 @@
                 <th>Total claim amount paid</th>
                 <td>{{ cash_call.amount_total_paid|indian_number_format }}</td>
             </tr>
-            <tr>
-                <th>Remarks</th>
-                <td>{{ cash_call.txt_remarks }}</td>
-            </tr>
+
             <tr>
                 <th>Date of claim payment</th>
                 <td>{{ cash_call.date_claim_payment.strftime("%d/%m/%Y") if cash_call.date_claim_payment else "" }}</td>
+            </tr>
+            <tr>
+                <th>Name of coinsurer</th>
+                <td>{{ cash_call.txt_coinsurer_name }}</td>
             </tr>
         </table>
     </div>
     <div class="column">
         <table class="table is-fullwidth">
-            <tr>
-                <th>Name of coinsurer</th>
-                <td>{{ cash_call.txt_coinsurer_name }}</td>
-            </tr>
+
             <tr>
                 <th>Percentage share</th>
                 <td>{{ cash_call.percent_share }}%</td>
@@ -86,6 +84,10 @@
             <tr>
                 <th>Amount of cash call settled</th>
                 <td>{{ cash_call.amount_settlement|indian_number_format if cash_call.amount_settlement else "" }}</td>
+            </tr>
+            <tr>
+                <th>Remarks</th>
+                <td>{{ cash_call.txt_remarks }}</td>
             </tr>
         </table>
     </div>

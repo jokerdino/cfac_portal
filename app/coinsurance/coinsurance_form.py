@@ -148,7 +148,7 @@ class CoinsuranceCashCallForm(FlaskForm):
     txt_ro_code = StringField("Regional Office Code", validators=[DataRequired()])
     txt_oo_code = StringField("Operating Office Code", validators=[DataRequired()])
 
-    str_leader_follower = SelectField(
+    str_leader_follower = RadioField(
         "Whether United India is leader or follower",
         choices=["Leader", "Follower"],
         validators=[DataRequired()],
@@ -158,7 +158,6 @@ class CoinsuranceCashCallForm(FlaskForm):
     date_policy_end_date = DateField("Policy end date", validators=[DataRequired()])
 
     amount_total_paid = DecimalField("100% claim amount", validators=[DataRequired()])
-    txt_remarks = TextAreaField("Remarks", validators=[DataRequired()])
     date_claim_payment = DateField("Date of claim payment", validators=[Optional()])
 
     txt_coinsurer_name = SelectField(
@@ -187,6 +186,11 @@ class CoinsuranceCashCallForm(FlaskForm):
     amount_settlement = DecimalField(
         "If settled, amount settled", validators=[Optional()]
     )
+    txt_remarks = TextAreaField("Remarks", validators=[DataRequired()])
+
+    def validate_date_policy_end_date(self, field):
+        if field.data < self.date_policy_start_date.data:
+            raise ValidationError("End date should not be earlier than start date.")
 
 
 class UploadFileForm(FlaskForm):
