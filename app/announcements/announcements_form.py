@@ -1,9 +1,11 @@
 from flask_wtf import FlaskForm
 from wtforms import TextAreaField, StringField
 
+from wtforms.validators import DataRequired
 
-from wtforms.validators import DataRequired, Optional
 
 class AnnouncementsForm(FlaskForm):
-    title = StringField("Enter title of announcement", validators=[DataRequired()])
-    message = TextAreaField("Enter announcement message", validators=[DataRequired()])
+    txt_title = StringField("Enter title of announcement", validators=[DataRequired()])
+    txt_message = TextAreaField(
+        "Enter announcement message", validators=[DataRequired()]
+    )

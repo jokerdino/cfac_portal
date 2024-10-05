@@ -1,39 +1,33 @@
 {% extends "announcements_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div %}
 <div class="container mt-5">
     <h1 class="title">Add new announcement</h1>
-    {% for field, errors in form.errors.items() %}
+
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="box">
+            {% for field in form if field.widget.input_type != "hidden" %}
+
+            {{ render_field_div(field) }}
+
+            {% endfor %}
+            <div class="has-text-centered">
+                <button class="button is-success">Submit</button>
+            </div>
+        </div>
+
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
     <div class="notification is-danger">
-        {{ field }} {{ ', '.join(errors) }}
+        <p>{{ message }}</p>
     </div>
     {% endfor %}
-</div>
+    {% endif %}
+    {% endwith %}
 </div>
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="notification is-danger">
-    <p>{{ message }}</p>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
-<form method="post">
-    {{ form.csrf_token }}
-    <table class="table is-fullwidth">
-        <tr>
-            <th>{{ form.title.label }}</th>
-            <td>{{ form.title(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.message.label }}</th>
-            <td>{{ form.message(class="textarea") }}</td>
-        </tr>
-    </table>
-    <div class="has-text-centered">
-        <button class="button is-success">Submit</button>
-    </div>
-</form>
-</div>
 {% endblock content %}
