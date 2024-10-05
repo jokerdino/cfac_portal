@@ -10,11 +10,12 @@ class TicketsForm(FlaskForm):
     office_code = StringField("Enter Office Code", validators=[Optional()])
     ticket_number = StringField("Enter HPSM Ticket number", validators=[DataRequired()])
     contact_person = StringField("Contact person name", validators=[DataRequired()])
-    contact_email_address = EmailField(
-        "Contact email address", validators=[DataRequired()]
-    )
     contact_mobile_number = StringField(
         "Contact mobile number", validators=[DataRequired()]
+    )
+
+    contact_email_address = EmailField(
+        "Contact email address", validators=[DataRequired()]
     )
     department = SelectField(
         "Select department",

@@ -1,12 +1,14 @@
 {% macro render_field_table(field) %}
 <tr>
-    <th>{{ field.label }} </th>
+    <th class="is-vcentered">{{ field.label }} </th>
 
     <td>
         {% if field.type == "TextAreaField" %}
         {{ field(class="textarea") }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field }}</div>
+        {% elif field.type in ["BooleanField", "RadioField"] %}
+        {{ field }}
         {% else %}
         {{ field(class="input") }}
         {% endif %}
@@ -33,8 +35,8 @@
         {{ field(class="textarea", placeholder=field.description) }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field }}</div>
-        {% elif field.type == "RadioField" %}
-            {{ field }}
+        {% elif field.type in ["RadioField", "BooleanField"] %}
+        {{ field }}
         {% else %}
         {{ field(class="input", placeholder=field.description) }}
         {% endif %}
