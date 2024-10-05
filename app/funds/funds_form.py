@@ -13,8 +13,12 @@ from wtforms import (
 from wtforms.validators import DataRequired, Optional, ValidationError
 
 
-def num_of_days(date1, date2):
-    return (date2 - date1).days
+# def num_of_days(date1, date2):
+#    return (date2 - date1).days
+
+
+def verify_months(start_date, end_date):
+    return end_date.month - start_date.month
 
 
 class ReportsForm(FlaskForm):
@@ -32,14 +36,17 @@ class ReportsForm(FlaskForm):
 
 
 class FundsJVForm(FlaskForm):
-    start_date = DateField("Enter start date", validators=[Optional()])
-    end_date = DateField("Enter end date", validators=[Optional()])
+    start_date = DateField("Enter start date", validators=[DataRequired()])
+    end_date = DateField("Enter end date", validators=[DataRequired()])
 
     def validate_end_date(self, field):
         if field.data < self.start_date.data:
             raise ValidationError("End date should not be earlier than start date.")
-        if (num_of_days(self.start_date.data, field.data) + 1) > 7:
-            raise ValidationError("Maximum date range allowed is 7 days.")
+        # if (num_of_days(self.start_date.data, field.data) + 1) > 7:
+        #    raise ValidationError("Maximum date range allowed is 7 days.")
+
+        if verify_months(self.start_date.data, field.data) > 0:
+            raise ValidationError("Start date and end date must be in same month.")
 
 
 class UploadFileForm(FlaskForm):

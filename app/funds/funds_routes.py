@@ -1439,7 +1439,7 @@ def download_jv():
         else:
             return "no data"
 
-    return render_template("jv_download_jv.html", form=form)
+    return render_template("jv_download_jv_macro.html", form=form)
 
 
 def prepare_jv_flag(engine) -> tuple[pd.DataFrame, list[str]]:
