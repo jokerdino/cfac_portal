@@ -3,10 +3,19 @@
 
 {% if current_user.user_type in ["admin","ro_user"] %}
 
-<form class="mb-5" method="post" enctype="multipart/form-data">
+<form class="mb-5" method="post">
     {{ form.csrf_token }}
-    {{ form.month.label }}: {{ form.month(class='select') }}
-    <button class="is-success is-outlined is-hoverable button is-small">Refresh</button>
+
+    <table class="table">
+        <tr>
+            <th class="is-vcentered">{{ form.month.label }}</th>
+            <td>
+                <div class="select">{{ form.month }}</div>
+            </td>
+            <td> <button class="button is-success is-outlined">Refresh</button></td>
+        </tr>
+    </table>
+
 </form>
 
 <table class="table is-bordered is-hoverable" id="brs_table">

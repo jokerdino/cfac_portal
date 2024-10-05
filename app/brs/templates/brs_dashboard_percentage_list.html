@@ -1,28 +1,26 @@
 {% extends "brs_layout.html" %}
 {% block content %}
-<div class="columns">
-    <div class="container mt-5 mb-5 column is-half">
-        <table class="table" id="brs_percent_table">
-            <thead>
-                <tr>
-                    <th>RO Code</th>
-                    <th>Consolidated percentage</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for ro_code in ro_list %}
-                <tr>
 
-                    <td>{{ ro_code }}</td>
-                    <td class="has-text-right">{{ "%.2f"|format(get_percentage_completion(ro_code) | float) }}%</td>
-
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
+<div class="container mt-5 mb-5 column">
+    <h1 class="title is-size-5">Consolidated BRS completion percentage</h1>
+    <table class=" table" id="brs_percent_table">
+        <thead>
+            <tr>
+                <th>RO Code</th>
+                <th>Consolidated percentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ro_code in ro_list %}
+            <tr>
+                <td>{{ ro_code }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(get_percentage_completion(ro_code) | float) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+
 {% block scripts %}
 <script>
     new DataTable('#brs_percent_table', {

@@ -21,6 +21,8 @@ from flask_weasyprint import HTML, render_pdf
 from flask_login import current_user, login_required
 from sqlalchemy import create_engine, func
 
+from set_view_permissions import admin_required
+
 from app.brs import brs_bp
 from app.brs.models import (
     BRS,
@@ -81,6 +83,7 @@ def brs_ro_wise(ro_code, month):
 
 @brs_bp.route("/percentage", methods=["POST", "GET"])
 @login_required
+@admin_required
 def brs_percentage():
     form = DashboardForm()
 
@@ -1485,6 +1488,8 @@ def get_percent_completion(regional_office_code):
 
 
 @brs_bp.route("/percent_list/")
+@login_required
+@admin_required
 def get_percent_completion_list():
 
     ro_list = [
