@@ -587,56 +587,6 @@ def update_utr_choices(coinsurance, form):
     ]
 
 
-# def show_zones(ro_code):
-#     if ro_code in [
-#         "020000",
-#         "060000",
-#         "120000",
-#         "160000",
-#         "180000",
-#         "190000",
-#         "230000",
-#         "270000",
-#         "500100",
-#         "020051",
-#     ]:
-#         return "West"
-#     elif ro_code in [
-#         "010000",
-#         "050000",
-#         "070000",
-#         "090000",
-#         "100000",
-#         "150000",
-#         "170000",
-#         "240000",
-#         "280000",
-#         "300000",
-#         "500200",
-#         "500400",
-#         "500500",
-#         "050051",
-#     ]:
-#         return "South"
-#     elif ro_code in [
-#         "040000",
-#         "080000",
-#         "110000",
-#         "140000",
-#         "200000",
-#         "220000",
-#         "250000",
-#         "290000",
-#         "500300",
-#         "040051",
-#     ]:
-#         return "North"
-#     elif ro_code in ["030000", "130000", "210000", "260000", "500700", "030051"]:
-#         return "East"
-#     else:
-#         return "NA"
-
-
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
 @login_required
 def edit_coinsurance_entry(coinsurance_id):
@@ -1152,12 +1102,7 @@ def add_settlement_data():
 
     form = SettlementForm()
     if form.validate_on_submit():
-        # name_of_company = form.data["coinsurer_name"]
-        # date_of_settlement = form.data["date_of_settlement"]
-        # amount_settled = form.data["amount_settled"]
-        # utr_number = form.data["utr_number"]
-        # type_of_settlement = form.data["type_of_settlement"]
-        # notes = form.data["notes"]
+
         settlement = Settlement()
         form.populate_obj(settlement)
         if form.data["settlement_file"]:
@@ -1172,22 +1117,8 @@ def add_settlement_data():
                 + settlement_file_extension
             )
             form.settlement_file.data.save("settlements/" + settlement_filename)
-            # else:
-            #     settlement_filename = None
 
             settlement.file_settlement = settlement_filename
-
-        # settlement = Settlement(
-        #     name_of_company=name_of_company,
-        #     date_of_settlement=date_of_settlement,
-        #     settled_amount=amount_settled,
-        #     file_settlement_file=settlement_filename,
-        #     utr_number=utr_number,
-        #     type_of_transaction=type_of_settlement,
-        #     notes=notes,
-        #     created_by=current_user.username,
-        #     created_on=datetime.now(),
-        # )
 
         db.session.add(settlement)
         db.session.commit()
@@ -1207,14 +1138,6 @@ def edit_settlement_entry(settlement_id):
     settlement = db.get_or_404(Settlement, settlement_id)
     form = SettlementForm(obj=settlement)
     if form.validate_on_submit():
-        # settlement.name_of_company = form.coinsurer_name.data
-        # settlement.date_of_settlement = form.date_of_settlement.data
-        # settlement.settled_amount = form.amount_settled.data
-        # settlement.utr_number = form.utr_number.data
-        # settlement.type_of_transaction = form.type_of_settlement.data
-        # settlement.notes = form.notes.data
-        # settlement.updated_by = current_user.username
-        # settlement.updated_on = datetime.now()
 
         form.populate_obj(settlement)
         if form.data["settlement_file"]:
@@ -1235,12 +1158,7 @@ def edit_settlement_entry(settlement_id):
         return redirect(
             url_for("coinsurance.view_settlement_entry", settlement_id=settlement.id)
         )
-    # form.coinsurer_name.data = settlement.name_of_company
-    # form.date_of_settlement.data = settlement.date_of_settlement
-    # form.amount_settled.data = settlement.settled_amount
-    # form.utr_number.data = settlement.utr_number
-    # form.type_of_settlement.data = settlement.type_of_transaction
-    # form.notes.data = settlement.notes
+
     return render_template(
         "add_settlement_entry.html", form=form, edit=True, settlement=settlement
     )
@@ -1391,29 +1309,6 @@ def add_cash_call():
         cash_call = CoinsuranceCashCall()
         form.populate_obj(cash_call)
 
-        # cash_call = CoinsuranceCashCall(
-        #     txt_hub=form.data["hub"],
-        #     txt_ro_code=form.data["ro_code"],
-        #     txt_oo_code=form.data["oo_code"],
-        #     str_leader_follower=form.data["str_leader_follower"],
-        #     txt_insured_name=form.data["insured_name"],
-        #     date_policy_start_date=form.data["policy_start_date"],
-        #     date_policy_end_date=form.data["policy_end_date"],
-        #     amount_total_paid=form.data["amount_total_paid"],
-        #     txt_remarks=form.data["remarks"],
-        #     date_claim_payment=form.data["date_claim_payment"],
-        #     txt_coinsurer_name=form.data["coinsurer_name"],
-        #     percent_share=form.data["percent_share"],
-        #     amount_of_share=form.data["amount_of_share"],
-        #     txt_request_id=form.data["request_id"],
-        #     date_of_cash_call_raised=form.data["date_of_cash_call_raised"],
-        #     txt_current_status=form.data["current_status"],
-        #     txt_utr_number=form.data["utr_number"],
-        #     date_of_cash_call_settlement=form.data["date_of_settlement"],
-        #     amount_settlement=form.data["amount_settled"],
-        #     #      created_by=current_user.username,
-        #     #     created_on=datetime.now(),
-        # )
         db.session.add(cash_call)
 
         db.session.commit()
@@ -1448,71 +1343,16 @@ def list_cash_calls(status="all"):
 def edit_cash_call(cash_call_key):
     from extensions import db
 
-    cash_call = db.get_or_404(
-        CoinsuranceCashCall, cash_call_key
-    )  # .query.get_or_404(cash_call_key)
+    cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
 
     form = CoinsuranceCashCallForm(obj=cash_call)
     if form.validate_on_submit():
         form.populate_obj(cash_call)
 
-        # cash_call.txt_hub = form.hub.data
-        # cash_call.txt_ro_code = form.ro_code.data
-        # cash_call.txt_oo_code = form.oo_code.data
-
-        # cash_call.str_leader_follower = form.str_leader_follower.data
-
-        # cash_call.txt_insured_name = form.insured_name.data
-        # cash_call.date_policy_start_date = form.policy_start_date.data
-        # cash_call.date_policy_end_date = form.policy_end_date.data
-
-        # cash_call.amount_total_paid = form.amount_total_paid.data
-        # cash_call.txt_remarks = form.remarks.data
-        # cash_call.date_claim_payment = form.date_claim_payment.data
-
-        # cash_call.txt_coinsurer_name = form.coinsurer_name.data
-        # cash_call.percent_share = form.percent_share.data
-        # cash_call.amount_of_share = form.amount_of_share.data
-
-        # cash_call.txt_request_id = form.request_id.data
-        # cash_call.date_of_cash_call_raised = form.date_of_cash_call_raised.data
-        # cash_call.txt_current_status = form.current_status.data
-
-        # cash_call.txt_utr_number = form.utr_number.data
-        # cash_call.date_of_cash_call_settlement = form.date_of_settlement.data
-        # cash_call.amount_settlement = form.amount_settled.data
-
-        # cash_call.updated_by = current_user.username
-        # cash_call.updated_on = datetime.now()
-
         db.session.commit()
         return redirect(
             url_for("coinsurance.view_cash_call", cash_call_key=cash_call.id)
         )
-    # form.hub.data = cash_call.txt_hub
-    # form.ro_code.data = cash_call.txt_ro_code
-    # form.oo_code.data = cash_call.txt_oo_code
-
-    # form.str_leader_follower.data = cash_call.str_leader_follower
-    # form.insured_name.data = cash_call.txt_insured_name
-    # form.policy_start_date.data = cash_call.date_policy_start_date
-    # form.policy_end_date.data = cash_call.date_policy_end_date
-
-    # form.amount_total_paid.data = cash_call.amount_total_paid
-    # form.remarks.data = cash_call.txt_remarks
-    # form.date_claim_payment.data = cash_call.date_claim_payment
-
-    # form.coinsurer_name.data = cash_call.txt_coinsurer_name
-    # form.percent_share.data = cash_call.percent_share
-    # form.amount_of_share.data = cash_call.amount_of_share
-
-    # form.request_id.data = cash_call.txt_request_id
-    # form.date_of_cash_call_raised.data = cash_call.date_of_cash_call_raised
-    # form.current_status.data = cash_call.txt_current_status
-
-    # form.utr_number.data = cash_call.txt_utr_number
-    # form.date_of_settlement.data = cash_call.date_of_cash_call_settlement
-    # form.amount_settled.data = cash_call.amount_settlement
 
     return render_template(
         "cash_call_add.html", form=form, title="Edit cash call details"
