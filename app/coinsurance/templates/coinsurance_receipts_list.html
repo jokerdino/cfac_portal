@@ -30,7 +30,7 @@
                 <td>{{ entry['status'] or "" }}</td>
                 <td>{{ entry['receipting_office'] or "" }}</td>
                 <td>{{ entry['date_of_receipt'] or "" }}</td>
-                <td><a class="button is-link is-small"
+                <td><a class="button is-link is-small" target="_blank"
                         href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id'] )}}">Edit</a></td>
 
             </tr>
@@ -47,7 +47,8 @@
             topStart: 'buttons',
 
         },
-        fixedHeader: true,
+        stateSave: true,
+        // fixedHeader: true,
         order: [[0, 'desc']],
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },

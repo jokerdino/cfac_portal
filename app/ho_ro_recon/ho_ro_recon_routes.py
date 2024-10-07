@@ -377,6 +377,7 @@ def list_recon_summary():
 
 
 def calculate_amount(ro_code):
+
     query = (
         ReconEntries.query.with_entities(func.sum(ReconEntries.amount_recon))
         .filter(ReconEntries.str_regional_office_code == ro_code)
