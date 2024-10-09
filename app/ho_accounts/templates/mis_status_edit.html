@@ -20,7 +20,8 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
-    <form method="post" enctype="multipart/form-data">
+    {% from "form_field_helpers_macro.html" import render_field_table %}
+    <form method="post">
         {{ form.csrf_token }}
         <table class="table">
             <tr>
@@ -29,18 +30,9 @@
             </tr>
 
             {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
-            <tr>
-                <th>{{ form.str_name_of_bank.label }}</th>
-                <td>{{ form.str_name_of_bank(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_purpose.label }}</th>
-                <td>{{ form.str_purpose(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_assigned_to.label }}</th>
-                <td>{{ form.str_assigned_to(class="select") }}</td>
-            </tr>
+            {{ render_field_table(form.str_name_of_bank) }}
+            {{ render_field_table(form.str_purpose) }}
+            {{ render_field_table(form.str_assigned_to) }}
 
             {% else %}
             <tr>
@@ -49,11 +41,11 @@
             </tr>
             <tr>
                 <th>Purpose</th>
-                <td>{{ mis.str_purpose }}</td>
+                <td>{{ mis.str_purpose or "" }}</td>
             </tr>
             <tr>
                 <th>Assigned to</th>
-                <td>{{ mis.str_person }}</td>
+                <td>{{ mis.str_person or "" }}</td>
             </tr>
             {% endif %}
 
@@ -78,10 +70,7 @@
                 <td>{{ mis.str_customer_id }}</td>
             </tr>
 
-            <tr>
-                <th>{{ form.boolean_mis_shared.label }}</th>
-                <td>{{ form.boolean_mis_shared }}</td>
-            </tr>
+            {{ render_field_table(form.boolean_mis_shared) }}
             <tr>
                 <th>{{ form.str_brs_file_upload.label }}</th>
                 <td>{{ form.str_brs_file_upload }}
@@ -93,10 +82,8 @@
 
                 </td>
             </tr>
-            <tr>
-                <th>{{ form.boolean_jv_passed.label }}</th>
-                <td>{{ form.boolean_jv_passed }}</td>
-            </tr>
+
+            {{ render_field_table(form.boolean_jv_passed) }}
             <tr>
                 <th>{{ form.str_bank_confirmation_file_upload.label }}</th>
                 <td>{{ form.str_bank_confirmation_file_upload }}
@@ -107,11 +94,8 @@
                     {% endif %}
                 </td>
             </tr>
-            <tr>
-                <th>{{ form.text_remarks.label }}</th>
 
-                <td>{{ form.text_remarks(class="textarea") }}</td>
-            </tr>
+            {{ render_field_table(form.text_remarks) }}
         </table>
         <div class="has-text-centered">
             {{ form.submit_button(class="button is-success") }}

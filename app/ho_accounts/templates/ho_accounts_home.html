@@ -2,12 +2,21 @@
 {% block content %}
 
 <div class="container is-fluid mb-5">
-    <form action="" method="post">
+
+    <form method="post" action="">
         {{ form.csrf_token }}
 
-        {{ form.period.label }} : {{ form.period(class="select") }}
-        <button class="ml-5 button is-success">Query</button>
+        <table class="table">
+            <tr>
+                <th class="is-vcentered">{{ form.period.label }}</th>
+                <td>
+                    <div class="select">{{ form.period }}</div>
+                </td>
+                <td> <button class="button is-success is-outlined">Filter</button></td>
+            </tr>
+        </table>
     </form>
+
     <h1 class="title mt-2">Accounts closing checklist for {{ period }}</h1>
     <div class="tabs is-boxed">
         <ul>

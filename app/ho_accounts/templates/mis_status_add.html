@@ -1,7 +1,8 @@
 {% extends "ho_accounts_layout.html" %}
 {% block content %}
 <form method="post">
-    <div class="container">
+    {% from "form_field_helpers_macro.html" import render_field_table %}
+    <div class="container box">
         {% for field in form %}
         {% if field.errors %}
         <div class="notification is-danger">
@@ -24,40 +25,20 @@
         <table class="table">
             <tr>
                 <th>Period</th>
-                <td>{{ form.str_month(class="select") }} {{ form.str_year(class="select") }}</td>
+                <td>
+                    <div class="select">{{ form.str_month }}</div>
+                    <div class="select">{{ form.str_year }}</div>
+                </td>
             </tr>
-            <tr>
-                <th>{{ form.str_name_of_bank.label }}</th>
-                <td>{{ form.str_name_of_bank(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_purpose.label }}</th>
-                <td>{{ form.str_purpose(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_assigned_to.label }}</th>
-                <td>{{ form.str_assigned_to(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_bank_address.label }}</th>
-                <td>{{ form.str_bank_address(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_gl_code.label }}</th>
-                <td>{{ form.str_gl_code(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_sl_code.label }}</th>
-                <td>{{ form.str_sl_code(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_customer_id.label }}</th>
-                <td>{{ form.str_customer_id(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_bank_account_number.label }}</th>
-                <td>{{ form.str_bank_account_number(class="input") }}</td>
-            </tr>
+            {{ render_field_table(form.str_name_of_bank) }}
+            {{ render_field_table(form.str_purpose) }}
+            {{ render_field_table(form.str_assigned_to) }}
+            {{ render_field_table(form.str_bank_address) }}
+            {{ render_field_table(form.str_gl_code) }}
+            {{ render_field_table(form.str_sl_code) }}
+            {{ render_field_table(form.str_customer_id) }}
+            {{ render_field_table(form.str_bank_account_number) }}
+
         </table>
         <div class="has-text-centered">{{ form.submit_button(class="button is-success") }}</div>
 </form>

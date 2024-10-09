@@ -1,7 +1,7 @@
 {% extends "ho_accounts_layout.html" %}
 {% block content %}
 <form method="post">
-    <div class="container">
+    <div class="container box">
         {% for field in form %}
         {% if field.errors %}
         <div class="notification is-danger">
@@ -20,20 +20,22 @@
         {% endfor %}
         {% endif %}
         {% endwith %}
+
+        {% from "form_field_helpers_macro.html" import render_field_table %}
+
         {{ form.csrf_token }}
         <table class="table">
+
             <tr>
                 <th>Period</th>
-                <td>{{ form.str_month(class="select") }} {{ form.str_year(class="select") }}</td>
+                <td>
+                    <div class="select">{{ form.str_month }}</div>
+                    <div class="select">{{ form.str_year }}</div>
+
+                </td>
             </tr>
-            <tr>
-                <th>{{ form.str_work.label }}</th>
-                <td>{{ form.str_work(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_assigned_to.label }}</th>
-                <td>{{ form.str_assigned_to(class="select") }}</td>
-            </tr>
+            {{ render_field_table(form.str_work) }}
+            {{ render_field_table(form.str_assigned_to) }}
 
         </table>
         <div class="has-text-centered">{{ form.submit_button(class="button is-success") }}</div>
