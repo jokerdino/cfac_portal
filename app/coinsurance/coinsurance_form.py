@@ -245,3 +245,7 @@ class CoinsuranceReceiptsForm(FlaskForm):
     )
     date_of_receipt = DateField(validators=[Optional()])
     remarks = TextAreaField(validators=[Optional()])
+
+
+class DeleteCoinsuranceBalanceEntries(FlaskForm):
+    period = SelectField()

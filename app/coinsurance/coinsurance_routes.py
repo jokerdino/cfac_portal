@@ -36,6 +36,7 @@ from app.coinsurance.coinsurance_form import (
     CoinsuranceBalanceForm,
     CoinsuranceBankMandateForm,
     CoinsuranceReceiptsForm,
+    DeleteCoinsuranceBalanceEntries,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -1176,7 +1177,7 @@ def view_coinsurance_log(coinsurance_id):
     )
 
 
-@coinsurance_bp.route("/upload_balances", methods=["POST", "GET"])
+@coinsurance_bp.route("/coinsurance_balance/upload", methods=["POST", "GET"])
 @login_required
 @admin_required
 def upload_coinsurance_balance():
@@ -1227,7 +1228,7 @@ def upload_coinsurance_balance():
     return render_template("coinsurance_balance_upload.html")
 
 
-@coinsurance_bp.route("/view_coinsurance_balance/", methods=["POST", "GET"])
+@coinsurance_bp.route("/coinsurance_balance/", methods=["POST", "GET"])
 @login_required
 def query_view_coinsurance_balance():
 
@@ -1453,7 +1454,7 @@ def query_coinsurance_entries():
     return render_template("query_coinsurance_entries.html", form=form)
 
 
-@coinsurance_bp.route("/generate_coinsurance_balance/", methods=["POST", "GET"])
+@coinsurance_bp.route("/coinsurance_balance/generate", methods=["POST", "GET"])
 @login_required
 @admin_required
 def generate_coinsurance_balance():
@@ -1693,3 +1694,39 @@ def list_bank_mandates():
     )  # .scalars()
 
     return render_template("bank_mandate_list.html", bank_mandates=bank_mandates)
+
+
+@coinsurance_bp.route("/coinsurance_balance/delete/", methods=["GET", "POST"])
+@login_required
+@admin_required
+def delete_coinsurance_balance():
+    from extensions import db
+
+    form = DeleteCoinsuranceBalanceEntries()
+
+    # Querying distinct list of periods from the table
+    period_list_query = CoinsuranceBalances.query.with_entities(
+        CoinsuranceBalances.period
+    ).distinct()
+
+    # converting the period from string to datetime object
+    list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
+
+    # sorting the items of list_period in reverse order
+    # newer months will be above
+    list_period.sort(reverse=True)
+
+    # list_period is now dynamically added as dropdown choice list to the SelectField
+    form.period.choices = [item.strftime("%b-%y") for item in list_period]
+
+    if form.validate_on_submit():
+        period = form.period.data
+        result = db.session.scalars(
+            db.select(CoinsuranceBalances).filter(CoinsuranceBalances.period == period)
+        )
+        for item in result:
+            db.session.delete(item)
+        db.session.commit()
+        flash(f"{period} has been deleted.")
+
+    return render_template("coinsurance_balance_delete.html", form=form)
