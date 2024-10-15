@@ -53,3 +53,38 @@
 </div>
 
 {% endmacro %}
+
+{% macro render_field_div_horizontal(field, is_narrow=True) %}
+
+<div class="field is-horizontal">
+    <div class="field-label is-normal">
+        <label class="label">{{ field.label }}</label>
+    </div>
+    <div class="field-body">
+        <div class="field {% if is_narrow %} is-narrow {% endif %}">
+            <p class="control">
+
+                {% if field.type == "TextAreaField" %}
+                {{ field(class="textarea", placeholder=field.description) }}
+                {% elif field.type == "SelectField" %}
+            <div class="select is-fullwidth">{{ field }}</div>
+            {% elif field.type in ["RadioField", "BooleanField"] %}
+            {{ field }}
+            {% else %}
+            {{ field(class="input", placeholder=field.description) }}
+            {% endif %}
+
+            </p>
+        </div>
+    </div>
+    {% if field.errors %}
+    <div class="notification is-danger is-light">
+        {% for error in field.errors %}
+        {{ error }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+{% endmacro %}

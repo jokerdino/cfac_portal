@@ -1,6 +1,6 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
-{% from "form_field_helpers_macro.html" import render_field_div %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 <div class="container">
 
     <form method="post">
@@ -35,7 +35,7 @@
         <div class="box">
             {% for field in form if field.widget.input_type != "hidden" %}
 
-            {{ render_field_div(field) }}
+            {{ render_field_div_horizontal(field, is_narrow=False) }}
 
             {% endfor %}
             <div class="has-text-centered">
