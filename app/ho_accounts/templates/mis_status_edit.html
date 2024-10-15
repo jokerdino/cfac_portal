@@ -21,7 +21,7 @@
     {% endif %}
     {% endwith %}
     {% from "form_field_helpers_macro.html" import render_field_table %}
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <table class="table">
             <tr>
