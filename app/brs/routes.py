@@ -360,6 +360,7 @@ def upload_brs(brs_key):
         # brs_month = BRS_month.query.get_or_404(current_id)
         # brs_month.status = "Deleted"
         db.session.commit()
+        flash("BRS entry has been deleted.")
         return redirect(url_for("brs.upload_brs", brs_key=brs_key))
     return render_template(
         "open_brs.html", brs_entry=brs_entry, form=form, list_delete_brs=list_delete_brs
@@ -573,7 +574,7 @@ def validate_outstanding_entries(
     )
 
     if requirement == "cash":
-        date_columns = ["date_of_collection"]
+        date_columns: list[str] = ["date_of_collection"]
         try:
             df_os_entries = pd.read_csv(
                 df_form_data_os_entries,
@@ -630,8 +631,9 @@ def validate_outstanding_entries(
     try:
         sum_os_entries: float = df_os_entries["instrument_amount"].sum()
     except KeyError as e:
+        # try/except to ensure instrument_amount column is entered in uploaded file
         return (9, pd.DataFrame, 0)
-    # if not float(sum_os_entries) == float(closing_balance):
+
     if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
         return (5, pd.DataFrame, sum_os_entries)
 
@@ -650,10 +652,14 @@ def validate_outstanding_entries(
         df_na_instrument_date = df_os_entries[
             df_os_entries["date_of_instrument"].isnull()
         ]
-        df_na_instrument_number = df_os_entries[
-            df_os_entries["instrument_number"].isnull()
-        ]
 
+        # try/except to ensure instrument_number column is entered in uploaded file
+        try:
+            df_na_instrument_number = df_os_entries[
+                df_os_entries["instrument_number"].isnull()
+            ]
+        except KeyError as e:
+            return (13, pd.DataFrame, 0)
         if len(df_na_instrument_date) > 0:
             return (1, pd.DataFrame, sum_os_entries)
 
@@ -699,33 +705,55 @@ def render_error_message(
         )
     )
 
-    if status_validate_os_entries == 1:
-        flash("Date of instrument must be entered in dd/mm/yyyy format.")
-    elif status_validate_os_entries == 2:
-        flash("Instrument number must be entered.")
-    elif status_validate_os_entries == 3:
-        flash("Please do not enter negative amounts.")
-    elif status_validate_os_entries == 4:
-        flash("Date of collection must be entered in dd/mm/yyyy format")
-    elif status_validate_os_entries == 5:
-        flash(
-            f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}."
-        )
-    elif status_validate_os_entries == 6:
-        flash(
-            "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
-        )
-    elif status_validate_os_entries == 7:
-        flash("Date of collection cannot be after BRS period.")
-    elif status_validate_os_entries == 8:
-        flash("Date of instrument cannot be after BRS period.")
-    elif status_validate_os_entries == 9:
-        flash("instrument_amount is not entered in uploaded file.")
-    elif status_validate_os_entries == 11:
-        flash("Date of collection must be entered in dd/mm/yyyy format.")
-    elif status_validate_os_entries == 12:
-        flash("Date of instrument/collection must be entered in dd/mm/yyyy format.")
+    # if status_validate_os_entries == 1:
+    #     flash("Date of instrument must be entered in dd/mm/yyyy format.")
+    # elif status_validate_os_entries == 2:
+    #     flash("Instrument number must be entered.")
+    # elif status_validate_os_entries == 3:
+    #     flash("Please do not enter negative amounts.")
+    # elif status_validate_os_entries == 4:
+    #     flash("Date of collection must be entered in dd/mm/yyyy format")
+    # elif status_validate_os_entries == 5:
+    #     flash(
+    #         f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}."
+    #     )
+    # elif status_validate_os_entries == 6:
+    #     flash(
+    #         "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
+    #     )
+    # elif status_validate_os_entries == 7:
+    #     flash("Date of collection cannot be after BRS period.")
+    # elif status_validate_os_entries == 8:
+    #     flash("Date of instrument cannot be after BRS period.")
+    # elif status_validate_os_entries == 9:
+    #     flash("instrument_amount is not entered in uploaded file.")
+    # elif status_validate_os_entries == 11:
+    #     flash("Date of collection must be entered in dd/mm/yyyy format.")
+    # elif status_validate_os_entries == 12:
+    #     flash("Date of instrument/collection must be entered in dd/mm/yyyy format.")
 
+    display_error_messages: dict[int, str] = {
+        1: "Date of instrument must be entered in dd/mm/yyyy format.",
+        2: "Instrument number must be entered.",
+        3: "Please do not enter negative amounts.",
+        4: "Date of collection must be entered in dd/mm/yyyy format.",
+        5: f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}.",
+        6: "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format.",
+        7: "Date of collection cannot be after BRS period.",
+        8: "Date of instrument cannot be after BRS period.",
+        9: "'instrument_amount' column is not entered in uploaded file.",
+        10: "Successfully uploaded the BRS.",
+        11: "Date of collection must be entered in dd/mm/yyyy format.",
+        12: "Date of instrument/collection must be entered in dd/mm/yyyy format.",
+        13: "'instrument_number' column is not entered in uploaded file.",
+    }
+
+    if status_validate_os_entries != 10:
+        flash(
+            display_error_messages.get(
+                status_validate_os_entries, "Error in processing the input."
+            )
+        )
     return status_validate_os_entries, df_outstanding_entries
 
 

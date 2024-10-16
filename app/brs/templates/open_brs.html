@@ -196,23 +196,24 @@
 
         </form>
 
-        {% for field, errors in form.errors.items() %}
-        <div class="notification is-danger">
-                {{ field }} {{ ', '.join(errors) }}
+        <div class="mt-5">
+                {% for field, errors in form.errors.items() %}
+                <div class="notification is-danger">
+                        {{ field }} {{ ', '.join(errors) }}
+                </div>
+                {% endfor %}
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                {% for message in messages %}
+                <div class="notification is-danger">
+                        <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
         </div>
-        {% endfor %}
-</div>
 </div>
 
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="notification is-danger">
-        <p>{{ message }}</p>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
-</div>
 {% endif %}
 {% endblock content %}
