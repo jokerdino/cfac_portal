@@ -5,7 +5,7 @@
 
     <form class="mb-5" method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
-        {{ form.file_upload(class="file") }}
+        {{ form.file_upload(class="file", accept=".xlsx") }}
 
         {{ form.upload_document(class="button is-success") }}
 
@@ -20,5 +20,11 @@
     {% endfor %}
     {% endif %}
     {% endwith %}
+
+    {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }} {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
 </div>
 {% endblock content %}

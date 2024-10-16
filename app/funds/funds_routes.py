@@ -344,7 +344,9 @@ def upload_bank_statement():
                 )
             )
     return render_template(
-        "upload_file_template.html", form=form, title="Upload bank statement"
+        "upload_file_template.html",
+        form=form,
+        title="Upload bank statement (in .xlsx file format)",
     )
 
 
@@ -855,7 +857,7 @@ def upload_flag_sheet():
     form = UploadFileForm()
     if form.validate_on_submit():
         flag_sheet = form.data["file_upload"]
-        df_flag_sheet = pd.read_csv(flag_sheet)
+        df_flag_sheet = pd.read_excel(flag_sheet)
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_flag_sheet["date_created_date"] = datetime.datetime.now()
@@ -882,7 +884,7 @@ def upload_investment_balance():
 
     if form.validate_on_submit():
         investment_balance = form.data["file_upload"]
-        df_investment = pd.read_csv(investment_balance)
+        df_investment = pd.read_excel(investment_balance)
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         # df_flag_sheet["date_current_date"] = datetime.date.today()
@@ -912,7 +914,7 @@ def upload_bank_account_number():
 
     if form.validate_on_submit():
         bank_account_number = form.data["file_upload"]
-        df_bank_account = pd.read_csv(
+        df_bank_account = pd.read_excel(
             bank_account_number, dtype={"bank_account_number": str}
         )
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
@@ -1255,7 +1257,7 @@ def upload_jv_flags():
 
     if form.validate_on_submit():
         jv_flag_sheet = form.data["file_upload"]
-        df_jv_flag_sheet = pd.read_csv(
+        df_jv_flag_sheet = pd.read_excel(
             jv_flag_sheet,
             dtype={
                 "txt_description": str,

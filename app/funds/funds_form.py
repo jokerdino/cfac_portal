@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 from wtforms import (
     BooleanField,
@@ -50,7 +51,9 @@ class FundsJVForm(FlaskForm):
 
 
 class UploadFileForm(FlaskForm):
-    file_upload = FileField("Upload document", validators=[DataRequired()])
+    file_upload = FileField(
+        "Upload document", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )
     upload_document = SubmitField("Upload")
 
 
