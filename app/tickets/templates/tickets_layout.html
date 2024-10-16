@@ -39,7 +39,9 @@
                         </div>
                     </div>
                     <a class="navbar-item" href="{{ url_for('tickets.add_ticket') }}">Add ticket details</a>
-
+                    {% if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('tickets.tickets_dashboard') }}">Tickets dashboard</a>
+                    {% endif %}
                 </div>
             </div>
 

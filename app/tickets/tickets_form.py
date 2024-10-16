@@ -53,3 +53,17 @@ class TicketsForm(FlaskForm):
 
 class TicketFilterForm(FlaskForm):
     department = SelectField()
+
+
+class TicketDashboardForm(FlaskForm):
+    status = SelectField(
+        choices=[
+            "View all",
+            "Pending for CFAC approval",
+            "Clarification to be provided by RO or OO",
+            "Approval provided by CFAC",
+            "Resolved",
+            "No longer relevant",
+        ],
+        default="Pending for CFAC approval",
+    )

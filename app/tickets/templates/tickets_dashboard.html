@@ -1,0 +1,91 @@
+{% extends "tickets_layout.html" %}
+{% block content %}
+
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+
+<div class="container is-fluid mt-5">
+    <form method="post">
+        {{ form.csrf_token }}
+
+        <table class="table">
+            <tr>
+                <th class="is-vcentered">{{ form.status.label }}</th>
+                <td>
+                    <div class="select">{{ form.status }}</div>
+                </td>
+                <td> <button class="button is-success is-outlined">Filter</button></td>
+            </tr>
+        </table>
+
+        {% if form.status.errors %}
+        <div class="notification is-danger is-light">
+            {% for error in form.status.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </form>
+    <table class="table is-bordered is-fullwidth mt-5" id="tickets_dashboard_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">RO Code</th>
+                {% for department in tickets_department %}
+
+                <th class="has-text-centered">{{ department }}</th>
+                {% endfor %}
+                <th class="has-text-centered">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in tickets %}
+            <tr>
+                <td class="has-text-centered">{{ item.regional_office_code }}</td>
+
+                {% for i in range(tickets_department|length) %}
+                <td class="has-text-right">{{ item[i+1] }}</td>
+                {% endfor %}
+                <td class="has-text-right">{{ item[-1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+
+            {% for item in tickets_total %}
+            <tr>
+                <td class="has-text-weight-bold has-text-centered">Total</td>
+
+                {% for i in range(tickets_department|length) %}
+                <td class="has-text-right has-text-weight-bold">{{ item[i] }}</td>
+                {% endfor %}
+                <td class="has-text-right has-text-weight-bold">{{ item[-1] }}</td>
+            </tr>
+            {% endfor %}
+        </tfoot>
+
+    </table>
+</div>
+
+{% block scripts %}
+<script>
+
+    new DataTable('#tickets_dashboard_table', {
+        layout: {
+
+            topStart: 'buttons',
+
+        },
+        pageLength: 40,
+
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+        pagingType: 'full_numbers',
+
+    });
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

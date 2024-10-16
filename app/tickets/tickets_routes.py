@@ -1,9 +1,13 @@
 from flask import flash, redirect, render_template, url_for, send_file
 from flask_login import current_user, login_required
 
+from sqlalchemy import case, func
+
 from app.tickets import tickets_bp
 from app.tickets.tickets_model import Tickets, TicketRemarks
-from app.tickets.tickets_form import TicketsForm, TicketFilterForm
+from app.tickets.tickets_form import TicketsForm, TicketFilterForm, TicketDashboardForm
+
+from set_view_permissions import admin_required
 
 
 @tickets_bp.route("/add", methods=["POST", "GET"])
@@ -181,3 +185,52 @@ def download_jv_format(requirement):
         return send_file("download_formats/jv_bulk_jv_format.xlsx")
     else:
         return None
+
+
+@tickets_bp.route("/dashboard/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def tickets_dashboard():
+    from extensions import db
+
+    form = TicketDashboardForm()
+
+    tickets_department_query = (
+        db.session.query(Tickets.department).distinct().order_by(Tickets.department)
+    )
+
+    tickets_department = [item[0] for item in tickets_department_query]
+
+    case_department = {
+        k: case((Tickets.department == v, Tickets.department))
+        for (k, v) in zip(tickets_department, tickets_department)
+    }
+
+    entities_list = [func.count(case_department[i]) for i in tickets_department]
+
+    status = "Pending for CFAC approval"
+    tickets = (
+        db.session.query(Tickets)
+        .with_entities(
+            Tickets.regional_office_code, *entities_list, func.count(Tickets.department)
+        )
+        .group_by(Tickets.regional_office_code)
+        .order_by(Tickets.regional_office_code)
+    )
+    tickets_total = db.session.query(Tickets).with_entities(
+        *entities_list, func.count(Tickets.department)
+    )
+    if form.validate_on_submit():
+
+        status = form.status.data
+    if status != "View all":
+        tickets = tickets.filter(Tickets.status == status)
+        tickets_total = tickets_total.filter(Tickets.status == status)
+
+    return render_template(
+        "tickets_dashboard.html",
+        form=form,
+        tickets=tickets,
+        tickets_total=tickets_total,
+        tickets_department=tickets_department,
+    )
