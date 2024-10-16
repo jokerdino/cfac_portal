@@ -41,7 +41,6 @@ from app.brs.forms import (
     EnableDeleteMonthForm,
 )
 
-# from app.tickets.tickets_routes import humanize_datetime
 from app.brs.brs_helper_functions import upload_brs_file
 
 
@@ -304,25 +303,11 @@ def list_month_deletions():
 def upload_brs(brs_key):
     from server import db
 
-    # list_months_delete contains list of months that are enabled for soft deletion.
-    # If the month is not mentioned in the list,
-    # the months will not be available for deletion by admin or RO user.
-    # When a new month base file is uploaded, the month has to be manually added to the list right now.
-    # TODO: Build a frontend for the same to enable or disable?
     brs_entry = BRS.query.get_or_404(brs_key)
     query_list_months_delete = DeleteEntries.query.with_entities(
         DeleteEntries.txt_month
     ).filter(DeleteEntries.bool_enable_delete == True)
     list_months_delete = [txt_month[0] for txt_month in query_list_months_delete]
-    # print(list_months_delete)
-    # print(type(list_months_delete))
-    # list_months_delete2 = [
-    #     "January-2024",
-    #     "February-2024",
-    #     "March-2024",
-    #     "April-2024",
-    #     "May-2024",
-    # ]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
     # As per requirement, both HO user and RO user can soft delete the BRS data.
@@ -357,8 +342,7 @@ def upload_brs(brs_key):
             brs_month = BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
             brs_month.status = "Deleted"
             brs_entry.local_collection_brs_id = None
-        # brs_month = BRS_month.query.get_or_404(current_id)
-        # brs_month.status = "Deleted"
+
         db.session.commit()
         flash("BRS entry has been deleted.")
         return redirect(url_for("brs.upload_brs", brs_key=brs_key))
@@ -686,8 +670,6 @@ def update_brs_id(requirement: str, brs_entry, integer_brs_id: int) -> None:
 
 
 # function to render error messages when outstanding entries/short_credit/excess_credit are uploaded
-
-
 def render_error_message(
     amount_entered_in_form: float,
     nature_of_transaction: str,
@@ -776,7 +758,7 @@ def enter_brs(requirement, brs_id):
     brs_entry = BRS.query.get_or_404(brs_id)
     form = BRS_entry()
     from server import db
-    from wtforms.validators import DataRequired  # , Regexp
+    from wtforms.validators import DataRequired
 
     if form.data["int_deposited_not_credited"]:
         form.file_outstanding_entries.validators = [DataRequired()]
@@ -869,80 +851,22 @@ def enter_brs(requirement, brs_id):
                             "Please upload details of entries which are deposited but not credited."
                         )
                     else:
-                        # (
-                        #     status_validate_os_entries,
-                        #     df_outstanding_entries,
-                        #     sum_os_entries,
-                        # ) = validate_outstanding_entries(
-                        #     form.data["file_outstanding_entries"],
-                        #     requirement,
-                        #     deposited_not_credited,
-                        #     brs_id,
-                        # )
+
                         status_validate_os_entries, df_outstanding_entries = (
                             render_error_message(
-                                # status_validate_os_entries,
                                 deposited_not_credited,
-                                # sum_os_entries,
                                 "Deposited but not credited entries",
                                 form.data["file_outstanding_entries"],
                                 requirement,
                                 brs_id,
                             )
                         )
-                        # if status_validate_os_entries == 1:
-                        #     flash(
-                        #         "Date of instrument must be entered in dd/mm/yyyy format."
-                        #     )
-                        # elif status_validate_os_entries == 2:
-                        #     flash("Instrument number must be entered.")
-                        # elif status_validate_os_entries == 3:
-                        #     flash("Please do not enter negative amounts.")
-                        # elif status_validate_os_entries == 4:
-                        #     flash(
-                        #         "Date of collection must be entered in dd/mm/yyyy format"
-                        #     )
-                        # elif status_validate_os_entries == 5:
-                        #     flash(
-                        #         f"Deposited but not credited entries {deposited_not_credited} is not matching with sum of the uploaded entries {sum_os_entries}."
-                        #     )
 
-                        # elif status_validate_os_entries == 6:
-                        #     flash(
-                        #         "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
-                        #     )
-                        # elif status_validate_os_entries == 7:
-                        #     flash("Date of collection cannot be after BRS period.")
-                        # elif status_validate_os_entries == 8:
-                        #     flash("Date of instrument cannot be after BRS period.")
-                        # elif status_validate_os_entries == 9:
-                        #     flash("instrument_amount is not entered in uploaded file.")
-                        # elif status_validate_os_entries == 11:
-                        #     flash("Date of collection must be in dd/mm/yyyy format.")
-                        # elif status_validate_os_entries == 12:
-                        #     flash(
-                        #         "Date of instrument/collection must be in dd/mm/yyyy format."
-                        #     )
                 if short_credited > 0:
                     if not form.data["file_short_credit_entries"]:
                         flash("Please upload details of short credited entries.")
                     else:
-                        # (
-                        #     status_validate_short_credited,
-                        #     df_short_credit_entries,
-                        #     sum_short_credits,
-                        # ) = validate_outstanding_entries(
-                        #     form.data["file_short_credit_entries"],
-                        #     requirement,
-                        #     short_credited,
-                        #     brs_id,
-                        # )
-                        # render_error_message(
-                        #     status_validate_short_credited,
-                        #     short_credited,
-                        #     sum_short_credits,
-                        #     "Short credit amount",
-                        # )
+
                         status_validate_short_credited, df_short_credit_entries = (
                             render_error_message(
                                 short_credited,
@@ -952,59 +876,12 @@ def enter_brs(requirement, brs_id):
                                 brs_id,
                             )
                         )
-                        # if status_validate_short_credited == 1:
-                        #     flash(
-                        #         "Date of instrument must be entered in dd/mm/yyyy format."
-                        #     )
-                        # elif status_validate_short_credited == 2:
-                        #     flash("Instrument number must be entered.")
-                        # elif status_validate_short_credited == 3:
-                        #     flash("Please do not enter negative amounts.")
-                        # elif status_validate_short_credited == 4:
-                        #     flash(
-                        #         "Date of collection must be entered in dd/mm/yyyy format"
-                        #     )
-                        # elif status_validate_short_credited == 5:
-                        #     flash(
-                        #         f"Short credit amount {short_credited} is not matching with sum of short credited entries {sum_short_credits}."
-                        #     )
 
-                        # elif status_validate_short_credited == 6:
-                        #     flash(
-                        #         "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
-                        #     )
-                        # elif status_validate_short_credited == 7:
-                        #     flash("Date of collection cannot be after BRS period.")
-                        # elif status_validate_short_credited == 8:
-                        #     flash("Date of instrument cannot be after BRS period.")
-                        # elif status_validate_short_credited == 9:
-                        #     flash("instrument_amount is not entered in uploaded file.")
-                        # elif status_validate_short_credited == 11:
-                        #     flash("Date of collection must be in dd/mm/yyyy format.")
-                        # elif status_validate_short_credited == 12:
-                        #     flash(
-                        #         "Date of instrument/collection must be in dd/mm/yyyy format."
-                        #     )
                 if excess_credited > 0:
                     if not form.data["file_excess_credit_entries"]:
                         flash("Please upload details of excess credited entries.")
                     else:
-                        # (
-                        #     status_validate_excess_credited,
-                        #     df_excess_credit_entries,
-                        #     sum_excess_credits,
-                        # ) = validate_outstanding_entries(
-                        #     form.data["file_excess_credit_entries"],
-                        #     requirement,
-                        #     excess_credited,
-                        #     brs_id,
-                        # )
-                        # render_error_message(
-                        #     status_validate_excess_credited,
-                        #     excess_credited,
-                        #     sum_excess_credits,
-                        #     "Excess credit amount",
-                        # )
+
                         (
                             status_validate_excess_credited,
                             df_excess_credit_entries,
@@ -1015,39 +892,7 @@ def enter_brs(requirement, brs_id):
                             requirement,
                             brs_id,
                         )
-                        # if status_validate_excess_credited == 1:
-                        #     flash(
-                        #         "Date of instrument must be entered in dd/mm/yyyy format."
-                        #     )
-                        # elif status_validate_excess_credited == 2:
-                        #     flash("Instrument number must be entered.")
-                        # elif status_validate_excess_credited == 3:
-                        #     flash("Please do not enter negative amounts.")
-                        # elif status_validate_excess_credited == 4:
-                        #     flash(
-                        #         "Date of collection must be entered in dd/mm/yyyy format"
-                        #     )
-                        # elif status_validate_excess_credited == 5:
-                        #     flash(
-                        #         f"Excess credit amount {excess_credited} is not matching with sum of excess credited entries {sum_excess_credits}."
-                        #     )
 
-                        # elif status_validate_excess_credited == 6:
-                        #     flash(
-                        #         "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
-                        #     )
-                        # elif status_validate_excess_credited == 7:
-                        #     flash("Date of collection cannot be after BRS period.")
-                        # elif status_validate_excess_credited == 8:
-                        #     flash("Date of instrument cannot be after BRS period.")
-                        # elif status_validate_excess_credited == 9:
-                        #     flash("instrument_amount is not entered in uploaded file.")
-                        # elif status_validate_excess_credited == 11:
-                        #     flash("Date of collection must be in dd/mm/yyyy format.")
-                        # elif status_validate_excess_credited == 12:
-                        #     flash(
-                        #         "Date of instrument/collection must be in dd/mm/yyyy format."
-                        #     )
                 if (
                     status_validate_os_entries
                     == status_validate_short_credited
@@ -1061,15 +906,7 @@ def enter_brs(requirement, brs_id):
                     engine = create_engine(
                         current_app.config.get("SQLALCHEMY_DATABASE_URI")
                     )
-                    # if (
-                    #     deposited_not_credited > 0
-                    #     and form.data["file_outstanding_entries"]
-                    # ):
-                    #     df_outstanding_entries["brs_month_id"] = brs.id
-                    # if excess_credited > 0 and form.data["file_excess_credit_entries"]:
-                    #     df_excess_credit_entries["brs_month_id"] = brs.id
-                    # if short_credited > 0 and form.data["file_short_credit_entries"]:
-                    #     df_short_credit_entries["brs_month_id"] = brs.id
+
                     try:
                         # deposited not but credited entries
                         if (
@@ -1079,14 +916,7 @@ def enter_brs(requirement, brs_id):
                             upload_df_entries_to_database(
                                 df_outstanding_entries, engine, "outstanding", brs.id
                             )
-                            # df_outstanding_entries = df_outstanding_entries.loc[
-                            #     :, ~df_outstanding_entries.columns.str.match("Unnamed")
-                            # ]
-                            # df_outstanding_entries.dropna(
-                            #     subset=["instrument_amount"]
-                            # ).to_sql(
-                            #     "outstanding", engine, if_exists="append", index=False
-                            # )
+
                         # short credit entries
                         if (
                             short_credited > 0
@@ -1098,17 +928,7 @@ def enter_brs(requirement, brs_id):
                                 "bank_recon_short_credit",
                                 brs.id,
                             )
-                            # df_short_credit_entries = df_short_credit_entries.loc[
-                            #     :, ~df_short_credit_entries.columns.str.match("Unnamed")
-                            # ]
-                            # df_short_credit_entries.dropna(
-                            #     subset=["instrument_amount"]
-                            # ).to_sql(
-                            #     "bank_recon_short_credit",
-                            #     engine,
-                            #     if_exists="append",
-                            #     index=False,
-                            # )
+
                         # excess credit entries
                         if (
                             excess_credited > 0
@@ -1120,18 +940,7 @@ def enter_brs(requirement, brs_id):
                                 "bank_recon_excess_credit",
                                 brs.id,
                             )
-                            # df_excess_credit_entries = df_excess_credit_entries.loc[
-                            #     :,
-                            #     ~df_excess_credit_entries.columns.str.match("Unnamed"),
-                            # ]
-                            # df_excess_credit_entries.dropna(
-                            #     subset=["instrument_amount"]
-                            # ).to_sql(
-                            #     "bank_recon_excess_credit",
-                            #     engine,
-                            #     if_exists="append",
-                            #     index=False,
-                            # )
+
                         db.session.commit()
                         return redirect(url_for("brs.upload_brs", brs_key=brs_id))
                     except sqlalchemy.exc.DataError as e:
@@ -1226,7 +1035,6 @@ def list_brs_entries():
             "view_brs_raw_data.html",
             brs_entries=list_all_brs_entries,
             get_brs_bank=get_brs_bank,
-            # humanize_datetime=humanize_datetime,
         )
     return render_template("brs_raw_data_form.html", form=form)
 
@@ -1261,7 +1069,6 @@ def list_brs_entries_exceptions():
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
         get_brs_bank=get_brs_bank,
-        # humanize_datetime=humanize_datetime,
     )
 
 
@@ -1300,7 +1107,6 @@ def list_brs_entries_exceptions2():
         "view_brs_raw_data.html",
         brs_entries=list_all_brs_entries,
         get_brs_bank=get_brs_bank,
-        # humanize_datetime=humanize_datetime,
     )
 
 
