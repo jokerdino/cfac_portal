@@ -10,6 +10,9 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms_sqlalchemy.orm import model_form
+
+from .models import BankReconAccountDetails
 
 
 class BRSForm(FlaskForm):
@@ -94,3 +97,14 @@ class EnableDeleteMonthForm(FlaskForm):
         "Enable month for deletion", validators=[Optional()]
     )
     submit = SubmitField("Submit")
+
+
+BankReconAccountDetailsAddForm = model_form(
+    BankReconAccountDetails,
+    only=[
+        "str_name_of_bank",
+        "str_brs_type",
+        "str_bank_account_number",
+        "str_ifsc_code",
+    ],
+)

@@ -39,6 +39,7 @@ from app.brs.forms import (
     DashboardForm,
     RawDataForm,
     EnableDeleteMonthForm,
+    BankReconAccountDetailsAddForm,
 )
 
 from app.brs.brs_helper_functions import upload_brs_file
@@ -1514,4 +1515,31 @@ def get_percent_completion_list():
         "brs_dashboard_percentage_list.html",
         get_percentage_completion=get_percent_completion,
         ro_list=ro_list,
+    )
+
+
+@brs_bp.route("/bank_accounts/add", methods=["POST", "GET"])
+@login_required
+@admin_required
+def add_bank_account():
+    """Add new bank account through model form"""
+    from extensions import db
+
+    bank_account = BankReconAccountDetails()
+
+    if request.method == "POST":
+        form = BankReconAccountDetailsAddForm(request.form, obj=bank_account)
+        if form.validate():
+
+            form.populate_obj(bank_account)
+            db.session.add(bank_account)
+            db.session.commit()
+
+            flash("Bank account details have been successfully added.")
+    else:
+        form = BankReconAccountDetailsAddForm()
+
+    return render_template(
+        "brs_bank_account_add.html",
+        form=form,
     )
