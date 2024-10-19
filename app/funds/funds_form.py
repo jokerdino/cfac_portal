@@ -110,32 +110,32 @@ class FlagForm(FlaskForm):
 
 
 class DailySummaryForm(FlaskForm):
-    major_receipts = TextAreaField(
+    text_major_collections = TextAreaField(
         "Enter details of major receipts", validators=[Optional()]
     )
-    major_payments = TextAreaField(
+    text_major_payments = TextAreaField(
         "Enter details of major payments", validators=[Optional()]
     )
 
-    person1_name = SelectField(
+    text_person1_name = SelectField(
         "Enter name of person 1",
         choices=["P Sudha Venkateswari", "S Vineeth", "G Suganya Priya"],
     )
-    person1_designation = SelectField(
+    text_person1_designation = SelectField(
         "Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"]
     )
-    person2_name = SelectField(
+    text_person2_name = SelectField(
         "Enter name of person 2", choices=["A P Usha", "Gaddam Janakiram"]
     )
-    person2_designation = SelectField(
+    text_person2_designation = SelectField(
         "Enter designation of person 2", choices=["Chief Manager"]
     )
-    person3_name = SelectField("Enter name of person 3", choices=["S Hemamalini"])
-    person3_designation = SelectField(
+    text_person3_name = SelectField("Enter name of person 3", choices=["S Hemamalini"])
+    text_person3_designation = SelectField(
         "Enter designation of person 3", choices=["DGM & CFO"]
     )
-    person4_name = SelectField("Enter name of person 4", choices=["Usha Girish"])
-    person4_designation = SelectField(
+    text_person4_name = SelectField("Enter name of person 4", choices=["Usha Girish"])
+    text_person4_designation = SelectField(
         "Enter designation of person 4", choices=["General Manager"]
     )
 

@@ -1,75 +1,40 @@
 {% extends "funds_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 
 <div class="container">
     <h1 class="title">Add remarks for {{ display_date.strftime("%d/%m/%Y") }}</h1>
-    <table class="table is-bordered is-fullwidth">
-        <tr>
-            <th>Total inflow (including funds received from investments)</th>
-            <td class="has-text-right has-text-weight-bold">
-                <a class="button is-info is-small js-modal-trigger" id="inflow" data-target="modal_inflow">
-                </a>
-            </td>
-        </tr>
-
-        <tr>
-            <th>Total outflow (excluding funds given to investment)</th>
-            <td class="has-text-right has-text-weight-bold">
-                <a class="button is-info is-small js-modal-trigger" id="outflow" data-target="modal_outflow">
-                </a>
-            </td>
-        </tr>
-        <tr>
-            <th>Funds given to investment</th>
-            <td class="has-text-right has-text-weight-bold" id="investment_given">
-
-            </td>
-        </tr>
-    </table>
     <form method="post">
         {{ form.csrf_token }}
-        <table class="table is-fullwidth is-narrow">
+        <table class="table is-bordered is-fullwidth">
             <tr>
-                <th>
-                    {{ form.major_payments.label }}</th>
-                <td> {{ form.major_payments(class="textarea") }}</td>
+                <th width="40%">Total inflow (including funds received from investments)</th>
+                <td class="has-text-right has-text-weight-bold">
+                    <a class="button is-info is-small js-modal-trigger" id="inflow" data-target="modal_inflow">
+                    </a>
+                </td>
+            </tr>
+
+            <tr>
+                <th>Total outflow (excluding funds given to investment)</th>
+                <td class="has-text-right has-text-weight-bold">
+                    <a class="button is-info is-small js-modal-trigger" id="outflow" data-target="modal_outflow">
+                    </a>
+                </td>
             </tr>
             <tr>
-                <th>{{ form.major_receipts.label }}</th>
-                <td>{{ form.major_receipts(class="textarea") }}</td>
+                <th>Funds given to investment</th>
+                <td class="has-text-right has-text-weight-bold" id="investment_given">
+
+                </td>
             </tr>
-            <tr>
-                <th>{{ form.person1_name.label }}</th>
-                <td>{{ form.person1_name(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person1_designation.label }}</th>
-                <td>{{ form.person1_designation(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person2_name.label }}</th>
-                <td>{{ form.person2_name(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person2_designation.label }}</th>
-                <td>{{ form.person2_designation(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person3_name.label }}</th>
-                <td>{{ form.person3_name(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person3_designation.label }}</th>
-                <td>{{ form.person3_designation(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person4_name.label }}</th>
-                <td>{{ form.person4_name(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.person4_designation.label }}</th>
-                <td>{{ form.person4_designation(class="select") }}</td>
-            </tr>
+
+            {% for field in form if field.widget.input_type != "hidden" %}
+
+            {{ render_field_table(field) }}
+
+            {% endfor %}
+
         </table>
         <div class="has-text-centered">
             <a class="button"

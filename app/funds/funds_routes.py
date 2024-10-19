@@ -670,28 +670,28 @@ def add_remarks(date_string):
     check_for_fund_permission()
     from extensions import db
 
-    form = DailySummaryForm()
     flag_description = db.session.query(FundFlagSheet.flag_description)
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == param_date
     ).first()
+    form = DailySummaryForm(obj=daily_sheet)
     if form.validate_on_submit():
-        daily_sheet.text_major_collections = form.data["major_receipts"]
-        daily_sheet.text_major_payments = form.data["major_payments"]
-        daily_sheet.text_person1_name = form.data["person1_name"]
-        daily_sheet.text_person1_designation = form.data["person1_designation"]
-        daily_sheet.text_person2_name = form.data["person2_name"]
-        daily_sheet.text_person2_designation = form.data["person2_designation"]
+        # daily_sheet.text_major_collections = form.data["major_receipts"]
+        # daily_sheet.text_major_payments = form.data["major_payments"]
+        # daily_sheet.text_person1_name = form.data["person1_name"]
+        # daily_sheet.text_person1_designation = form.data["person1_designation"]
+        # daily_sheet.text_person2_name = form.data["person2_name"]
+        # daily_sheet.text_person2_designation = form.data["person2_designation"]
 
-        daily_sheet.text_person3_name = form.data["person3_name"]
-        daily_sheet.text_person3_designation = form.data["person3_designation"]
-        daily_sheet.text_person4_name = form.data["person4_name"]
-        daily_sheet.text_person4_designation = form.data["person4_designation"]
+        # daily_sheet.text_person3_name = form.data["person3_name"]
+        # daily_sheet.text_person3_designation = form.data["person3_designation"]
+        # daily_sheet.text_person4_name = form.data["person4_name"]
+        # daily_sheet.text_person4_designation = form.data["person4_designation"]
 
-        daily_sheet.updated_by = current_user.username
-        daily_sheet.date_updated_date = datetime.datetime.now()
-
+        # daily_sheet.updated_by = current_user.username
+        # daily_sheet.date_updated_date = datetime.datetime.now()
+        form.populate_obj(daily_sheet)
         db.session.commit()
         return redirect(
             url_for(
@@ -700,40 +700,40 @@ def add_remarks(date_string):
                 pdf="False",
             )
         )
-    form.major_receipts.data = (
-        (daily_sheet.text_major_collections or None) if daily_sheet else None
-    )
-    form.major_payments.data = (
-        (daily_sheet.text_major_payments or None) if daily_sheet else None
-    )
+    # form.major_receipts.data = (
+    #     (daily_sheet.text_major_collections or None) if daily_sheet else None
+    # )
+    # form.major_payments.data = (
+    #     (daily_sheet.text_major_payments or None) if daily_sheet else None
+    # )
 
-    form.person1_name.data = (
-        (daily_sheet.text_person1_name or None) if daily_sheet else None
-    )
-    form.person1_designation.data = (
-        (daily_sheet.text_person1_designation or None) if daily_sheet else None
-    )
+    # form.person1_name.data = (
+    #     (daily_sheet.text_person1_name or None) if daily_sheet else None
+    # )
+    # form.person1_designation.data = (
+    #     (daily_sheet.text_person1_designation or None) if daily_sheet else None
+    # )
 
-    form.person2_name.data = (
-        (daily_sheet.text_person2_name or None) if daily_sheet else None
-    )
-    form.person2_designation.data = (
-        (daily_sheet.text_person2_designation or None) if daily_sheet else None
-    )
+    # form.person2_name.data = (
+    #     (daily_sheet.text_person2_name or None) if daily_sheet else None
+    # )
+    # form.person2_designation.data = (
+    #     (daily_sheet.text_person2_designation or None) if daily_sheet else None
+    # )
 
-    form.person3_name.data = (
-        (daily_sheet.text_person3_name or None) if daily_sheet else None
-    )
-    form.person3_designation.data = (
-        (daily_sheet.text_person3_designation or None) if daily_sheet else None
-    )
+    # form.person3_name.data = (
+    #     (daily_sheet.text_person3_name or None) if daily_sheet else None
+    # )
+    # form.person3_designation.data = (
+    #     (daily_sheet.text_person3_designation or None) if daily_sheet else None
+    # )
 
-    form.person4_name.data = (
-        (daily_sheet.text_person4_name or None) if daily_sheet else None
-    )
-    form.person4_designation.data = (
-        (daily_sheet.text_person4_designation or None) if daily_sheet else None
-    )
+    # form.person4_name.data = (
+    #     (daily_sheet.text_person4_name or None) if daily_sheet else None
+    # )
+    # form.person4_designation.data = (
+    #     (daily_sheet.text_person4_designation or None) if daily_sheet else None
+    # )
 
     return render_template(
         "add_remarks.html",
