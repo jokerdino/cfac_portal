@@ -9,6 +9,7 @@ from wtforms import (
     TextAreaField,
     DateField,
     DecimalField,
+    RadioField,
     SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, ValidationError
@@ -140,35 +141,31 @@ class DailySummaryForm(FlaskForm):
 
 
 class MajorOutgoForm(FlaskForm):
-    date_of_outgo = DateField(
-        "Enter expected date of outgo", validators=[DataRequired()]
+    date_of_outgo = DateField("Expected date of outgo", validators=[DataRequired()])
+    float_expected_outgo = DecimalField(
+        "Estimated outgo amount", validators=[DataRequired()]
     )
-    amount_expected_outgo = DecimalField(
-        "Enter estimated amount of outgo", validators=[DataRequired()]
-    )
-    department = TextAreaField(
-        "Enter details of department/ Region", validators=[DataRequired()]
-    )
-    remarks = TextAreaField("Enter remarks", validators=[Optional()])
-    current_status = SelectField(
-        "Status", choices=["Pending", "Paid"], validators=[DataRequired()]
+    text_dept = TextAreaField("Department / Region", validators=[DataRequired()])
+    text_remarks = TextAreaField("Remarks", validators=[Optional()])
+    current_status = RadioField(
+        choices=["Pending", "Paid"], validators=[DataRequired()], default="Pending"
     )
 
 
 class AmountGivenToInvestmentForm(FlaskForm):
     date_given_to_investment = DateField(
-        "Enter date when amount was given to investment", validators=[DataRequired()]
+        "Date of transfer of amount to investment", validators=[DataRequired()]
     )
-    amount_given_to_investment = DecimalField(
-        "Enter amount given to investment", validators=[DataRequired()]
+    float_amount_given_to_investment = DecimalField(
+        "Amount given to investment", validators=[DataRequired()]
     )
-    expected_date_of_return = DateField(
-        "Enter expected date of return", validators=[DataRequired()]
+    date_expected_date_of_return = DateField(
+        "Expected date of return", validators=[DataRequired()]
     )
-    remarks = TextAreaField("Enter additional remarks", validators=[Optional()])
+    text_remarks = TextAreaField("Remarks", validators=[Optional()])
 
-    current_status = SelectField(
-        "Status", choices=["Pending", "Received"], validators=[DataRequired()]
+    current_status = RadioField(
+        choices=["Pending", "Received"], validators=[DataRequired()], default="Pending"
     )
 
 

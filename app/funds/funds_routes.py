@@ -939,7 +939,7 @@ def upload_bank_account_number():
     )
 
 
-@funds_bp.route("/add_outgo/", methods=["POST", "GET"])
+@funds_bp.route("/outgo/add", methods=["POST", "GET"])
 @login_required
 def add_major_outgo():
     check_for_fund_permission()
@@ -947,50 +947,53 @@ def add_major_outgo():
 
     form = MajorOutgoForm()
     if form.validate_on_submit():
-        outgo = FundMajorOutgo(
-            date_of_outgo=form.data["date_of_outgo"],
-            float_expected_outgo=form.data["amount_expected_outgo"],
-            text_dept=form.data["department"],
-            text_remarks=form.data["remarks"],
-            current_status=form.data["current_status"],
-            created_by=current_user.username,
-            date_created_date=datetime.datetime.now(),
-        )
+        outgo = FundMajorOutgo()
+        form.populate_obj(outgo)
+        # outgo = FundMajorOutgo(
+        #     date_of_outgo=form.data["date_of_outgo"],
+        #     float_expected_outgo=form.data["amount_expected_outgo"],
+        #     text_dept=form.data["department"],
+        #     text_remarks=form.data["remarks"],
+        #     current_status=form.data["current_status"],
+        #     created_by=current_user.username,
+        #     date_created_date=datetime.datetime.now(),
+        # )
         db.session.add(outgo)
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    return render_template("outgo_edit.html", form=form)
+    return render_template("jv_pattern_add.html", form=form, title="Add new outgo")
 
 
-@funds_bp.route("/edit/outgo/<int:outgo_id>/", methods=["POST", "GET"])
+@funds_bp.route("/outgo/edit/<int:outgo_id>/", methods=["POST", "GET"])
 @login_required
 def edit_major_outgo(outgo_id):
     check_for_fund_permission()
     from extensions import db
 
     outgo = FundMajorOutgo.query.get_or_404(outgo_id)
-    form = MajorOutgoForm()
+    form = MajorOutgoForm(obj=outgo)
     if form.validate_on_submit():
-        outgo.date_of_outgo = form.data["date_of_outgo"]
-        outgo.float_expected_outgo = form.data["amount_expected_outgo"]
-        outgo.text_dept = form.data["department"]
-        outgo.text_remarks = form.data["remarks"]
-        outgo.current_status = form.data["current_status"]
-        outgo.updated_by = current_user.username
-        outgo.date_updated_date = datetime.datetime.now()
+        form.populate_obj(outgo)
+        # outgo.date_of_outgo = form.data["date_of_outgo"]
+        # outgo.float_expected_outgo = form.data["amount_expected_outgo"]
+        # outgo.text_dept = form.data["department"]
+        # outgo.text_remarks = form.data["remarks"]
+        # outgo.current_status = form.data["current_status"]
+        # outgo.updated_by = current_user.username
+        # outgo.date_updated_date = datetime.datetime.now()
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    form.date_of_outgo.data = outgo.date_of_outgo
-    form.amount_expected_outgo.data = outgo.float_expected_outgo
-    form.department.data = outgo.text_dept
-    form.remarks.data = outgo.text_remarks
-    form.current_status.data = outgo.current_status
-    return render_template("outgo_edit.html", form=form)
+    # form.date_of_outgo.data = outgo.date_of_outgo
+    # form.amount_expected_outgo.data = outgo.float_expected_outgo
+    # form.department.data = outgo.text_dept
+    # form.remarks.data = outgo.text_remarks
+    # form.current_status.data = outgo.current_status
+    return render_template("jv_pattern_add.html", form=form, title="Edit outgo")
 
 
-@funds_bp.route("/list_outgo/", methods=["GET"])
+@funds_bp.route("/outgo/", methods=["GET"])
 @login_required
 def list_outgo():
     check_for_fund_permission()
@@ -999,7 +1002,7 @@ def list_outgo():
     return render_template("outgo_list.html", list_outgo=list_outgo)
 
 
-@funds_bp.route("/add_amount_investment", methods=["POST", "GET"])
+@funds_bp.route("/investment/add", methods=["POST", "GET"])
 @login_required
 def add_amount_given_to_investment():
     check_for_fund_permission()
@@ -1007,28 +1010,33 @@ def add_amount_given_to_investment():
 
     form = AmountGivenToInvestmentForm()
     if form.validate_on_submit():
-        date_given = form.data["date_given_to_investment"]
-        amount_given = form.data["amount_given_to_investment"]
-        expected_date_of_return = form.data["expected_date_of_return"]
-        remarks = form.data["remarks"]
-        current_status = form.data["current_status"]
-        given_to_investment = FundAmountGivenToInvestment(
-            date_given_to_investment=date_given,
-            float_amount_given_to_investment=amount_given,
-            text_remarks=remarks,
-            date_expected_date_of_return=expected_date_of_return,
-            current_status=current_status,
-            created_by=current_user.username,
-            date_created_date=datetime.datetime.now(),
-        )
-        db.session.add(given_to_investment)
+        investment = FundAmountGivenToInvestment()
+        form.populate_obj(investment)
+        # date_given = form.data["date_given_to_investment"]
+        # amount_given = form.data["amount_given_to_investment"]
+        # expected_date_of_return = form.data["expected_date_of_return"]
+        # remarks = form.data["remarks"]
+        # current_status = form.data["current_status"]
+        # given_to_investment = FundAmountGivenToInvestment(
+        #     date_given_to_investment=date_given,
+        #     float_amount_given_to_investment=amount_given,
+        #     text_remarks=remarks,
+        #     date_expected_date_of_return=expected_date_of_return,
+        #     current_status=current_status,
+        #     created_by=current_user.username,
+        #     date_created_date=datetime.datetime.now(),
+        # )
+        db.session.add(investment)
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
 
-    return render_template("investment_edit_amount.html", form=form)
+    # return render_template("investment_edit_amount.html", form=form)
+    return render_template(
+        "jv_pattern_add.html", form=form, title="Enter investment amount"
+    )
 
 
-@funds_bp.route("/edit_amount_investment/<int:investment_id>", methods=["POST", "GET"])
+@funds_bp.route("/investment/edit/<int:investment_id>/", methods=["POST", "GET"])
 @login_required
 def edit_amount_given_to_investment(investment_id):
     check_for_fund_permission()
@@ -1036,28 +1044,31 @@ def edit_amount_given_to_investment(investment_id):
 
     investment = FundAmountGivenToInvestment.query.get_or_404(investment_id)
 
-    form = AmountGivenToInvestmentForm()
+    form = AmountGivenToInvestmentForm(obj=investment)
     if form.validate_on_submit():
-        investment.date_given_to_investment = form.data["date_given_to_investment"]
-        investment.float_amount_given_to_investment = form.data[
-            "amount_given_to_investment"
-        ]
-        investment.date_expected_date_of_return = form.data["expected_date_of_return"]
-        investment.text_remarks = form.data["remarks"] or None
-        investment.current_status = form.data["current_status"]
-        investment.updated_by = current_user.username
-        investment.date_updated_date = datetime.datetime.now()
+        # investment.date_given_to_investment = form.data["date_given_to_investment"]
+        # investment.float_amount_given_to_investment = form.data[
+        #     "amount_given_to_investment"
+        # ]
+        # investment.date_expected_date_of_return = form.data["expected_date_of_return"]
+        # investment.text_remarks = form.data["remarks"] or None
+        # investment.current_status = form.data["current_status"]
+        # investment.updated_by = current_user.username
+        # investment.date_updated_date = datetime.datetime.now()
+        form.populate_obj(investment)
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
-    form.date_given_to_investment.data = investment.date_given_to_investment
-    form.amount_given_to_investment.data = investment.float_amount_given_to_investment
-    form.expected_date_of_return.data = investment.date_expected_date_of_return
-    form.remarks.data = investment.text_remarks
-    form.current_status.data = investment.current_status
-    return render_template("investment_edit_amount.html", form=form)
+    # form.date_given_to_investment.data = investment.date_given_to_investment
+    # form.amount_given_to_investment.data = investment.float_amount_given_to_investment
+    # form.expected_date_of_return.data = investment.date_expected_date_of_return
+    # form.remarks.data = investment.text_remarks
+    # form.current_status.data = investment.current_status
+    return render_template(
+        "jv_pattern_add.html", form=form, title="Edit investment amount"
+    )
 
 
-@funds_bp.route("/list_amount_investment/")
+@funds_bp.route("/investment/")
 @login_required
 def list_amount_given_to_investment():
     check_for_fund_permission()
@@ -1646,4 +1657,5 @@ def add_jv_flag():
     return render_template(
         "jv_pattern_add.html",
         form=form,
+        title="Add new JV pattern",
     )
