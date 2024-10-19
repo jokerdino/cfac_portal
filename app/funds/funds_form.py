@@ -61,11 +61,6 @@ class UploadFileForm(FlaskForm):
     upload_document = SubmitField("Upload")
 
 
-# class GivenToInvestment(Form):
-#     given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
-#     expected_date_of_return = DateField(
-#         "Enter expected date of return", validators=[Optional()]
-#     )
 class OutflowForm(FlaskForm):
     # drawn_from_investment = DecimalField(
     #     "Drawn from investment", validators=[Optional()]
@@ -103,9 +98,15 @@ class OutflowForm(FlaskForm):
 
 
 class FlagForm(FlaskForm):
-    flag_description = StringField("Add flag description", validators=[DataRequired()])
-    flag_regular_expression = StringField(
-        "Add flag pattern", validators=[DataRequired()]
+    flag_description = StringField(
+        "Description",
+        validators=[DataRequired()],
+        description="Name for the flag pattern",
+    )
+    flag_reg_exp = StringField(
+        "Flag pattern",
+        validators=[DataRequired()],
+        description="Pattern to match in the bank statement",
     )
 
 

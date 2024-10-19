@@ -437,17 +437,18 @@ def add_flag_entry():
 
     form = FlagForm()
     if form.validate_on_submit():
-        flag = FundFlagSheet(
-            flag_description=form.data["flag_description"],
-            flag_reg_exp=form.data["flag_regular_expression"],
-            created_by=current_user.username,
-            date_created_date=datetime.datetime.now(),
-        )
+        flag = FundFlagSheet()
+        form.populate_obj(flag)
+        #     flag_description=form.data["flag_description"],
+        #     flag_reg_exp=form.data["flag_regular_expression"],
+        #     created_by=current_user.username,
+        #     date_created_date=datetime.datetime.now(),
+        # )
         db.session.add(flag)
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    return render_template("flag_edit_entry.html", form=form, title="Add flag entry")
+    return render_template("jv_pattern_add.html", form=form, title="Add flag entry")
 
 
 @funds_bp.route("/flags/edit/<int:flag_id>", methods=["POST", "GET"])
@@ -458,20 +459,20 @@ def edit_flag_entry(flag_id):
     from extensions import db
 
     flag = FundFlagSheet.query.get_or_404(flag_id)
-    form = FlagForm()
+    form = FlagForm(obj=flag)
     if form.validate_on_submit():
-        flag.flag_description = form.data["flag_description"]
-        flag.flag_reg_exp = form.data["flag_regular_expression"]
+        # flag.flag_description = form.data["flag_description"]
+        # flag.flag_reg_exp = form.data["flag_regular_expression"]
 
-        flag.updated_by = current_user.username
-        flag.date_updated_date = datetime.datetime.now()
-
+        # flag.updated_by = current_user.username
+        # flag.date_updated_date = datetime.datetime.now()
+        form.populate_obj(flag)
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    form.flag_description.data = flag.flag_description
-    form.flag_regular_expression.data = flag.flag_reg_exp
-    return render_template("flag_edit_entry.html", form=form, title="Edit flag entry")
+    # form.flag_description.data = flag.flag_description
+    # form.flag_regular_expression.data = flag.flag_reg_exp
+    return render_template("jv_pattern_add.html", form=form, title="Edit flag entry")
 
 
 @funds_bp.route("/enter_outflow/<string:date_string>", methods=["GET", "POST"])
