@@ -12,7 +12,10 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.validators import DataRequired, Optional, ValidationError
+from wtforms_sqlalchemy.orm import model_form
 
+
+from .funds_model import FundJournalVoucherFlagSheet
 
 # def num_of_days(date1, date2):
 #    return (date2 - date1).days
@@ -173,3 +176,14 @@ class FundsModifyDatesForm(FlaskForm):
     old_date = DateField("Enter old date", validators=[DataRequired()])
     new_date = DateField("Enter new date", validators=[DataRequired()])
     submit_button = SubmitField("Submit")
+
+
+JVFlagAddForm = model_form(
+    FundJournalVoucherFlagSheet,
+    only=[
+        "txt_description",
+        "txt_flag",
+        "txt_gl_code",
+        "txt_sl_code",
+    ],
+)

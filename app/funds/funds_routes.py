@@ -28,6 +28,7 @@ from app.funds.funds_form import (
     OutflowForm,
     ReportsForm,
     UploadFileForm,
+    JVFlagAddForm,
 )
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
@@ -41,6 +42,8 @@ from app.funds.funds_model import (
 )
 
 from app.pool_credits.pool_credits_portal import prepare_dataframe
+
+from set_view_permissions import admin_required
 
 outflow_labels = [
     "CITI HEALTH",
@@ -1237,7 +1240,7 @@ def funds_reports():
     return render_template("reports_form.html", form=form)
 
 
-@funds_bp.route("/view_jv_flags", methods=["GET", "POST"])
+@funds_bp.route("/jv_flags/", methods=["GET", "POST"])
 @login_required
 def view_jv_flags():
 
@@ -1248,7 +1251,7 @@ def view_jv_flags():
     return render_template("jv_view_flags.html", list=list, column_names=column_names)
 
 
-@funds_bp.route("/upload_jv_flags", methods=["GET", "POST"])
+@funds_bp.route("/jv_flags/upload", methods=["GET", "POST"])
 @login_required
 def upload_jv_flags():
 
@@ -1618,3 +1621,29 @@ def modify_dates():
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
     return render_template("modify_dates.html", form=form)
+
+
+@funds_bp.route("/jv_flags/add", methods=["POST", "GET"])
+@login_required
+@admin_required
+def add_jv_flag():
+    """Add new JV flag patterns through model form"""
+    from extensions import db
+
+    jv = FundJournalVoucherFlagSheet()
+
+    if request.method == "POST":
+        form = JVFlagAddForm(request.form, obj=jv)
+        if form.validate():
+
+            form.populate_obj(jv)
+            db.session.add(jv)
+            db.session.commit()
+            return redirect(url_for(".view_jv_flags"))
+    else:
+        form = JVFlagAddForm()
+
+    return render_template(
+        "jv_pattern_add.html",
+        form=form,
+    )
