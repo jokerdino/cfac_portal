@@ -35,7 +35,8 @@ from app.coinsurance.coinsurance_form import (
     QueryForm,
     CoinsuranceBalanceForm,
     CoinsuranceBankMandateForm,
-    CoinsuranceReceiptsForm,
+    CoinsuranceReceiptEditForm,
+    CoinsuranceReceiptAddForm,
     DeleteCoinsuranceBalanceEntries,
 )
 from app.coinsurance.coinsurance_model import (
@@ -48,6 +49,8 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceBankMandate,
     CoinsuranceReceipts,
 )
+
+from .coinsurance_model_forms import ReceiptForm
 
 from app.funds.funds_model import FundBankStatement
 
@@ -282,6 +285,52 @@ def get_coinsurance_receipts():
     }
 
 
+@coinsurance_bp.route("/receipts/add", methods=["POST", "GET"])
+@login_required
+@admin_required
+def add_coinsurance_receipts():
+
+    from extensions import db
+
+    form = CoinsuranceReceiptAddForm()
+    if form.validate_on_submit():
+        receipt = CoinsuranceReceipts(status="Pending")
+        form.populate_obj(receipt)
+        db.session.add(receipt)
+        db.session.commit()
+        return redirect(url_for("coinsurance.list_coinsurance_receipts"))
+    return render_template(
+        "coinsurance_receipts_add.html",
+        form=form,
+    )
+
+
+@coinsurance_bp.route("/receipts/model_add", methods=["POST", "GET"])
+@login_required
+@admin_required
+def add_coinsurance_receipts_model_form():
+    """Add new pending coinsurance receipts through model form"""
+    from extensions import db
+
+    receipt = CoinsuranceReceipts(status="Pending")
+
+    if request.method == "POST":
+        form = ReceiptForm(request.form, obj=receipt)
+        if form.validate():
+
+            form.populate_obj(receipt)
+            db.session.add(receipt)
+            db.session.commit()
+            return redirect(url_for("coinsurance.list_coinsurance_receipts"))
+    else:
+        form = ReceiptForm()
+
+    return render_template(
+        "coinsurance_receipts_add.html",
+        form=form,
+    )
+
+
 @coinsurance_bp.route("/receipts/edit/<int:id>", methods=["POST", "GET"])
 @login_required
 @admin_required
@@ -290,7 +339,7 @@ def edit_coinsurance_receipts(id):
     from extensions import db
 
     receipt = db.get_or_404(CoinsuranceReceipts, id)
-    form = CoinsuranceReceiptsForm(obj=receipt)
+    form = CoinsuranceReceiptEditForm(obj=receipt)
 
     if form.validate_on_submit():
 

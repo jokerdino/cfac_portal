@@ -236,7 +236,7 @@ class CoinsuranceBankMandateForm(FlaskForm):
     remarks = TextAreaField()
 
 
-class CoinsuranceReceiptsForm(FlaskForm):
+class CoinsuranceReceiptEditForm(FlaskForm):
 
     status = RadioField(choices=["Pending", "Receipted"], validators=[DataRequired()])
     receipting_office = SelectField(
@@ -249,3 +249,11 @@ class CoinsuranceReceiptsForm(FlaskForm):
 
 class DeleteCoinsuranceBalanceEntries(FlaskForm):
     period = SelectField()
+
+
+class CoinsuranceReceiptAddForm(FlaskForm):
+    company_name = SelectField(choices=coinsurer_list, validators=[DataRequired()])
+    credit = DecimalField(validators=[DataRequired()])
+    value_date = DateField(validators=[DataRequired()])
+    reference_no = StringField(validators=[DataRequired()])
+    transaction_code = StringField(validators=[DataRequired()])
