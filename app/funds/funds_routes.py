@@ -43,7 +43,7 @@ from app.funds.funds_model import (
 
 from app.pool_credits.pool_credits_portal import prepare_dataframe
 
-from set_view_permissions import admin_required
+from set_view_permissions import admin_required, fund_managers
 
 outflow_labels = [
     "CITI HEALTH",
@@ -83,16 +83,16 @@ outflow_amounts = [
 ]
 
 
-def check_for_fund_permission():
-    if not current_user.username in [
-        "bar44515",
-        "vin38405",
-        "sug29777",
-        "sud45327",
-        "jan27629",
-        "hem27596",
-    ]:
-        abort(404)
+# def # check_for_fund_permission():
+#     if not current_user.username in [
+#         "bar44515",
+#         "vin38405",
+#         "sug29777",
+#         "sud45327",
+#         "jan27629",
+#         "hem27596",
+#     ]:
+#         abort(404)
 
 
 def display_inflow(input_date, inflow_description=None):
@@ -198,8 +198,9 @@ def get_ibt_details(outflow_description):
 
 @funds_bp.route("/", methods=["GET"])
 @login_required
+@fund_managers
 def funds_home():
-    check_for_fund_permission()
+    # # check_for_fund_permission()
     from extensions import db
 
     query = db.session.query(distinct(FundBankStatement.date_uploaded_date)).order_by(
@@ -218,8 +219,9 @@ def funds_home():
 
 @funds_bp.route("/upload_statement", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def upload_bank_statement():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     form = UploadFileForm()
 
     if form.validate_on_submit():
@@ -385,8 +387,9 @@ def add_flag(df_bank_statement):
 
 @funds_bp.route("/view_bank_statement/<string:date_string>", methods=["GET"])
 @login_required
+@fund_managers
 def view_bank_statement(date_string):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     query = FundBankStatement.query.filter(
         FundBankStatement.date_uploaded_date == param_date
@@ -408,11 +411,12 @@ def view_bank_statement(date_string):
     )
 
 
-@funds_bp.route("/view_flag_sheet", methods=["GET"])
+@funds_bp.route("/flags/", methods=["GET"])
 @login_required
+@fund_managers
 def view_flag_sheet():
 
-    check_for_fund_permission()
+    # check_for_fund_permission()
     query = FundFlagSheet.query.order_by(FundFlagSheet.flag_description)
 
     column_names = [
@@ -424,10 +428,11 @@ def view_flag_sheet():
     )
 
 
-@funds_bp.route("/add_flag", methods=["POST", "GET"])
+@funds_bp.route("/flags/add", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def add_flag_entry():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     form = FlagForm()
@@ -445,10 +450,11 @@ def add_flag_entry():
     return render_template("flag_edit_entry.html", form=form, title="Add flag entry")
 
 
-@funds_bp.route("/edit_flag/<int:flag_id>", methods=["POST", "GET"])
+@funds_bp.route("/flags/edit/<int:flag_id>", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def edit_flag_entry(flag_id):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     flag = FundFlagSheet.query.get_or_404(flag_id)
@@ -470,8 +476,9 @@ def edit_flag_entry(flag_id):
 
 @funds_bp.route("/enter_outflow/<string:date_string>", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def enter_outflow(date_string):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
@@ -666,8 +673,9 @@ def write_to_database_outflow(date, key, amount):
 
 @funds_bp.route("/add_remarks/<string:date_string>", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def add_remarks(date_string):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     flag_description = db.session.query(FundFlagSheet.flag_description)
@@ -753,8 +761,9 @@ def add_remarks(date_string):
 
 @funds_bp.route("/ibt/<string:date_string>/<string:pdf>", methods=["GET"])
 @login_required
+@fund_managers
 def ibt(date_string, pdf="False"):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
@@ -788,8 +797,9 @@ def ibt(date_string, pdf="False"):
 
 @funds_bp.route("/daily_summary/<string:date_string>/<string:pdf>", methods=["GET"])
 @login_required
+@fund_managers
 def daily_summary(date_string, pdf="False"):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
@@ -821,41 +831,11 @@ def daily_summary(date_string, pdf="False"):
     )
 
 
-# @funds_bp.route("/daily_summary/pdf/<string:date_string>", methods=["GET"])
-# @login_required
-# def daily_summary_pdf(date_string):
-#     from extensions import db
-
-#     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-#     #    outflow = FundDailyOutflow.query.filter(FundDailyOutflow.outflow_date == param_date).first()
-#     daily_sheet = FundDailySheet.query.filter(
-#         FundDailySheet.date_current_date == param_date
-#     ).first()
-#     flag_description = db.session.query(FundFlagSheet.flag_description)
-#     #    print(flag_description)
-#     # inflow = FundBankStatement.query.filter(FundBankStatement.date_uploaded_date == param_date)
-#     return render_template(
-#         "daily_summary.html",
-#         display_date=param_date,
-#         # outflow=outflow,
-#         daily_sheet=daily_sheet,
-#         display_inflow=display_inflow,
-#         outflow_items=zip(outflow_labels, outflow_amounts),
-#         right_length=len(outflow_labels),
-#         # outflow_amounts=outflow_amounts,
-#         display_outflow=fill_outflow,
-#         flag_description=flag_description,
-#         return_prev_day_closing_balance=return_prev_day_closing_balance,
-#         get_inflow_total=get_inflow_total,
-#         pdf=True,
-#         timedelta=datetime.timedelta,
-#     )
-
-
-@funds_bp.route("/upload_flag_sheet", methods=["GET", "POST"])
+@funds_bp.route("/flags/upload", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def upload_flag_sheet():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     # uploading preconfigured flag sheet from CSV file
     form = UploadFileForm()
     if form.validate_on_submit():
@@ -880,8 +860,9 @@ def upload_flag_sheet():
 
 @funds_bp.route("/upload_investment_balance", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def upload_investment_balance():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     # uploading closing balance of previous year for reference
     form = UploadFileForm()
 
@@ -910,8 +891,9 @@ def upload_investment_balance():
 
 @funds_bp.route("/upload_bank_account_number", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def upload_bank_account_number():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     # uploading closing balance of previous year for reference
     form = UploadFileForm()
 
@@ -941,8 +923,9 @@ def upload_bank_account_number():
 
 @funds_bp.route("/outgo/add", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def add_major_outgo():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     form = MajorOutgoForm()
@@ -967,8 +950,9 @@ def add_major_outgo():
 
 @funds_bp.route("/outgo/edit/<int:outgo_id>/", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def edit_major_outgo(outgo_id):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     outgo = FundMajorOutgo.query.get_or_404(outgo_id)
@@ -995,8 +979,9 @@ def edit_major_outgo(outgo_id):
 
 @funds_bp.route("/outgo/", methods=["GET"])
 @login_required
+@fund_managers
 def list_outgo():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     list_outgo = FundMajorOutgo.query.order_by(FundMajorOutgo.date_of_outgo.asc())
 
     return render_template("outgo_list.html", list_outgo=list_outgo)
@@ -1004,8 +989,9 @@ def list_outgo():
 
 @funds_bp.route("/investment/add", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def add_amount_given_to_investment():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     form = AmountGivenToInvestmentForm()
@@ -1038,8 +1024,9 @@ def add_amount_given_to_investment():
 
 @funds_bp.route("/investment/edit/<int:investment_id>/", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def edit_amount_given_to_investment(investment_id):
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     investment = FundAmountGivenToInvestment.query.get_or_404(investment_id)
@@ -1070,8 +1057,9 @@ def edit_amount_given_to_investment(investment_id):
 
 @funds_bp.route("/investment/")
 @login_required
+@fund_managers
 def list_amount_given_to_investment():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     investment_list = FundAmountGivenToInvestment.query.order_by(
         FundAmountGivenToInvestment.date_expected_date_of_return.asc()
     )
@@ -1081,6 +1069,7 @@ def list_amount_given_to_investment():
 
 @funds_bp.route("/reports", methods=["POST", "GET"])
 @login_required
+@admin_required
 def funds_reports():
     from extensions import db
 
@@ -1253,9 +1242,10 @@ def funds_reports():
 
 @funds_bp.route("/jv_flags/", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def view_jv_flags():
 
-    check_for_fund_permission()
+    # check_for_fund_permission()
     list = FundJournalVoucherFlagSheet.query.order_by(FundJournalVoucherFlagSheet.id)
     column_names = FundJournalVoucherFlagSheet.query.statement.columns.keys()
 
@@ -1264,9 +1254,10 @@ def view_jv_flags():
 
 @funds_bp.route("/jv_flags/upload", methods=["GET", "POST"])
 @login_required
+@fund_managers
 def upload_jv_flags():
 
-    check_for_fund_permission()
+    # check_for_fund_permission()
     form = UploadFileForm()
 
     if form.validate_on_submit():
@@ -1301,6 +1292,7 @@ def upload_jv_flags():
 
 @funds_bp.route("/download_jv", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def download_jv():
     """Function to generate generate Fund Journal voucher from available data
     Input required: Start date and end date
@@ -1312,7 +1304,7 @@ def download_jv():
     Output: Pandas dataframe written to excel file with start date and end date added to file name for quick reference.
     """
 
-    check_for_fund_permission()
+    # check_for_fund_permission()
     form = FundsJVForm()
     from extensions import db
 
@@ -1600,8 +1592,9 @@ def prepare_inflow_jv(
 
 @funds_bp.route("/modify_dates", methods=["POST", "GET"])
 @login_required
+@fund_managers
 def modify_dates():
-    check_for_fund_permission()
+    # check_for_fund_permission()
     from extensions import db
 
     form = FundsModifyDatesForm()

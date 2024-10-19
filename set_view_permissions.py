@@ -26,3 +26,25 @@ def ro_user_only(f):
             return redirect(url_for("main.index"))
 
     return wrap
+
+
+def fund_managers(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if current_user.username in [
+            "bar44515",
+            "vin38405",
+            "sug29777",
+            "sud45327",
+            "jan27629",
+            "ush25768",
+            "hem27596",
+        ]:
+            return f(*args, **kwargs)
+
+        else:
+            # flash("You need to be an admin to view this page")
+            # abort(404)
+            return redirect(url_for("funds.funds_reports"))
+
+    return wrap
