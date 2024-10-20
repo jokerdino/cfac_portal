@@ -1,4 +1,7 @@
-from datetime import datetime
+from dataclasses import asdict
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
+
 import pandas as pd
 
 from flask import (
@@ -31,6 +34,53 @@ from app.ho_accounts.ho_accounts_model import (
 )
 
 from app.users.user_model import User
+
+
+@ho_accounts_bp.route("/upload_previous_month")
+def upload_previous_month():
+    """View function to upload previous quarter HO checklist itemes after scheduled quarterly cron job"""
+    from extensions import db
+
+    # current_month refers to month that just ended
+    current_month = date.today() - relativedelta(months=1)
+
+    # prev_month is the 3 months before current_month
+    prev_month = current_month - relativedelta(months=3)
+
+    fresh_entries = []
+    recon_entries = db.session.scalars(
+        db.select(HeadOfficeBankReconTracker).where(
+            HeadOfficeBankReconTracker.str_period == prev_month.strftime("%b-%y")
+        )
+    )
+    for entry in recon_entries:
+
+        new_entry = HeadOfficeBankReconTracker(
+            **asdict(entry),
+            str_period=current_month.strftime("%b-%y"),
+            created_by="AUTOUPLOAD",
+        )
+
+        fresh_entries.append(new_entry)
+
+    accounts_entries = db.session.scalars(
+        db.select(HeadOfficeAccountsTracker).where(
+            HeadOfficeAccountsTracker.str_period == prev_month.strftime("%b-%y")
+        )
+    )
+    for entry in accounts_entries:
+
+        new_entry = HeadOfficeAccountsTracker(
+            **asdict(entry),
+            str_period=current_month.strftime("%b-%y"),
+            created_by="AUTOUPLOAD",
+        )
+
+        fresh_entries.append(new_entry)
+
+    db.session.add_all(fresh_entries)
+    db.session.commit()
+    return "Success"
 
 
 @ho_accounts_bp.route("/bulk_upload_trackers", methods=["POST", "GET"])
@@ -85,7 +135,8 @@ def mask_account_number(account_number: str) -> str:
 
     if not account_number:
         return None
-    return (account_number[:2] + ((len(account_number)-6) * '*') + account_number[-4:])
+    return account_number[:2] + ((len(account_number) - 6) * "*") + account_number[-4:]
+
 
 @ho_accounts_bp.route("/", methods=["POST", "GET"])
 @login_required
