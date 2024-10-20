@@ -1,12 +1,11 @@
-from math import fabs
-from datetime import datetime
-from dateutil import relativedelta
 import calendar
-from sqlalchemy.sql import exists, select
-import sqlalchemy
+from dataclasses import asdict
+from datetime import date, datetime
+from math import fabs
 
 import pandas as pd
-
+import sqlalchemy
+from dateutil.relativedelta import relativedelta
 from flask import (
     abort,
     current_app,
@@ -17,32 +16,79 @@ from flask import (
     send_file,
     url_for,
 )
-from flask_weasyprint import HTML, render_pdf
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, func
-
-from set_view_permissions import admin_required
+from flask_weasyprint import HTML, render_pdf
+from sqlalchemy import create_engine, func, insert
+from sqlalchemy.sql import exists, select
 
 from app.brs import brs_bp
+from app.brs.forms import (
+    BankReconAccountDetailsAddForm,
+    BRS_entry,
+    BRSForm,
+    DashboardForm,
+    EnableDeleteMonthForm,
+    RawDataForm,
+)
 from app.brs.models import (
     BRS,
-    BRS_month,
-    Outstanding,
-    DeleteEntries,
+    BankReconAccountDetails,
     BankReconExcessCredit,
     BankReconShortCredit,
-    BankReconAccountDetails,
+    BRS_month,
+    DeleteEntries,
+    Outstanding,
 )
-from app.brs.forms import (
-    BRSForm,
-    BRS_entry,
-    DashboardForm,
-    RawDataForm,
-    EnableDeleteMonthForm,
-    BankReconAccountDetailsAddForm,
-)
+from set_view_permissions import admin_required
 
-from app.brs.brs_helper_functions import upload_brs_file
+from .brs_helper_functions import get_financial_year, upload_brs_file
+
+
+@brs_bp.route("/auto_upload_prev_month")
+def brs_auto_upload_prev_month():
+    """
+    View function to upload fresh BRS entries from previous month's entries.
+    Also adds the month to DeleteEntry table.
+
+    URL will be fetched using cron at the start of new month.
+    current_month will be the month that just ended.
+    New entries will be fetched from the previous month data.
+
+    Returns:
+        string: "Success" is returned as response
+    """
+
+    from extensions import db
+
+    # current_month refers to month that just ended
+    current_month = date.today() - relativedelta(months=1)
+
+    # prev_month is the month before current_month
+    prev_month = current_month - relativedelta(months=1)
+    # FY will be fetched based on current_month value
+    financial_year = get_financial_year(current_month)
+
+    fresh_entries = []
+    brs_entries = db.session.scalars(
+        db.select(BRS).where(BRS.month == prev_month.strftime("%B-%Y"))
+    )
+    for entry in brs_entries:
+
+        new_entry = BRS(
+            **asdict(entry),
+            month=current_month.strftime("%B-%Y"),
+            financial_year=financial_year,
+        )
+
+        fresh_entries.append(new_entry)
+
+    db.session.add_all(fresh_entries)
+
+    delete_month_entry = DeleteEntries(txt_month=current_month.strftime("%B-%Y"))
+    db.session.add(delete_month_entry)
+    db.session.commit()
+
+    return "Success"
 
 
 @brs_bp.route("/home", methods=["POST", "GET"])
@@ -554,9 +600,7 @@ def validate_outstanding_entries(
 
     # find month of BRS period to test if date_of_instrument and date_of_collection are within that time frame
     brs = db.session.query(BRS).get_or_404(brs_id)
-    brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta.relativedelta(
-        months=1, day=1
-    )
+    brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta(months=1, day=1)
 
     if requirement == "cash":
         date_columns: list[str] = ["date_of_collection"]
@@ -758,8 +802,9 @@ def upload_df_entries_to_database(
 def enter_brs(requirement, brs_id):
     brs_entry = BRS.query.get_or_404(brs_id)
     form = BRS_entry()
-    from server import db
     from wtforms.validators import DataRequired
+
+    from server import db
 
     if form.data["int_deposited_not_credited"]:
         form.file_outstanding_entries.validators = [DataRequired()]

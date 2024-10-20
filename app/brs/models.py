@@ -1,20 +1,26 @@
+from dataclasses import dataclass
+from datetime import datetime
+
+from flask_login import current_user
+
 from extensions import db
 
 
+@dataclass
 class BRS(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uiic_regional_code = db.Column(db.String)
-    uiic_office_code = db.Column(db.String)
+    uiic_regional_code: str = db.Column(db.String)
+    uiic_office_code: str = db.Column(db.String)
 
     financial_year = db.Column(db.String)
     month = db.Column(db.String)
 
-    cash_bank = db.Column(db.String)
-    cheque_bank = db.Column(db.String)
-    pos_bank = db.Column(db.String)
-    pg_bank = db.Column(db.String)
-    bbps_bank = db.Column(db.String)
-    local_collection_bank = db.Column(db.String)
+    cash_bank: str = db.Column(db.String)
+    cheque_bank: str = db.Column(db.String)
+    pos_bank: str = db.Column(db.String)
+    pg_bank: str = db.Column(db.String)
+    bbps_bank: str = db.Column(db.String)
+    local_collection_bank: str = db.Column(db.String)
 
     cash_brs_id = db.Column(db.Integer)
     cheque_brs_id = db.Column(db.Integer)
@@ -24,19 +30,19 @@ class BRS(db.Model):
     local_collection_brs_id = db.Column(db.Integer)
 
     brs_month = db.relationship("BRS_month", backref="brs", lazy="dynamic")
-    timestamp = db.Column(db.DateTime)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
 
 
 class DeleteEntries(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     txt_month = db.Column(db.String)
-    bool_enable_delete = db.Column(db.Boolean)
+    bool_enable_delete = db.Column(db.Boolean, default=lambda: True)
 
-    created_by = db.Column(db.String)
-    created_on = db.Column(db.DateTime)
+    created_by = db.Column(db.String, default=lambda: "AUTOUPLOAD")
+    created_on = db.Column(db.DateTime, default=datetime.now)
 
-    updated_by = db.Column(db.String)
-    updated_on = db.Column(db.DateTime)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
 
 class BRS_month(db.Model):
@@ -113,6 +119,7 @@ class BankReconExcessCredit(db.Model):
     date_of_instrument = db.Column(db.Date)
     date_of_collection = db.Column(db.Date)
     remarks = db.Column(db.Text)
+
 
 class BankReconAccountDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
