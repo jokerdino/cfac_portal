@@ -1,12 +1,17 @@
+from dataclasses import dataclass
+from datetime import datetime
+
 from extensions import db
 
+
+@dataclass
 class MisTracker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_by = db.Column(db.String)
-    created_on = db.Column(db.DateTime)
+    created_by = db.Column(db.String, default=lambda: "AUTOUPLOAD")
+    created_on = db.Column(db.DateTime, default=datetime.now)
 
     txt_period = db.Column(db.String)
-    txt_mis_type = db.Column(db.String)
+    txt_mis_type: str = db.Column(db.String)
 
     bool_mis_shared = db.Column(db.Boolean)
     date_mis_shared = db.Column(db.DateTime)

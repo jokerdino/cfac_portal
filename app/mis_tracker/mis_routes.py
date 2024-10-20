@@ -1,4 +1,7 @@
-from datetime import datetime
+from dataclasses import asdict
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
+
 import pandas as pd
 from flask import redirect, render_template, url_for, flash, current_app
 
@@ -10,9 +13,38 @@ from app.mis_tracker import mis_bp
 from app.mis_tracker.mis_model import MisTracker
 from app.mis_tracker.mis_form import MISTrackerForm, FileUploadForm
 
-# from app.tickets.tickets_routes import humanize_datetime
-
 from app.mis_tracker.mis_helper_functions import upload_mis_file
+
+
+@mis_bp.route("/upload_previous_month")
+def upload_previous_month():
+    """View function to upload previous month MIS tracker entries after scheduled monthly cron job"""
+    from extensions import db
+
+    # current_month refers to month that just ended
+    current_month = date.today() - relativedelta(months=1)
+
+    # prev_month is the month before current_month
+    prev_month = current_month - relativedelta(months=1)
+
+    fresh_entries = []
+    mis_entries = db.session.scalars(
+        db.select(MisTracker).where(
+            MisTracker.txt_period == prev_month.strftime("%B-%Y")
+        )
+    )
+    for entry in mis_entries:
+
+        new_entry = MisTracker(
+            **asdict(entry),
+            txt_period=current_month.strftime("%B-%Y"),
+        )
+
+        fresh_entries.append(new_entry)
+
+    db.session.add_all(fresh_entries)
+    db.session.commit()
+    return "Success"
 
 
 @mis_bp.route("/bulk_upload", methods=["POST", "GET"])
