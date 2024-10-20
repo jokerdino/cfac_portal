@@ -36,9 +36,9 @@ class BRS(db.Model):
 class DeleteEntries(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     txt_month = db.Column(db.String)
-    bool_enable_delete = db.Column(db.Boolean, default=lambda: True)
+    bool_enable_delete = db.Column(db.Boolean, default=True)
 
-    created_by = db.Column(db.String, default=lambda: "AUTOUPLOAD")
+    created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)
 
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)

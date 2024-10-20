@@ -44,7 +44,7 @@ from set_view_permissions import admin_required
 from .brs_helper_functions import get_financial_year, upload_brs_file
 
 
-@brs_bp.route("/auto_upload_prev_month")
+@brs_bp.route("/upload_previous_month")
 def brs_auto_upload_prev_month():
     """
     View function to upload fresh BRS entries from previous month's entries.
@@ -84,7 +84,9 @@ def brs_auto_upload_prev_month():
 
     db.session.add_all(fresh_entries)
 
-    delete_month_entry = DeleteEntries(txt_month=current_month.strftime("%B-%Y"))
+    delete_month_entry = DeleteEntries(
+        txt_month=current_month.strftime("%B-%Y"), created_by="AUTOUPLOAD"
+    )
     db.session.add(delete_month_entry)
     db.session.commit()
 

@@ -38,6 +38,7 @@ def upload_previous_month():
         new_entry = MisTracker(
             **asdict(entry),
             txt_period=current_month.strftime("%B-%Y"),
+            created_by="AUTOUPLOAD"
         )
 
         fresh_entries.append(new_entry)

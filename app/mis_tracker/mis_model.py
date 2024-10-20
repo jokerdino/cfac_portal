@@ -1,13 +1,15 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from flask_login import current_user
+
 from extensions import db
 
 
 @dataclass
 class MisTracker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    created_by = db.Column(db.String, default=lambda: "AUTOUPLOAD")
+    created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)
 
     txt_period = db.Column(db.String)
