@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import (
+    current_app,
     redirect,
     render_template,
     send_from_directory,
@@ -42,7 +43,10 @@ def add_knowledge_base_document():
                 + "."
                 + kb_file_extension
             )
-            form.knowledge_base_document.data.save("knowledge_base/" + kb_filename)
+            form.knowledge_base_document.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}knowledge_base/"
+                + kb_filename
+            )
         else:
             kb_filename: str = None
 
@@ -105,7 +109,7 @@ def knowledge_base_home_page():
         kb_query = kb_query.filter(KnowledgeBase.is_visible.is_not(False))
     return render_template(
         "kb_homepage.html",
-        kb_query=kb_query,  # humanize_datetime=humanize_datetime
+        kb_query=kb_query,
     )
 
 
@@ -116,7 +120,7 @@ def download_kb_document(kb_id):
     filename_extension: str = kb.knowledge_base_document.rsplit(".", 1)[1]
     filename: str = f"{kb.topic}_{kb.title}.{filename_extension}"
     return send_from_directory(
-        directory="knowledge_base/",
+        directory=f"{current_app.config.get("UPLOAD_FOLDER")}knowledge_base/",
         path=kb.knowledge_base_document,
         as_attachment=True,
         download_name=filename,

@@ -412,7 +412,10 @@ def add_coinsurance_entry():
                 + "."
                 + statement_file_extension
             )
-            form.statement.data.save("statements/" + statement_filename)
+            form.statement.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/statements/"
+                + statement_filename
+            )
         else:
             statement_filename = None
         if form.data["confirmation"]:
@@ -426,7 +429,10 @@ def add_coinsurance_entry():
                 + "."
                 + confirmation_file_extension
             )
-            form.confirmation.data.save("confirmations/" + confirmation_filename)
+            form.confirmation.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/confirmations/"
+                + confirmation_filename
+            )
         else:
             confirmation_filename = None
         if bool_ri_involved:
@@ -443,7 +449,8 @@ def add_coinsurance_entry():
                 + ri_confirmation_file_extension
             )
             form.ri_confirmation.data.save(
-                "ri_confirmations/" + ri_confirmation_filename
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/ri_confirmations/"
+                + ri_confirmation_filename
             )
         else:
             ri_confirmation_filename = None
@@ -591,7 +598,7 @@ def download_document(requirement, coinsurance_id):
         amount_string = f"payable {coinsurance.net_amount}"
     filename = f"{coinsurance.type_of_transaction} {requirement} - {coinsurance.uiic_office_code} - {coinsurance.follower_company_name} {amount_string}.{file_extension}"
     return send_from_directory(
-        directory=f"{requirement}s/",
+        directory=f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/{requirement}s/",
         path=path,
         as_attachment=True,
         download_name=filename,
@@ -607,7 +614,7 @@ def download_settlements(settlement_id):
     path = settlement.file_settlement_file
     filename = f"{settlement.name_of_company} - {settlement.type_of_transaction} - {settlement.utr_number}.{file_extension}"
     return send_from_directory(
-        directory="settlements/",
+        directory=f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/settlements/",
         path=path,
         as_attachment=True,
         download_name=filename,
@@ -696,7 +703,10 @@ def edit_coinsurance_entry(coinsurance_id):
                 + "."
                 + statement_file_extension
             )
-            form.statement.data.save("statements/" + statement_filename)
+            form.statement.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/statements/"
+                + statement_filename
+            )
             coinsurance.statement = statement_filename
 
         confirmation_filename = coinsurance.confirmation
@@ -712,7 +722,10 @@ def edit_coinsurance_entry(coinsurance_id):
                 + "."
                 + confirmation_file_extension
             )
-            form.confirmation.data.save("confirmations/" + confirmation_filename)
+            form.confirmation.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/confirmations/"
+                + confirmation_filename
+            )
             coinsurance.confirmation = confirmation_filename
 
         ri_confirmation_filename = coinsurance.ri_confirmation
@@ -731,7 +744,8 @@ def edit_coinsurance_entry(coinsurance_id):
                 + ri_confirmation_file_extension
             )
             form.ri_confirmation.data.save(
-                "ri_confirmations/" + ri_confirmation_filename
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/ri_confirmations/"
+                + ri_confirmation_filename
             )
             coinsurance.ri_confirmation = ri_confirmation_filename
 
@@ -1155,6 +1169,7 @@ def add_settlement_data():
 
         settlement = Settlement()
         form.populate_obj(settlement)
+        db.session.add(settlement)
         if form.data["settlement_file"]:
             settlement_filename_data = secure_filename(
                 form.data["settlement_file"].filename
@@ -1166,11 +1181,13 @@ def add_settlement_data():
                 + "."
                 + settlement_file_extension
             )
-            form.settlement_file.data.save("settlements/" + settlement_filename)
+            form.settlement_file.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/settlements/"
+                + settlement_filename
+            )
 
-            settlement.file_settlement = settlement_filename
+            settlement.file_settlement_file = settlement_filename
 
-        db.session.add(settlement)
         db.session.commit()
 
         return redirect(
@@ -1201,7 +1218,10 @@ def edit_settlement_entry(settlement_id):
                 + "."
                 + settlement_file_extension
             )
-            form.settlement_file.data.save("settlements/" + settlement_filename)
+            form.settlement_file.data.save(
+                f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/settlements/"
+                + settlement_filename
+            )
             settlement.file_settlement_file = settlement_filename
 
         db.session.commit()
@@ -1668,8 +1688,11 @@ def add_bank_mandate():
                 + "."
                 + bank_mandate_file_extension
             )
+
             form.bank_mandate_file.data.save(
-                "data/coinsurance/bank_mandates/" + bank_mandate_filename
+                current_app.config.get("UPLOAD_FOLDER")
+                + "coinsurance/bank_mandates/"
+                + bank_mandate_filename
             )
             bank_mandate.bank_mandate = bank_mandate_filename
 
@@ -1703,7 +1726,9 @@ def edit_bank_mandate(key):
                 + bank_mandate_file_extension
             )
             form.bank_mandate_file.data.save(
-                "data/coinsurance/bank_mandates/" + bank_mandate_filename
+                current_app.config.get("UPLOAD_FOLDER")
+                + "coinsurance/bank_mandates/"
+                + bank_mandate_filename
             )
             bank_mandate.bank_mandate = bank_mandate_filename
 
@@ -1724,7 +1749,7 @@ def download_bank_mandate(key):
 
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
     return send_from_directory(
-        directory="data/coinsurance/bank_mandates/",
+        directory=f"{current_app.config.get("UPLOAD_FOLDER")}coinsurance/bank_mandates/",
         path=bank_mandate.bank_mandate,
         download_name=f"{bank_mandate.company_name}_{bank_mandate.office_code}_{bank_mandate.bank_name}_{bank_mandate.bank_account_number [-5:]}.pdf",
         as_attachment=True,
