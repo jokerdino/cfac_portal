@@ -1,0 +1,81 @@
+{% extends "pool_credits_layout.html" %}
+
+{% block content %}
+
+<div class="container is-fluid mt-5 pb-5">
+    <h1 class="title is-size-4">HDFC Pool account - Details of daily JV entries</h1>
+
+    <table class="table is-bordered is-striped is-hoverable is-fullwidth" id="pool_credits_table">
+        <thead>
+            <tr>
+
+                <th class="has-text-centered is-vcentered">Book date</th>
+                <th class="has-text-centered is-vcentered">Description</th>
+                <th class="has-text-centered is-vcentered">Credit</th>
+                <th class="has-text-centered is-vcentered">Value date</th>
+                <th class="has-text-centered is-vcentered">Reference number</th>
+
+                <th class="has-text-centered is-vcentered">Pattern</th>
+                <th class="has-text-centered is-vcentered">Flag</th>
+                <th class="has-text-centered is-vcentered">GL Code</th>
+                <th class="has-text-centered is-vcentered">SL Code</th>
+
+            </tr>
+        </thead>
+
+    </table>
+
+</div>
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        new DataTable('#pool_credits_table', {
+            ajax: "{{ url_for('pool_credits.daily_jv_entries') }}",
+            serverSide: true,
+            //stateSave: true,
+            processing: true,
+            ordering: false,
+            layout: {
+                topStart: 'pageLength',
+                top2Start: {
+                    buttons: [
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+                }
+            },
+
+            columns: [
+
+                {
+                    data: 'bk.book_date',
+                    className: 'dt-body-center',
+                    render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
+                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
+
+                },
+                { data: 'bk.description' },
+                { data: 'bk.credit', className: 'dt-body-right', },
+
+                {
+                    data: 'bk.value_date',
+                    className: 'dt-body-center',
+                    render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
+                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
+                },
+                { data: 'bk.reference_no' },
+
+                { data: 'jv.txt_description' },
+                { data: 'jv.txt_flag' },
+                { data: 'jv.txt_gl_code' },
+                { data: 'jv.txt_sl_code' },
+
+            ],
+
+            order: [[1, 'asc']]
+        });
+    });
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

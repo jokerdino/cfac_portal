@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container is-fluid mt-5 pb-5">
-    <h1 class="title">HDFC Pool account - List of {{ status | replace("jv_", "JV ")}} entries</h1>
+    <h1 class="title is-size-4">HDFC Pool account - List of {{ status | replace("jv_", "JV ")}} entries</h1>
     <form method="post">
         {% if status == "identified" and current_user.user_type == "admin" %}
         <div class="has-text-right">
@@ -21,7 +21,7 @@
                     <th class="has-text-centered is-vcentered">Book date</th>
                     <th class="has-text-centered is-vcentered">Description</th>
                     <th class="has-text-centered is-vcentered">Credit</th>
-                    <th class="has-text-centered is-vcentered">Debit</th>
+
                     <th class="has-text-centered is-vcentered">Value date</th>
                     <th class="has-text-centered is-vcentered">Reference number</th>
                     <th class="has-text-centered is-vcentered">Confirmed by</th>
@@ -38,7 +38,7 @@
         new DataTable('#pool_credits_table', {
             ajax: "{{ url_for('pool_credits.get_data', status=status) }}",
             serverSide: true,
-            stateSave: true,
+            // stateSave: true,
             processing: true,
             layout: {
                 topStart: 'pageLength',
@@ -70,7 +70,7 @@
         },
         { data: 'description' },
         { data: 'credit', className: 'dt-body-right', },
-        { data: 'debit', className: 'dt-body-right', },
+        // { data: 'debit', className: 'dt-body-right', },
         {
             data: 'value_date',
             className: 'dt-body-center',
@@ -83,7 +83,7 @@
         {
             data: 'id',
             render: function (data, type, row, meta) {
-                return "<a class='button is-small' href=/pool_credits/edit/" + data + "/>Edit</a>";
+                return "<a class='button is-small is-link is-outlined' href=/pool_credits/edit/" + data + "/>Edit</a>";
             }
         }
             ],

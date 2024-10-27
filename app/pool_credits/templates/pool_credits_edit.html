@@ -1,5 +1,7 @@
 {% extends "pool_credits_layout.html" %}
 {% block content %}
+
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container mt-5">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -40,14 +42,9 @@
                 <th>Reference number</th>
                 <td>{{ entry.reference_no }}</td>
             </tr>
-            <tr>
-                <th>{{ form.str_regional_office_code.label }}</th>
-                <td>{{ form.str_regional_office_code(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.text_remarks.label }}</th>
-                <td>{{ form.text_remarks(class="textarea") }}</td>
-            </tr>
+            {{ render_field_table(form.str_regional_office_code) }}
+            {{ render_field_table(form.text_remarks) }}
+
         </table>
         <div class="has-text-centered">
             {% if entry.bool_jv_passed %}

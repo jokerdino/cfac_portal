@@ -11,7 +11,7 @@ class FundBankStatement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date_uploaded_date = db.Column(db.Date)
 
-    book_date = db.Column(db.Date)
+    book_date: datetime.date = db.Column(db.Date)
     description: str = db.Column(db.Text)
     ledger_balance = db.Column(db.Numeric(20, 2))
     credit: float = db.Column(db.Numeric(20, 2))
@@ -163,12 +163,13 @@ class FundBankAccountNumbers(db.Model):
     deleted_by = db.Column(db.String)
 
 
+@dataclass
 class FundJournalVoucherFlagSheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    txt_description = db.Column(db.String)
-    txt_flag = db.Column(db.String)
-    txt_gl_code = db.Column(db.String)
-    txt_sl_code = db.Column(db.String)
+    txt_description: str = db.Column(db.String)
+    txt_flag: str = db.Column(db.String)
+    txt_gl_code: str = db.Column(db.String)
+    txt_sl_code: str = db.Column(db.String)
 
     current_status = db.Column(db.String)
 
