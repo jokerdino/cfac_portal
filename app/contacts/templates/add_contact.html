@@ -1,33 +1,17 @@
 {% extends "contacts_layout.html" %}
 {% block content %}
 
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 <div class="container is-centered">
-<h1 class="title">{{ title }}</h1>
-    <form action="" method="post" enctype="multipart/form-data">
-       {{ form.csrf_token }}
-<table class="table is-fullwidth">
-
-    <tr><th>{{ form.office_code.label }}</th><td>{{ form.office_code(class="input") }}</td></tr>
-    <tr><th>{{ form.office_name.label }}</th><td>{{ form.office_name(class="input") }}</td></tr>
-        <tr><th>{{ form.name.label }}</th>    <td>{{ form.name(class="input") }}</td></tr>
-        <tr><th>{{ form.employee_number.label }}</th>    <td>{{ form.employee_number(class="input") }}</td></tr>
-    <tr><th>{{ form.zone.label }}</th><td>{{ form.zone(class="select") }}</td></tr>
-    <tr><th>{{ form.role.label }}</th><td>{{ form.role(class="select") }}</td></tr>
-    <tr><th>{{ form.email_address.label }}</th><td>{{ form.email_address(class="input") }}</td></tr>
-    <tr><th>{{ form.mobile_number.label }}</th><td>{{ form.mobile_number(class="input") }}</td></tr>
-    <tr><th>{{ form.designation.label }}</th><td>{{ form.designation(class="select") }}</td></tr>
-</table>
-    <div class="container has-text-centered">
-        {% if current_user.user_type == "admin" %}
-    <button class="button is-success">Save</button>
-        {% endif %}
+    <h1 class="title">{{ title }}</h1>
+    <form action="" method="post">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+        {{ render_field_div_horizontal(field, is_narrow=False) }}
+        {% endfor %}
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
         </div>
-               {% for field, errors in form.errors.items() %}
-    <div class="notification is-danger">
-        {{ field }}       {{ ', '.join(errors) }}
-    </div>
-    {% endfor %}
-
-</form>
+    </form>
 </div>
 {% endblock content %}

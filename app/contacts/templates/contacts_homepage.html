@@ -4,16 +4,16 @@
 
 <table class="table is-fullwidth is-hoverable is-bordered" id="contacts_table">
     <thead>
-        <tr class="has-text-centered">
-            <th>Office Code</th>
-            <th>Office name</th>
-            <th>Name</th>
-            <th>Employee number</th>
-            <th>Role</th>
-            <th>Zone</th>
-            <th>Designation</th>
-            <th>Email address</th>
-            <th>Mobile number</th>
+        <tr>
+            <th class="has-text-centered is-vcentered">Office Code</th>
+            <th class="has-text-centered is-vcentered">Office name</th>
+            <th class="has-text-centered is-vcentered">Name</th>
+            <th class="has-text-centered is-vcentered">Employee number</th>
+            <th class="has-text-centered is-vcentered">Role</th>
+            <th class="has-text-centered is-vcentered">Zone</th>
+            <th class="has-text-centered is-vcentered">Designation</th>
+            <th class="has-text-centered is-vcentered">Email address</th>
+            <th class="has-text-centered is-vcentered">Mobile number</th>
             {% if current_user.user_type == "admin" %}
             <th>Edit</th>
             {% endif %}
@@ -25,8 +25,8 @@
             <td>{{ contact.office_code }}</td>
             <td>{{ contact.office_name }}</td>
             <td>{{ contact.name }}</td>
-            <td>{{ contact.employee_number }}</td>
-            <td>{{ contact.role }}</td>
+            <td class="has-text-centered">{{ contact.employee_number }}</td>
+            <td class="has-text-left" data-sort="{{ sort_order(contact.role) }}">{{ contact.role }}</td>
             <td>{{ contact.zone }}</td>
             <td>{{ contact.designation }}</td>
             <td>{{ contact.email_address }}</td>
@@ -53,7 +53,7 @@
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[0, 'asc']],
+        order: [[0, 'asc'], [4, 'asc']],
         pagingType: 'full_numbers',
 
     });

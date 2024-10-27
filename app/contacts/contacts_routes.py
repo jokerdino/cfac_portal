@@ -4,12 +4,11 @@ from flask import (
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
     flash,
 )
 from flask_login import current_user
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 
 from app.contacts import contacts_bp
 from app.contacts.contacts_form import ContactsForm
@@ -23,17 +22,9 @@ def add_contact():
     form = ContactsForm()
 
     if form.validate_on_submit():
-        contact = Contacts(
-            name=form.data["name"],
-            employee_number=form.data["employee_number"],
-            zone=form.data["zone"],
-            designation=form.data["designation"],
-            mobile_number=form.data["mobile_number"],
-            email_address=form.data["email_address"],
-            office_code=form.data["office_code"],
-            office_name=form.data["office_name"],
-            role=form.data["role"],
-        )
+        contact = Contacts()
+        form.populate_obj(contact)
+
         db.session.add(contact)
         db.session.commit()
         return redirect(url_for("contacts.view_contact", contact_id=contact.id))
@@ -52,28 +43,11 @@ def edit_contact(contact_id):
     contact = Contacts.query.get_or_404(contact_id)
     from server import db
 
-    form = ContactsForm()
+    form = ContactsForm(obj=contact)
     if form.validate_on_submit():
-        contact.name = form.data["name"]
-        contact.zone = form.data["zone"]
-        contact.role = form.data["role"]
-        contact.office_code = form.data["office_code"]
-        contact.office_name = form.data["office_name"]
-        contact.designation = form.data["designation"]
-        contact.email_address = form.data["email_address"]
-        contact.mobile_number = form.data["mobile_number"]
-        contact.employee_number = form.data["employee_number"]
+        form.populate_obj(contact)
         db.session.commit()
         return redirect(url_for("contacts.view_contact", contact_id=contact.id))
-    form.name.data = contact.name
-    form.zone.data = contact.zone
-    form.role.data = contact.role
-    form.office_code.data = contact.office_code
-    form.office_name.data = contact.office_name
-    form.email_address.data = contact.email_address
-    form.mobile_number.data = contact.mobile_number
-    form.designation.data = contact.designation
-    form.employee_number.data = contact.employee_number
 
     return render_template("add_contact.html", form=form, title="Edit contact details")
 
@@ -82,7 +56,9 @@ def edit_contact(contact_id):
 def contacts_homepage():
     contacts = Contacts.query.all()
 
-    return render_template("contacts_homepage.html", contacts=contacts)
+    return render_template(
+        "contacts_homepage.html", contacts=contacts, sort_order=order_based_on_role
+    )
 
 
 @contacts_bp.route("/bulk_upload", methods=["POST", "GET"])
@@ -121,3 +97,12 @@ def bulk_upload():
         flash("Contact details have been uploaded to database.")
 
     return render_template("bulk_upload_contacts.html")
+
+
+def order_based_on_role(role) -> int:
+    sort_order: dict[str, int] = {
+        "Regional Accountant": 1,
+        "Second Officer": 2,
+        "Regional Manager-Accounts": 3,
+    }
+    return sort_order.get(role, 4)

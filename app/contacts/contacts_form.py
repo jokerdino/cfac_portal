@@ -4,14 +4,17 @@ from wtforms.validators import DataRequired, Optional, NumberRange
 
 
 class ContactsForm(FlaskForm):
+
+    office_code = StringField("Enter Office code")
+    office_name = StringField("Enter Office name")
     name = StringField("Enter name")
     employee_number = IntegerField(
         "Enter employee number",
         validators=[NumberRange(min=10000, max=99999), DataRequired()],
     )
+    email_address = EmailField("Enter email address")
+    mobile_number = StringField("Enter mobile number")
 
-    office_code = StringField("Enter Office code")
-    office_name = StringField("Enter Office name")
     zone = SelectField(
         "Select zone", choices=["North", "South", "East", "West", "Head Office"]
     )
@@ -38,5 +41,3 @@ class ContactsForm(FlaskForm):
             "Coinsurance Hub",
         ],
     )
-    email_address = EmailField("Enter email address")
-    mobile_number = StringField("Enter mobile number")
