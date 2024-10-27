@@ -9,4 +9,4 @@ class Config:
     SQLALCHEMY_DATABASE_URI = (
         "postgresql://cfac_user:cfac_user@localhost:5432/cfac_portal"
     )
-    UPLOAD_FOLDER = "/home/jokerdino/Projects/data/"
+    UPLOAD_FOLDER = "/home/barneedhar/Projects/data/"
