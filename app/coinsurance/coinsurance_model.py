@@ -244,6 +244,7 @@ class CoinsuranceBankMandate(db.Model):
 class CoinsuranceReceipts(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    book_date = db.Column(db.Date)
     description = db.Column(db.String)
     company_name = db.Column(db.String)
     credit = db.Column(db.Float)
