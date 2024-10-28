@@ -45,7 +45,7 @@ def add_contract_entry():
                 + contract_file_extension
             )
             form.upload_contract_file.data.save(
-                f"{current_app.config.get("UPLOAD_FOLDER")}contracts/"
+                f"{current_app.config.get('UPLOAD_FOLDER')}contracts/"
                 + contract_filename
             )
         else:
@@ -79,7 +79,7 @@ def download_contract_document(contract_id):
         f"{contract.id}_{contract.vendor}_{contract.purpose}.{filename_extension}"
     )
     return send_from_directory(
-        directory=f"{current_app.config.get("UPLOAD_FOLDER")}contracts/",
+        directory=f"{current_app.config.get('UPLOAD_FOLDER')}contracts/",
         path=contract.contract_file,
         as_attachment=True,
         download_name=filename,
@@ -125,7 +125,7 @@ def edit_contract(contract_id):
                 + contract_file_extension
             )
             form.upload_contract_file.data.save(
-                f"{current_app.config.get("UPLOAD_FOLDER")}contracts/"
+                f"{current_app.config.get('UPLOAD_FOLDER')}contracts/"
                 + contract_filename
             )
 

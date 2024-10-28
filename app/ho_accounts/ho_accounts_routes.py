@@ -335,7 +335,7 @@ def edit_mis(id):
                 + brs_file_extension
             )
             form.str_brs_file_upload.data.save(
-                f"{current_app.config.get("UPLOAD_FOLDER")}ho_accounts/brs/"
+                f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/brs/"
                 + brs_filename
             )
             mis.str_brs_file_upload = brs_filename
@@ -354,7 +354,7 @@ def edit_mis(id):
                 + bank_confirmation_file_extension
             )
             form.str_bank_confirmation_file_upload.data.save(
-                f"{current_app.config.get("UPLOAD_FOLDER")}ho_accounts/bank_confirmation/"
+                f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/bank_confirmation/"
                 + bank_confirmation_filename
             )
             mis.str_bank_confirmation_file_upload = bank_confirmation_filename
@@ -389,7 +389,7 @@ def download_mis_documents(requirement, id):
     filename = f"{mis.str_period}-{requirement}_{mis.str_name_of_bank}_{mis.str_gl_code}_{mis.str_sl_code}.{file_extension}"
 
     return send_from_directory(
-        directory=f"{current_app.config.get("UPLOAD_FOLDER")}ho_accounts/{requirement}/",
+        directory=f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/{requirement}/",
         path=path,
         as_attachment=True,
         download_name=filename,

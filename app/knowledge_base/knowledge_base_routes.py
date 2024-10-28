@@ -44,7 +44,7 @@ def add_knowledge_base_document():
                 + kb_file_extension
             )
             form.knowledge_base_document.data.save(
-                f"{current_app.config.get("UPLOAD_FOLDER")}knowledge_base/"
+                f"{current_app.config.get('UPLOAD_FOLDER')}knowledge_base/"
                 + kb_filename
             )
         else:
@@ -120,7 +120,7 @@ def download_kb_document(kb_id):
     filename_extension: str = kb.knowledge_base_document.rsplit(".", 1)[1]
     filename: str = f"{kb.topic}_{kb.title}.{filename_extension}"
     return send_from_directory(
-        directory=f"{current_app.config.get("UPLOAD_FOLDER")}knowledge_base/",
+        directory=f"{current_app.config.get('UPLOAD_FOLDER')}knowledge_base/",
         path=kb.knowledge_base_document,
         as_attachment=True,
         download_name=filename,
