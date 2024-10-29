@@ -25,7 +25,7 @@
             <td class="has-text-right">{{ contact.office_code }}</td>
             <td>{{ contact.office_name }}</td>
             <td>{{ contact.zone }}</td>
-            <td>{{ contact.name }}</td>
+            <td>{{ contact.name.upper() }}</td>
             <td class="has-text-centered">{{ contact.employee_number }}</td>
             <td class="has-text-left" data-sort="{{ sort_order(contact.role) }}">{{ contact.role }}</td>
             <td>{{ contact.designation }}</td>
@@ -60,7 +60,7 @@
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[0, 'asc'], [4, 'asc']],
+        order: [[0, 'asc'], [5, 'asc']],
         pagingType: 'full_numbers',
 
     });
