@@ -9,7 +9,7 @@ from waitress import serve
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
-from config import Config
+from config import Config, TestConfig
 from extensions import admin, db, lm, migrate
 
 
