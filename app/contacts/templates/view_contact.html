@@ -1,22 +1,54 @@
 {% extends "contacts_layout.html" %}
 {% block content %}
 <div class="container">
-{% if contact %}
-<table class="table is-fullwidth">
+    {% if contact %}
+    <table class="table is-fullwidth">
 
-    <tr>    <th>Office Code</th><td>{{ contact.office_code }}</td></tr>
-    <tr>    <th>Office name</th><td>{{ contact.office_name }}</td></tr>
-        <tr>    <th>Name</th><td>{{ contact.name }}</td></tr>
-        <tr>    <th>Employee number</th><td>{{ contact.employee_number }}</td></tr>
-    <tr>    <th>Designation</th><td>{{ contact.designation }}</td></tr>
-    <tr>    <th>Role</th><td>{{ contact.role }}</td></tr>
-    <tr>    <th>Email address</th><td>{{ contact.email_address }}</td></tr>
-    <tr>    <th>Zone</th><td>{{ contact.zone }}</td></tr>
-    <tr>    <th>Mobile number</th><td>{{ contact.mobile_number }}</td></tr>
-</table>
-<div class="container has-text-centered">
-<a class="button is-link" href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a>
-</div>
+        <tr>
+            <th>Office Code</th>
+            <td>{{ contact.office_code }}</td>
+        </tr>
+        <tr>
+            <th>Office name</th>
+            <td>{{ contact.office_name }}</td>
+        </tr>
+        <tr>
+            <th>Zone</th>
+            <td>{{ contact.zone }}</td>
+        </tr>
+        <tr>
+            <th>Employee name</th>
+            <td>{{ contact.name }}</td>
+        </tr>
+        <tr>
+            <th>Employee number</th>
+            <td>{{ contact.employee_number }}</td>
+        </tr>
+        <tr>
+            <th>Role</th>
+            <td>{{ contact.role }}</td>
+        </tr>
+        <tr>
+            <th>Designation</th>
+            <td>{{ contact.designation }}</td>
+        </tr>
+        <tr>
+            <th>Email address</th>
+            <td>{{ contact.email_address }}</td>
+        </tr>
+        <tr>
+            <th>Mobile number</th>
+            <td>{{ contact.mobile_number }}</td>
+        </tr>
+    </table>
+    <div class="container has-text-centered">
+
+        {% if (current_user.user_type == "admin") or (current_user.user_type == "ro_user" and
+        current_user.ro_code
+        == contact.office_code) %}
+        <a class="button is-link" href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a>
+        {% endif %}
+    </div>
 
     {% endif %}
 </div>

@@ -1,23 +1,20 @@
 import pandas as pd
-from flask import (
-    current_app,
-    redirect,
-    render_template,
-    request,
-    url_for,
-    flash,
-)
-from flask_login import current_user
+from flask import abort, current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 from sqlalchemy import create_engine
 
-from app.contacts import contacts_bp
-from app.contacts.contacts_form import ContactsForm
-from app.contacts.contacts_model import Contacts
+from extensions import db
+from set_view_permissions import admin_required, ro_user_only
+
+from . import contacts_bp
+from .contacts_form import ContactsForm
+from .contacts_model import Contacts
 
 
 @contacts_bp.route("/add", methods=["POST", "GET"])
+@login_required
+@admin_required
 def add_contact():
-    from server import db
 
     form = ContactsForm()
 
@@ -32,16 +29,24 @@ def add_contact():
 
 
 @contacts_bp.route("/view/<int:contact_id>")
+@login_required
+@ro_user_only
 def view_contact(contact_id):
-    contact = Contacts.query.get_or_404(contact_id)
+    contact = db.get_or_404(Contacts, contact_id)
 
     return render_template("view_contact.html", contact=contact)
 
 
 @contacts_bp.route("/edit/<int:contact_id>", methods=["POST", "GET"])
+@login_required
+@ro_user_only
 def edit_contact(contact_id):
-    contact = Contacts.query.get_or_404(contact_id)
-    from server import db
+    contact = db.get_or_404(Contacts, contact_id)
+
+    # enable edit only if the RO code of login user matches with contact RO code
+    if current_user.user_type == "ro_user":
+        if current_user.ro_code != contact.office_code:
+            abort(404)
 
     form = ContactsForm(obj=contact)
     if form.validate_on_submit():
@@ -53,8 +58,9 @@ def edit_contact(contact_id):
 
 
 @contacts_bp.route("/")
+@login_required
 def contacts_homepage():
-    contacts = Contacts.query.all()
+    contacts = db.session.scalars(db.select(Contacts))
 
     return render_template(
         "contacts_homepage.html", contacts=contacts, sort_order=order_based_on_role
@@ -62,6 +68,8 @@ def contacts_homepage():
 
 
 @contacts_bp.route("/bulk_upload", methods=["POST", "GET"])
+@login_required
+@admin_required
 def bulk_upload():
     if request.method == "POST":
         upload_file = request.files.get("file")
@@ -101,8 +109,12 @@ def bulk_upload():
 
 def order_based_on_role(role) -> int:
     sort_order: dict[str, int] = {
-        "Regional Accountant": 1,
-        "Second Officer": 2,
-        "Regional Manager-Accounts": 3,
+        "Coinsurance Hub - Incharge": 1,
+        "Coinsurance Hub - Officer": 2,
+        "Regional Accountant": 3,
+        "Second Officer": 4,
+        "GST Nodal officer": 5,
+        "Regional Manager-Accounts": 6,
+        "Head Office": 7,
     }
-    return sort_order.get(role, 4)
+    return sort_order.get(role, 8)

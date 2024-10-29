@@ -7,33 +7,40 @@
         <tr>
             <th class="has-text-centered is-vcentered">Office Code</th>
             <th class="has-text-centered is-vcentered">Office name</th>
-            <th class="has-text-centered is-vcentered">Name</th>
+            <th class="has-text-centered is-vcentered">Zone</th>
+            <th class="has-text-centered is-vcentered">Employee Name</th>
             <th class="has-text-centered is-vcentered">Employee number</th>
             <th class="has-text-centered is-vcentered">Role</th>
-            <th class="has-text-centered is-vcentered">Zone</th>
             <th class="has-text-centered is-vcentered">Designation</th>
             <th class="has-text-centered is-vcentered">Email address</th>
             <th class="has-text-centered is-vcentered">Mobile number</th>
-            {% if current_user.user_type == "admin" %}
-            <th>Edit</th>
+            {% if current_user.user_type in ["admin","ro_user"] %}
+            <th class="has-text-centered is-vcentered">Edit</th>
             {% endif %}
         </tr>
     </thead>
     <tbody>
         {% for contact in contacts %}
         <tr>
-            <td>{{ contact.office_code }}</td>
+            <td class="has-text-right">{{ contact.office_code }}</td>
             <td>{{ contact.office_name }}</td>
+            <td>{{ contact.zone }}</td>
             <td>{{ contact.name }}</td>
             <td class="has-text-centered">{{ contact.employee_number }}</td>
             <td class="has-text-left" data-sort="{{ sort_order(contact.role) }}">{{ contact.role }}</td>
-            <td>{{ contact.zone }}</td>
             <td>{{ contact.designation }}</td>
             <td>{{ contact.email_address }}</td>
             <td>{{ contact.mobile_number }}</td>
-            {% if current_user.user_type == "admin" %}
-            <td><a href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a></td>
+            {% if current_user.user_type in ["admin","ro_user"] %}
+            <td> {% if (current_user.user_type == "admin") or (current_user.user_type == "ro_user" and
+                current_user.ro_code
+                == contact.office_code) %}
+                <a class="button is-link is-small" target="_blank"
+                    href="{{ url_for('contacts.edit_contact', contact_id=contact.id) }}">Edit</a>
+                {% endif %}
+            </td>
             {% endif %}
+
             {% endfor %}
         </tr>
     </tbody>

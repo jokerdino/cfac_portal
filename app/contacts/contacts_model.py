@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from flask_login import current_user
+
 from extensions import db
 
 
@@ -12,3 +16,9 @@ class Contacts(db.Model):
     zone = db.Column(db.String)
     designation = db.Column(db.String)
     role = db.Column(db.String)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)

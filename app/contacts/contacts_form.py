@@ -1,25 +1,35 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, EmailField, IntegerField
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, NumberRange
 
 
 class ContactsForm(FlaskForm):
 
-    office_code = StringField("Enter Office code")
-    office_name = StringField("Enter Office name")
-    name = StringField("Enter name")
+    office_code = StringField(validators=[DataRequired()])
+    office_name = StringField(validators=[DataRequired()])
+    zone = SelectField(
+        validators=[DataRequired()],
+        choices=["North", "South", "East", "West", "Head Office"],
+    )
+    name = StringField("Employee name", validators=[DataRequired()])
     employee_number = IntegerField(
-        "Enter employee number",
         validators=[NumberRange(min=10000, max=99999), DataRequired()],
     )
-    email_address = EmailField("Enter email address")
-    mobile_number = StringField("Enter mobile number")
 
-    zone = SelectField(
-        "Select zone", choices=["North", "South", "East", "West", "Head Office"]
+    role = SelectField(
+        choices=[
+            "Regional Accountant",
+            "Second Officer",
+            "GST Nodal officer",
+            "Regional Manager-Accounts",
+            "Regional Incharge",
+            "Head Office",
+            "Coinsurance Hub - Incharge",
+            "Coinsurance Hub - Officer",
+        ],
+        validators=[DataRequired()],
     )
     designation = SelectField(
-        "Select designation",
         choices=[
             "Admin Officer",
             "Assistant Manager",
@@ -29,15 +39,7 @@ class ContactsForm(FlaskForm):
             "Regional Manager",
             "Deputy General Manager",
         ],
+        validators=[DataRequired()],
     )
-    role = SelectField(
-        "Select role",
-        choices=[
-            "Regional Accountant",
-            "Second Officer",
-            "Regional Manager-Accounts",
-            "Regional Incharge",
-            "Head Office",
-            "Coinsurance Hub",
-        ],
-    )
+    email_address = EmailField(validators=[DataRequired()])
+    mobile_number = StringField(validators=[DataRequired()])
