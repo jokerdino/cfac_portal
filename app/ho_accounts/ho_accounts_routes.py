@@ -36,7 +36,7 @@ from app.ho_accounts.ho_accounts_model import (
 from app.users.user_model import User
 
 
-@ho_accounts_bp.route("/upload_previous_month")
+@ho_accounts_bp.route("/upload_previous_month/")
 def upload_previous_month():
     """View function to upload previous quarter HO checklist itemes after scheduled quarterly cron job"""
     from extensions import db

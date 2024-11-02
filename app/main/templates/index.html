@@ -52,7 +52,7 @@
         <ul class="menu-list">
           <li><a href="{{ url_for('coinsurance.home_page') }}">Coinsurance</a></li>
           {% if current_user.user_type != "coinsurance_hub_user" %}
-          <li><a href="{{ url_for('brs.brs_home_page')}}">BRS</a></li>
+          <li><a href="{{ url_for('brs.brs_home_page') }}">BRS</a></li>
           {% endif %}
           <li><a
               href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval', department='View all') }}">Tickets</a>

@@ -16,7 +16,7 @@ from app.mis_tracker.mis_form import MISTrackerForm, FileUploadForm
 from app.mis_tracker.mis_helper_functions import upload_mis_file
 
 
-@mis_bp.route("/upload_previous_month")
+@mis_bp.route("/upload_previous_month/")
 def upload_previous_month():
     """View function to upload previous month MIS tracker entries after scheduled monthly cron job"""
     from extensions import db
