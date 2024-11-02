@@ -30,7 +30,7 @@
             <table class="table is-bordered is-fullwidth">
                 <thead>
                     <tr class="has-text-weight-bold has-text-centered">
-                        <td>Collections</td>
+                        <td width="50%">Collections</td>
                         <td>Amount</td>
                     </tr>
                 </thead>
@@ -86,7 +86,7 @@
             <table class="table is-bordered is-fullwidth">
                 <thead>
                     <tr class="has-text-centered has-text-weight-bold">
-                        <td>Payments</td>
+                        <td width="50%">Payments</td>
                         <td>Amount</td>
                     </tr>
                 </thead>
@@ -125,7 +125,7 @@
                             {% endif %}</td>
                     </tr>
                     <tr>
-                        {% set filler_length = (flag_description|list|length) - right_length -2 %}
+                        {% set filler_length = (flag_description|unique|list|length) - right_length -2 %}
                         {% for number in range(filler_length) %}
                         <td></td>
                         <td class="is-invisible">text</td>
@@ -150,14 +150,14 @@
                 <tbody>
                     <tr>
                         {% if (inflow_total - display_outflow(display_date)) > 0 %}
-                        <td class="has-text-success has-text-weight-bold">Surplus</td>
+                        <td class="has-text-success has-text-weight-bold" width="50%">Surplus</td>
 
                         <td class="has-text-right has-text-success has-text-weight-bold">{{
                             ( inflow_total -
                             display_outflow(display_date)) | indian_number_format }}
                         </td>
                         {% else %}
-                        <td class="has-text-danger has-text-weight-bold">Deficit</td>
+                        <td class="has-text-danger has-text-weight-bold" width="50%">Deficit</td>
                         <td class="has-text-right has-text-weight-bold has-text-danger">{{
                             (display_outflow(display_date)-
                             inflow_total) | indian_number_format }}
@@ -213,11 +213,11 @@
     </table>
     <table class="table is-bordered is-fullwidth">
         <tr>
-            <td>Major outflow</td>
+            <td width="15%">Major outflow</td>
             <td class="word-wrap">{{ daily_sheet.text_major_payments }}</td>
         </tr>
         <tr>
-            <td>Major receipts</td>
+            <td width="15%">Major receipts</td>
             <td class="word-wrap">{{ daily_sheet.text_major_collections }}</td>
         </tr>
     </table>
@@ -230,7 +230,7 @@
             <td></td>
         </tr>
         <tr>
-            <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person1_name }}</td>
+            <td class="has-text-centered has-text-weight-bold" width="50%">{{ daily_sheet.text_person1_name }}</td>
             <td class="has-text-centered has-text-weight-bold">{{ daily_sheet.text_person2_name }}</td>
         </tr>
         <tr>

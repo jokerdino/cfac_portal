@@ -224,7 +224,7 @@ def get_ibt_details(outflow_description):
 
     outflow = FundBankAccountNumbers.query.filter(
         FundBankAccountNumbers.outflow_description == outflow_description
-    )
+    ).first()
 
     return outflow
 
@@ -250,7 +250,7 @@ def funds_home():
     )
 
 
-@funds_bp.route("/upload_statement", methods=["GET", "POST"])
+@funds_bp.route("/bank_statement/upload/", methods=["GET", "POST"])
 @login_required
 @fund_managers
 def upload_bank_statement():
@@ -419,7 +419,7 @@ def add_flag(df_bank_statement):
     return df_bank_statement
 
 
-@funds_bp.route("/view_bank_statement/<string:date_string>", methods=["GET"])
+@funds_bp.route("/bank_statement/view/<string:date_string>/", methods=["GET"])
 @login_required
 @fund_managers
 def view_bank_statement(date_string):
@@ -509,12 +509,10 @@ def edit_flag_entry(flag_id):
     return render_template("jv_pattern_add.html", form=form, title="Edit flag entry")
 
 
-@funds_bp.route("/enter_outflow/<string:date_string>", methods=["GET", "POST"])
+@funds_bp.route("/outflow/edit/<string:date_string>", methods=["GET", "POST"])
 @login_required
 @fund_managers
 def enter_outflow(date_string):
-    # check_for_fund_permission()
-    from extensions import db
 
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     flag_description = db.session.query(FundFlagSheet.flag_description)
@@ -538,7 +536,7 @@ def enter_outflow(date_string):
     )  # go.asc())
     form = OutflowForm()
     if form.validate_on_submit():
-        from extensions import db
+        # from extensions import db
 
         for key, amount in form.data.items():
             if ("amount" in key) and (amount is not None):
@@ -688,14 +686,16 @@ def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
     )
 
     if not outflow:
-        outflow = FundDailyOutflow(**locals())
+        outflow = FundDailyOutflow(
+            outflow_date=outflow_date, outflow_description=outflow_description
+        )
 
         db.session.add(outflow)
     outflow.outflow_amount = outflow_amount
     db.session.commit()
 
 
-@funds_bp.route("/add_remarks/<string:date_string>", methods=["GET", "POST"])
+@funds_bp.route("/remarks/edit/<string:date_string>/", methods=["GET", "POST"])
 @login_required
 @fund_managers
 def add_remarks(date_string):

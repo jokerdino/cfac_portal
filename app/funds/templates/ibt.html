@@ -115,9 +115,9 @@
             <tr>
                 {% if label not in ["AXIS NEFT","MRO1 HEALTH","TNCMCHIS"] %}
                 <td>{{ label }}</td>
-                <td> {{ get_ibt_details(label)[0]["bank_name"] or "" }}</td>
-                <td> {{ get_ibt_details(label)[0]["bank_type"] or "" }}</td>
-                <td class="has-text-right"> {{ get_ibt_details(label)[0]["bank_account_number"] or "" }}</td>
+                <td> {{ get_ibt_details(label)["bank_name"] or "" }}</td>
+                <td> {{ get_ibt_details(label)["bank_type"] or "" }}</td>
+                <td class="has-text-right"> {{ get_ibt_details(label)["bank_account_number"] or "" }}</td>
                 <td class="has-text-right">
                     {% if display_outflow(display_date, item) %}
                     {{ display_outflow(display_date, item) | indian_number_format }}
@@ -131,9 +131,9 @@
             {% endfor %}
             <tr>
                 <td>AXIS NEFT</td>
-                <td>{{ get_ibt_details("AXIS NEFT")[0]["bank_name"] }}</td>
-                <td>{{ get_ibt_details("AXIS NEFT")[0]["bank_type"] }}</td>
-                <td class="has-text-right">{{ get_ibt_details("AXIS NEFT")[0]["bank_account_number"] }}</td>
+                <td>{{ get_ibt_details("AXIS NEFT")["bank_name"] }}</td>
+                <td>{{ get_ibt_details("AXIS NEFT")["bank_type"] }}</td>
+                <td class="has-text-right">{{ get_ibt_details("AXIS NEFT")["bank_account_number"] }}</td>
                 <td class="has-text-right">
 
                     {{ (display_outflow(display_date, "amount_axis_neft") +
