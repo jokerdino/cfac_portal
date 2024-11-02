@@ -1,0 +1,45 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+<div class="container box">
+    <form method="post">{{ form.csrf_token }}
+        <table class="table is-fullwidth">
+
+            <tr>
+                <th>Employee name</th>
+                <td>{{ leave.employee_name }}</td>
+            </tr>
+            <tr>
+                <th>Employee number</th>
+                <td>{{ leave.employee_number }}</td>
+            </tr>
+            <tr>
+                <th>Employee designation</th>
+                <td>{{ leave.employee_designation }}</td>
+            </tr>
+            <tr>
+                <th>Type of leave</th>
+                <td>{{ leave.type_of_leave }}</td>
+            </tr>
+            <tr>
+                <th>Leave start date</th>
+                <td>{{ leave.start_date }}</td>
+            </tr>
+            <tr>
+                <th>Leave end date</th>
+                <td>{{ leave.end_date }}</td>
+            </tr>
+            <tr>
+                <th>Number of days</th>
+                <td>{{ leave.number_of_days_leave }}</td>
+            </tr>
+            {% for field in form if field.widget.input_type != "hidden" %}
+            {{ render_field_table(field) }}
+            {% endfor %}
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

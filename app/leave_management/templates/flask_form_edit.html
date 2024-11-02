@@ -1,0 +1,14 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container">
+    <form method="post">{{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+        {{ render_field_div_horizontal(field, is_narrow=False ) }}
+        {% endfor %}
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

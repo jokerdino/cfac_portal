@@ -1,0 +1,43 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <table class="table is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">Employee name</th>
+                <th class="has-text-centered is-vcentered">Employee number</th>
+                <th class="has-text-centered is-vcentered">Employee designation</th>
+                <th class="has-text-centered is-vcentered">Type of leave</th>
+                <th class="has-text-centered is-vcentered">Start date</th>
+                <th class="has-text-centered is-vcentered">End date</th>
+                <th class="has-text-centered is-vcentered">Number of days leave</th>
+                <th class="has-text-centered is-vcentered">Purpose of leave</th>
+                <th class="has-text-centered is-vcentered">Leave approved by</th>
+                <th class="has-text-centered is-vcentered">Leave approver designation</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in list %}
+            <tr>
+                <td>{{ item.employee_name }}</td>
+                <td>{{ item.employee_number }}</td>
+                <td>{{ item.employee_designation }}</td>
+                <td>{{ item.type_of_leave }}</td>
+                <td>{{ item.start_date }}</td>
+                <td>{{ item.end_date }}</td>
+                <td>{{ item.number_of_days_leave }}</td>
+                <td>{{ item.purpose_of_leave }}</td>
+                <td>{{ item.leave_approved_by }}</td>
+                <td>{{ item.leave_approver_designation }}</td>
+                <td><a class="button is-small is-link"
+                        href="{{ url_for('.leave_application_edit', id=item.id) }}">Edit</a></td>
+            </tr>
+
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

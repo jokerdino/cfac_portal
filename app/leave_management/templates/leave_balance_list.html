@@ -1,0 +1,30 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container table-container is-fluid">
+    <table class="table is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">Edit</th>
+                {% for col in column_names %}
+
+                <th class="has-text-centered is-vcentered">{{ col.replace("_"," ").upper() }}</th>
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in list %}
+            <tr>
+                <td><a class="button is-small is-link" target="_blank"
+                        href="{{ url_for('.edit_employee_leave_balance', id=item['id']) }}">Edit</a></td>
+                {% for col in column_names %}
+                <td>{{ item[col] }}</td>
+                {% endfor %}
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

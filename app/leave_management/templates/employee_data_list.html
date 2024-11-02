@@ -1,0 +1,32 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <table class="table is-fullwidth is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Employee name</th>
+                <th class="has-text-centered">Employee number</th>
+                <th class="has-text-centered">Employee designation</th>
+                <th class="has-text-centered">Current status</th>
+
+                <th class="has-text-centered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in list %}
+            <tr>
+
+                <td>{{ item['employee_name'] }}</td>
+                <td>{{ item['employee_number'] }}</td>
+                <td>{{ item['employee_designation'] }}</td>
+                <td>{{ item['current_status'] }}</td>
+
+                <td><a class="button is-small is-link" target="_blank"
+                        href="{{ url_for('.edit_employee_data', id=item['id']) }}">Edit</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

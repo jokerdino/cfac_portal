@@ -55,6 +55,14 @@ from app.tickets.tickets_model import TicketRemarks, Tickets
 from app.users.user_model import LogUser, User
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
+
+
+from app.leave_management.leave_model import (
+    EmployeeData,
+    LeaveBalance,
+    LeaveApplication,
+    AttendanceRegister,
+)
 from app.lien.lien_model import Lien
 
 from extensions import admin, db
@@ -71,6 +79,7 @@ admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Budget", parent_name="Budget")
+admin.add_sub_category(name="Leave", parent_name="Leave")
 
 # User models
 admin.add_view(
@@ -317,6 +326,45 @@ admin.add_view(
         PaymentGatewayTieup,
         db.session,
         endpoint="pg_tieup_",
+    )
+)
+
+# Leave models
+
+admin.add_view(
+    DefaultModelView(
+        EmployeeData,
+        db.session,
+        endpoint="employee_data",
+        category="Leave",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        AttendanceRegister,
+        db.session,
+        endpoint="attendance_register",
+        category="Leave",
+    )
+)
+
+
+admin.add_view(
+    DefaultModelView(
+        LeaveBalance,
+        db.session,
+        endpoint="leave_balance",
+        category="Leave",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        LeaveApplication,
+        db.session,
+        endpoint="leave_application",
+        category="Leave",
     )
 )
 

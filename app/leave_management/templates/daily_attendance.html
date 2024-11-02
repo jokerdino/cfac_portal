@@ -1,0 +1,42 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <form method="post">
+
+        {{ form.csrf_token }}
+
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Date</th>
+                    <th class="has-text-centered">Employee name</th>
+                    <th class="has-text-centered">Employee number</th>
+                    <th class="has-text-centered">Employee designation</th>
+                    <th class="has-text-centered">Attendance status</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee_form in form.daily_attendance %}
+                <tr>
+                    {% for field in employee_form %}
+                    <td> {% if field.type != "SelectField" %}
+                        {{ field }}
+                        {% elif field.type == "SelectField" %}
+                        <div class="select">{{ field }}</div>
+                        {% endif %}
+                    </td>
+
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
