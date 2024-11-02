@@ -61,8 +61,6 @@ def create_app(config_class=Config):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    app.config["FLASK_ADMIN_SWATCH"] = "cerulean"
-
     admin.init_app(app)
 
     # Register blueprints here

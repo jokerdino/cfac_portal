@@ -71,7 +71,9 @@ admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 
 # User models
-admin.add_view(UserView(User, db.session, category="Users"))  # , name="User"))
+admin.add_view(
+    UserView(User, db.session, endpoint="user_", category="Users")
+)  # , name="User"))
 admin.add_view(
     DefaultModelView(Log_user, db.session, endpoint="log_user_", category="Users")
 )

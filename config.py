@@ -10,6 +10,9 @@ class Config:
     )
     UPLOAD_FOLDER = "/home/barneedhar/Projects/data/"
 
+    FLASK_ADMIN_FLUID_LAYOUT = True
+    FLASK_ADMIN_SWATCH = "united"
+
 
 class TestConfig:
     SECRET_KEY = "secret"
@@ -19,3 +22,6 @@ class TestConfig:
         "postgresql://cfac_user:cfac_user@localhost:5432/cfac_portal"
     )
     UPLOAD_FOLDER = "/home/jokerdino/Projects/data/"
+
+    FLASK_ADMIN_FLUID_LAYOUT = True
+    FLASK_ADMIN_SWATCH = "united"

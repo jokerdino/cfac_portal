@@ -23,6 +23,6 @@ db = SQLAlchemy(metadata=metadata)
 
 admin = Admin(
     name="CFAC portal",
-    template_mode="bootstrap3",
+    template_mode="bootstrap4",
     index_view=MyAdminIndexView(),
 )
