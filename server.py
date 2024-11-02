@@ -3,19 +3,41 @@ from datetime import datetime
 
 import humanize
 from babel.numbers import format_decimal
-from flask import Flask, redirect, url_for
-from flask_login import current_user
-from waitress import serve
+from flask import Flask
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
 from config import Config, TestConfig
 from extensions import admin, db, lm, migrate
 
+from app.main import main_bp
+from app.users import user_bp
+from app.portal_admin import admin_bp
+from app.coinsurance import coinsurance_bp
+from app.brs import brs_bp
+from app.contracts import contracts_bp
+from app.contacts import contacts_bp
+from app.tickets import tickets_bp
+from app.bank_guarantee import bg_bp
+from app.outstanding_expenses import os_bp
+from app.funds import funds_bp
+from app.announcements import announcements_bp
+from app.knowledge_base import knowledge_base_bp
+from app.ho_accounts import ho_accounts_bp
+from app.ho_ro_recon import ho_ro_recon_bp
+from app.pool_credits import pool_credits_bp
+from app.budget import budget_bp
+from app.pg_tieup import pg_tieup_bp
+from app.leave_management import leave_mgmt_bp
+
+from app.mis_tracker import mis_bp
+
+from app.errors import errors_bp
+from app.cfac_flask_admin import flask_admin_bp
+
 
 @lm.user_loader
 def load_user(user_id):
-    #    return User.query.get(int(user_id))
     return db.session.get(User, int(user_id))
 
 
@@ -64,88 +86,30 @@ def create_app(config_class=Config):
     admin.init_app(app)
 
     # Register blueprints here
-    from app.main import main_bp
 
     app.register_blueprint(main_bp, url_prefix="/")
 
-    from app.users import user_bp
-
     app.register_blueprint(user_bp, url_prefix="/user")
-
-    from app.portal_admin import admin_bp
-
     app.register_blueprint(admin_bp, url_prefix="/portal_admin")
-
-    from app.coinsurance import coinsurance_bp
-
     app.register_blueprint(coinsurance_bp, url_prefix="/coinsurance")
-
-    from app.brs import brs_bp
-
     app.register_blueprint(brs_bp, url_prefix="/brs")
-
-    from app.contracts import contracts_bp
-
     app.register_blueprint(contracts_bp, url_prefix="/contracts")
-
-    from app.contacts import contacts_bp
-
     app.register_blueprint(contacts_bp, url_prefix="/contacts")
-
-    from app.tickets import tickets_bp
-
     app.register_blueprint(tickets_bp, url_prefix="/tickets")
-
-    from app.knowledge_base import knowledge_base_bp
-
     app.register_blueprint(knowledge_base_bp, url_prefix="/knowledge_base")
-
-    from app.bank_guarantee import bg_bp
-
     app.register_blueprint(bg_bp, url_prefix="/bg")
-
-    from app.outstanding_expenses import os_bp
-
     app.register_blueprint(os_bp, url_prefix="/os")
-
-    from app.funds import funds_bp
-
     app.register_blueprint(funds_bp, url_prefix="/funds")
-
-    from app.announcements import announcements_bp
-
     app.register_blueprint(announcements_bp, url_prefix="/announcements")
-
-    from app.mis_tracker import mis_bp
-
     app.register_blueprint(mis_bp, url_prefix="/mis")
-
-    from app.ho_accounts import ho_accounts_bp
-
     app.register_blueprint(ho_accounts_bp, url_prefix="/ho_accounts")
-
-    from app.ho_ro_recon import ho_ro_recon_bp
-
     app.register_blueprint(ho_ro_recon_bp, url_prefix="/recon")
-
-    from app.pool_credits import pool_credits_bp
-
     app.register_blueprint(pool_credits_bp, url_prefix="/pool_credits")
-
-    from app.budget import budget_bp
-
     app.register_blueprint(budget_bp, url_prefix="/budget")
-
-    from app.pg_tieup import pg_tieup_bp
-
     app.register_blueprint(pg_tieup_bp, url_prefix="/pg_tieup")
-
-    from app.errors import errors_bp
+    app.register_blueprint(leave_mgmt_bp, url_prefix="/leave")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
-
-    from app.cfac_flask_admin import flask_admin_bp
-
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")
 
     return app
