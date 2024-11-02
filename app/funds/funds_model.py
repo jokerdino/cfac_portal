@@ -107,6 +107,12 @@ class FundDailySheet(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
+    @property
+    def get_net_investment(self):
+        return (self.float_amount_given_to_investments or 0) - (
+            self.float_amount_taken_from_investments or 0
+        )
+
 
 class FundMajorOutgo(db.Model):
     id = db.Column(db.Integer, primary_key=True)

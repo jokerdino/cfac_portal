@@ -27,11 +27,15 @@ def verify_months(start_date, end_date):
 
 
 class ReportsForm(FlaskForm):
-    start_date = DateField("Enter start date", validators=[Optional()])
-    end_date = DateField("Enter end date", validators=[Optional()])
-    check_inflow = BooleanField("Include inflow", validators=[Optional()])
-    check_outflow = BooleanField("Include outflow", validators=[Optional()])
-    check_investments = BooleanField("Include investments", validators=[Optional()])
+    start_date = DateField(validators=[DataRequired()])
+    end_date = DateField(validators=[DataRequired()])
+    check_inflow = BooleanField("Include inflow", validators=[Optional()], default=True)
+    check_outflow = BooleanField(
+        "Include outflow", validators=[Optional()], default=True
+    )
+    check_investments = BooleanField(
+        "Include investments", validators=[Optional()], default=True
+    )
     check_major_payments = BooleanField(
         "Include major payments", validators=[Optional()]
     )

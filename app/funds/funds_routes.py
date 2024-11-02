@@ -42,6 +42,7 @@ from app.funds.funds_model import (
 )
 
 from app.pool_credits.pool_credits_portal import prepare_dataframe
+from .funds_jv import filter_unidentified_credits
 
 from set_view_permissions import admin_required, fund_managers
 
@@ -81,18 +82,6 @@ outflow_amounts = [
     "amount_other_payments",
     # "amount_boa_tpa",
 ]
-
-
-# def # check_for_fund_permission():
-#     if not current_user.username in [
-#         "bar44515",
-#         "vin38405",
-#         "sug29777",
-#         "sud45327",
-#         "jan27629",
-#         "hem27596",
-#     ]:
-#         abort(404)
 
 
 def display_inflow(input_date, inflow_description=None):
@@ -173,6 +162,49 @@ def get_daily_summary(input_date, requirement):
         return daily_sheet.float_amount_taken_from_investments or 0
 
 
+def get_previous_day_closing_balance_refactored(input_date, requirement):
+    from extensions import db
+
+    daily_sheet = (
+        db.session.query(FundDailySheet)
+        .filter(FundDailySheet.date_current_date < input_date)
+        .order_by(FundDailySheet.date_current_date.desc())
+        .limit(1)
+    ).first()
+
+    if not daily_sheet:
+        return 0
+
+    return get_requirement(daily_sheet, requirement)
+
+
+def get_daily_summary_refactored(input_date, requirement):
+
+    daily_sheet = FundDailySheet.query.filter(
+        FundDailySheet.date_current_date == input_date
+    ).first()
+    if not daily_sheet:
+        return 0
+
+    return get_requirement(daily_sheet, requirement)
+
+
+def get_requirement(daily_sheet, requirement):
+
+    requirement_dict = {
+        "net_investment": daily_sheet.get_net_investment,
+        "HDFC": daily_sheet.float_amount_hdfc_closing_balance or 0,
+        "closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
+        "Investment": daily_sheet.float_amount_investment_closing_balance or 0,
+        "investment_closing_balance": daily_sheet.float_amount_investment_closing_balance
+        or 0,
+        "investment_given": daily_sheet.float_amount_given_to_investments or 0,
+        "investment_taken": daily_sheet.float_amount_taken_from_investments or 0,
+    }
+
+    return requirement_dict.get(requirement, 0)
+
+
 def get_inflow_total(date):
     # daily_sheet = FundDailySheet.query.filter(
     #     FundDailySheet.date_current_date == date
@@ -213,7 +245,7 @@ def funds_home():
         display_inflow=display_inflow,
         display_outflow=fill_outflow,
         get_inflow_total=get_inflow_total,
-        get_daily_summary=get_daily_summary,
+        get_daily_summary=get_daily_summary_refactored,
     )
 
 
@@ -287,11 +319,8 @@ def upload_bank_statement():
         # closing balance of previous day + already uploaded credits - already uploaded debits + newly uploaded credits - newly uploaded debits == closing balance of currently uploaded statement
 
         # if above condition is ok, proceed
-        # else break
 
-        #        if False:
-        #           flash("data does not work.")
-        elif True:
+        else:
             engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
             # try:
             df_bank_statement.to_sql(
@@ -634,7 +663,7 @@ def enter_outflow(date_string):
         display_inflow=display_inflow,
         investment_list=investment_list,
         list_outgo=list_outgo,
-        return_prev_day_closing_balance=return_prev_day_closing_balance,
+        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
         get_inflow_total=get_inflow_total,
         flag_description=flag_description,
         daily_sheet=daily_sheet,
@@ -686,20 +715,7 @@ def add_remarks(date_string):
     ).first()
     form = DailySummaryForm(obj=daily_sheet)
     if form.validate_on_submit():
-        # daily_sheet.text_major_collections = form.data["major_receipts"]
-        # daily_sheet.text_major_payments = form.data["major_payments"]
-        # daily_sheet.text_person1_name = form.data["person1_name"]
-        # daily_sheet.text_person1_designation = form.data["person1_designation"]
-        # daily_sheet.text_person2_name = form.data["person2_name"]
-        # daily_sheet.text_person2_designation = form.data["person2_designation"]
 
-        # daily_sheet.text_person3_name = form.data["person3_name"]
-        # daily_sheet.text_person3_designation = form.data["person3_designation"]
-        # daily_sheet.text_person4_name = form.data["person4_name"]
-        # daily_sheet.text_person4_designation = form.data["person4_designation"]
-
-        # daily_sheet.updated_by = current_user.username
-        # daily_sheet.date_updated_date = datetime.datetime.now()
         form.populate_obj(daily_sheet)
         db.session.commit()
         return redirect(
@@ -709,40 +725,6 @@ def add_remarks(date_string):
                 pdf="False",
             )
         )
-    # form.major_receipts.data = (
-    #     (daily_sheet.text_major_collections or None) if daily_sheet else None
-    # )
-    # form.major_payments.data = (
-    #     (daily_sheet.text_major_payments or None) if daily_sheet else None
-    # )
-
-    # form.person1_name.data = (
-    #     (daily_sheet.text_person1_name or None) if daily_sheet else None
-    # )
-    # form.person1_designation.data = (
-    #     (daily_sheet.text_person1_designation or None) if daily_sheet else None
-    # )
-
-    # form.person2_name.data = (
-    #     (daily_sheet.text_person2_name or None) if daily_sheet else None
-    # )
-    # form.person2_designation.data = (
-    #     (daily_sheet.text_person2_designation or None) if daily_sheet else None
-    # )
-
-    # form.person3_name.data = (
-    #     (daily_sheet.text_person3_name or None) if daily_sheet else None
-    # )
-    # form.person3_designation.data = (
-    #     (daily_sheet.text_person3_designation or None) if daily_sheet else None
-    # )
-
-    # form.person4_name.data = (
-    #     (daily_sheet.text_person4_name or None) if daily_sheet else None
-    # )
-    # form.person4_designation.data = (
-    #     (daily_sheet.text_person4_designation or None) if daily_sheet else None
-    # )
 
     return render_template(
         "add_remarks.html",
@@ -752,8 +734,8 @@ def add_remarks(date_string):
         display_inflow=display_inflow,
         display_outflow=fill_outflow,
         daily_sheet=daily_sheet,
-        get_daily_summary=get_daily_summary,
-        return_prev_day_closing_balance=return_prev_day_closing_balance,
+        get_daily_summary=get_daily_summary_refactored,
+        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
         flag_description=flag_description,
         get_inflow_total=get_inflow_total,
         outflow_items=zip(outflow_labels, outflow_amounts),
@@ -786,12 +768,12 @@ def ibt(date_string, pdf="False"):
         # outflow_amounts=outflow_amounts,
         display_outflow=fill_outflow,
         flag_description=flag_description,
-        return_prev_day_closing_balance=return_prev_day_closing_balance,
+        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
         get_inflow_total=get_inflow_total,
         pdf=pdf,
         timedelta=datetime.timedelta,
         relativedelta=relativedelta,
-        get_daily_summary=get_daily_summary,
+        get_daily_summary=get_daily_summary_refactored,
         get_ibt_details=get_ibt_details,
     )
 
@@ -823,12 +805,12 @@ def daily_summary(date_string, pdf="False"):
         # outflow_amounts=outflow_amounts,
         display_outflow=fill_outflow,
         flag_description=flag_description,
-        return_prev_day_closing_balance=return_prev_day_closing_balance,
+        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
         get_inflow_total=get_inflow_total,
         pdf=pdf,
         timedelta=datetime.timedelta,
         relativedelta=relativedelta,
-        get_daily_summary=get_daily_summary,
+        get_daily_summary=get_daily_summary_refactored,
     )
 
 
@@ -1068,529 +1050,6 @@ def list_amount_given_to_investment():
     return render_template("investment_list.html", investment_list=investment_list)
 
 
-@funds_bp.route("/reports", methods=["POST", "GET"])
-@login_required
-@admin_required
-def funds_reports():
-    from extensions import db
-
-    form = ReportsForm()
-    if form.validate_on_submit():
-        # if no start date is provided, default to 01/04/2024
-        start_date = form.data["start_date"] or datetime.date(2024, 4, 1)
-        # if no end date is provided, default to today
-        end_date = form.data["end_date"] or datetime.date.today()
-        inflow = form.data["check_inflow"]
-        outflow = form.data["check_outflow"]
-        investments = form.data["check_investments"]
-        major_payments = form.data["check_major_payments"]
-        major_receipts = form.data["check_major_receipts"]
-
-        #        print(start_date, end_date)
-        all_queries = []
-        if inflow:
-            case_inflow = case((FundBankStatement.credit != 0, "Inflow"), else_="")
-            inflow_query = (
-                db.session.query(FundBankStatement)
-                .with_entities(
-                    FundBankStatement.value_date,
-                    FundBankStatement.flag_description,
-                    FundBankStatement.description,
-                    cast(FundBankStatement.credit, String),
-                    case_inflow,
-                )
-                .filter(
-                    (
-                        (FundBankStatement.value_date >= start_date)
-                        & (FundBankStatement.value_date <= end_date)
-                    )
-                    & (FundBankStatement.credit != 0)
-                    & (FundBankStatement.flag_description != "Drawn from investment")
-                )
-            )
-            all_queries.append(inflow_query)
-            # query = inflow_query
-        if outflow:
-            case_outflow = case(
-                (FundDailyOutflow.outflow_amount > 0, "Outflow"), else_=""
-            )
-            outflow_query = (
-                db.session.query(FundDailyOutflow)
-                .with_entities(
-                    FundDailyOutflow.outflow_date,
-                    FundDailyOutflow.outflow_description,
-                    FundDailyOutflow.outflow_description,
-                    cast(FundDailyOutflow.outflow_amount, String),
-                    case_outflow,
-                )
-                .filter(
-                    (FundDailyOutflow.outflow_date >= start_date)
-                    & (FundDailyOutflow.outflow_date <= end_date)
-                    & (FundDailyOutflow.outflow_amount > 0)
-                )
-            )
-            all_queries.append(outflow_query)
-        # query = inflow_query.union(outflow_query)
-        if investments:
-            case_investment_given = case(
-                (
-                    FundDailySheet.float_amount_given_to_investments > 0,
-                    "Given to investment",
-                ),
-                else_="",
-            )
-            case_investment_taken = case(
-                (
-                    FundDailySheet.float_amount_taken_from_investments > 0,
-                    "Taken from investments",
-                ),
-                else_="",
-            )
-            investment_given_query = (
-                db.session.query(FundDailySheet)
-                .with_entities(
-                    FundDailySheet.date_current_date,
-                    case_investment_given,
-                    case_investment_given,
-                    cast(FundDailySheet.float_amount_given_to_investments, String),
-                    case_investment_given,
-                )
-                .filter(
-                    (FundDailySheet.date_current_date >= start_date)
-                    & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.float_amount_given_to_investments > 0)
-                )
-            )
-            investment_taken_query = (
-                db.session.query(FundDailySheet)
-                .with_entities(
-                    FundDailySheet.date_current_date,
-                    case_investment_taken,
-                    case_investment_taken,
-                    cast(FundDailySheet.float_amount_taken_from_investments, String),
-                    case_investment_taken,
-                )
-                .filter(
-                    (FundDailySheet.date_current_date >= start_date)
-                    & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.float_amount_taken_from_investments > 0)
-                )
-            )
-            all_queries.append(investment_given_query)
-            all_queries.append(investment_taken_query)
-        if major_receipts:
-            case_major_receipts = case(
-                (
-                    FundDailySheet.text_major_collections.is_not(None),
-                    "Major collections",
-                ),
-                else_="",
-            )
-            major_receipts_query = (
-                db.session.query(FundDailySheet)
-                .with_entities(
-                    FundDailySheet.date_current_date,
-                    case_major_receipts,
-                    case_major_receipts,
-                    FundDailySheet.text_major_collections,
-                    case_major_receipts,
-                )
-                .filter(
-                    (FundDailySheet.date_current_date >= start_date)
-                    & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.text_major_collections.is_not(None))
-                    & (FundDailySheet.text_major_collections != "")
-                )
-            )
-            # pass
-            all_queries.append(major_receipts_query)
-        if major_payments:
-
-            case_major_payments = case(
-                (
-                    FundDailySheet.text_major_payments.is_not(None),
-                    "Major payments",
-                ),
-                else_="",
-            )
-            major_payments_query = (
-                db.session.query(FundDailySheet)
-                .with_entities(
-                    FundDailySheet.date_current_date,
-                    case_major_payments,
-                    case_major_payments,
-                    FundDailySheet.text_major_payments,
-                    case_major_payments,
-                )
-                .filter(
-                    (FundDailySheet.date_current_date >= start_date)
-                    & (FundDailySheet.date_current_date <= end_date)
-                    & (FundDailySheet.text_major_payments.is_not(None))
-                    & (FundDailySheet.text_major_payments != "")
-                )
-            )
-            # pass
-            all_queries.append(major_payments_query)
-        # all_queries = [inflow_query, outflow_query, investment_given_query, investment_taken_query]
-        query_set = union(*all_queries)
-        query = db.session.execute(query_set)
-        return render_template("reports_output.html", query=query)
-    form.check_inflow.data = True
-    form.check_outflow.data = True
-    form.check_investments.data = True
-    return render_template("reports_form.html", form=form)
-
-
-@funds_bp.route("/jv_flags/", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def view_jv_flags():
-
-    # check_for_fund_permission()
-    list = FundJournalVoucherFlagSheet.query.order_by(FundJournalVoucherFlagSheet.id)
-    column_names = FundJournalVoucherFlagSheet.query.statement.columns.keys()
-
-    return render_template("jv_view_flags.html", list=list, column_names=column_names)
-
-
-@funds_bp.route("/jv_flags/upload", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def upload_jv_flags():
-
-    # check_for_fund_permission()
-    form = UploadFileForm()
-
-    if form.validate_on_submit():
-        jv_flag_sheet = form.data["file_upload"]
-        df_jv_flag_sheet = pd.read_excel(
-            jv_flag_sheet,
-            dtype={
-                "txt_description": str,
-                "txt_flag": str,
-                "txt_gl_code": str,
-                "txt_sl_code": str,
-            },
-        )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-
-        df_jv_flag_sheet["date_created_date"] = datetime.datetime.now()
-        df_jv_flag_sheet["created_by"] = current_user.username
-
-        df_jv_flag_sheet.to_sql(
-            "fund_journal_voucher_flag_sheet",
-            engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Flags for Journal voucher have been uploaded successfully.")
-    return render_template(
-        "upload_file_template.html",
-        form=form,
-        title="Upload flags for journal voucher",
-    )
-
-
-@funds_bp.route("/download_jv", methods=["POST", "GET"])
-@login_required
-@fund_managers
-def download_jv():
-    """Function to generate generate Fund Journal voucher from available data
-    Input required: Start date and end date
-    Inflow query is run to collect all data from bank statement
-    Inflow and amount drawn from investment is collected from inflow query
-    Outflow query is used to collect all outflow data
-    Investment query is used to collect money given to investment
-    Note: Amount drawn from investment is already colleted from inflow query and not required to run again separately
-    Output: Pandas dataframe written to excel file with start date and end date added to file name for quick reference.
-    """
-
-    # check_for_fund_permission()
-    form = FundsJVForm()
-    from extensions import db
-
-    if form.validate_on_submit():
-        # if no start date is provided, default to today
-        start_date = form.data["start_date"] or datetime.date.today()
-        # if no end date is provided, default to today
-        end_date = form.data["end_date"] or datetime.date.today()
-
-        all_queries = []
-
-        # inflow case and query
-        # all inflows from bank statement is collected
-        # this includes amount drawn from investment
-        case_inflow = case((FundBankStatement.credit != 0, "Inflow"), else_="").label(
-            "Type"
-        )
-        inflow_query = (
-            db.session.query(FundBankStatement)
-            .with_entities(
-                FundBankStatement.value_date.label("Date"),
-                func.concat(
-                    FundBankStatement.description, FundBankStatement.reference_no
-                ).label("Bank Description"),
-                FundBankStatement.credit.label("Amount"),
-                case_inflow,
-            )
-            .filter(
-                (
-                    (FundBankStatement.value_date >= start_date)
-                    & (FundBankStatement.value_date <= end_date)
-                )
-                & (FundBankStatement.credit != 0)
-            )
-        )
-        all_queries.append(inflow_query)
-
-        # outflow case and query
-        # fund JV flag sheet contains flag in upper case and without underscore
-
-        case_outflow = case(
-            (FundDailyOutflow.outflow_amount > 0, "Outflow"), else_=""
-        ).label("Type")
-
-        # func.upper and func.replace is used to uppercase the results and remove "amount" and underscore from results
-        # this is because our JV flag sheet has flags in upper case and without "AMOUNT" and underscore
-        outflow_query = (
-            db.session.query(FundDailyOutflow)
-            .with_entities(
-                FundDailyOutflow.outflow_date.label("Date"),
-                func.upper(
-                    func.replace(
-                        func.replace(
-                            FundDailyOutflow.outflow_description, "amount_", ""
-                        ),
-                        "_",
-                        " ",
-                    )
-                ).label("Bank Description"),
-                FundDailyOutflow.outflow_amount.label("Amount"),
-                case_outflow,
-            )
-            .filter(
-                (FundDailyOutflow.outflow_date >= start_date)
-                & (FundDailyOutflow.outflow_date <= end_date)
-                & (FundDailyOutflow.outflow_amount > 0)
-            )
-        )
-        all_queries.append(outflow_query)
-
-        # investment case and query
-        # amount given to investment is sourced here
-        # amount drawn from investment is already collected in inflow query (straight from bank statement)
-        case_investment_given = case(
-            (
-                FundDailySheet.float_amount_given_to_investments > 0,
-                "Given to investment",
-            ),
-            else_="",
-        ).label("Type")
-
-        investment_given_query = (
-            db.session.query(FundDailySheet)
-            .with_entities(
-                FundDailySheet.date_current_date.label("Date"),
-                case_investment_given.label("Bank Description"),
-                FundDailySheet.float_amount_given_to_investments.label("Amount"),
-                case_investment_given,
-            )
-            .filter(
-                (FundDailySheet.date_current_date >= start_date)
-                & (FundDailySheet.date_current_date <= end_date)
-                & (FundDailySheet.float_amount_given_to_investments > 0)
-            )
-        )
-
-        all_queries.append(investment_given_query)
-
-        query_set = union(*all_queries)
-
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        conn = engine.connect()
-        df_funds = pd.read_sql_query(query_set, conn)
-
-        df_funds["Office Location"] = "000100"
-
-        df_funds["Date"] = pd.to_datetime(df_funds["Date"], format="%d/%m/%Y")
-
-        df_flags, flag_description = prepare_jv_flag(engine)
-        df_inflow = prepare_inflow_jv(df_funds, df_flags, flag_description)
-        df_merged = pd.concat(
-            [
-                # prepare_inflow_jv(df_funds, df_flags, flag_description),
-                df_inflow,
-                prepare_outflow_jv(df_funds, df_flags, flag_description),
-                prepare_investment_jv(df_funds),
-            ]
-        )
-
-        if not df_merged.empty:
-
-            df_merged = df_merged[
-                ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
-            ]
-            df_merged["GL Code"] = pd.to_numeric(df_merged["GL Code"])
-            df_merged["SL Code"] = pd.to_numeric(df_merged["SL Code"])
-            datetime_string = datetime.datetime.now()
-            with pd.ExcelWriter(
-                f"funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
-            ) as writer:
-                df_merged.to_excel(writer, sheet_name="JV", index=False)
-                df_inflow.to_excel(writer, sheet_name="inflow", index=False)
-            return send_from_directory(
-                directory="funds_jv/",
-                path=f"HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx",
-                download_name=f"HDFC_JV_{start_date}_{end_date}.xlsx",
-                as_attachment=True,
-            )
-
-        else:
-            return "no data"
-
-    return render_template("jv_download_jv_macro.html", form=form)
-
-
-def prepare_jv_flag(engine) -> tuple[pd.DataFrame, list[str]]:
-    df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
-
-    df_flags = df_flags[["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]]
-    df_flags = df_flags.drop_duplicates()
-
-    df_flags = df_flags.rename(
-        columns={
-            "txt_description": "DESCRIPTION",
-            "txt_flag": "FLAG",
-            "txt_gl_code": "GL Code",
-            "txt_sl_code": "SL Code",
-        }
-    )
-
-    flag_description: list[str] = df_flags["DESCRIPTION"].astype(str).unique().tolist()
-
-    return df_flags, flag_description
-
-
-def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame:
-    # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-
-    flag_description: list[str] = prepare_jv_flag(engine)[1]
-
-    df_inflow_copy = df_inflow.copy()
-
-    df_inflow_copy["DESCRIPTION"] = df_inflow_copy["description"].apply(
-        lambda x: "".join([part for part in flag_description if part in str(x)])
-    )
-
-    df_unidentified_credits = df_inflow_copy[df_inflow_copy["DESCRIPTION"] == ""].copy()
-
-    df_unidentified_credits = df_unidentified_credits.drop(columns=["DESCRIPTION"])
-    df_unidentified_credits["date_created_date"] = datetime.datetime.now()
-    df_unidentified_credits["created_by"] = current_user.username
-    df_unidentified_credits["bool_jv_passed"] = False
-
-    return df_unidentified_credits
-
-
-def prepare_investment_jv(df_funds_excel: pd.DataFrame) -> pd.DataFrame:
-    df_investment = df_funds_excel[
-        df_funds_excel["Type"] == "Given to investment"
-    ].copy()
-    if df_investment.empty:
-        return pd.DataFrame()
-
-    df_investment["GL Code"] = 5121900700
-    df_investment["SL Code"] = 0
-    df_investment["Remarks"] = "Given to investment " + df_investment[
-        "Date"
-    ].dt.strftime("%d/%m/%Y").astype(str)
-
-    df_investment["DR/CR"] = "DR"
-    df_investment_actual = df_investment.copy()
-
-    df_investment_actual["GL Code"] = 9111310000
-    df_investment_actual["SL Code"] = 12404226
-    df_investment_actual["DR/CR"] = "CR"
-
-    df_investment_merged = pd.concat([df_investment_actual, df_investment])
-
-    return df_investment_merged
-
-
-def prepare_outflow_jv(
-    df_funds_excel: pd.DataFrame, df_flags: pd.DataFrame, flag_description: list[str]
-) -> pd.DataFrame:
-    df_outflow = df_funds_excel[df_funds_excel["Type"] == "Outflow"].copy()
-
-    if df_outflow.empty:
-        return pd.DataFrame()
-
-    df_outflow["DESCRIPTION"] = df_outflow["Bank Description"].apply(
-        lambda x: "".join([part for part in flag_description if part in str(x)])
-    )
-
-    df_outflow["DESCRIPTION"] = df_outflow["DESCRIPTION"].replace(
-        r"^\s*$", "OTHERS", regex=True
-    )
-
-    df_outflow = df_outflow.merge(df_flags, on="DESCRIPTION", how="left")
-
-    df_outflow["Remarks"] = (
-        df_outflow["DESCRIPTION"]
-        + " "
-        + df_outflow["FLAG"]
-        + " "
-        + df_outflow["Date"].dt.strftime("%d/%m/%Y").astype(str)
-    )
-    df_outflow["DR/CR"] = "DR"
-
-    df_outflow_actual = df_outflow.copy()
-
-    df_outflow_actual["GL Code"] = 9111310000
-    df_outflow_actual["SL Code"] = 12404226
-    df_outflow_actual["DR/CR"] = "CR"
-
-    df_merged_outflow = pd.concat([df_outflow_actual, df_outflow])
-
-    return df_merged_outflow
-
-
-def prepare_inflow_jv(
-    df_funds_excel: pd.DataFrame, df_flags: pd.DataFrame, flag_description: list[str]
-) -> pd.DataFrame:
-    df_inflow = df_funds_excel[df_funds_excel["Type"] == "Inflow"].copy()
-    if df_inflow.empty:
-        return pd.DataFrame()
-
-    df_inflow["DESCRIPTION"] = df_inflow["Bank Description"].apply(
-        lambda x: "".join([part for part in flag_description if part in str(x)])
-    )
-
-    df_inflow["DESCRIPTION"] = df_inflow["DESCRIPTION"].replace(
-        r"^\s*$", "OTHERS", regex=True
-    )
-
-    df_inflow = df_inflow.merge(df_flags, on="DESCRIPTION", how="left")
-
-    df_inflow["Remarks"] = (
-        df_inflow["FLAG"] + " " + df_inflow["Date"].dt.strftime("%d/%m/%Y").astype(str)
-    )
-
-    df_inflow.loc[df_inflow["Amount"] > 0, "DR/CR"] = "CR"
-    df_inflow.loc[df_inflow["Amount"] < 0, "DR/CR"] = "DR"
-    df_inflow.loc[df_inflow["Amount"] < 0, "Amount"] = df_inflow["Amount"] * -1
-
-    df_inflow_actual = df_inflow.copy()
-
-    df_inflow_actual["GL Code"] = 9111310000
-    df_inflow_actual["SL Code"] = 12404226
-    df_inflow_actual.loc[df_inflow["DR/CR"] == "DR", "DR/CR"] = "CR"
-    df_inflow_actual.loc[df_inflow["DR/CR"] == "CR", "DR/CR"] = "DR"
-
-    df_merged = pd.concat([df_inflow_actual, df_inflow])
-    return df_merged
-
-
 @funds_bp.route("/modify_dates", methods=["POST", "GET"])
 @login_required
 @fund_managers
@@ -1626,30 +1085,3 @@ def modify_dates():
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
     return render_template("modify_dates.html", form=form)
-
-
-@funds_bp.route("/jv_flags/add", methods=["POST", "GET"])
-@login_required
-@admin_required
-def add_jv_flag():
-    """Add new JV flag patterns through model form"""
-    from extensions import db
-
-    jv = FundJournalVoucherFlagSheet()
-
-    if request.method == "POST":
-        form = JVFlagAddForm(request.form, obj=jv)
-        if form.validate():
-
-            form.populate_obj(jv)
-            db.session.add(jv)
-            db.session.commit()
-            return redirect(url_for(".view_jv_flags"))
-    else:
-        form = JVFlagAddForm()
-
-    return render_template(
-        "jv_pattern_add.html",
-        form=form,
-        title="Add new JV pattern",
-    )

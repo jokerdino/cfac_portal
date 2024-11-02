@@ -28,7 +28,8 @@ from app.ho_ro_recon import ho_ro_recon_bp
 from app.pool_credits import pool_credits_bp
 from app.budget import budget_bp
 from app.pg_tieup import pg_tieup_bp
-from app.leave_management import leave_mgmt_bp
+
+# from app.leave_management import leave_mgmt_bp
 
 from app.mis_tracker import mis_bp
 
@@ -107,7 +108,7 @@ def create_app(config_class=Config):
     app.register_blueprint(pool_credits_bp, url_prefix="/pool_credits")
     app.register_blueprint(budget_bp, url_prefix="/budget")
     app.register_blueprint(pg_tieup_bp, url_prefix="/pg_tieup")
-    app.register_blueprint(leave_mgmt_bp, url_prefix="/leave")
+    #   app.register_blueprint(leave_mgmt_bp, url_prefix="/leave")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")
