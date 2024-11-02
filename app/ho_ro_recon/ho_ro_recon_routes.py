@@ -94,10 +94,12 @@ def add_ho_ro_recon():
 
 
 def check_for_status(recon):
-    update_status = True
-    if recon.str_head_office_status != "Pending":
-        update_status = False
-    return update_status
+    # update_status = True
+    # if recon.str_head_office_status != "Pending":
+    #     update_status = False
+    # return update_status
+
+    return True if recon.str_head_office_status == "Pending" else False
 
 
 @ho_ro_recon_bp.route("/edit/<int:key>", methods=["POST", "GET"])
@@ -598,26 +600,31 @@ def upload_new_ho_balance_summary():
     )
 
 
-@ho_ro_recon_bp.route("/count/<string:status>")
-def recon_pending_count(status: str) -> str:
-    count = ReconEntries.query.with_entities(func.count(ReconEntries.id))
+@ho_ro_recon_bp.context_processor
+def recon_count():
+    def recon_pending_count(status: str) -> int:
+        count = ReconEntries.query.with_entities(func.count(ReconEntries.id))
 
-    if status == "pending":
-        count = count.filter(ReconEntries.str_head_office_status == "Pending")
-    elif status == "voucher_pending":
-        count = count.filter(
-            (ReconEntries.str_head_office_status == "Accepted")
-            & (ReconEntries.str_head_office_voucher.is_(None))
-        )
-    else:
-        return "0"
+        if status == "pending":
+            count = count.filter(ReconEntries.str_head_office_status == "Pending")
+        elif status == "voucher_pending":
+            count = count.filter(
+                (ReconEntries.str_head_office_status == "Accepted")
+                & (ReconEntries.str_head_office_voucher.is_(None))
+            )
+        else:
+            return 0
 
-    if current_user.user_type == "ro_user":
-        count = count.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
-    elif current_user.user_type != "admin":
-        return "0"
+        if current_user.user_type == "ro_user":
+            count = count.filter(
+                ReconEntries.str_target_ro_code == current_user.ro_code
+            )
+        elif current_user.user_type != "admin":
+            return 0
 
-    return f"{count[0][0]}"
+        return count.scalar()
+
+    return dict(recon_pending_count=recon_pending_count)
 
 
 @ho_ro_recon_bp.route("/upload_csv/", methods=["POST", "GET"])

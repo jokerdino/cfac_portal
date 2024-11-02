@@ -22,10 +22,10 @@
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO Recon home</a>
                     {% if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_for_voucher') }}">
-                        Accepted but not yet passed <label id="voucher_pending_count"></label> </a>
+                        Accepted but not yet passed ({{ recon_pending_count("voucher_pending") }}) </a>
                     {% endif %}
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.recon_pending_at_ro') }}">
-                        Pending Inter Region entries <label id="pending_count"></label>
+                        Pending Inter Region entries ({{ recon_pending_count("pending") }})
 
                     </a>
                     <a class="navbar-item" href="{{ url_for('ho_ro_recon.list_recon_summary') }}">Summary</a>
@@ -84,39 +84,6 @@
     </div>
     <script type="text/javascript" charset="utf8"
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
-    <script>
-
-        fetch("{{ url_for('ho_ro_recon.recon_pending_count', status='voucher_pending') }}")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // console.log('Data received:', data);
-                document.getElementById("voucher_pending_count").innerHTML = "(" + data + ")";
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-
-        fetch("{{ url_for('ho_ro_recon.recon_pending_count', status='pending') }}")
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                //console.log('Data received:', data);
-                document.getElementById("pending_count").innerHTML = "(" + data + ")";
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-
-    </script>
 
     {% block scripts %}
 
