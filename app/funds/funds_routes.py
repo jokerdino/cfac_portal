@@ -43,6 +43,7 @@ from app.funds.funds_model import (
 
 from app.pool_credits.pool_credits_portal import prepare_dataframe
 from .funds_jv import filter_unidentified_credits
+from extensions import db
 
 from set_view_permissions import admin_required, fund_managers
 
@@ -352,24 +353,9 @@ def upload_bank_statement():
             df_pool_credits_portal.to_sql(
                 "pool_credits_portal", engine, if_exists="append", index=False
             )
-            from extensions import db
 
-            # if there is no daily sheet created for the day, initiate blank daily sheet
-            if not FundDailySheet.query.filter(
-                FundDailySheet.date_current_date == datetime.date.today()
-            ).first():
-                daily_sheet = FundDailySheet(
-                    date_current_date=datetime.date.today(),
-                    created_by=current_user.username,
-                    date_created_date=datetime.datetime.now(),
-                )
-                db.session.add(daily_sheet)
-                db.session.commit()
-            daily_sheet = FundDailySheet.query.filter(
-                FundDailySheet.date_current_date == datetime.date.today()
-            ).first()
-            daily_sheet.float_amount_hdfc_closing_balance = closing_balance_statement
-            db.session.commit()
+            create_or_update_daily_sheet(closing_balance_statement)
+
             # redirect to outflow form
             return redirect(
                 url_for(
@@ -382,6 +368,25 @@ def upload_bank_statement():
         form=form,
         title="Upload bank statement (in .xlsx file format)",
     )
+
+
+def create_or_update_daily_sheet(closing_balance_statement):
+
+    from extensions import db
+
+    daily_sheet = FundDailySheet.query.filter(
+        FundDailySheet.date_current_date == datetime.date.today()
+    ).first()
+
+    # if there is no daily sheet created for the day, initiate blank daily sheet
+
+    if not daily_sheet:
+        daily_sheet = FundDailySheet()
+        db.session.add(daily_sheet)
+
+    daily_sheet.float_amount_hdfc_closing_balance = closing_balance_statement
+
+    db.session.commit()
 
 
 def add_flag(df_bank_statement):
@@ -537,7 +542,7 @@ def enter_outflow(date_string):
 
         for key, amount in form.data.items():
             if ("amount" in key) and (amount is not None):
-                write_to_database_outflow(param_date, key, amount)
+                create_or_update_outflow(param_date, key, amount)
         #  amount_drawn_from_investment = form.data["drawn_from_investment"] or 0
 
         expected_date_of_return = form.data["expected_date_of_return"] or None
@@ -632,11 +637,8 @@ def enter_outflow(date_string):
         )
 
     for item in outflow_amounts:
-        form[item].data = fill_outflow(param_date, item) or 0
+        form[item].data = fill_outflow(param_date, item)
 
-    # form.drawn_from_investment.data = (
-    #     (daily_sheet.float_amount_taken_from_investments or 0) if daily_sheet else 0
-    # )
     form.given_to_investment.data = (
         (daily_sheet.float_amount_given_to_investments or 0) if daily_sheet else 0
     )
@@ -674,31 +676,23 @@ def enable_update(date):
     return datetime.date.today() == date.date()
 
 
-def write_to_database_outflow(date, key, amount):
-    from extensions import db
+def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
 
-    outflow_query = db.session.query(FundDailyOutflow).filter(
-        FundDailyOutflow.outflow_date == date
+    outflow = (
+        db.session.query(FundDailyOutflow)
+        .filter(
+            (FundDailyOutflow.outflow_date == outflow_date)
+            & (FundDailyOutflow.outflow_description == outflow_description)
+        )
+        .first()
     )
-    if key:
-        outflow_query = outflow_query.filter(
-            FundDailyOutflow.outflow_description == key
-        ).first()
-        if outflow_query:
-            outflow_query.outflow_amount = amount
-            outflow_query.updated_by = current_user.username
-            outflow_query.date_updated_date = datetime.datetime.now()
-            db.session.commit()
-        else:
-            outflow = FundDailyOutflow(
-                outflow_date=date,
-                outflow_description=key,
-                outflow_amount=amount,
-                date_created_date=datetime.datetime.now(),
-                created_by=current_user.username,
-            )
-            db.session.add(outflow)
-            db.session.commit()
+
+    if not outflow:
+        outflow = FundDailyOutflow(**locals())
+
+        db.session.add(outflow)
+    outflow.outflow_amount = outflow_amount
+    db.session.commit()
 
 
 @funds_bp.route("/add_remarks/<string:date_string>", methods=["GET", "POST"])

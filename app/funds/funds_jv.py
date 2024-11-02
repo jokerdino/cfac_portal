@@ -199,7 +199,7 @@ def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame
     df_unidentified_credits = df_inflow_copy[df_inflow_copy["DESCRIPTION"] == ""].copy()
 
     df_unidentified_credits = df_unidentified_credits.drop(columns=["DESCRIPTION"])
-    df_unidentified_credits["date_created_date"] = datetime.datetime.now()
+    df_unidentified_credits["date_created_date"] = datetime.now()
     df_unidentified_credits["created_by"] = current_user.username
     df_unidentified_credits["bool_jv_passed"] = False
 

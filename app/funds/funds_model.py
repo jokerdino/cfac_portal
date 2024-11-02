@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from dataclasses import dataclass
 
 from flask_login import current_user
@@ -62,21 +62,18 @@ class FundDailyOutflow(db.Model):
     text_remarks = db.Column(db.Text)
     current_status = db.Column(db.String)
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
+    date_created_date = db.Column(db.DateTime, default=datetime.now)
+    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
     date_deleted_date = db.Column(db.DateTime)
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
 
 class FundDailySheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date_current_date = db.Column(db.Date)
-
-    # float_receipts = db.Column(db.Numeric(20, 2))
-    # float_payments = db.Column(db.Numeric(20, 2))
+    date_current_date = db.Column(db.Date, default=date.today)
 
     text_major_collections = db.Column(db.Text)
     text_major_payments = db.Column(db.Text)
