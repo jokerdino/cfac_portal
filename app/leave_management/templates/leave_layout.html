@@ -15,15 +15,29 @@
 
 <body {% block body_attrs %}{% endblock body_attrs %}>
     <header>
-        <nav class="navbar is-info has-shadow" aria-label="main navigation">
+        <nav class="navbar has-background-link-light has-shadow" aria-label="main navigation">
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('contacts.contacts_homepage') }}">Contacts home</a>
-                    {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('contacts.add_contact') }}">Add new contact</a>
-                    <a class="navbar-item" href="{{ url_for('contacts.bulk_upload') }}">Bulk upload</a>
-                    {% endif %}
+                    <a class="navbar-item" href="{{ url_for('.leave_home') }}">Leave home</a>
+                    <a class="navbar-item" href="{{ url_for('.leave_attendance_list') }}">Attendance</a>
+                    <a class="navbar-item" href="{{ url_for('.pending_leaves_list') }}">Pending leaves</a>
+
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Leaves taken</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item"
+                                href="{{ url_for('.leaves_taken_list', status='pending') }}">Pending</a>
+                            <a class="navbar-item"
+                                href="{{ url_for('.leaves_taken_list', status='submitted') }}">Submitted</a>
+                            <a class="navbar-item" href="{{ url_for('.leaves_taken_list', status='all') }}">All
+                                leaves</a>
+                        </div>
+                    </div>
+                    <a class="navbar-item" href="{{ url_for('.leave_application_list') }}">Leave application</a>
+                    <a class="navbar-item" href="{{ url_for('.leave_balance_list') }}">Leave balance</a>
+                    <a class="navbar-item" href="{{ url_for('.employee_data_list') }}">Employee data</a>
+
                 </div>
             </div>
 

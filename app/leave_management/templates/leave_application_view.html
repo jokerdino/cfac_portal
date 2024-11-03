@@ -1,17 +1,7 @@
-<style>
-    @page {
-        size: portrait;
-        margin: 1cm;
-    }
-</style>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+{% extends "leave_layout.html" %}
 {% block content %}
 <div class="container">
-    <h1 class="title has-text-centered">UNITED INDIA INSURANCE COMPANY LIMITED</h1>
-    <h1 class="is-size-4 title has-text-centered">APPLICATION FOR {{ leave.type_of_leave.upper() }}</h1>
-
-    <div class="has-text-right">Application no.: {{ leave.id }}</div>
+    <h1 class="title">Leave application</h1>
     <table class="table is-bordered is-fullwidth is-wide">
         <tr>
             <th>Employee name</th>
@@ -41,40 +31,31 @@
             <th>Reason for leave</th>
             <td>{{ leave.purpose_of_leave }}</td>
         </tr>
-    </table>
 
-    <div class="has-text-left">Date: _________________</div>
-    <div class="has-text-right">Applicant's signature</div>
-
-    {% if leave.available_leave_credit > 0 %}
-    <table class="table is-bordered is-fullwidth">
         <tr>
             <th width="50%">Available leave credit</th>
             <td>{{ leave.available_leave_credit }}</td>
         </tr>
-        {% endif %}
-    </table>
-    <table class="table is-bordered is-fullwidth">
+
         <tr>
-            <td colspan="2" class="has-text-centered has-text-weight-bold">Details of the Officer Granting / Refusing
-                Leave</td>
-        </tr>
-        <tr>
-            <th>Name</th>
+            <th>Approving officer's name</th>
             <td>{{ leave.leave_approved_by }}</td>
         </tr>
         <tr>
-            <th>Designation</th>
+            <th>Approving officer's Designation</th>
             <td>{{ leave.leave_approver_designation }}</td>
         </tr>
-        <tr>
-            <td colspan="2">
-                {{ leave.type_of_leave }} applied for is GRANTED / REFUSED for {{
-                leave.number_of_days_leave
-                }} days from {{ leave.start_date }} to {{ leave.end_date }}</td>
-        </tr>
+
     </table>
-    <div class="has-text-left mt-5">Date: _________________</div>
-    <div class="has-text-right mt-5">Signature of the officer</div>
+    <div class="has-text-centered">
+        <form method="post">
+
+            <button class="button has-background-danger-light" {% if leave.current_status=="Deleted" %}
+                title="Leave application already deleted." disabled {% elif leave_submitted(leave.start_date) %}
+                disabled title="Leave data already submitted to Establishment department" {% endif %}>
+                Delete
+            </button>
+        </form>
+    </div>
 </div>
 {% endblock content %}

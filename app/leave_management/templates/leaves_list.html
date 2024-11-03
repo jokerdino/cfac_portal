@@ -2,9 +2,12 @@
 {% block content %}
 {% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 <div class="container">
+
+    {% if status == "pending" %}
     <div class="has-text-right">
         <a class="button is-success js-modal-trigger" id="bulk_update" data-target="bulk_leave_update_form">Bulk
             update</a>
+        {% endif %}
     </div>
     <form method="post">
         {{ form.csrf_token }}
@@ -22,6 +25,7 @@
                 </div>
             </div>
         </div>
+
         <table class="table is-bordered is-fullwidth">
             <thead>
                 <tr>

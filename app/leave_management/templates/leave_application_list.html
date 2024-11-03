@@ -15,7 +15,10 @@
                 <th class="has-text-centered is-vcentered">Purpose of leave</th>
                 <th class="has-text-centered is-vcentered">Leave approved by</th>
                 <th class="has-text-centered is-vcentered">Leave approver designation</th>
+                <th class="has-text-centered is-vcentered">Current status</th>
                 <th class="has-text-centered is-vcentered">Edit</th>
+                <th class="has-text-centered is-vcentered">View</th>
+                <th class="has-text-centered is-vcentered">Print</th>
 
             </tr>
         </thead>
@@ -32,8 +35,17 @@
                 <td>{{ item.purpose_of_leave }}</td>
                 <td>{{ item.leave_approved_by }}</td>
                 <td>{{ item.leave_approver_designation }}</td>
+                <td>{{ item.current_status }}</td>
+                <td><a class="button is-small is-link" {% if item.current_status=="Pending" %}
+                        href="{{ url_for('.leave_application_edit', id=item.id) }}" {% else %} disabled
+                        title="Leave application cannot be edited after submission." {% endif %}>
+                        Edit
+                    </a></td>
                 <td><a class="button is-small is-link"
-                        href="{{ url_for('.leave_application_edit', id=item.id) }}">Edit</a></td>
+                        href="{{ url_for('.leave_application_view', id=item.id) }}">View</a>
+                </td>
+                <td><a class="button is-small is-link"
+                        href="{{ url_for('.leave_application_print', id=item.id) }}">Print</a></td>
             </tr>
 
             {% endfor %}

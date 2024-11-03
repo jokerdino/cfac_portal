@@ -2,11 +2,12 @@
 {% block content %}
 
 <div class="container">
+    <h1 class="title">Attendance for {{ date_string.strftime("%d/%m/%Y (%A)") }}</h1>
     <form method="post">
 
         {{ form.csrf_token }}
 
-        <table class="table is-fullwidth">
+        <table class="table is-fullwidth is-hoverable is-striped">
             <thead>
                 <tr>
                     <th class="has-text-centered">Date</th>
@@ -35,7 +36,8 @@
         </table>
 
         <div class="has-text-centered">
-            <button class="button is-success">Submit</button>
+            <button class="button is-success" {% if leave_submitted(date_string) %} disabled
+                title="Leave data already submitted to Establishment department" {% endif %}>Submit</button>
         </div>
     </form>
 </div>

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, date
+from datetime import date, datetime
 
 from flask_login import current_user
 
@@ -111,9 +111,11 @@ class LeaveBalance(db.Model):
     closing_privileged_leave_balance = db.Column(db.Numeric(6, 2))
 
     casual_leaves_taken = db.Column(db.Numeric(6, 2))
+    casual_leaves_half_day_taken = db.Column(db.Numeric(6, 2))
     sick_leaves_taken = db.Column(db.Numeric(6, 2))
     privilege_leaves_taken = db.Column(db.Numeric(6, 2))
     restricted_holidays_taken = db.Column(db.Numeric(6, 2))
+    joining_leave_taken = db.Column(db.Numeric(6, 2))
     lop_taken = db.Column(db.Numeric(6, 2))
     strike_taken = db.Column(db.Numeric(6, 2))
     special_leave_taken = db.Column(db.Numeric(6, 2))
@@ -127,6 +129,13 @@ class LeaveBalance(db.Model):
     closing_balance_date = db.Column(db.Date)
 
     current_status = db.Column(db.String, default="Open")
+
+
+class LeaveSubmissionData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    leaves_submitted_to_est_dept = db.Column(db.Date)
+
     created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)
 

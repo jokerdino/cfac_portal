@@ -62,6 +62,7 @@ from app.leave_management.leave_model import (
     LeaveBalance,
     LeaveApplication,
     AttendanceRegister,
+    LeaveSubmissionData,
 )
 from app.lien.lien_model import Lien
 
@@ -364,6 +365,16 @@ admin.add_view(
         LeaveApplication,
         db.session,
         endpoint="leave_application",
+        category="Leave",
+    )
+)
+
+
+admin.add_view(
+    DefaultModelView(
+        LeaveSubmissionData,
+        db.session,
+        endpoint="leave_submission",
         category="Leave",
     )
 )

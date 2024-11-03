@@ -1,0 +1,23 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Employee name</th>
+                <th>No of days pending</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in pending %}
+            <tr>
+                <td>{{ employee[0] }}</td>
+                <td>{{ employee[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock content %}

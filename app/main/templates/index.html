@@ -97,6 +97,7 @@
           {% else %}
           <li><a href="{{ url_for('funds.funds_reports') }}">Funds - Reports</a></li>
           {% endif %}
+          <li><a href="{{ url_for('leave_management.leave_home') }}">Leave management</a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type in ["admin","ro_user"] %}
