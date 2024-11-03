@@ -1,8 +1,3 @@
-import calendar
-from datetime import datetime
-
-import humanize
-from babel.numbers import format_decimal
 from flask import Flask
 
 from app.portal_admin.admin_routes import admin_check
@@ -36,37 +31,12 @@ from app.mis_tracker import mis_bp
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
 
+from utils import datetime_format, humanize_datetime, indian_number_format
+
 
 @lm.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
-
-
-def indian_number_format(input_number):
-    return format_decimal(input_number, format="#####,##,##,##0.00", locale="en_IN")
-
-
-def humanize_datetime(input_datetime):
-    return humanize.naturaltime(datetime.now() - input_datetime)
-
-
-def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
-    return_value = datetime.strptime(value, format)
-    if result == "default":
-        return return_value
-    elif result == "current":
-        res = calendar.monthrange(return_value.year, return_value.month)
-        date_string = f"{res[1]}/{return_value.month:02}/{return_value.year}"
-        return date_string
-    elif result == "previous":
-        date_string = f"01/{return_value.month:02}/{return_value.year}"
-        # if return_value.month - 1 == 0:
-        #     res = calendar.monthrange(return_value.year - 1, 12)
-        #     date_string = f"{res[1]}/12/{return_value.year-1}"
-        # else:
-        #     res = calendar.monthrange(return_value.year, return_value.month - 1)
-        #     date_string = f"{res[1]}/{return_value.month - 1:02}/{return_value.year}"
-        return date_string
 
 
 def create_app(config_class=Config):
