@@ -23,6 +23,8 @@ from werkzeug.utils import secure_filename
 
 from set_view_permissions import admin_required
 
+from utils import indian_number_format
+
 from app.coinsurance import coinsurance_bp
 from app.coinsurance.coinsurance_form import (
     CoinsuranceForm,
@@ -54,7 +56,6 @@ from .coinsurance_model_forms import ReceiptForm
 
 from app.funds.funds_model import FundBankStatement
 
-from server import indian_number_format
 
 ro_list = [
     "010000",
@@ -104,6 +105,7 @@ ro_list = [
 @coinsurance_bp.route("/")
 @login_required
 def home_page():
+
     from server import db
 
     if current_user.user_type == "ro_user":
