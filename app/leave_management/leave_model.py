@@ -11,7 +11,7 @@ class EmployeeData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     employee_name: str = db.Column(db.String)
-    employee_number: int = db.Column(db.Integer)
+    employee_number: int = db.Column(db.Integer, unique=True)
     employee_designation: str = db.Column(db.String)
     employee_username = db.Column(db.String)
 
@@ -85,7 +85,7 @@ class LeaveBalance(db.Model):
 
     calendar_year = db.Column(db.Integer)
     employee_name = db.Column(db.String)
-    employee_number = db.Column(db.Integer)
+    employee_number = db.Column(db.Integer, unique=True)
 
     opening_casual_leave_balance = db.Column(db.Numeric(6, 2))
     opening_sick_leave_balance = db.Column(db.Numeric(6, 2))
@@ -110,17 +110,17 @@ class LeaveBalance(db.Model):
     closing_rh_balance = db.Column(db.Numeric(6, 2))
     closing_privileged_leave_balance = db.Column(db.Numeric(6, 2))
 
-    casual_leaves_taken = db.Column(db.Numeric(6, 2))
-    casual_leaves_half_day_taken = db.Column(db.Numeric(6, 2))
-    sick_leaves_taken = db.Column(db.Numeric(6, 2))
-    privilege_leaves_taken = db.Column(db.Numeric(6, 2))
-    restricted_holidays_taken = db.Column(db.Numeric(6, 2))
-    joining_leave_taken = db.Column(db.Numeric(6, 2))
-    lop_taken = db.Column(db.Numeric(6, 2))
-    strike_taken = db.Column(db.Numeric(6, 2))
-    special_leave_taken = db.Column(db.Numeric(6, 2))
-    maternity_leave_taken = db.Column(db.Numeric(6, 2))
-    paternity_leave_taken = db.Column(db.Numeric(6, 2))
+    casual_leaves_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    casual_leaves_half_day_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    sick_leaves_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    privilege_leaves_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    restricted_holidays_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    joining_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    lop_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    strike_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    special_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    maternity_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
+    paternity_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
 
     leave_encashment = db.Column(db.Numeric(6, 2))
     date_of_leave_encashment = db.Column(db.Date)
@@ -129,6 +129,12 @@ class LeaveBalance(db.Model):
     closing_balance_date = db.Column(db.Date)
 
     current_status = db.Column(db.String, default="Open")
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
 
 class LeaveSubmissionData(db.Model):

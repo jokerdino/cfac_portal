@@ -9,6 +9,7 @@
                 <th class="has-text-centered">Week day</th>
                 <th class="has-text-centered">Present</th>
                 <th class="has-text-centered">On leave</th>
+                <th class="has-text-centered">On leave-half day</th>
                 <th class="has-text-centered">On duty</th>
                 <th class="has-text-centered">On tour</th>
                 <th class="has-text-centered">Total on roll</th>
@@ -18,13 +19,14 @@
         <tbody>
             {% for item in list %}
             <tr>
-                <td>{{ item[0].strftime("%d/%m/%Y") }}</td>
+                <td class="has-text-centered">{{ item[0].strftime(" %d/%m/%Y") }}</td>
                 <td>{{ item[0].strftime("%A") }}</td>
                 <td class="has-text-right">{{ item[1] }}</td>
                 <td class="has-text-right">{{ item[2] }}</td>
                 <td class="has-text-right">{{ item[3] }}</td>
                 <td class="has-text-right">{{ item[4] }}</td>
                 <td class="has-text-right">{{ item[5] }}</td>
+                <td class="has-text-right">{{ item[6] }}</td>
                 <td><a class="button is-small is-link" target="_blank"
                         href="{{ url_for('.edit_attendance', date_string=item[0].strftime('%d%m%Y')) }}">Edit</a></td>
             </tr>

@@ -1,7 +1,33 @@
 {% extends "leave_layout.html" %}
 {% block content %}
 
-<div class="container">
+<div class="container is-fluid">
+
+    <h1 class="title">Leave balance</h1>
+    <table class="table is-bordered mb-5">
+        <thead>
+            <tr>
+                <th>Employee name</th>
+                <th>Employee number</th>
+
+                <th>Current casual leave balance</th>
+                <th>Current sick leave balance</th>
+                <th>Current earned leave balance</th>
+                <th>Current restricted holiday balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="has-text-centered">{{ leave_balance.employee_name }}</td>
+                <td class="has-text-centered">{{ leave_balance.employee_number }}</td>
+                <td class="has-text-centered">{{ leave_balance.current_casual_leave_balance }}</td>
+                <td class="has-text-centered">{{ leave_balance.current_sick_leave_balance }}</td>
+                <td class="has-text-centered">{{ leave_balance.current_privileged_leave_balance }}</td>
+                <td class="has-text-centered">{{ leave_balance.current_rh_balance }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h1 class="title">Leave applications</h1>
     <table class="table is-fullwidth is-bordered">
         <thead>
             <tr>
@@ -44,8 +70,12 @@
                 <td><a class="button is-small is-link"
                         href="{{ url_for('.leave_application_view', id=item.id) }}">View</a>
                 </td>
-                <td><a class="button is-small is-link"
-                        href="{{ url_for('.leave_application_print', id=item.id) }}">Print</a></td>
+                <td><a class="button is-small is-link" {% if item.current_status=="Submitted" %}
+                        href="{{ url_for('.leave_application_print', id=item.id) }}" {% else %} disabled
+                        title="Leave application cannot be printed without submission." {% endif %}>
+                        Print
+                    </a>
+                </td>
             </tr>
 
             {% endfor %}

@@ -14,6 +14,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from sqlalchemy import case, func
+from sqlalchemy.exc import IntegrityError
 
 from extensions import db
 
@@ -54,10 +55,13 @@ def leave_home():
 @login_required
 def leave_attendance_list():
 
-    # status_query = db.session.execute(
-    #     db.select(AttendanceRegister.status_of_attendance).distinct()
-    # )
-    attendance_status_list = ["Present", "On leave", "On duty", "On tour"]
+    attendance_status_list = [
+        "Present",
+        "On leave",
+        "On leave-half day",
+        "On duty",
+        "On tour",
+    ]
     case_status = {
         k: case(
             (
@@ -103,6 +107,9 @@ def edit_attendance(date_string):
             person.status_of_attendance = attendance_form["status_of_attendance"]
 
         db.session.commit()
+
+        return redirect(url_for(".leave_attendance_list"))
+
     return render_template("daily_attendance.html", form=form, date_string=param_date)
 
 
@@ -130,15 +137,22 @@ def pending_leaves_list():
 @leave_mgmt_bp.route("/leave_application/")
 @login_required
 def leave_application_list():
+    leave_balance = db.session.scalars(
+        db.select(LeaveBalance).where(
+            LeaveBalance.employee_number == current_user.username[-5:]
+        )
+    ).one()
     list = db.session.scalars(
         db.select(LeaveApplication)
         .where(
             (LeaveApplication.employee_number == current_user.username[-5:])
             & (LeaveApplication.current_status != "Deleted")
         )
-        .order_by(LeaveApplication.start_date)
+        .order_by(LeaveApplication.start_date.desc())
     )
-    return render_template("leave_application_list.html", list=list)
+    return render_template(
+        "leave_application_list.html", list=list, leave_balance=leave_balance
+    )
 
 
 @leave_mgmt_bp.route("/leave_application/edit/<int:id>/", methods=["GET", "POST"])
@@ -227,8 +241,15 @@ def add_employee_data():
     if form.validate_on_submit():
         employee = EmployeeData()
         form.populate_obj(employee)
-        db.session.add(employee)
-        db.session.commit()
+        try:
+            db.session.add(employee)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("An employee with this data already exists.", "error")
+            return render_template("flask_form_edit.html", form=form)
+
+        return redirect(url_for(".employee_data_list"))
 
     return render_template("flask_form_edit.html", form=form)
 
@@ -236,18 +257,25 @@ def add_employee_data():
 @leave_mgmt_bp.route("/employee/data/edit/<int:id>/", methods=["GET", "POST"])
 @login_required
 def edit_employee_data(id):
+
     employee = db.get_or_404(EmployeeData, id)
     form = EmployeeDataForm(obj=employee)
     if form.validate_on_submit():
 
-        form.populate_obj(employee)
+        try:
+            form.populate_obj(employee)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("An employee with this data already exists.", "error")
+            return render_template("flask_form_edit.html", form=form)
 
-        db.session.commit()
+        return redirect(url_for(".employee_data_list"))
 
     return render_template("flask_form_edit.html", form=form)
 
 
-@leave_mgmt_bp.route("/employee/")
+@leave_mgmt_bp.route("/employee/leave_balance/")
 @login_required
 def leave_balance_list():
     column_names = db.session.query(LeaveBalance).statement.columns.keys()
@@ -257,30 +285,40 @@ def leave_balance_list():
     )
 
 
-@leave_mgmt_bp.route("/employee/add", methods=["GET", "POST"])
+@leave_mgmt_bp.route("/employee/leave_balance/add", methods=["GET", "POST"])
 @login_required
 def add_employee_leave_balance():
     form = AddEmployeeLeaveBalanceForm()
     if form.validate_on_submit():
-        employee = LeaveBalance()
-        form.populate_obj(employee)
-        db.session.add(employee)
-        db.session.commit()
+        try:
+            employee = LeaveBalance()
+            form.populate_obj(employee)
+            db.session.add(employee)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Employee already exists.", "danger")
+        else:
+            return redirect(url_for(".leave_balance_list"))
 
     return render_template("flask_form_edit.html", form=form)
 
 
-@leave_mgmt_bp.route("/employee/edit/<int:id>/", methods=["GET", "POST"])
+@leave_mgmt_bp.route("/employee/leave_balance/edit/<int:id>/", methods=["GET", "POST"])
 @login_required
 def edit_employee_leave_balance(id):
+
     employee = db.get_or_404(LeaveBalance, id)
     form = AddEmployeeLeaveBalanceForm(obj=employee)
     if form.validate_on_submit():
-
-        form.populate_obj(employee)
-
-        db.session.commit()
-
+        try:
+            form.populate_obj(employee)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            flash("Employee already exists.", "danger")
+        else:
+            return redirect(url_for(".leave_balance_list"))
     return render_template("flask_form_edit.html", form=form)
 
 
@@ -288,12 +326,17 @@ def edit_employee_leave_balance(id):
 @login_required
 def leaves_taken_list(status):
     form = UpdateLeaveTypeForm(status="all")
+    leave_balance = db.session.scalars(
+        db.select(LeaveBalance).where(
+            LeaveBalance.employee_number == current_user.username[-5:]
+        )
+    ).one()
+
     query = (
         db.select(AttendanceRegister)
         .where(
             (AttendanceRegister.employee_number == current_user.username[-5:])
             & (AttendanceRegister.status_of_attendance == "On leave")
-            # & (AttendanceRegister.type_of_leave.is_(None))
         )
         .order_by(AttendanceRegister.date_of_attendance)
     )
@@ -327,7 +370,11 @@ def leaves_taken_list(status):
         else:
             flash(f"Not enough leave balance for {form.leave_type.data}")
     return render_template(
-        "leaves_list.html", leaves_taken=leaves_taken, form=form, status=status
+        "leaves_list.html",
+        leaves_taken=leaves_taken,
+        form=form,
+        status=status,
+        leave_balance=leave_balance,
     )
 
 
@@ -393,7 +440,7 @@ def validate_leave(leave_type, employee_number, start_date, end_date, list_leave
         elif leave_type == "Casual leave-half day":
 
             days_on_leave = decimal.Decimal(len(list_leave_keys) / 2)
-        # print(days_on_leave, type(days_on_leave))
+
         elif leave_type == "Sick leave-full pay":
             days_on_leave = days_on_leave * 2
         available_leave_credit = getattr(employee, leave_balance_attribute)
