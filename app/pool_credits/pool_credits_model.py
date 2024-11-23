@@ -1,5 +1,5 @@
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from extensions import db
 
 from flask_login import current_user
@@ -60,3 +60,9 @@ class PoolCreditsPortal(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
+    office_code: str = field(init=False)
+
+    @property
+    def office_code(self):
+        return "000100"
