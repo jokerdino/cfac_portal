@@ -139,7 +139,7 @@ def get_data(status):
             PoolCredits.str_regional_office_code.is_(None)
         )
 
-    elif status == "identified":
+    elif status == "confirmed":
         entries = db.session.query(PoolCredits).filter(
             (PoolCredits.str_regional_office_code.is_not(None))
             & (PoolCredits.bool_jv_passed.is_(False))
@@ -296,10 +296,10 @@ def view_pool_credit_summary():
     return render_template("summary_view.html", query=summary_query)
 
 
-@pool_credits_bp.route("/daily_jv")
+@pool_credits_bp.route("/identified/")
 @login_required
 @ro_user_only
-def daily_jv():
+def identified_entries():
 
     return render_template("daily_jv_entries.html")
 

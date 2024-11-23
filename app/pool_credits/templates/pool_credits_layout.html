@@ -19,18 +19,18 @@
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('.daily_jv') }}">Daily JV entries</a>
+                    <a class="navbar-item" href="{{ url_for('.identified_entries') }}">Identified entries</a>
                     <a class="navbar-item"
-                        href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='unidentified') }}">Unidentified
+                        href="{{ url_for('.pool_credits_list_identified_api', status='unidentified') }}">Unidentified
                         entries</a>
                     <a class="navbar-item"
-                        href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='identified') }}">Identified
+                        href="{{ url_for('.pool_credits_list_identified_api', status='confirmed') }}">Confirmed
                         entries</a>
                     <a class="navbar-item"
-                        href="{{ url_for('pool_credits.pool_credits_list_identified_api', status='jv_passed') }}">JV
+                        href="{{ url_for('.pool_credits_list_identified_api', status='jv_passed') }}">JV
                         passed entries</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('pool_credits.view_pool_credit_summary') }}">Summary</a>
+                    <a class="navbar-item" href="{{ url_for('.view_pool_credit_summary') }}">Summary</a>
                     {% endif %}
                 </div>
             </div>
