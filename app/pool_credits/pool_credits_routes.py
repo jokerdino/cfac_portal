@@ -85,7 +85,7 @@ def pool_credits_portal():
         # Split the key into the column name and the operator
         key_components = key.split("__", 1)
         param_name = key_components[0]
-        operator = key_components[1] if len(key_components) > 1 else None
+        operator = key_components[1] if len(key_components) > 1 else "gte"
 
         # Store the parameter name and value along with the operator in the
         # filters dictionary
@@ -128,7 +128,7 @@ def get_value(params, param_name):
 
 
 def dynamic_query_column(entries, column_name, params):
-    operator = params.get("operator", "eq")
+    operator = params.get("operator", "gte")
     value = params["value"]
 
     column_attr = getattr(PoolCreditsPortal, column_name)
