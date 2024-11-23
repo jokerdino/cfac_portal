@@ -15,7 +15,16 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import String, case, cast, create_engine, distinct, func, text, union
+from sqlalchemy import (
+    String,
+    case,
+    cast,
+    create_engine,
+    distinct,
+    func,
+    text,
+    union,
+)
 
 from app.funds import funds_bp
 from app.funds.funds_form import (
@@ -29,6 +38,7 @@ from app.funds.funds_form import (
     ReportsForm,
     UploadFileForm,
     JVFlagAddForm,
+    FundsDeleteForm,
 )
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
@@ -40,6 +50,8 @@ from app.funds.funds_model import (
     FundJournalVoucherFlagSheet,
     FundMajorOutgo,
 )
+from app.coinsurance.coinsurance_model import CoinsuranceReceipts
+from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 
 from app.pool_credits.pool_credits_portal import prepare_dataframe
 from .funds_jv import filter_unidentified_credits
@@ -1079,3 +1091,37 @@ def modify_dates():
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
     return render_template("modify_dates.html", form=form)
+
+
+@funds_bp.route("/delete_date", methods=["POST", "GET"])
+@login_required
+@fund_managers
+def delete_date():
+    form = FundsDeleteForm()
+
+    if form.validate_on_submit():
+        delete_date = form.delete_date.data
+        db.session.query(FundBankStatement).filter(
+            FundBankStatement.date_uploaded_date == delete_date
+        ).delete()
+        db.session.query(FundDailyOutflow).filter(
+            FundDailyOutflow.outflow_date == delete_date
+        ).delete()
+        db.session.query(FundDailySheet).filter(
+            FundDailySheet.date_current_date == delete_date
+        ).delete()
+
+        db.session.query(CoinsuranceReceipts).filter(
+            func.date(CoinsuranceReceipts.created_on) == delete_date
+        ).delete()
+        db.session.query(PoolCredits).filter(
+            func.date(PoolCredits.date_created_date) == delete_date
+        ).delete()
+        db.session.query(PoolCreditsPortal).filter(
+            func.date(PoolCreditsPortal.date_created_date) == delete_date
+        ).delete()
+
+        db.session.commit()
+        flash(f"{delete_date} has been deleted.")
+
+    return render_template("delete_date.html", form=form)

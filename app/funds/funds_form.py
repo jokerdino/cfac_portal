@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 
@@ -17,9 +19,6 @@ from wtforms_sqlalchemy.orm import model_form
 
 
 from .funds_model import FundJournalVoucherFlagSheet
-
-# def num_of_days(date1, date2):
-#    return (date2 - date1).days
 
 
 def verify_months(start_date, end_date):
@@ -189,3 +188,11 @@ JVFlagAddForm = model_form(
         "txt_sl_code",
     ],
 )
+
+
+class FundsDeleteForm(FlaskForm):
+    delete_date = DateField(validators=[DataRequired()])
+
+    def validate_delete_date(self, field):
+        if field.data != date.today():
+            raise ValidationError("Delete date should be today.")
