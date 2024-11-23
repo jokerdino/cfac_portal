@@ -5,7 +5,6 @@
     <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_table">
         <thead>
             <tr>
-
                 <th>Value date</th>
                 <th>Company name</th>
                 <th>Credit</th>
@@ -31,7 +30,7 @@
                 <td>{{ entry['receipting_office'] or "" }}</td>
                 <td>{{ entry['date_of_receipt'] or "" }}</td>
                 <td><a class="button is-link is-small" target="_blank"
-                        href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id'] )}}">Edit</a></td>
+                        href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
 
             </tr>
             {% endfor %}
@@ -45,7 +44,6 @@
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
-
         },
         stateSave: true,
         // fixedHeader: true,
