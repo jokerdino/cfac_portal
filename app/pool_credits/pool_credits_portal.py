@@ -6,7 +6,9 @@ from flask_login import current_user
 
 
 def extract_number(input_string):
-    return re.findall(r"\d+", input_string)[0]
+
+    matches = re.findall(r"\d+", input_string)
+    return matches[0] if matches else 0
 
 
 def prepare_dataframe_neft(df_credits_neft):
