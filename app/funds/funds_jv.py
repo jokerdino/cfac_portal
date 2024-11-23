@@ -166,7 +166,7 @@ def download_jv():
             ]
             df_merged["GL Code"] = pd.to_numeric(df_merged["GL Code"])
             df_merged["SL Code"] = pd.to_numeric(df_merged["SL Code"])
-            datetime_string = datetime.datetime.now()
+            datetime_string = datetime.now()
             with pd.ExcelWriter(
                 f"funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
             ) as writer:
