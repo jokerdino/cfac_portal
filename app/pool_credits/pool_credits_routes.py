@@ -43,88 +43,113 @@ def pool_credits_list_identified_api(status):
     return render_template("pool_credits_list_ajax.html", status=status)
 
 
+# http://0.0.0.0:8080/pool_credits/api/data/pool_credits_portal/?date_added=2024-08-26T15:11:11Z
+# http://0.0.0.0:8080/pool_credits/api/v1/data/pool_credits_portal/?created_date__gte=2024-11-02T20:01
+# http://0.0.0.0:8080/pool_credits/api/v1/data/pool_credits_portal/?created_date__gte=2024-11-02T20:00
+
+
 @pool_credits_bp.route("/api/v1/data/pool_credits_portal/", methods=["GET"])
 def pool_credits_portal():
+    """
+    API endpoint to query PoolCreditsPortal entries.
 
-    # http://0.0.0.0:8080/pool_credits/api/data/pool_credits_portal/?date_added=2024-08-26T15:11:11Z
-    from extensions import db
+    The endpoint takes query parameters to filter the results. The following
+    parameters are supported:
 
-    entries = db.session.query(PoolCreditsPortal)
-    request_param = request.args
+    - amount_credit__{op}: Filter by amount credit. {op} can be one of gt, lt,
+      ge, le, eq, ne.
+    - reference_no__{op}: Filter by reference number. {op} can be one of
+      contains, startswith, endswith, eq, ne.
+    - value_date__{op}: Filter by value date. {op} can be one of gt, lt, ge,
+      le, eq, ne.
+    - remitter__{op}: Filter by remitter. {op} can be one of contains,
+      startswith, endswith, eq, ne.
+    - created_date__{op}: Filter by created date. {op} can be one of gt, lt,
+      ge, le, eq, ne.
+    - id__{op}: Filter by id. {op} can be one of eq, ne.
 
-    request_param_dict = {}
-    for key, value in request_param.items():
-        try:
-            param, operator = key.split("__")
-        except ValueError:
-            param, operator = key, None
+    The response will be a JSON object with the following keys:
 
-        request_param_dict[param] = {"operator": operator, "value": value}
+    - recordsTotal: The total number of records.
+    - data: A list of dictionaries, each representing a PoolCreditsPortal entry.
 
-    amount_credit = set_value("amount_credit", request_param_dict)
-    txt_reference_number = set_value("reference_no", request_param_dict)
-    id = set_value("id", request_param_dict)
-    date_value_date = set_value("value_date", request_param_dict)
-    txt_name_of_remitter = set_value("remitter", request_param_dict)
-    date_created_date = set_value("created_date", request_param_dict)
+    Example:
+    curl -X GET "http://localhost:8080/pool_credits/api/v1/data/pool_credits_portal/?amount_credit__gt=1000&created_date__ge=2024-08-26T15:11:11Z"
+    """
 
-    if amount_credit:
-        entries = dynamic_query_column(entries, "amount_credit", amount_credit)
-    if txt_reference_number:
-        entries = dynamic_query_column(
-            entries, "txt_reference_number", txt_reference_number
-        )
-    if date_value_date:
-        entries = dynamic_query_column(entries, "date_value_date", date_value_date)
-    if txt_name_of_remitter:
-        entries = dynamic_query_column(
-            entries, "txt_name_of_remitter", txt_name_of_remitter
-        )
-    if date_created_date:
-        entries = dynamic_query_column(entries, "date_created_date", date_created_date)
-    if id:
-        entries = dynamic_query_column(entries, "id", id)
+    query = db.session.query(PoolCreditsPortal)
+    query_params = request.args
 
-    entries_count = entries.count()  # if entries else 0
+    filters = {}
+    for key, value in query_params.items():
+        # Split the key into the column name and the operator
+        key_components = key.split("__", 1)
+        param_name = key_components[0]
+        operator = key_components[1] if len(key_components) > 1 else None
+
+        # Store the parameter name and value along with the operator in the
+        # filters dictionary
+        filters[param_name] = {"operator": operator, "value": value}
+
+    # Define a dictionary to map the parameter names to the corresponding
+    # column names in the PoolCreditsPortal table
+    filters_to_apply: dict[str, str] = {
+        "amount_credit": "amount_credit",
+        "reference_no": "txt_reference_number",
+        "value_date": "date_value_date",
+        "remitter": "txt_name_of_remitter",
+        "created_date": "date_created_date",
+        "id": "id",
+    }
+
+    # Iterate over the filters and apply them to the query
+    for filter_key, column_name in filters_to_apply.items():
+        filter_value = get_value(filters, filter_key)
+        if filter_value:
+            query = dynamic_query_column(query, column_name, filter_value)
+
+    # Count the total number of records matching the query
+    total_records = query.count()
+
+    # Fetch the data from the query and convert it to a list of dictionaries
+    data = [asdict(entry) for entry in query]
+
+    # Return a JSON response with the total records and the data
     return {
-        "recordsTotal": entries_count,
-        "data": [asdict(entry) for entry in entries],
+        "recordsTotal": total_records,
+        "data": data,
     }
 
 
-def set_value(string, dict_values):
-    return dict_values[string] if string in dict_values.keys() else False
+def get_value(params, param_name):
+    """Return the value of a parameter from the request query string."""
+    param = params.get(param_name)
+    return param if param is not None else False
 
 
-def dynamic_query_column(entries, col_name, dict_param):
-    operator = dict_param["operator"] if dict_param["operator"] else "eq"
-    value = dict_param["value"]
-    # in, eq, not, gte, lte, gt, lt, like, ilike
+def dynamic_query_column(entries, column_name, params):
+    operator = params.get("operator", "eq")
+    value = params["value"]
+
+    column_attr = getattr(PoolCreditsPortal, column_name)
 
     if operator == "eq":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) == value)
+        entries = entries.filter(column_attr == value)
     elif operator == "gt":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) > value)
+        entries = entries.filter(column_attr > value)
     elif operator == "gte":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) >= value)
+        entries = entries.filter(column_attr >= value)
     elif operator == "lt":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) < value)
+        entries = entries.filter(column_attr < value)
     elif operator == "lte":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) <= value)
+        entries = entries.filter(column_attr <= value)
     elif operator == "like":
-        entries = entries.filter(
-            getattr(PoolCreditsPortal, col_name).like(f"%{value}%")
-        )
+        entries = entries.filter(column_attr.like(f"%{value}%"))
     elif operator == "ilike":
-        entries = entries.filter(
-            getattr(PoolCreditsPortal, col_name).ilike(f"%{value}%")
-        )
-    # elif operator == "in":
-    #     entries = entries.filter(getattr(PoolCreditsPortal, col_name).in_(value))
+        entries = entries.filter(column_attr.ilike(f"%{value}%"))
     elif operator == "not":
-        entries = entries.filter(getattr(PoolCreditsPortal, col_name) != value)
-    elif operator is None:
-        entries = entries
+        entries = entries.filter(column_attr != value)
+
     return entries
 
 
