@@ -29,8 +29,10 @@
                 <td class="has-text-centered">{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
 
-                <td class="has-text-right">{{ item[3] | indian_number_format }}</td>
-                <td class="has-text-right">{{ item[4] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[3] | indian_number_format if item[3] else 0 | indian_number_format }}
+                </td>
+                <td class="has-text-right">{{ item[4] | indian_number_format if item[4] else 0 | indian_number_format }}
+                </td>
                 <td class="has-text-right">{{ item[5] | indian_number_format if item[5] else 0 | indian_number_format }}
                 </td>
                 <td class="has-text-right">{{ item[6] | indian_number_format if item[6] else 0 | indian_number_format }}

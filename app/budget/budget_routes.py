@@ -14,7 +14,6 @@ from flask import (
 
 from flask_login import current_user, login_required
 
-
 from sqlalchemy import create_engine, case, func, and_
 
 from set_view_permissions import admin_required
@@ -114,14 +113,14 @@ def view_budget_utilization():
                 BudgetAllocation.str_type == "Original",
                 BudgetAllocation.int_budget_allocated,
             ),
-            else_=0,
+            else_=None,
         )
         case_revised = case(
             (
                 BudgetAllocation.str_type == "Revised",
                 BudgetAllocation.int_budget_allocated,
             ),
-            else_=0,
+            else_=None,
         )
         case_first_quarter = case(
             (
@@ -151,45 +150,47 @@ def view_budget_utilization():
             ),
             else_=None,
         )
-
         budget = (
             db.session.query(BudgetAllocation, BudgetUtilization)
             .with_entities(
-                BudgetUtilization.str_financial_year,
-                BudgetUtilization.str_ro_code,
-                BudgetUtilization.str_expense_head,
-                func.max(case_original),
-                func.max(case_revised),
-                func.max(case_first_quarter),
-                func.max(case_second_quarter),
-                func.max(case_third_quarter),
-                func.max(case_fourth_quarter),
+                BudgetAllocation.str_financial_year,
+                BudgetAllocation.str_ro_code,
+                BudgetAllocation.str_expense_head,
+                func.sum(case_original),
+                func.sum(case_revised),
+                func.sum(case_first_quarter),
+                func.sum(case_second_quarter),
+                func.sum(case_third_quarter),
+                func.sum(case_fourth_quarter),
             )
-            .filter(
-                (BudgetAllocation.str_ro_code == BudgetUtilization.str_ro_code)
-                & (
+            .outerjoin(
+                BudgetUtilization,
+                and_(
+                    BudgetAllocation.str_financial_year
+                    == BudgetUtilization.str_financial_year,
+                    BudgetAllocation.str_ro_code == BudgetUtilization.str_ro_code,
                     BudgetAllocation.str_expense_head
-                    == BudgetUtilization.str_expense_head
-                )
+                    == BudgetUtilization.str_expense_head,
+                ),
             )
             .group_by(
-                BudgetUtilization.str_financial_year,
-                BudgetUtilization.str_ro_code,
-                BudgetUtilization.str_expense_head,
+                BudgetAllocation.str_financial_year,
+                BudgetAllocation.str_ro_code,
+                BudgetAllocation.str_expense_head,
             )
-            .order_by(BudgetUtilization.str_ro_code, BudgetUtilization.str_expense_head)
+            .order_by(BudgetAllocation.str_ro_code, BudgetAllocation.str_expense_head)
         )
 
         str_financial_year = form.data["str_financial_year"]
         budget = budget.filter(
-            BudgetUtilization.str_financial_year == str_financial_year
+            BudgetAllocation.str_financial_year == str_financial_year
         )
         if form.data["str_expense_head"]:
             expense_list = form.data["str_expense_head"]
-            budget = budget.filter(BudgetUtilization.str_expense_head.in_(expense_list))
+            budget = budget.filter(BudgetAllocation.str_expense_head.in_(expense_list))
         if form.data["str_ro_code"]:
             ro_code_list = form.data["str_ro_code"]
-            budget = budget.filter(BudgetUtilization.str_ro_code.in_(ro_code_list))
+            budget = budget.filter(BudgetAllocation.str_ro_code.in_(ro_code_list))
 
         return render_template(
             "view_budget_utilization.html",
