@@ -160,27 +160,16 @@ def home_page():
     settlement_query = (
         db.session.query(Settlement)
         .with_entities(
-            func.date_trunc("month", Settlement.date_of_settlement),
-            func.date_trunc("year", Settlement.date_of_settlement),
+            Settlement.month,
             func.sum(case_paid),
             func.sum(case_received),
         )
         .group_by(
-            func.date_trunc("month", Settlement.date_of_settlement),
-            func.date_trunc("year", Settlement.date_of_settlement),
+            Settlement.month,
         )
-        .order_by(
-            func.date_trunc("month", Settlement.date_of_settlement).desc(),
-            func.date_trunc("year", Settlement.date_of_settlement).desc(),
-        )
+        .order_by(Settlement.month.desc())
     )
-    # fund_query = (
-    #     FundBankStatement.query.filter(
-    #         FundBankStatement.flag_description == "COINSURANCE"
-    #     )
-    #     .order_by(FundBankStatement.id.desc())
-    #     .limit(50)
-    # )
+
     return render_template(
         "coinsurance_home.html",
         dashboard=query,

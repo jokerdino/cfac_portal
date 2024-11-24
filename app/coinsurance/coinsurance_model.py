@@ -3,6 +3,9 @@ from dataclasses import dataclass
 from extensions import db
 from flask_login import current_user
 
+from sqlalchemy import func
+from sqlalchemy.orm import column_property
+
 
 class Coinsurance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -114,6 +117,8 @@ class Settlement(db.Model):
 
     deleted_by = db.Column(db.String)
     deleted_on = db.Column(db.DateTime)
+
+    month = column_property(func.to_char(date_of_settlement, "YYYY-MM"))
 
 
 class Remarks(db.Model):

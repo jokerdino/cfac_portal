@@ -65,10 +65,9 @@
             <tbody>
                 {% for entry in settlement_query %}
                 <tr>
-                    <td>{{ entry[0].strftime("%B") }}-{{ entry[1].strftime("%Y") }}</td>
-
+                    <td>{{ (entry[0] | datetime_format("%Y-%m")).strftime("%B-%Y") }}</td>
+                    <td class="has-text-right">{{ entry[1]|indian_number_format }}</td>
                     <td class="has-text-right">{{ entry[2]|indian_number_format }}</td>
-                    <td class="has-text-right">{{ entry[3]|indian_number_format }}</td>
                     {% endfor %}
                 </tr>
             </tbody>
