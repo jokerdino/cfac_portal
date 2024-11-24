@@ -168,12 +168,12 @@ def download_jv():
             df_merged["SL Code"] = pd.to_numeric(df_merged["SL Code"])
             datetime_string = datetime.now()
             with pd.ExcelWriter(
-                f"funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
+                f"download_data/funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
             ) as writer:
                 df_merged.to_excel(writer, sheet_name="JV", index=False)
                 df_inflow.to_excel(writer, sheet_name="inflow", index=False)
             return send_from_directory(
-                directory="funds_jv/",
+                directory="download_data/funds_jv/",
                 path=f"HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx",
                 download_name=f"HDFC_JV_{start_date}_{end_date}.xlsx",
                 as_attachment=True,

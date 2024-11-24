@@ -466,7 +466,7 @@ def download_monthly():
 
         datetime_string = datetime.now()
         with pd.ExcelWriter(
-            f"pool_credits/HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx"
+            f"download_data/pool_credits/HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx"
         ) as writer:
             df_funds.to_excel(writer, sheet_name="Inflow", index=False)
             format_workbook = writer.book
@@ -480,7 +480,7 @@ def download_monthly():
             format_worksheet.freeze_panes(1, 0)
 
         return send_from_directory(
-            directory="pool_credits/",
+            directory="download_data/pool_credits/",
             path=f"HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx",
             download_name=f"HDFC_Pool_credits_{filter_period.strftime("%B-%y")}.xlsx",
             as_attachment=True,

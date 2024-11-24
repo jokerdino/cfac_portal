@@ -168,7 +168,7 @@ def generate_coinsurance_balance():
 
         # Write the pivot tables and summary to an Excel file
         with pd.ExcelWriter(
-            f"coinsurance_balances/coinsurance_balance_{period}.xlsx"
+            f"download_data/coinsurance_balances/coinsurance_balance_{period}.xlsx"
         ) as writer:
             pivot_df_merged_office.to_excel(
                 writer, sheet_name="office_wise", index=False
@@ -194,7 +194,7 @@ def generate_coinsurance_balance():
             format_worksheet_summary.autofit()
 
         return send_from_directory(
-            directory="coinsurance_balances/",
+            directory="download_data/coinsurance_balances/",
             path=f"coinsurance_balance_{period}.xlsx",
             download_name=f"coinsurance_balance_{period}.xlsx",
             as_attachment=True,
