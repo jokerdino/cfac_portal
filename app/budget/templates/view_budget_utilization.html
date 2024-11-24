@@ -1,6 +1,6 @@
 {% extends "budget_layout.html" %}
-
 {% block content %}
+
 <div class="container">
     <h1 class="title">Budget utilization</h1>
     <table class="table is-bordered" id="budget_table">
@@ -11,7 +11,6 @@
                 <th class="has-text-centered is-vcentered" rowspan="2">Expense head</th>
                 <th class="has-text-centered" colspan="2">Budget allocated</th>
                 <th class="has-text-centered" colspan="4">Budget utilized</th>
-
             </tr>
             <tr>
                 <th class="has-text-centered">Original</th>
@@ -28,20 +27,12 @@
                 <td class="has-text-centered">{{ item[0] }}</td>
                 <td class="has-text-centered">{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
-
-                <td class="has-text-right">{{ item[3] | indian_number_format if item[3] else 0 | indian_number_format }}
-                </td>
-                <td class="has-text-right">{{ item[4] | indian_number_format if item[4] else 0 | indian_number_format }}
-                </td>
-                <td class="has-text-right">{{ item[5] | indian_number_format if item[5] else 0 | indian_number_format }}
-                </td>
-                <td class="has-text-right">{{ item[6] | indian_number_format if item[6] else 0 | indian_number_format }}
-                </td>
-                <td class="has-text-right">{{ item[7] | indian_number_format if item[7] else 0 | indian_number_format }}
-                </td>
-                <td class="has-text-right">{{ item[8] | indian_number_format if item[8] else 0 | indian_number_format }}
-                </td>
-
+                <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -52,11 +43,9 @@
 <script>
 
     new DataTable('#budget_table', {
-        //        dom: 'lfBrtip',
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
-
         },
         fixedHeader: true,
         buttons: [
