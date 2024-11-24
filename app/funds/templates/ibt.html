@@ -45,12 +45,9 @@
                 <td></td>
 
                 <td class="has-text-right">
-                    {% if display_inflow(display_date, flag[0]) %}
-                    {{ display_inflow(display_date, flag[0]) | indian_number_format }}
 
-                    {% else %}
-                    {{ "0.00" }}
-                    {% endif %}
+                    {{ (display_inflow(display_date, flag[0]) or 0) | indian_number_format }}
+
                 </td>
             </tr>
             {% endif %}
@@ -62,7 +59,7 @@
                 <td></td>
                 <td class="has-text-right">
 
-                    {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
+                    {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0)| indian_number_format }}
 
                 </td>
 
@@ -119,12 +116,9 @@
                 <td> {{ get_ibt_details(label)["bank_type"] or "" }}</td>
                 <td class="has-text-right"> {{ get_ibt_details(label)["bank_account_number"] or "" }}</td>
                 <td class="has-text-right">
-                    {% if display_outflow(display_date, item) %}
-                    {{ display_outflow(display_date, item) | indian_number_format }}
 
-                    {% else %}
-                    {{ "0.00" }}
-                    {% endif %}
+                    {{ (display_outflow(display_date, item) or 0) | indian_number_format }}
+
                     {% endif %}
                 </td>
             </tr>
@@ -155,13 +149,9 @@
                 <td></td>
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
-                    {% if display_outflow(display_date) %}
-                    {{ (display_outflow(display_date) + get_daily_summary(display_date,
-                    "investment_given"))| indian_number_format }}
 
-                    {% else %}
-                    {{ "0.00" }}
-                    {% endif %}
+                    {{ ((display_outflow(display_date) or 0) + get_daily_summary(display_date,
+                    "investment_given"))| indian_number_format }}
 
                 </td>
             </tr>

@@ -42,12 +42,7 @@
                         <td>{{ flag[0] }}</td>
 
                         <td class="has-text-right">
-                            {% if display_inflow(display_date, flag[0]) %}
-                            {{ display_inflow(display_date, flag[0]) | indian_number_format }}
-
-                            {% else %}
-                            {{ "0.00" }}
-                            {% endif %}
+                            {{ (display_inflow(display_date, flag[0]) or 0)| indian_number_format }}
                         </td>
                     </tr>
                     {% endif %}
@@ -55,9 +50,7 @@
                     <tr>
                         <td>Other receipts</td>
                         <td class="has-text-right">
-
-                            {{ display_inflow(display_date, "OTHER RECEIPTS") | indian_number_format }}
-
+                            {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0) | indian_number_format }}
                         </td>
 
                     </tr>
@@ -75,7 +68,6 @@
                             {{ inflow_total | indian_number_format }}
                         </td>
                     </tr>
-
                 </tbody>
             </table>
 
@@ -96,33 +88,20 @@
                         {% if label not in ["MRO1 HEALTH","TNCMCHIS"] %}
                         <td>{{ label }}</td>
                         <td class="has-text-right">
-                            {% if display_outflow(display_date, item) %}
-                            {{ display_outflow(display_date, item) | indian_number_format }}
-
-                            {% else %}
-                            {{ "0.00" }}
-                            {% endif %}
+                            {{ (display_outflow(display_date, item) or 0 ) | indian_number_format }}
                         </td>
                     </tr>
                     {% endif %}
                     {% endfor %}
                     <tr>
                         <td>MRO1 HEALTH</td>
-                        <td class="has-text-right">{% if display_outflow(display_date, item) %}
-                            {{ display_outflow(display_date, "amount_mro1_health") | indian_number_format }}
-
-                            {% else %}
-                            {{ "0.00" }}
-                            {% endif %}</td>
+                        <td class="has-text-right">
+                            {{ (display_outflow(display_date, "amount_mro1_health") or 0) | indian_number_format }}</td>
                     </tr>
                     <tr>
                         <td>TNCMCHIS</td>
-                        <td class="has-text-right">{% if display_outflow(display_date, item) %}
-                            {{ display_outflow(display_date, "amount_tncmchis") | indian_number_format }}
-
-                            {% else %}
-                            {{ "0.00" }}
-                            {% endif %}</td>
+                        <td class="has-text-right">
+                            {{ (display_outflow(display_date, "amount_tncmchis") or 0) | indian_number_format }}</td>
                     </tr>
                     <tr>
                         {% set filler_length = (flag_description|unique|list|length) - right_length -2 %}
@@ -134,12 +113,8 @@
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
-                            {% if display_outflow(display_date) %}
-                            {{ display_outflow(display_date) | indian_number_format }}
 
-                            {% else %}
-                            {{ "0.00" }}
-                            {% endif %}
+                            {{ (display_outflow(display_date) or 0) | indian_number_format }}
 
                         </td>
                     </tr>
