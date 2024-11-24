@@ -7,14 +7,25 @@ from sqlalchemy import (
     case,
     cast,
     String,
+    create_engine,
 )
 
 
-from flask import abort, flash, redirect, render_template, url_for, request
+from flask import (
+    abort,
+    flash,
+    redirect,
+    render_template,
+    url_for,
+    request,
+    current_app,
+    send_from_directory,
+)
 from flask_login import current_user, login_required
 
+import pandas as pd
 from . import pool_credits_bp
-from .pool_credits_form import UpdatePoolCreditsForm
+from .pool_credits_form import UpdatePoolCreditsForm, FilterMonthForm
 from .pool_credits_model import PoolCredits, PoolCreditsPortal
 
 from app.funds.funds_model import FundBankStatement, FundJournalVoucherFlagSheet
@@ -405,3 +416,74 @@ def daily_jv_entries():
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
     }
+
+
+@pool_credits_bp.route("/download/", methods=["POST", "GET"])
+@login_required
+@ro_user_only
+def download_monthly():
+
+    daily_jv_entries = (
+        db.session.query(FundBankStatement, FundJournalVoucherFlagSheet)
+        .join(
+            FundJournalVoucherFlagSheet,
+            FundBankStatement.description.like(
+                "%" + FundJournalVoucherFlagSheet.txt_description + "%"
+            ),
+        )
+        .filter(FundBankStatement.flag_description == "OTHER RECEIPTS")
+        .filter(FundBankStatement.value_date >= "2024-10-01")
+    )
+    filter_month = daily_jv_entries.with_entities(FundBankStatement.period).distinct()
+
+    form = FilterMonthForm()
+    list_period = [datetime.strptime(item[0], "%Y-%m") for item in filter_month]
+    list_period.sort(reverse=True)
+    form.month.choices = [month.strftime("%B-%y") for month in list_period]
+
+    if form.validate_on_submit():
+        filter_period = datetime.strptime(form.month.data, "%B-%y")
+        entries = daily_jv_entries.filter(
+            FundBankStatement.period == filter_period.strftime("%Y-%m")
+        )
+
+        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        conn = engine.connect()
+        df_funds = pd.read_sql_query(entries.statement, conn)
+        df_funds = df_funds[
+            [
+                "book_date",
+                "description",
+                "credit",
+                "value_date",
+                "reference_no",
+                "txt_description",
+                "txt_flag",
+                "txt_gl_code",
+                "txt_sl_code",
+            ]
+        ]
+
+        datetime_string = datetime.now()
+        with pd.ExcelWriter(
+            f"pool_credits/HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx"
+        ) as writer:
+            df_funds.to_excel(writer, sheet_name="Inflow", index=False)
+            format_workbook = writer.book
+            format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
+
+            format_worksheet = writer.sheets["Inflow"]
+            format_worksheet.set_column("C:C", 11, format_currency)
+
+            format_worksheet.autofit()
+            format_worksheet.autofilter("A1:I2")
+            format_worksheet.freeze_panes(1, 0)
+
+        return send_from_directory(
+            directory="pool_credits/",
+            path=f"HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx",
+            download_name=f"HDFC_Pool_credits_{filter_period.strftime("%B-%y")}.xlsx",
+            as_attachment=True,
+        )
+
+    return render_template("download_monthly.html", form=form)

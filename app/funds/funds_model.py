@@ -3,6 +3,9 @@ from dataclasses import dataclass
 
 from flask_login import current_user
 
+from sqlalchemy import func
+from sqlalchemy.orm import column_property
+
 from extensions import db
 
 
@@ -32,6 +35,8 @@ class FundBankStatement(db.Model):
     created_by = db.Column(db.String)
     updated_by = db.Column(db.String)
     deleted_by = db.Column(db.String)
+
+    period = column_property(func.to_char(value_date, "YYYY-MM"))
 
 
 class FundFlagSheet(db.Model):

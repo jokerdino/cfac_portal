@@ -50,3 +50,7 @@ class UpdatePoolCreditsForm(FlaskForm):
         "Enter RO Code", choices=regional_office_list, validators=[DataRequired()]
     )
     text_remarks = TextAreaField("Enter remarks", validators=[Optional()])
+
+
+class FilterMonthForm(FlaskForm):
+    month = SelectField(validators=[DataRequired()])
