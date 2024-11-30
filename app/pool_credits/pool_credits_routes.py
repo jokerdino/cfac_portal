@@ -192,7 +192,8 @@ def get_data(status):
     # )
 
     # filter only entries uploaded after Oct-2024
-    entries = entries.filter(PoolCredits.value_date >= "2024-10-01")
+    START_DATE = datetime(2024, 10, 1)
+    entries = entries.filter(PoolCredits.value_date >= START_DATE)
 
     entries_count = entries.count()
 
@@ -309,24 +310,22 @@ def view_pool_credit_summary():
         else_=0,
     ).label("JV passed")
 
+    START_DATE = datetime(2024, 10, 1)
     summary_query = (
         db.session.query(PoolCredits)
         .with_entities(
-            func.date_trunc("month", PoolCredits.value_date),
-            func.date_trunc("year", PoolCredits.value_date),
+            PoolCredits.month,
             func.sum(case_unidentified),
             func.sum(case_identified),
             func.sum(case_jv_passed),
         )
         .group_by(
-            func.date_trunc("month", PoolCredits.value_date),
-            func.date_trunc("year", PoolCredits.value_date),
+            PoolCredits.month,
         )
         .order_by(
-            func.date_trunc("month", PoolCredits.value_date).desc(),
-            func.date_trunc("year", PoolCredits.value_date).desc(),
+            PoolCredits.month.desc(),
         )
-        .filter(PoolCredits.value_date >= "2024-10-01")
+        .filter(PoolCredits.value_date >= START_DATE)
     )
 
     return render_template("summary_view.html", query=summary_query)
@@ -346,6 +345,7 @@ def identified_entries():
 def daily_jv_entries():
 
     # query
+    START_DATE = datetime(2024, 10, 1)
     daily_jv_entries = (
         db.session.query(FundBankStatement, FundJournalVoucherFlagSheet)
         .join(
@@ -355,7 +355,7 @@ def daily_jv_entries():
             ),
         )
         .filter(FundBankStatement.flag_description == "OTHER RECEIPTS")
-        .filter(FundBankStatement.value_date >= "2024-10-01")
+        .filter(FundBankStatement.value_date >= START_DATE)
         .order_by(FundBankStatement.id.desc())
     )
 
@@ -422,7 +422,7 @@ def daily_jv_entries():
 @login_required
 @ro_user_only
 def download_monthly():
-
+    START_DATE = datetime(2024, 10, 1)
     daily_jv_entries = (
         db.session.query(FundBankStatement, FundJournalVoucherFlagSheet)
         .join(
@@ -432,7 +432,7 @@ def download_monthly():
             ),
         )
         .filter(FundBankStatement.flag_description == "OTHER RECEIPTS")
-        .filter(FundBankStatement.value_date >= "2024-10-01")
+        .filter(FundBankStatement.value_date >= START_DATE)
     )
     filter_month = daily_jv_entries.with_entities(FundBankStatement.period).distinct()
 

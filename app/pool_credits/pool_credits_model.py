@@ -4,6 +4,9 @@ from extensions import db
 
 from flask_login import current_user
 
+from sqlalchemy import func
+from sqlalchemy.orm import column_property
+
 
 @dataclass
 class PoolCredits(db.Model):
@@ -42,6 +45,8 @@ class PoolCredits(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
     jv_passed_by = db.Column(db.String)
+
+    month = column_property(func.to_char(value_date, "YYYY-MM"))
 
 
 @dataclass

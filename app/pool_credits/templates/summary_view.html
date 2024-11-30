@@ -16,11 +16,12 @@
 
             {% for item in query %}
             <tr>
-                <td>{{ item[0].strftime("%B") }}-{{ item[1].strftime("%Y") }}</td>
+
+                <td>{{ (item[0] | datetime_format("%Y-%m")).strftime("%B-%Y") }}</td>
+                <td class="has-text-right">{{ item[1] | indian_number_format }}</td>
                 <td class="has-text-right">{{ item[2] | indian_number_format }}</td>
                 <td class="has-text-right">{{ item[3] | indian_number_format }}</td>
-                <td class="has-text-right">{{ item[4] | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[2] + item[3] + item[4]) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (item[1] + item[2] + item[3]) | indian_number_format }}</td>
             </tr>
             {% endfor %}
         </tbody>
