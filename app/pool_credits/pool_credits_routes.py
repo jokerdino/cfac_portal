@@ -207,7 +207,7 @@ def get_data(status):
                 cast(PoolCredits.debit, String).like(f"%{search}%"),
                 cast(PoolCredits.value_date, String).like(f"%{search}%"),
                 PoolCredits.reference_no.ilike(f"%{search}%"),
-                cast(PoolCredits.str_regional_office_code, String).like(f"%{search}%"),
+                cast(PoolCredits.str_regional_office_code, String).ilike(f"%{search}%"),
             )
         )
 
@@ -482,7 +482,7 @@ def download_monthly():
         return send_from_directory(
             directory="download_data/pool_credits/",
             path=f"HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx",
-            download_name=f"HDFC_Pool_credits_{filter_period.strftime("%B-%y")}.xlsx",
+            download_name=f"HDFC_Pool_credits_{filter_period.strftime('%B-%y')}.xlsx",
             as_attachment=True,
         )
 
