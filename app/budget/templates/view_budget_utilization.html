@@ -3,7 +3,7 @@
 
 <div class="container">
     <h1 class="title">Budget utilization</h1>
-    <table class="table is-bordered" id="budget_table">
+    <table class="table is-bordered is-hoverable" id="budget_table">
         <thead>
             <tr>
                 <th class="has-text-centered is-vcentered" rowspan="2">FY</th>
@@ -24,6 +24,9 @@
         <tbody>
             {% for item in budget %}
             <tr>
+                {% set budget_usage = ((item[4] or item[3] or 0) - (item[8] or item[7] or item[6] or item[5] or
+                0)) %}
+                {% if budget_usage >= 0 %}
                 <td class="has-text-centered">{{ item[0] }}</td>
                 <td class="has-text-centered">{{ item[1] }}</td>
                 <td>{{ item[2] }}</td>
@@ -33,6 +36,17 @@
                 <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}</td>
                 <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}</td>
                 <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}</td>
+                {% else %}
+                <td class="has-text-centered has-background-danger-light">{{ item[0] }}</td>
+                <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
+                <td class="has-background-danger-light">{{ item[2] }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}</td>
+                <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}</td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
