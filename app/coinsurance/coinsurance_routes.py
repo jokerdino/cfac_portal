@@ -43,7 +43,7 @@ from app.coinsurance.coinsurance_form import (
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
-    Coinsurance_log,
+    CoinsuranceLog,
     Remarks,
     Settlement,
     CoinsuranceBalances,
@@ -483,7 +483,7 @@ def add_coinsurance_entry():
             )
             db.session.add(remarks)
             db.session.commit()
-        coinsurance_log = Coinsurance_log(
+        coinsurance_log = CoinsuranceLog(
             coinsurance_id=coinsurance.id,
             user=current_user.username,
             time_of_update=datetime.now(),
@@ -775,7 +775,7 @@ def edit_coinsurance_entry(coinsurance_id):
             db.session.add(remarks)
             db.session.commit()
 
-        coinsurance_log = Coinsurance_log(
+        coinsurance_log = CoinsuranceLog(
             coinsurance_id=coinsurance.id,
             user=current_user.username,
             time_of_update=datetime.now(),
@@ -1053,7 +1053,7 @@ def list_coinsurance_entries_by_status(status):
                         coinsurance.utr_number = form_utr_number
                         coinsurance.current_status = "Settled"
 
-                        coinsurance_log = Coinsurance_log(
+                        coinsurance_log = CoinsuranceLog(
                             coinsurance_id=coinsurance.id,
                             user=current_user.username,
                             time_of_update=datetime.now(),
@@ -1228,10 +1228,10 @@ def edit_settlement_entry(settlement_id):
 @coinsurance_bp.route("/log/<int:coinsurance_id>")
 @login_required
 def view_coinsurance_log(coinsurance_id):
-    log = Coinsurance_log.query.filter(
-        Coinsurance_log.coinsurance_id == coinsurance_id
-    ).order_by(Coinsurance_log.id)
-    column_names = Coinsurance_log.query.statement.columns.keys()
+    log = CoinsuranceLog.query.filter(
+        CoinsuranceLog.coinsurance_id == coinsurance_id
+    ).order_by(CoinsuranceLog.id)
+    column_names = CoinsuranceLog.query.statement.columns.keys()
     return render_template(
         "view_coinsurance_log.html", log=log, column_names=column_names
     )

@@ -21,7 +21,7 @@ from app.cfac_flask_admin.model_views import (
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
-    Coinsurance_log,
+    CoinsuranceLog,
     CoinsuranceBalances,
     CoinsuranceCashCall,
     Remarks,
@@ -125,7 +125,7 @@ admin.add_view(
 )
 admin.add_view(
     ModelView(
-        Coinsurance_log, db.session, endpoint="coinsurance_log_", category="Coinsurance"
+        CoinsuranceLog, db.session, endpoint="coinsurance_log_", category="Coinsurance"
     )
 )
 admin.add_view(

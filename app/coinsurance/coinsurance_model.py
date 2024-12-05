@@ -130,8 +130,9 @@ class Remarks(db.Model):
     time_of_remark = db.Column(db.DateTime)
 
 
-class Coinsurance_log(db.Model):
+class CoinsuranceLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     coinsurance_id = db.Column(db.Integer)
     user = db.Column(db.String)
     time_of_update = db.Column(db.DateTime)
