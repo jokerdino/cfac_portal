@@ -121,14 +121,15 @@
                 <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
                 <td> {{ entry.str_period or "" }}</td>
                 <td> {{ entry.insured_name }}</td>
-                <td class="has-text-right">{{ entry.payable_amount| indian_number_format }}</td>
-                <td class="has-text-right">{{ entry.receivable_amount| indian_number_format }}</td>
-                <td class="has-text-right">{{ (entry.payable_amount - entry.receivable_amount) | indian_number_format
+                <td class="has-text-right">{{ (entry.payable_amount or 0)| indian_number_format }}</td>
+                <td class="has-text-right">{{ (entry.receivable_amount or 0)| indian_number_format }}</td>
+                <td class="has-text-right">{{ ((entry.payable_amount or 0)- (entry.receivable_amount or 0)) |
+                    indian_number_format
                     }}
                 </td>
                 <td> {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
-                <td class="has-text-right">{{ entry.int_ri_payable_amount|indian_number_format }}</td>
-                <td class="has-text-right">{{ entry.int_ri_receivable_amount|indian_number_format }}</td>
+                <td class="has-text-right">{{ (entry.int_ri_payable_amount or 0)|indian_number_format }}</td>
+                <td class="has-text-right">{{ (entry.int_ri_receivable_amount or 0)|indian_number_format }}</td>
                 <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
                 <td>{{ entry.current_status or '' }}</td>
                 <td>{{ entry.zone }}</td>

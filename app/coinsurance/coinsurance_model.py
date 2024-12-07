@@ -7,36 +7,37 @@ from sqlalchemy import func
 from sqlalchemy.orm import column_property
 
 
+@dataclass
 class Coinsurance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uiic_regional_code = db.Column(db.String)
-    uiic_office_code = db.Column(db.String)
-    follower_company_name = db.Column(db.String)
-    follower_office_code = db.Column(db.String)
+    uiic_regional_code: str = db.Column(db.String)
+    uiic_office_code: str = db.Column(db.String)
+    follower_company_name: str = db.Column(db.String)
+    follower_office_code: str = db.Column(db.String)
 
-    str_period = db.Column(db.String)
-    type_of_transaction = db.Column(db.String)
-    request_id = db.Column(db.String)
-    payable_amount = db.Column(db.Integer)
-    receivable_amount = db.Column(db.Integer)
-    insured_name = db.Column(db.String)
+    str_period: str = db.Column(db.String)
+    type_of_transaction: str = db.Column(db.String)
+    request_id: str = db.Column(db.String)
+    payable_amount: float = db.Column(db.Numeric(15, 2))
+    receivable_amount: float = db.Column(db.Numeric(15, 2))
+    insured_name: str = db.Column(db.String)
 
-    boolean_reinsurance_involved = db.Column(db.Boolean)
-    int_ri_payable_amount = db.Column(db.Integer)
-    int_ri_receivable_amount = db.Column(db.Integer)
+    boolean_reinsurance_involved: bool = db.Column(db.Boolean)
+    int_ri_payable_amount: float = db.Column(db.Numeric(15, 2))
+    int_ri_receivable_amount: float = db.Column(db.Numeric(15, 2))
 
-    net_amount = db.Column(db.Integer)
+    #    net_amount = db.Column(db.Integer)
 
-    statement = db.Column(db.String)
-    confirmation = db.Column(db.String)
-    ri_confirmation = db.Column(db.String)
+    statement: str = db.Column(db.String)
+    confirmation: str = db.Column(db.String)
+    ri_confirmation: str = db.Column(db.String)
 
-    current_status = db.Column(db.String)
+    current_status: str = db.Column(db.String)
 
-    utr_number = db.Column(db.String)
+    utr_number: str = db.Column(db.String)
 
-    created_by = db.Column(db.String)
-    date_created_date = db.Column(db.DateTime)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    date_created_date = db.Column(db.DateTime, default=datetime.now)
 
     @property
     def zone(self):
@@ -97,13 +98,23 @@ class Coinsurance(db.Model):
         else:
             return "NA"
 
+    @property
+    def net_amount(self):
+        amount = (
+            (self.payable_amount or 0)
+            - (self.receivable_amount or 0)
+            + (self.int_ri_payable_amount or 0)
+            - (self.int_ri_receivable_amount or 0)
+        )
+        return amount
+
 
 class Settlement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     name_of_company = db.Column(db.String)
     date_of_settlement = db.Column(db.Date)
-    settled_amount = db.Column(db.Integer)
+    settled_amount = db.Column(db.Numeric(15, 2))
     utr_number = db.Column(db.String)
     file_settlement_file = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
@@ -125,17 +136,18 @@ class Remarks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     coinsurance_id = db.Column(db.Integer)
 
-    user = db.Column(db.String)
+    user = db.Column(db.String, default=lambda: current_user.username)
     remarks = db.Column(db.Text)
-    time_of_remark = db.Column(db.DateTime)
+    time_of_remark = db.Column(db.DateTime, default=datetime.now)
 
 
 class CoinsuranceLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     coinsurance_id = db.Column(db.Integer)
-    user = db.Column(db.String)
-    time_of_update = db.Column(db.DateTime)
+
+    user = db.Column(db.String, default=lambda: current_user.username)
+    time_of_update = db.Column(db.DateTime, default=datetime.now)
 
     uiic_regional_code = db.Column(db.String)
     uiic_office_code = db.Column(db.String)
@@ -145,14 +157,15 @@ class CoinsuranceLog(db.Model):
     str_period = db.Column(db.String)
     type_of_transaction = db.Column(db.String)
     request_id = db.Column(db.String)
-    payable_amount = db.Column(db.Integer)
-    receivable_amount = db.Column(db.Integer)
+    payable_amount = db.Column(db.Numeric(15, 2))
+    receivable_amount = db.Column(db.Numeric(15, 2))
+    insured_name = db.Column(db.String)
 
     boolean_reinsurance_involved = db.Column(db.Boolean)
-    int_ri_payable_amount = db.Column(db.Integer)
-    int_ri_receivable_amount = db.Column(db.Integer)
+    int_ri_payable_amount = db.Column(db.Numeric(15, 2))
+    int_ri_receivable_amount = db.Column(db.Numeric(15, 2))
 
-    net_amount = db.Column(db.Integer)
+    # net_amount = db.Column(db.Integer)
 
     statement = db.Column(db.String)
     confirmation = db.Column(db.String)

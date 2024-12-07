@@ -25,8 +25,8 @@ from set_view_permissions import admin_required
 
 from utils import indian_number_format
 
-from app.coinsurance import coinsurance_bp
-from app.coinsurance.coinsurance_form import (
+from . import coinsurance_bp
+from .coinsurance_form import (
     CoinsuranceForm,
     SettlementForm,
     SettlementUTRForm,
@@ -41,7 +41,7 @@ from app.coinsurance.coinsurance_form import (
     CoinsuranceReceiptAddForm,
     DeleteCoinsuranceBalanceEntries,
 )
-from app.coinsurance.coinsurance_model import (
+from .coinsurance_model import (
     Coinsurance,
     CoinsuranceLog,
     Remarks,
@@ -56,6 +56,7 @@ from .coinsurance_model_forms import ReceiptForm
 
 from app.funds.funds_model import FundBankStatement
 
+from extensions import db
 
 ro_list = [
     "010000",
@@ -105,8 +106,6 @@ ro_list = [
 @coinsurance_bp.route("/")
 @login_required
 def home_page():
-
-    from server import db
 
     if current_user.user_type == "ro_user":
         query = (
@@ -193,7 +192,7 @@ def fetch_receipts():
     # )
 
     receipts = response.json()
-    from extensions import db
+    # from extensions import db
 
     receipt_entries = []
     for receipt in receipts["data"]:
@@ -217,7 +216,7 @@ def fetch_receipts():
 
 @coinsurance_bp.route("/api/data/funds/", methods=["GET"])
 def get_coinsurance_receipts():
-    from extensions import db
+    # from extensions import db
 
     entries = (
         db.session.query(FundBankStatement)
@@ -281,7 +280,7 @@ def get_coinsurance_receipts():
 @admin_required
 def add_coinsurance_receipts():
 
-    from extensions import db
+    # from extensions import db
 
     form = CoinsuranceReceiptAddForm()
     if form.validate_on_submit():
@@ -301,7 +300,7 @@ def add_coinsurance_receipts():
 @admin_required
 def add_coinsurance_receipts_model_form():
     """Add new pending coinsurance receipts through model form"""
-    from extensions import db
+    # from extensions import db
 
     receipt = CoinsuranceReceipts(status="Pending")
 
@@ -327,7 +326,7 @@ def add_coinsurance_receipts_model_form():
 @admin_required
 def edit_coinsurance_receipts(id):
 
-    from extensions import db
+    # from extensions import db
 
     receipt = db.get_or_404(CoinsuranceReceipts, id)
     form = CoinsuranceReceiptEditForm(obj=receipt)
@@ -346,164 +345,190 @@ def edit_coinsurance_receipts(id):
 @login_required
 @admin_required
 def list_coinsurance_receipts():
-    from extensions import db
+    # from extensions import db
 
     receipts = db.session.scalars(db.select(CoinsuranceReceipts))
     return render_template("coinsurance_receipts_list.html", receipts=receipts)
 
 
+def upload_document(model_object, form, field, document_type, folder_name):
+    """
+    Uploads a document to the folder specified by folder_name and saves the filename to the object.
+
+    :param object: The object to save the filename to
+    :param form: The form containing the file to upload
+    :param field: The name of the field in the form containing the file to upload
+    :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
+    :param folder_name: The folder to save the document in
+    """
+    filename = secure_filename(form.data[field].filename)
+    file_extension = filename.rsplit(".", 1)[1]
+    document_filename = (
+        f"{document_type}_{datetime.now().strftime("%d%m%Y %H%M%S")}.{file_extension}"
+    )
+
+    form.data[field].save(
+        f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/{folder_name}/"
+        + document_filename
+    )
+
+    setattr(model_object, document_type, document_filename)
+
+
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
 @login_required
 def add_coinsurance_entry():
-    from server import db
+    # from server import db
 
     form = CoinsuranceForm()
-    if form.data["bool_reinsurance"]:
+    if form.data["boolean_reinsurance_involved"]:
         from wtforms.validators import DataRequired
 
-        form.ri_confirmation.validators = [DataRequired()]
+        form.ri_confirmation_file.validators = [DataRequired()]
 
     if form.validate_on_submit():
+        coinsurance = Coinsurance()
+        form.populate_obj(coinsurance)
         if current_user.user_type == "oo_user":
-            regional_office_code = current_user.ro_code
-            oo_code = current_user.oo_code
+            coinsurance.uiic_regional_code = current_user.ro_code
+            coinsurance.uiic_office_code = current_user.oo_code
         elif current_user.user_type == "ro_user":
-            regional_office_code = current_user.ro_code
-            oo_code = form.data["oo_code"]
-        else:
-            regional_office_code = form.data["regional_office_code"]
-            oo_code = form.data["oo_code"]
+            coinsurance.uiic_regional_code = current_user.ro_code
+            # oo_code = form.data["uiic_office_code"]
+        # else:
+        #     regional_office_code = form.data["uiic_regional_code"]
+        #     oo_code = form.data["uiic_office_code"]
 
-        str_period = form.data["period_of_settlement"] or None
-        type_of_transaction = form.data["type_of_transaction"]
-        coinsurer_name = form.data["coinsurer_name"]
-        coinsurer_office_code = form.data["coinsurer_office_code"]
-        request_id = form.data["request_id"]
-        payable_amount = form.data["payable_amount"] or 0
-        receivable_amount = form.data["receivable_amount"] or 0
-        name_of_insured = form.data["name_of_insured"]
+        # str_period = form.data["period_of_settlement"] or None
+        # type_of_transaction = form.data["type_of_transaction"]
+        # coinsurer_name = form.data["coinsurer_name"]
+        # coinsurer_office_code = form.data["coinsurer_office_code"]
+        # request_id = form.data["request_id"]
+        # payable_amount = form.data["payable_amount"] or 0
+        # receivable_amount = form.data["receivable_amount"] or 0
+        # name_of_insured = form.data["name_of_insured"]
 
-        bool_ri_involved = form.data["bool_reinsurance"]
-        ri_payable_amount = form.data["int_ri_payable_amount"] or 0
-        ri_receivable_amount = form.data["int_ri_receivable_amount"] or 0
+        # bool_ri_involved = form.data["bool_reinsurance"]
+        # ri_payable_amount = form.data["int_ri_payable_amount"] or 0
+        # ri_receivable_amount = form.data["int_ri_receivable_amount"] or 0
 
-        net_amount = (
-            payable_amount
-            - receivable_amount
-            + ri_payable_amount
-            - ri_receivable_amount
-        )
+        # net_amount = (
+        #     payable_amount
+        #     - receivable_amount
+        #     + ri_payable_amount
+        #     - ri_receivable_amount
+        # )
 
-        if form.data["statement"]:
-            statement_filename_data = secure_filename(form.data["statement"].filename)
-            statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
-            statement_filename = (
-                "statement"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + statement_file_extension
+        if form.data["statement_file"]:
+            upload_document(
+                coinsurance, form, "statement_file", "statement", "statements"
             )
-            form.statement.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/statements/"
-                + statement_filename
+            # statement_filename_data = secure_filename(
+            #     form.data["statement_file"].filename
+            # )
+            # statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
+            # statement_filename = (
+            #     "statement"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + statement_file_extension
+            # )
+            # form.statement_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/statements/"
+            #     + statement_filename
+            # )
+            # coinsurance.statement = statement_filename
+        # else:
+        #            statement_filename = None
+        if form.data["confirmation_file"]:
+            upload_document(
+                coinsurance, form, "confirmation_file", "confirmation", "confirmations"
             )
-        else:
-            statement_filename = None
-        if form.data["confirmation"]:
-            confirmation_filename_data = secure_filename(
-                form.data["confirmation"].filename
+            # confirmation_filename_data = secure_filename(
+            #     form.data["confirmation_file"].filename
+            # )
+            # confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
+            # confirmation_filename = (
+            #     "confirmation"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + confirmation_file_extension
+            # )
+            # form.confirmation_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/confirmations/"
+            #     + confirmation_filename
+            # )
+            # coinsurance.confirmation = confirmation_filename
+        # else:
+        #     confirmation_filename = None
+        if form["ri_confirmation_file"].data:
+            upload_document(
+                coinsurance,
+                form,
+                "ri_confirmation_file",
+                "ri_confirmation",
+                "ri_confirmations",
             )
-            confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
-            confirmation_filename = (
-                "confirmation"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + confirmation_file_extension
-            )
-            form.confirmation.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/confirmations/"
-                + confirmation_filename
-            )
-        else:
-            confirmation_filename = None
-        if bool_ri_involved:
-            ri_confirmation_filename_data = secure_filename(
-                form.data["ri_confirmation"].filename
-            )
-            ri_confirmation_file_extension = ri_confirmation_filename_data.rsplit(
-                ".", 1
-            )[1]
-            ri_confirmation_filename = (
-                "ri_confirmation"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + ri_confirmation_file_extension
-            )
-            form.ri_confirmation.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/ri_confirmations/"
-                + ri_confirmation_filename
-            )
-        else:
-            ri_confirmation_filename = None
+            # ri_confirmation_filename_data = secure_filename(
+            #     form.data["ri_confirmation_file"].filename
+            # )
+            # ri_confirmation_file_extension = ri_confirmation_filename_data.rsplit(
+            #     ".", 1
+            # )[1]
+            # ri_confirmation_filename = (
+            #     "ri_confirmation"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + ri_confirmation_file_extension
+            # )
+            # form.ri_confirmation_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/ri_confirmations/"
+            #     + ri_confirmation_filename
+            # )
+            # coinsurance.ri_confirmation = ri_confirmation_filename
+        # else:
+        #     ri_confirmation_filename = None
         if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-            current_status = "To be settled"
+            coinsurance.current_status = "To be settled"
         else:
-            current_status = "To be reviewed by coinsurance hub"
+            coinsurance.current_status = "To be reviewed by coinsurance hub"
         form_remarks = form.data["remarks"]
-        coinsurance = Coinsurance(
-            uiic_regional_code=regional_office_code,
-            uiic_office_code=oo_code,
-            follower_company_name=coinsurer_name,
-            follower_office_code=coinsurer_office_code,
-            str_period=str_period,
-            payable_amount=payable_amount,
-            receivable_amount=receivable_amount,
-            request_id=request_id,
-            current_status=current_status,
-            type_of_transaction=type_of_transaction,
-            statement=statement_filename,
-            confirmation=confirmation_filename,
-            net_amount=net_amount,
-            ri_confirmation=ri_confirmation_filename,
-            boolean_reinsurance_involved=bool_ri_involved,
-            int_ri_payable_amount=ri_payable_amount,
-            int_ri_receivable_amount=ri_receivable_amount,
-            insured_name=name_of_insured,
-            created_by=current_user.username,
-            date_created_date=datetime.now(),
-        )
+        # coinsurance = Coinsurance(
+        #     uiic_regional_code=regional_office_code,
+        #     uiic_office_code=oo_code,
+        #     follower_company_name=coinsurer_name,
+        #     follower_office_code=coinsurer_office_code,
+        #     str_period=str_period,
+        #     payable_amount=payable_amount,
+        #     receivable_amount=receivable_amount,
+        #     request_id=request_id,
+        #     current_status=current_status,
+        #     type_of_transaction=type_of_transaction,
+        #     statement=statement_filename,
+        #     confirmation=confirmation_filename,
+        #     net_amount=net_amount,
+        #     ri_confirmation=ri_confirmation_filename,
+        #     boolean_reinsurance_involved=bool_ri_involved,
+        #     int_ri_payable_amount=ri_payable_amount,
+        #     int_ri_receivable_amount=ri_receivable_amount,
+        #     insured_name=name_of_insured,
+        #     created_by=current_user.username,
+        #     date_created_date=datetime.now(),
+        # )
         db.session.add(coinsurance)
         db.session.commit()
         if form_remarks:
             remarks = Remarks(
                 coinsurance_id=coinsurance.id,
-                user=current_user.username,
+                # user=current_user.username,
                 remarks=form_remarks,
-                time_of_remark=datetime.now(),
+                # time_of_remark=datetime.now(),
             )
             db.session.add(remarks)
             db.session.commit()
         coinsurance_log = CoinsuranceLog(
+            **asdict(coinsurance),
             coinsurance_id=coinsurance.id,
-            user=current_user.username,
-            time_of_update=datetime.now(),
-            uiic_regional_code=regional_office_code,
-            uiic_office_code=oo_code,
-            follower_company_name=coinsurer_name,
-            follower_office_code=coinsurer_office_code,
-            payable_amount=payable_amount,
-            receivable_amount=receivable_amount,
-            request_id=request_id,
-            current_status=current_status,
-            type_of_transaction=type_of_transaction,
-            statement=statement_filename,
-            confirmation=confirmation_filename,
-            net_amount=net_amount,
-            ri_confirmation=ri_confirmation_filename,
-            boolean_reinsurance_involved=bool_ri_involved,
-            int_ri_payable_amount=ri_payable_amount,
-            int_ri_receivable_amount=ri_receivable_amount,
-            str_period=str_period,
         )
         db.session.add(coinsurance_log)
         db.session.commit()
@@ -512,10 +537,10 @@ def add_coinsurance_entry():
         )
 
     if current_user.user_type == "oo_user":
-        form.regional_office_code.data = current_user.ro_code
-        form.oo_code.data = current_user.oo_code
+        form.uiic_regional_code.data = current_user.ro_code
+        form.uiic_office_code.data = current_user.oo_code
     elif current_user.user_type == "ro_user":
-        form.regional_office_code.data = current_user.ro_code
+        form.uiic_regional_code.data = current_user.ro_code
 
     return render_template(
         "edit_coinsurance_entry.html",
@@ -638,165 +663,190 @@ def update_utr_choices(coinsurance, form):
 @coinsurance_bp.route("/edit/<int:coinsurance_id>", methods=["POST", "GET"])
 @login_required
 def edit_coinsurance_entry(coinsurance_id):
-    from server import db
-
-    form = CoinsuranceForm()
+    # from server import db
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
-    if form.data["bool_reinsurance"]:
+    form = CoinsuranceForm(obj=coinsurance)
+
+    if form.data["boolean_reinsurance_involved"]:
         from wtforms.validators import DataRequired
 
         if not coinsurance.ri_confirmation:
-            form.ri_confirmation.validators = [DataRequired()]
+            form.ri_confirmation_file.validators = [DataRequired()]
 
     if not enable_button(current_user, coinsurance):
         flash("Unable to submit data. Please try again later.")
     elif form.validate_on_submit():
+        form.populate_obj(coinsurance)
         if current_user.user_type == "oo_user":
-            regional_office_code = current_user.ro_code
-            oo_code = current_user.oo_code
+            coinsurance.uiic_regional_code = current_user.ro_code
+            coinsurance.uiic_office_code = current_user.oo_code
         elif current_user.user_type == "ro_user":
-            regional_office_code = current_user.ro_code
-            oo_code = form.data["oo_code"]
-        else:
-            regional_office_code = form.data["regional_office_code"]
-            oo_code = form.data["oo_code"]
-        coinsurer_name = form.data["coinsurer_name"]
-        coinsurer_office_code = form.data["coinsurer_office_code"]
-        payable_amount = form.data["payable_amount"] or 0
-        receivable_amount = form.data["receivable_amount"] or 0
+            coinsurance.uiic_regional_code = current_user.ro_code
+            # oo_code = form.data["oo_code"]
+        # else:
+        #     regional_office_code = form.data["regional_office_code"]
+        #     oo_code = form.data["oo_code"]
+        # coinsurer_name = form.data["coinsurer_name"]
+        # coinsurer_office_code = form.data["coinsurer_office_code"]
+        # payable_amount = form.data["payable_amount"] or 0
+        # receivable_amount = form.data["receivable_amount"] or 0
 
-        request_id = form.data["request_id"]
-        current_status = "To be reviewed by coinsurance hub"
+        # request_id = form.data["request_id"]
+        coinsurance.current_status = "To be reviewed by coinsurance hub"
         if current_user.user_type in ["coinsurance_hub_user", "admin"]:
-            current_status = form.data["current_status"]
+            coinsurance.current_status = form.data["current_status"]
 
-        type_of_transaction = form.data["type_of_transaction"]
-        name_of_insured = form.data["name_of_insured"]
+        # type_of_transaction = form.data["type_of_transaction"]
+        # name_of_insured = form.data["name_of_insured"]
 
-        str_period = form.data["period_of_settlement"]
-        bool_ri_involved = form.data["bool_reinsurance"]
-        ri_payable_amount = form.data["int_ri_payable_amount"] or 0
-        ri_receivable_amount = form.data["int_ri_receivable_amount"] or 0
+        # str_period = form.data["period_of_settlement"]
+        # bool_ri_involved = form.data["bool_reinsurance"]
+        # ri_payable_amount = form.data["int_ri_payable_amount"] or 0
+        # ri_receivable_amount = form.data["int_ri_receivable_amount"] or 0
 
-        net_amount = (
-            payable_amount
-            - receivable_amount
-            + ri_payable_amount
-            - ri_receivable_amount
-        )
-        statement_filename = coinsurance.statement
-        if form.data["statement"]:
-            statement_filename_data = secure_filename(form.data["statement"].filename)
-            statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
-            statement_filename = (
-                "statement"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + statement_file_extension
+        # net_amount = (
+        #     payable_amount
+        #     - receivable_amount
+        #     + ri_payable_amount
+        #     - ri_receivable_amount
+        # )
+        #       statement_filename = coinsurance.statement
+        if form.data["statement_file"]:
+            upload_document(
+                coinsurance, form, "statement_file", "statement", "statements"
             )
-            form.statement.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/statements/"
-                + statement_filename
-            )
-            coinsurance.statement = statement_filename
+            # statement_filename_data = secure_filename(
+            #     form.data["statement_file"].filename
+            # )
+            # statement_file_extension = statement_filename_data.rsplit(".", 1)[1]
+            # statement_filename = (
+            #     "statement"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + statement_file_extension
+            # )
+            # form.statement_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/statements/"
+            #     + statement_filename
+            # )
+            # coinsurance.statement = statement_filename
 
-        confirmation_filename = coinsurance.confirmation
+        #        confirmation_filename = coinsurance.confirmation
 
-        if form.data["confirmation"]:
-            confirmation_filename_data = secure_filename(
-                form.data["confirmation"].filename
+        if form.data["confirmation_file"]:
+            upload_document(
+                coinsurance, form, "confirmation_file", "confirmation", "confirmations"
             )
-            confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
-            confirmation_filename = (
-                "confirmation"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + confirmation_file_extension
-            )
-            form.confirmation.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/confirmations/"
-                + confirmation_filename
-            )
-            coinsurance.confirmation = confirmation_filename
+            # confirmation_filename_data = secure_filename(
+            #     form.data["confirmation_file"].filename
+            # )
+            # confirmation_file_extension = confirmation_filename_data.rsplit(".", 1)[1]
+            # confirmation_filename = (
+            #     "confirmation"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + confirmation_file_extension
+            # )
+            # form.confirmation_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/confirmations/"
+            #     + confirmation_filename
+            # )
+            # coinsurance.confirmation = confirmation_filename
 
-        ri_confirmation_filename = coinsurance.ri_confirmation
+        #      ri_confirmation_filename = coinsurance.ri_confirmation
 
-        if bool_ri_involved and form.data["ri_confirmation"]:
-            ri_confirmation_filename_data = secure_filename(
-                form.data["ri_confirmation"].filename
+        if (
+            # form.data["boolean_reinsurance_involved"] and
+            form.data["ri_confirmation_file"]
+        ):
+            upload_document(
+                coinsurance,
+                form,
+                "ri_confirmation_file",
+                "ri_confirmation",
+                "ri_confirmations",
             )
-            ri_confirmation_file_extension = ri_confirmation_filename_data.rsplit(
-                ".", 1
-            )[1]
-            ri_confirmation_filename = (
-                "ri_confirmation"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + ri_confirmation_file_extension
-            )
-            form.ri_confirmation.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/ri_confirmations/"
-                + ri_confirmation_filename
-            )
-            coinsurance.ri_confirmation = ri_confirmation_filename
+            # ri_confirmation_filename_data = secure_filename(
+            #     form.data["ri_confirmation_file"].filename
+            # )
+            # ri_confirmation_file_extension = ri_confirmation_filename_data.rsplit(
+            #     ".", 1
+            # )[1]
+            # ri_confirmation_filename = (
+            #     "ri_confirmation"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + ri_confirmation_file_extension
+            # )
+            # form.ri_confirmation_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/ri_confirmations/"
+            #     + ri_confirmation_filename
+            # )
+            # coinsurance.ri_confirmation = ri_confirmation_filename
 
         if form.data["current_status"] == "Settled" and form.data["settlement"]:
             utr_number = form.data["settlement"]
             coinsurance.utr_number = utr_number
 
-        coinsurance.uiic_regional_code = regional_office_code
-        coinsurance.uiic_office_code = oo_code
-        coinsurance.follower_company_name = coinsurer_name
-        coinsurance.follower_office_code = coinsurer_office_code
+        # coinsurance.uiic_regional_code = regional_office_code
+        # coinsurance.uiic_office_code = oo_code
+        # coinsurance.follower_company_name = coinsurer_name
+        # coinsurance.follower_office_code = coinsurer_office_code
 
-        coinsurance.str_period = str_period
-        coinsurance.type_of_transaction = type_of_transaction
-        coinsurance.payable_amount = payable_amount
-        coinsurance.receivable_amount = receivable_amount
-        coinsurance.net_amount = net_amount
-        coinsurance.request_id = request_id
+        # coinsurance.str_period = str_period
+        # coinsurance.type_of_transaction = type_of_transaction
+        # coinsurance.payable_amount = payable_amount
+        # coinsurance.receivable_amount = receivable_amount
+        # coinsurance.net_amount = net_amount
+        # coinsurance.request_id = request_id
 
-        coinsurance.boolean_reinsurance_involved = bool_ri_involved
-        coinsurance.int_ri_payable_amount = ri_payable_amount
-        coinsurance.int_ri_receivable_amount = ri_receivable_amount
+        # coinsurance.boolean_reinsurance_involved = bool_ri_involved
+        # coinsurance.int_ri_payable_amount = ri_payable_amount
+        # coinsurance.int_ri_receivable_amount = ri_receivable_amount
 
-        coinsurance.current_status = current_status
-        coinsurance.insured_name = name_of_insured
+        # coinsurance.current_status = current_status
+        # coinsurance.insured_name = name_of_insured
 
         db.session.commit()
 
         if form.data["remarks"]:
             remarks = Remarks(
                 coinsurance_id=coinsurance.id,
-                user=current_user.username,
+                # user=current_user.username,
                 remarks=form.data["remarks"],
-                time_of_remark=datetime.now(),
+                # time_of_remark=datetime.now(),
             )
             db.session.add(remarks)
             db.session.commit()
 
+        # coinsurance_log = CoinsuranceLog(
+        #     coinsurance_id=coinsurance.id,
+        #     user=current_user.username,
+        #     time_of_update=datetime.now(),
+        #     uiic_regional_code=regional_office_code,
+        #     uiic_office_code=oo_code,
+        #     follower_company_name=coinsurer_name,
+        #     follower_office_code=coinsurer_office_code,
+        #     payable_amount=payable_amount,
+        #     receivable_amount=receivable_amount,
+        #     request_id=request_id,
+        #     current_status=current_status,
+        #     type_of_transaction=type_of_transaction,
+        #     statement=statement_filename,
+        #     confirmation=confirmation_filename,
+        #     net_amount=net_amount,
+        #     ri_confirmation=ri_confirmation_filename,
+        #     boolean_reinsurance_involved=bool_ri_involved,
+        #     int_ri_payable_amount=ri_payable_amount,
+        #     int_ri_receivable_amount=ri_receivable_amount,
+        #     utr_number=form.data["settlement"],
+        #     str_period=str_period,
+        # )
+        # db.session.add(coinsurance_log)
+        # db.session.commit()
         coinsurance_log = CoinsuranceLog(
+            **asdict(coinsurance),
             coinsurance_id=coinsurance.id,
-            user=current_user.username,
-            time_of_update=datetime.now(),
-            uiic_regional_code=regional_office_code,
-            uiic_office_code=oo_code,
-            follower_company_name=coinsurer_name,
-            follower_office_code=coinsurer_office_code,
-            payable_amount=payable_amount,
-            receivable_amount=receivable_amount,
-            request_id=request_id,
-            current_status=current_status,
-            type_of_transaction=type_of_transaction,
-            statement=statement_filename,
-            confirmation=confirmation_filename,
-            net_amount=net_amount,
-            ri_confirmation=ri_confirmation_filename,
-            boolean_reinsurance_involved=bool_ri_involved,
-            int_ri_payable_amount=ri_payable_amount,
-            int_ri_receivable_amount=ri_receivable_amount,
-            utr_number=form.data["settlement"],
-            str_period=str_period,
         )
         db.session.add(coinsurance_log)
         db.session.commit()
@@ -806,24 +856,24 @@ def edit_coinsurance_entry(coinsurance_id):
         )
     remarks = Remarks.query.filter(Remarks.coinsurance_id == coinsurance_id)
 
-    form.regional_office_code.data = coinsurance.uiic_regional_code
-    form.oo_code.data = coinsurance.uiic_office_code
-    form.coinsurer_name.data = coinsurance.follower_company_name
-    form.coinsurer_office_code.data = coinsurance.follower_office_code
+    # form.regional_office_code.data = coinsurance.uiic_regional_code
+    # form.oo_code.data = coinsurance.uiic_office_code
+    # form.coinsurer_name.data = coinsurance.follower_company_name
+    # form.coinsurer_office_code.data = coinsurance.follower_office_code
 
-    form.payable_amount.data = coinsurance.payable_amount
-    form.receivable_amount.data = coinsurance.receivable_amount
-    form.type_of_transaction.data = coinsurance.type_of_transaction
-    form.request_id.data = coinsurance.request_id
-    form.current_status.data = coinsurance.current_status
+    # form.payable_amount.data = coinsurance.payable_amount
+    # form.receivable_amount.data = coinsurance.receivable_amount
+    # form.type_of_transaction.data = coinsurance.type_of_transaction
+    # form.request_id.data = coinsurance.request_id
+    # form.current_status.data = coinsurance.current_status
 
-    form.period_of_settlement.data = coinsurance.str_period
-    form.bool_reinsurance.data = coinsurance.boolean_reinsurance_involved
-    form.name_of_insured.data = coinsurance.insured_name
+    # form.period_of_settlement.data = coinsurance.str_period
+    # form.bool_reinsurance.data = coinsurance.boolean_reinsurance_involved
+    # form.name_of_insured.data = coinsurance.insured_name
 
-    if coinsurance.boolean_reinsurance_involved:
-        form.int_ri_payable_amount.data = coinsurance.int_ri_payable_amount
-        form.int_ri_receivable_amount.data = coinsurance.int_ri_receivable_amount
+    # if coinsurance.boolean_reinsurance_involved:
+    #     form.int_ri_payable_amount.data = coinsurance.int_ri_payable_amount
+    #     form.int_ri_receivable_amount.data = coinsurance.int_ri_receivable_amount
 
     change_status = (
         True if current_user.user_type in ["admin", "coinsurance_hub_user"] else False
@@ -904,7 +954,7 @@ def list_settled_entries_without_utr():
 def list_coinsurance_entries_by_coinsurer_name(coinsurer_name):
     form_select_coinsurer = CoinsurerSelectForm()
 
-    from extensions import db
+    # from extensions import db
 
     coinsurance_entries = db.session.query(Coinsurance).filter(
         Coinsurance.follower_company_name == coinsurer_name
@@ -1011,7 +1061,7 @@ def list_coinsurance_entries_by_status(status):
                 x.follower_company_name for x in coinsurer_choices
             ]
 
-            from server import db
+            # from server import db
 
             form = SettlementUTRForm()
 
@@ -1053,27 +1103,30 @@ def list_coinsurance_entries_by_status(status):
                         coinsurance.utr_number = form_utr_number
                         coinsurance.current_status = "Settled"
 
+                        # coinsurance_log = CoinsuranceLog(
+                        #     coinsurance_id=coinsurance.id,
+                        #     user=current_user.username,
+                        #     time_of_update=datetime.now(),
+                        #     uiic_regional_code=coinsurance.uiic_regional_code,
+                        #     uiic_office_code=coinsurance.uiic_office_code,
+                        #     follower_company_name=coinsurance.follower_company_name,
+                        #     follower_office_code=coinsurance.follower_office_code,
+                        #     payable_amount=coinsurance.payable_amount,
+                        #     receivable_amount=coinsurance.receivable_amount,
+                        #     request_id=coinsurance.request_id,
+                        #     current_status="Settled",
+                        #     type_of_transaction=coinsurance.type_of_transaction,
+                        #     statement=coinsurance.statement,
+                        #     confirmation=coinsurance.confirmation,
+                        #     net_amount=coinsurance.net_amount,
+                        #     ri_confirmation=coinsurance.ri_confirmation,
+                        #     boolean_reinsurance_involved=coinsurance.boolean_reinsurance_involved,
+                        #     int_ri_payable_amount=coinsurance.int_ri_payable_amount,
+                        #     int_ri_receivable_amount=coinsurance.int_ri_receivable_amount,
+                        #     utr_number=form_utr_number,
+                        # )
                         coinsurance_log = CoinsuranceLog(
-                            coinsurance_id=coinsurance.id,
-                            user=current_user.username,
-                            time_of_update=datetime.now(),
-                            uiic_regional_code=coinsurance.uiic_regional_code,
-                            uiic_office_code=coinsurance.uiic_office_code,
-                            follower_company_name=coinsurance.follower_company_name,
-                            follower_office_code=coinsurance.follower_office_code,
-                            payable_amount=coinsurance.payable_amount,
-                            receivable_amount=coinsurance.receivable_amount,
-                            request_id=coinsurance.request_id,
-                            current_status="Settled",
-                            type_of_transaction=coinsurance.type_of_transaction,
-                            statement=coinsurance.statement,
-                            confirmation=coinsurance.confirmation,
-                            net_amount=coinsurance.net_amount,
-                            ri_confirmation=coinsurance.ri_confirmation,
-                            boolean_reinsurance_involved=coinsurance.boolean_reinsurance_involved,
-                            int_ri_payable_amount=coinsurance.int_ri_payable_amount,
-                            int_ri_receivable_amount=coinsurance.int_ri_receivable_amount,
-                            utr_number=form_utr_number,
+                            **asdict(coinsurance), coinsurance_id=coinsurance.id
                         )
                         db.session.add(coinsurance_log)
                 db.session.commit()
@@ -1132,7 +1185,7 @@ def list_settled_coinsurance_entries(utr_number):
 @coinsurance_bp.route("/settlements/list")
 @login_required
 def list_settlement_entries():
-    from extensions import db
+    # from extensions import db
 
     settlement_entries = db.session.scalars(db.select(Settlement))  # .query.all()
 
@@ -1144,7 +1197,7 @@ def list_settlement_entries():
 @coinsurance_bp.route("/settlements/view/<int:settlement_id>/")
 @login_required
 def view_settlement_entry(settlement_id):
-    from extensions import db
+    # from extensions import db
 
     settlement = db.get_or_404(Settlement, settlement_id)
     return render_template("view_settlement_entry.html", settlement=settlement)
@@ -1153,7 +1206,7 @@ def view_settlement_entry(settlement_id):
 @coinsurance_bp.route("/settlements/add_settlement_data/", methods=["POST", "GET"])
 @login_required
 def add_settlement_data():
-    from extensions import db
+    #  from extensions import db
 
     form = SettlementForm()
     if form.validate_on_submit():
@@ -1162,22 +1215,29 @@ def add_settlement_data():
         form.populate_obj(settlement)
         db.session.add(settlement)
         if form.data["settlement_file"]:
-            settlement_filename_data = secure_filename(
-                form.data["settlement_file"].filename
+            upload_document(
+                settlement,
+                form,
+                "settlement_file",
+                "file_settlement_file",
+                "settlements",
             )
-            settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
-            settlement_filename = (
-                "settlement"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + settlement_file_extension
-            )
-            form.settlement_file.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/settlements/"
-                + settlement_filename
-            )
+            # settlement_filename_data = secure_filename(
+            #     form.data["settlement_file"].filename
+            # )
+            # settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
+            # settlement_filename = (
+            #     "settlement"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + settlement_file_extension
+            # )
+            # form.settlement_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/settlements/"
+            #     + settlement_filename
+            # )
 
-            settlement.file_settlement_file = settlement_filename
+            # settlement.file_settlement_file = settlement_filename
 
         db.session.commit()
 
@@ -1191,7 +1251,7 @@ def add_settlement_data():
 @login_required
 @admin_required
 def edit_settlement_entry(settlement_id):
-    from extensions import db
+    # from extensions import db
 
     settlement = db.get_or_404(Settlement, settlement_id)
     form = SettlementForm(obj=settlement)
@@ -1199,21 +1259,25 @@ def edit_settlement_entry(settlement_id):
 
         form.populate_obj(settlement)
         if form.data["settlement_file"]:
-            settlement_filename_data = secure_filename(
-                form.data["settlement_file"].filename
+            upload_document(
+                settlement,
+                form,
+                "settlement_file",
+                "file_settlement_file",
+                "settlements",
             )
-            settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
-            settlement_filename = (
-                "settlement"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + settlement_file_extension
-            )
-            form.settlement_file.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/settlements/"
-                + settlement_filename
-            )
-            settlement.file_settlement_file = settlement_filename
+            # settlement_file_extension = settlement_filename_data.rsplit(".", 1)[1]
+            # settlement_filename = (
+            #     "settlement"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + settlement_file_extension
+            # )
+            # form.settlement_file.data.save(
+            #     f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/settlements/"
+            #     + settlement_filename
+            # )
+            # settlement.file_settlement_file = settlement_filename
 
         db.session.commit()
         return redirect(
@@ -1241,7 +1305,7 @@ def view_coinsurance_log(coinsurance_id):
 @login_required
 def add_cash_call():
     form = CoinsuranceCashCallForm()
-    from extensions import db
+    # from extensions import db
 
     if form.validate_on_submit():
         cash_call = CoinsuranceCashCall()
@@ -1260,7 +1324,7 @@ def add_cash_call():
 @coinsurance_bp.route("/cash_call/view/<int:cash_call_key>")
 @login_required
 def view_cash_call(cash_call_key):
-    from extensions import db
+    # from extensions import db
 
     cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
     return render_template("cash_call_view.html", cash_call=cash_call)
@@ -1269,7 +1333,7 @@ def view_cash_call(cash_call_key):
 @coinsurance_bp.route("/cash_call/list/<string:status>")
 @login_required
 def list_cash_calls(status="all"):
-    from extensions import db
+    # from extensions import db
 
     list = db.session.scalars(db.select(CoinsuranceCashCall))
 
@@ -1279,7 +1343,7 @@ def list_cash_calls(status="all"):
 @coinsurance_bp.route("/cash_call/edit/<int:cash_call_key>", methods=["POST", "GET"])
 @login_required
 def edit_cash_call(cash_call_key):
-    from extensions import db
+    # from extensions import db
 
     cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
 
@@ -1354,7 +1418,7 @@ def bulk_upload_settlements():
 def query_coinsurance_entries():
     form = QueryForm()
     if form.validate_on_submit():
-        from extensions import db
+        # from extensions import db
 
         status_list = form.status.data
         coinsurers_list = form.coinsurer_name.data
@@ -1395,29 +1459,32 @@ def query_coinsurance_entries():
 @login_required
 @admin_required
 def add_bank_mandate():
-    from extensions import db
+    # from extensions import db
 
     form = CoinsuranceBankMandateForm()
     if form.validate_on_submit():
         bank_mandate = CoinsuranceBankMandate()
         form.populate_obj(bank_mandate)
         if form.data["bank_mandate_file"]:
-
-            bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
-            bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
-            bank_mandate_filename = (
-                "bank_mandate_"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + bank_mandate_file_extension
+            upload_document(
+                bank_mandate, form, "bank_mandate_file", "bank_mandate", "bank_mandates"
             )
 
-            form.bank_mandate_file.data.save(
-                current_app.config.get("UPLOAD_FOLDER")
-                + "coinsurance/bank_mandates/"
-                + bank_mandate_filename
-            )
-            bank_mandate.bank_mandate = bank_mandate_filename
+            # bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
+            # bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
+            # bank_mandate_filename = (
+            #     "bank_mandate_"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + bank_mandate_file_extension
+            # )
+
+            # form.bank_mandate_file.data.save(
+            #     current_app.config.get("UPLOAD_FOLDER")
+            #     + "coinsurance/bank_mandates/"
+            #     + bank_mandate_filename
+            # )
+            # bank_mandate.bank_mandate = bank_mandate_filename
 
         db.session.add(bank_mandate)
         db.session.commit()
@@ -1430,7 +1497,7 @@ def add_bank_mandate():
 @login_required
 @admin_required
 def edit_bank_mandate(key):
-    from extensions import db
+    # from extensions import db
 
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
     form = CoinsuranceBankMandateForm(obj=bank_mandate)
@@ -1439,21 +1506,24 @@ def edit_bank_mandate(key):
         form.populate_obj(bank_mandate)
 
         if form.data["bank_mandate_file"]:
+            upload_document(
+                bank_mandate, form, "bank_mandate_file", "bank_mandate", "bank_mandates"
+            )
 
-            bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
-            bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
-            bank_mandate_filename = (
-                "bank_mandate_"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + bank_mandate_file_extension
-            )
-            form.bank_mandate_file.data.save(
-                current_app.config.get("UPLOAD_FOLDER")
-                + "coinsurance/bank_mandates/"
-                + bank_mandate_filename
-            )
-            bank_mandate.bank_mandate = bank_mandate_filename
+            # bank_mandate_data = secure_filename(form.data["bank_mandate_file"].filename)
+            # bank_mandate_file_extension = bank_mandate_data.rsplit(".", 1)[1]
+            # bank_mandate_filename = (
+            #     "bank_mandate_"
+            #     + datetime.now().strftime("%d%m%Y %H%M%S")
+            #     + "."
+            #     + bank_mandate_file_extension
+            # )
+            # form.bank_mandate_file.data.save(
+            #     current_app.config.get("UPLOAD_FOLDER")
+            #     + "coinsurance/bank_mandates/"
+            #     + bank_mandate_filename
+            # )
+            # bank_mandate.bank_mandate = bank_mandate_filename
 
         db.session.commit()
         return redirect(url_for("coinsurance.list_bank_mandates"))
@@ -1468,7 +1538,7 @@ def edit_bank_mandate(key):
 @coinsurance_bp.route("/bank_mandate/download/<int:key>/")
 @login_required
 def download_bank_mandate(key):
-    from extensions import db
+    # from extensions import db
 
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
     return send_from_directory(
@@ -1482,7 +1552,7 @@ def download_bank_mandate(key):
 @coinsurance_bp.route("/bank_mandate/")
 @login_required
 def list_bank_mandates():
-    from extensions import db
+    # from extensions import db
 
     bank_mandates = db.session.scalars(
         db.select(
