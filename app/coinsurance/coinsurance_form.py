@@ -97,7 +97,7 @@ class CoinsuranceForm(FlaskForm):
     int_ri_receivable_amount = IntegerField(
         "Reinsurance receivable amount", validators=[Optional()]
     )
-    ri_confirmation_file = FileField("Upload RI confirmation", validators=[Optional()])
+    ri_confirmation_file = FileField("Upload RI confirmation")
 
     remarks = TextAreaField("Add remarks")
     current_status = SelectField(
@@ -109,6 +109,10 @@ class CoinsuranceForm(FlaskForm):
         validators=[Optional()],
         validate_choice=False,
     )
+
+    def validate_ri_confirmation_file(form, field):
+        if form.boolean_reinsurance_involved.data and not field.data:
+            raise ValidationError("Reinsurance confirmation is to be uploaded.")
 
 
 class SettlementForm(FlaskForm):
