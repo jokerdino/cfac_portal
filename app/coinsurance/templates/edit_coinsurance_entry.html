@@ -158,10 +158,9 @@
                 </tr>
                 {% endif %}
                 {% endif %}
-                <tr>
-                    <th>{{ form.remarks.label }}</th>
-                    <td>{{ form.remarks(class='textarea') }}</td>
-                </tr>
+
+                {{ render_field_table(form.remarks) }}
+
                 {% if change_status %}
                 {{ render_field_table(form.current_status) }}
 

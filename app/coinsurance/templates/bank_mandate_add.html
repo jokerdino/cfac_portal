@@ -1,33 +1,18 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
     <h1 class="title">{{ title }}</h1>
     <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <table class="table">
             <tbody>
-                <tr>
-                    <th>{{ form.company_name.label }}</th>
-                    <td>
-                        <div class="select">{{ form.company_name }}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <th>{{ form.office_code.label }}</th>
-                    <td>{{ form.office_code(class="input") }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.bank_name.label }}</th>
-                    <td>{{ form.bank_name(class="input") }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.ifsc_code.label }}</th>
-                    <td>{{ form.ifsc_code(class="input") }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.bank_account_number.label }}</th>
-                    <td>{{ form.bank_account_number(class="input") }}</td>
-                </tr>
+                {{ render_field_table(form.company_name) }}
+                {{ render_field_table(form.office_code) }}
+                {{ render_field_table(form.bank_name) }}
+                {{ render_field_table(form.ifsc_code) }}
+                {{ render_field_table(form.bank_account_number) }}
+
                 <tr>
                     <th>{{ form.bank_mandate_file.label }}</th>
                     <td>{{ form.bank_mandate_file(class="file", accept=".pdf") }}
@@ -37,21 +22,14 @@
                         {% endif %}
                     </td>
                 </tr>
-                <tr>
-                    <th>{{ form.remarks.label }}</th>
-                    <td>{{ form.remarks(class="textarea") }}</td>
-                </tr>
+                {{ render_field_table(form.remarks) }}
+
             </tbody>
         </table>
         <div class="has-text-centered">
             <button class="button is-success">Submit</button>
         </div>
     </form>
-    {% for field, errors in form.errors.items() %}
-    <div class="notification is-danger">
-        {{ field }} {{ ', '.join(errors) }}
-    </div>
-    {% endfor %}
 
     {% with messages = get_flashed_messages() %}
     {% if messages %}
