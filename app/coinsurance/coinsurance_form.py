@@ -85,17 +85,27 @@ class CoinsuranceForm(FlaskForm):
     statement_file = FileField("Upload statement", validators=[Optional()])
     confirmation_file = FileField("Upload confirmation", validators=[Optional()])
 
-    payable_amount = IntegerField("Payable amount", validators=[Optional()])
-    receivable_amount = IntegerField("Receivable amount", validators=[Optional()])
+    payable_amount = IntegerField(
+        validators=[Optional()],
+        render_kw={"onload": "calculateSum()", "onkeyup": "calculateSum()"},
+    )
+    receivable_amount = IntegerField(
+        validators=[Optional()],
+        render_kw={"onload": "calculateSum()", "onkeyup": "calculateSum()"},
+    )
 
     boolean_reinsurance_involved = BooleanField(
         "Whether Reinsurance is involved", validators=[Optional()]
     )
     int_ri_payable_amount = IntegerField(
-        "Reinsurance payable amount", validators=[Optional()]
+        "Reinsurance payable amount",
+        validators=[Optional()],
+        render_kw={"onload": "calculateSum()", "onkeyup": "calculateSum()"},
     )
     int_ri_receivable_amount = IntegerField(
-        "Reinsurance receivable amount", validators=[Optional()]
+        "Reinsurance receivable amount",
+        validators=[Optional()],
+        render_kw={"onload": "calculateSum()", "onkeyup": "calculateSum()"},
     )
     ri_confirmation_file = FileField("Upload RI confirmation")
 

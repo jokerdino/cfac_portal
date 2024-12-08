@@ -58,15 +58,9 @@
                 {{ render_field_table(form.str_period) }}
                 {{ render_field_table(form.insured_name) }}
 
-                <tr>
-                    <th>{{ form.payable_amount.label }}</th>
-                    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.payable_amount(class='input') }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.receivable_amount.label }}</th>
-                    <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.receivable_amount(class='input') }}
-                    </td>
-                </tr>
+                {{ render_field_table(form.payable_amount) }}
+                {{ render_field_table(form.receivable_amount) }}
+
                 <tr>
                     <th><label id="label_before_ri">Net payable (excluding RI)</label></th>
                     <td><label id="cal_direct_amount"></label></td>
@@ -103,14 +97,10 @@
 
                 {{ render_field_table(form.boolean_reinsurance_involved) }}
                 {% if form.boolean_reinsurance_involved.data %}
-                <tr>
-                    <th>{{ form.int_ri_payable_amount.label }}</th>
-                    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input') }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.int_ri_receivable_amount.label }}</th>
-                    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input') }}</td>
-                </tr>
+
+                {{ render_field_table(form.int_ri_payable_amount) }}
+                {{ render_field_table(form.int_ri_receivable_amount) }}
+
                 <tr>
                     <th><label id="label_after_ri">Net payable (including RI)</label></th>
                     <td><label id="cal_ri_amount"> </label></td>
@@ -128,23 +118,15 @@
                 </tr>
 
                 {% else %}
-                <tr>
-                    <th>{{ form.int_ri_payable_amount.label }}</th>
-                    <td onkeyup="calculateSum()">{{ form.int_ri_payable_amount(class='input', disabled=disabled) }}</td>
-                </tr>
-                <tr>
-                    <th>{{ form.int_ri_receivable_amount.label }}</th>
-                    <td onkeyup="calculateSum()">{{ form.int_ri_receivable_amount(class='input', disabled=disabled) }}
-                    </td>
-                </tr>
+                {{ render_field_table(form.int_ri_payable_amount, disabled=disabled) }}
+                {{ render_field_table(form.int_ri_receivable_amount, disabled=disabled) }}
+
                 <tr>
                     <th><label id="label_after_ri">Net payable (including RI)</label></th>
                     <td><label id="cal_ri_amount" disabled></label></td>
                 </tr>
-                <tr>
-                    <th>{{ form.ri_confirmation_file.label }}</th>
-                    <td>{{ form.ri_confirmation_file(disabled=disabled) }}</td>
-                </tr>
+                {{ render_field_table(form.ri_confirmation_file, disabled=disabled) }}
+
                 {% endif %}
                 {% if remarks %}
                 {% if remarks.count() > 0 %}

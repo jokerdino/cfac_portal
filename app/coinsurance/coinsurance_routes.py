@@ -667,11 +667,11 @@ def edit_coinsurance_entry(coinsurance_id):
     coinsurance = Coinsurance.query.get_or_404(coinsurance_id)
     form = CoinsuranceForm(obj=coinsurance)
 
-    # if form.data["boolean_reinsurance_involved"]:
-    #     from wtforms.validators import DataRequired
+    if form.data["boolean_reinsurance_involved"]:
+        from wtforms.validators import Optional
 
-    #     if not coinsurance.ri_confirmation:
-    #         form.ri_confirmation_file.validators = [DataRequired()]
+        if coinsurance.ri_confirmation:
+            form.ri_confirmation_file.validators = [Optional()]
 
     if not enable_button(current_user, coinsurance):
         flash("Unable to submit data. Please try again later.")

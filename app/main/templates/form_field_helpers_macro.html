@@ -1,4 +1,4 @@
-{% macro render_field_table(field) %}
+{% macro render_field_table(field, disabled=False) %}
 <tr>
     <th class="is-vcentered">{{ field.label }} </th>
 
@@ -9,8 +9,10 @@
         <div class="select is-fullwidth">{{ field }}</div>
         {% elif field.type in ["BooleanField", "RadioField"] %}
         {{ field }}
+        {% elif field.type in ["FileField"] %}
+        {{ field(class="file", disabled=disabled) }}
         {% else %}
-        {{ field(class="input") }}
+        {{ field(class="input", disabled=disabled) }}
         {% endif %}
 
         {% if field.errors %}
