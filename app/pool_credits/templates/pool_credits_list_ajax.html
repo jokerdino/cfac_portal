@@ -5,7 +5,7 @@
 <div class="container is-fluid mt-5 pb-5">
     <h1 class="title is-size-4">HDFC Pool account - List of {{ status | replace("jv_", "JV ")}} entries</h1>
     <form method="post">
-        {% if status == "identified" and current_user.user_type == "admin" %}
+        {% if status == "confirmed" and current_user.user_type == "admin" %}
         <div class="has-text-right">
 
             <button class="button is-success is-outlined">Mark selected entries as JV passed</button>
@@ -14,7 +14,7 @@
         <table class="table is-bordered is-striped is-hoverable is-fullwidth" id="pool_credits_table">
             <thead>
                 <tr>
-                    {% if status == "identified" and current_user.user_type == "admin" %}
+                    {% if status == "confirmed" and current_user.user_type == "admin" %}
                     <th class="has-text-centered is-vcentered"><input type="checkbox" onclick="select_all()"
                             id="select_all_button" /></th>
                     {% endif %}
