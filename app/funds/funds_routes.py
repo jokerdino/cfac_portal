@@ -150,7 +150,6 @@ def return_prev_day_closing_balance(date: datetime, type: str):
 
 
 def get_daily_summary(input_date, requirement):
-
     #     if type(input_date) != datetime.date:
     #         input_date = input_date.date()
 
@@ -192,7 +191,6 @@ def get_previous_day_closing_balance_refactored(input_date, requirement):
 
 
 def get_daily_summary_refactored(input_date, requirement):
-
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == input_date
     ).first()
@@ -203,7 +201,6 @@ def get_daily_summary_refactored(input_date, requirement):
 
 
 def get_requirement(daily_sheet, requirement):
-
     requirement_dict = {
         "net_investment": daily_sheet.get_net_investment,
         "HDFC": daily_sheet.float_amount_hdfc_closing_balance or 0,
@@ -225,15 +222,14 @@ def get_inflow_total(date):
 
     inflow_total = (
         (display_inflow(date) or 0)
-        + (return_prev_day_closing_balance(date, "HDFC") or 0)
-        - (get_daily_summary(date, "investment_taken"))
+        + (get_previous_day_closing_balance_refactored(date, "HDFC") or 0)
+        - (get_daily_summary_refactored(date, "investment_taken"))
     )
 
     return inflow_total
 
 
 def get_ibt_details(outflow_description):
-
     outflow = FundBankAccountNumbers.query.filter(
         FundBankAccountNumbers.outflow_description == outflow_description
     ).first()
@@ -270,7 +266,6 @@ def upload_bank_statement():
     form = UploadFileForm()
 
     if form.validate_on_submit():
-
         # collect bank statement from user upload
         bank_statement = form.data["file_upload"]
 
@@ -309,7 +304,7 @@ def upload_bank_statement():
         # adding flag from flag_sheet table
         df_bank_statement = add_flag(df_bank_statement)
 
-        closing_balance_prev_day = return_prev_day_closing_balance(
+        closing_balance_prev_day = get_previous_day_closing_balance_refactored(
             datetime.date.today() + relativedelta(days=1), "HDFC"
         )
         # display_inflow(datetime.date.today())
@@ -383,7 +378,6 @@ def upload_bank_statement():
 
 
 def create_or_update_daily_sheet(closing_balance_statement):
-
     from extensions import db
 
     daily_sheet = FundDailySheet.query.filter(
@@ -461,7 +455,6 @@ def view_bank_statement(date_string):
 @login_required
 @fund_managers
 def view_flag_sheet():
-
     # check_for_fund_permission()
     query = FundFlagSheet.query.order_by(FundFlagSheet.flag_description)
 
@@ -525,7 +518,6 @@ def edit_flag_entry(flag_id):
 @login_required
 @fund_managers
 def enter_outflow(date_string):
-
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     flag_description = db.session.query(FundFlagSheet.flag_description)
     daily_sheet = FundDailySheet.query.filter(
@@ -559,7 +551,6 @@ def enter_outflow(date_string):
         amount_given_to_investment = form.data["given_to_investment"] or 0
 
         if (amount_given_to_investment > 0) and expected_date_of_return:
-
             # finding if any entry is present for the day
             given_to_investment = (
                 FundAmountGivenToInvestment.query.filter(
@@ -585,7 +576,6 @@ def enter_outflow(date_string):
             )
 
             if not given_to_investment:
-
                 # if entry for the date is not there, create new one
 
                 # else find the existing entry and update it
@@ -605,7 +595,6 @@ def enter_outflow(date_string):
             # if the total does not tally, update the amount given to investment table
 
             elif sum_given_to_investment[0] != amount_given_to_investment:
-
                 given_to_investment.date_expected_date_of_return = (
                     expected_date_of_return
                 )
@@ -623,14 +612,14 @@ def enter_outflow(date_string):
         )  # amount_drawn_from_investment
 
         daily_sheet.float_amount_investment_closing_balance = (
-            return_prev_day_closing_balance(param_date, "Investment")
+            get_previous_day_closing_balance_refactored(param_date, "Investment")
             + amount_given_to_investment
             - display_inflow(param_date, "Drawn from investment")
         )
 
         # yesterday closing balance + inflow - outflow + investment_inflow - investment_outflow
         daily_sheet.float_amount_hdfc_closing_balance = (
-            return_prev_day_closing_balance(param_date, "HDFC")
+            get_previous_day_closing_balance_refactored(param_date, "HDFC")
             + display_inflow(param_date)
             - fill_outflow(param_date)
             - amount_given_to_investment
@@ -687,7 +676,6 @@ def enable_update(date):
 
 
 def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
-
     outflow = (
         db.session.query(FundDailyOutflow)
         .filter(
@@ -721,7 +709,6 @@ def add_remarks(date_string):
     ).first()
     form = DailySummaryForm(obj=daily_sheet)
     if form.validate_on_submit():
-
         form.populate_obj(daily_sheet)
         db.session.commit()
         return redirect(
