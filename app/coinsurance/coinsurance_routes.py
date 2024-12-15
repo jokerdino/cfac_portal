@@ -640,7 +640,7 @@ def update_utr_choices(coinsurance, form):
         )
         .distinct()
     ).order_by(Settlement.date_of_settlement.desc())
-    form.settlement.choices = [
+    form.utr_number.choices = [
         (
             utr_number,
             f"{name_of_company}-{utr_number} Rs. {indian_number_format(settled_amount)} on {date_of_settlement.strftime('%d/%m/%Y')} ({notes})",
@@ -773,9 +773,9 @@ def edit_coinsurance_entry(coinsurance_id):
             # )
             # coinsurance.ri_confirmation = ri_confirmation_filename
 
-        if form.data["current_status"] == "Settled" and form.data["settlement"]:
-            utr_number = form.data["settlement"]
-            coinsurance.utr_number = utr_number
+        if form.data["current_status"] == "Settled" and form.data["utr_number"]:
+            # utr_number = form.data["utr_number"]
+            coinsurance.utr_number = form.data["utr_number"]
 
         # coinsurance.uiic_regional_code = regional_office_code
         # coinsurance.uiic_office_code = oo_code
@@ -1085,6 +1085,7 @@ def list_coinsurance_entries_by_status(status):
                 ).first()
                 for key in form_coinsurance_keys:
                     coinsurance = Coinsurance.query.get_or_404(key)
+
                     if (
                         coinsurance.follower_company_name
                         == settlement_company_check.name_of_company
