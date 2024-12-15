@@ -98,8 +98,6 @@ outflow_amounts = [
 
 
 def display_inflow(input_date, inflow_description=None):
-    from extensions import db
-
     inflow = db.session.query(
         func.sum(FundBankStatement.credit),
         func.sum(FundBankStatement.debit),
@@ -116,8 +114,6 @@ def display_inflow(input_date, inflow_description=None):
 
 
 def fill_outflow(date, description=None):
-    from extensions import db
-
     outflow = db.session.query(func.sum(FundDailyOutflow.outflow_amount)).filter(
         FundDailyOutflow.outflow_date == date
     )
@@ -131,8 +127,6 @@ def fill_outflow(date, description=None):
 
 
 def return_prev_day_closing_balance(date: datetime, type: str):
-    from extensions import db
-
     daily_summary = (
         db.session.query(FundDailySheet)
         .filter(FundDailySheet.date_current_date < date)
@@ -150,9 +144,6 @@ def return_prev_day_closing_balance(date: datetime, type: str):
 
 
 def get_daily_summary(input_date, requirement):
-    #     if type(input_date) != datetime.date:
-    #         input_date = input_date.date()
-
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == input_date
     ).first()
@@ -175,8 +166,6 @@ def get_daily_summary(input_date, requirement):
 
 
 def get_previous_day_closing_balance_refactored(input_date, requirement):
-    from extensions import db
-
     daily_sheet = (
         db.session.query(FundDailySheet)
         .filter(FundDailySheet.date_current_date < input_date)
@@ -216,10 +205,6 @@ def get_requirement(daily_sheet, requirement):
 
 
 def get_inflow_total(date):
-    # daily_sheet = FundDailySheet.query.filter(
-    #     FundDailySheet.date_current_date == date
-    # ).first()
-
     inflow_total = (
         (display_inflow(date) or 0)
         + (get_previous_day_closing_balance_refactored(date, "HDFC") or 0)
@@ -241,9 +226,6 @@ def get_ibt_details(outflow_description):
 @login_required
 @fund_managers
 def funds_home():
-    # # check_for_fund_permission()
-    from extensions import db
-
     query = db.session.query(distinct(FundBankStatement.date_uploaded_date)).order_by(
         FundBankStatement.date_uploaded_date.desc()
     )
@@ -262,7 +244,6 @@ def funds_home():
 @login_required
 @fund_managers
 def upload_bank_statement():
-    # check_for_fund_permission()
     form = UploadFileForm()
 
     if form.validate_on_submit():
@@ -316,8 +297,6 @@ def upload_bank_statement():
         ].item()
 
         net_amount = float(closing_balance_prev_day) + sum_credits + sum_debits
-        # print(net_amount, sum_credits, sum_debits, closing_balance_statement)
-        # if (net_amount - closing_balance_statement)!= 0:
         if (fabs(float(net_amount) - float(closing_balance_statement))) > 0.001:
             flash(
                 f"Amount is not tallying. As per uploaded bank statement, closing balance is: {closing_balance_statement}. However, closing balance as per existing entries and uploaded bank statement should be: {net_amount}"
@@ -378,8 +357,6 @@ def upload_bank_statement():
 
 
 def create_or_update_daily_sheet(closing_balance_statement):
-    from extensions import db
-
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == datetime.date.today()
     ).first()
@@ -429,7 +406,6 @@ def add_flag(df_bank_statement):
 @login_required
 @fund_managers
 def view_bank_statement(date_string):
-    # check_for_fund_permission()
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     query = FundBankStatement.query.filter(
         FundBankStatement.date_uploaded_date == param_date
@@ -455,7 +431,6 @@ def view_bank_statement(date_string):
 @login_required
 @fund_managers
 def view_flag_sheet():
-    # check_for_fund_permission()
     query = FundFlagSheet.query.order_by(FundFlagSheet.flag_description)
 
     column_names = [
@@ -471,18 +446,10 @@ def view_flag_sheet():
 @login_required
 @fund_managers
 def add_flag_entry():
-    # check_for_fund_permission()
-    from extensions import db
-
     form = FlagForm()
     if form.validate_on_submit():
         flag = FundFlagSheet()
         form.populate_obj(flag)
-        #     flag_description=form.data["flag_description"],
-        #     flag_reg_exp=form.data["flag_regular_expression"],
-        #     created_by=current_user.username,
-        #     date_created_date=datetime.datetime.now(),
-        # )
         db.session.add(flag)
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
@@ -494,23 +461,13 @@ def add_flag_entry():
 @login_required
 @fund_managers
 def edit_flag_entry(flag_id):
-    # check_for_fund_permission()
-    from extensions import db
-
     flag = FundFlagSheet.query.get_or_404(flag_id)
     form = FlagForm(obj=flag)
     if form.validate_on_submit():
-        # flag.flag_description = form.data["flag_description"]
-        # flag.flag_reg_exp = form.data["flag_regular_expression"]
-
-        # flag.updated_by = current_user.username
-        # flag.date_updated_date = datetime.datetime.now()
         form.populate_obj(flag)
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    # form.flag_description.data = flag.flag_description
-    # form.flag_regular_expression.data = flag.flag_reg_exp
     return render_template("jv_pattern_add.html", form=form, title="Edit flag entry")
 
 
@@ -537,15 +494,12 @@ def enter_outflow(date_string):
             (FundMajorOutgo.current_status == "Pending")
             & (FundMajorOutgo.date_of_outgo < param_date)
         )
-    )  # go.asc())
+    )
     form = OutflowForm()
     if form.validate_on_submit():
-        # from extensions import db
-
         for key, amount in form.data.items():
             if ("amount" in key) and (amount is not None):
                 create_or_update_outflow(param_date, key, amount)
-        #  amount_drawn_from_investment = form.data["drawn_from_investment"] or 0
 
         expected_date_of_return = form.data["expected_date_of_return"] or None
         amount_given_to_investment = form.data["given_to_investment"] or 0
@@ -699,9 +653,6 @@ def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
 @login_required
 @fund_managers
 def add_remarks(date_string):
-    # check_for_fund_permission()
-    from extensions import db
-
     flag_description = db.session.query(FundFlagSheet.flag_description)
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
     daily_sheet = FundDailySheet.query.filter(
@@ -739,9 +690,6 @@ def add_remarks(date_string):
 @login_required
 @fund_managers
 def ibt(date_string, pdf="False"):
-    # check_for_fund_permission()
-    from extensions import db
-
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
 
     daily_sheet = FundDailySheet.query.filter(
@@ -752,13 +700,11 @@ def ibt(date_string, pdf="False"):
     return render_template(
         "ibt.html",
         display_date=param_date,
-        # outflow=outflow,
         datetime=datetime,
         daily_sheet=daily_sheet,
         display_inflow=display_inflow,
         outflow_items=zip(outflow_labels, outflow_amounts),
         right_length=len(outflow_labels),
-        # outflow_amounts=outflow_amounts,
         display_outflow=fill_outflow,
         flag_description=flag_description,
         return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
@@ -775,27 +721,20 @@ def ibt(date_string, pdf="False"):
 @login_required
 @fund_managers
 def daily_summary(date_string, pdf="False"):
-    # check_for_fund_permission()
-    from extensions import db
-
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    #    outflow = FundDailyOutflow.query.filter(FundDailyOutflow.outflow_date == param_date).first()
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == param_date
     ).first()
     flag_description = db.session.query(FundFlagSheet.flag_description)
 
-    # inflow = FundBankStatement.query.filter(FundBankStatement.date_uploaded_date == param_date)
     return render_template(
         "daily_summary.html",
         display_date=param_date,
-        # outflow=outflow,
         datetime=datetime,
         daily_sheet=daily_sheet,
         display_inflow=display_inflow,
         outflow_items=zip(outflow_labels, outflow_amounts),
         right_length=len(outflow_labels),
-        # outflow_amounts=outflow_amounts,
         display_outflow=fill_outflow,
         flag_description=flag_description,
         return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
@@ -811,7 +750,6 @@ def daily_summary(date_string, pdf="False"):
 @login_required
 @fund_managers
 def upload_flag_sheet():
-    # check_for_fund_permission()
     # uploading preconfigured flag sheet from CSV file
     form = UploadFileForm()
     if form.validate_on_submit():
@@ -838,7 +776,6 @@ def upload_flag_sheet():
 @login_required
 @fund_managers
 def upload_investment_balance():
-    # check_for_fund_permission()
     # uploading closing balance of previous year for reference
     form = UploadFileForm()
 
@@ -869,7 +806,6 @@ def upload_investment_balance():
 @login_required
 @fund_managers
 def upload_bank_account_number():
-    # check_for_fund_permission()
     # uploading closing balance of previous year for reference
     form = UploadFileForm()
 
@@ -901,22 +837,10 @@ def upload_bank_account_number():
 @login_required
 @fund_managers
 def add_major_outgo():
-    # check_for_fund_permission()
-    from extensions import db
-
     form = MajorOutgoForm()
     if form.validate_on_submit():
         outgo = FundMajorOutgo()
         form.populate_obj(outgo)
-        # outgo = FundMajorOutgo(
-        #     date_of_outgo=form.data["date_of_outgo"],
-        #     float_expected_outgo=form.data["amount_expected_outgo"],
-        #     text_dept=form.data["department"],
-        #     text_remarks=form.data["remarks"],
-        #     current_status=form.data["current_status"],
-        #     created_by=current_user.username,
-        #     date_created_date=datetime.datetime.now(),
-        # )
         db.session.add(outgo)
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
@@ -928,28 +852,13 @@ def add_major_outgo():
 @login_required
 @fund_managers
 def edit_major_outgo(outgo_id):
-    # check_for_fund_permission()
-    from extensions import db
-
     outgo = FundMajorOutgo.query.get_or_404(outgo_id)
     form = MajorOutgoForm(obj=outgo)
     if form.validate_on_submit():
         form.populate_obj(outgo)
-        # outgo.date_of_outgo = form.data["date_of_outgo"]
-        # outgo.float_expected_outgo = form.data["amount_expected_outgo"]
-        # outgo.text_dept = form.data["department"]
-        # outgo.text_remarks = form.data["remarks"]
-        # outgo.current_status = form.data["current_status"]
-        # outgo.updated_by = current_user.username
-        # outgo.date_updated_date = datetime.datetime.now()
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    # form.date_of_outgo.data = outgo.date_of_outgo
-    # form.amount_expected_outgo.data = outgo.float_expected_outgo
-    # form.department.data = outgo.text_dept
-    # form.remarks.data = outgo.text_remarks
-    # form.current_status.data = outgo.current_status
     return render_template("jv_pattern_add.html", form=form, title="Edit outgo")
 
 
@@ -957,7 +866,6 @@ def edit_major_outgo(outgo_id):
 @login_required
 @fund_managers
 def list_outgo():
-    # check_for_fund_permission()
     list_outgo = FundMajorOutgo.query.order_by(FundMajorOutgo.date_of_outgo.asc())
 
     return render_template("outgo_list.html", list_outgo=list_outgo)
@@ -967,32 +875,14 @@ def list_outgo():
 @login_required
 @fund_managers
 def add_amount_given_to_investment():
-    # check_for_fund_permission()
-    from extensions import db
-
     form = AmountGivenToInvestmentForm()
     if form.validate_on_submit():
         investment = FundAmountGivenToInvestment()
         form.populate_obj(investment)
-        # date_given = form.data["date_given_to_investment"]
-        # amount_given = form.data["amount_given_to_investment"]
-        # expected_date_of_return = form.data["expected_date_of_return"]
-        # remarks = form.data["remarks"]
-        # current_status = form.data["current_status"]
-        # given_to_investment = FundAmountGivenToInvestment(
-        #     date_given_to_investment=date_given,
-        #     float_amount_given_to_investment=amount_given,
-        #     text_remarks=remarks,
-        #     date_expected_date_of_return=expected_date_of_return,
-        #     current_status=current_status,
-        #     created_by=current_user.username,
-        #     date_created_date=datetime.datetime.now(),
-        # )
         db.session.add(investment)
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
 
-    # return render_template("investment_edit_amount.html", form=form)
     return render_template(
         "jv_pattern_add.html", form=form, title="Enter investment amount"
     )
@@ -1002,30 +892,13 @@ def add_amount_given_to_investment():
 @login_required
 @fund_managers
 def edit_amount_given_to_investment(investment_id):
-    # check_for_fund_permission()
-    from extensions import db
-
     investment = FundAmountGivenToInvestment.query.get_or_404(investment_id)
 
     form = AmountGivenToInvestmentForm(obj=investment)
     if form.validate_on_submit():
-        # investment.date_given_to_investment = form.data["date_given_to_investment"]
-        # investment.float_amount_given_to_investment = form.data[
-        #     "amount_given_to_investment"
-        # ]
-        # investment.date_expected_date_of_return = form.data["expected_date_of_return"]
-        # investment.text_remarks = form.data["remarks"] or None
-        # investment.current_status = form.data["current_status"]
-        # investment.updated_by = current_user.username
-        # investment.date_updated_date = datetime.datetime.now()
         form.populate_obj(investment)
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
-    # form.date_given_to_investment.data = investment.date_given_to_investment
-    # form.amount_given_to_investment.data = investment.float_amount_given_to_investment
-    # form.expected_date_of_return.data = investment.date_expected_date_of_return
-    # form.remarks.data = investment.text_remarks
-    # form.current_status.data = investment.current_status
     return render_template(
         "jv_pattern_add.html", form=form, title="Edit investment amount"
     )
@@ -1035,7 +908,6 @@ def edit_amount_given_to_investment(investment_id):
 @login_required
 @fund_managers
 def list_amount_given_to_investment():
-    # check_for_fund_permission()
     investment_list = FundAmountGivenToInvestment.query.order_by(
         FundAmountGivenToInvestment.date_expected_date_of_return.asc()
     )
@@ -1047,9 +919,6 @@ def list_amount_given_to_investment():
 @login_required
 @fund_managers
 def modify_dates():
-    # check_for_fund_permission()
-    from extensions import db
-
     form = FundsModifyDatesForm()
 
     if form.validate_on_submit():
