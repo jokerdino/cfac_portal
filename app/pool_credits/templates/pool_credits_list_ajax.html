@@ -51,7 +51,7 @@
             },
 
             columns: [
-                {% if status == "identified" and current_user.user_type == "admin" %}
+                {% if status == "confirmed" and current_user.user_type == "admin" %}
                 {
                 data: 'id',
                 className: 'dt-body-center',
