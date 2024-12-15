@@ -5,9 +5,8 @@ from dataclasses import asdict
 
 import requests
 import pandas as pd
-import numpy as np
 
-from sqlalchemy import func, distinct, select, create_engine, case, String, cast
+from sqlalchemy import func, create_engine, case, String, cast
 
 from flask import (
     current_app,
@@ -30,23 +29,19 @@ from .coinsurance_form import (
     CoinsuranceForm,
     SettlementForm,
     SettlementUTRForm,
-    CoinsuranceBalanceQueryForm,
     CoinsurerSelectForm,
     CoinsuranceCashCallForm,
     UploadFileForm,
     QueryForm,
-    CoinsuranceBalanceForm,
     CoinsuranceBankMandateForm,
     CoinsuranceReceiptEditForm,
     CoinsuranceReceiptAddForm,
-    DeleteCoinsuranceBalanceEntries,
 )
 from .coinsurance_model import (
     Coinsurance,
     CoinsuranceLog,
     Remarks,
     Settlement,
-    CoinsuranceBalances,
     CoinsuranceCashCall,
     CoinsuranceBankMandate,
     CoinsuranceReceipts,
@@ -106,7 +101,6 @@ ro_list = [
 @coinsurance_bp.route("/")
 @login_required
 def home_page():
-
     if current_user.user_type == "ro_user":
         query = (
             Coinsurance.query.filter(
@@ -179,7 +173,6 @@ def home_page():
 
 @coinsurance_bp.route("/fetch_receipts/")
 def fetch_receipts():
-
     current_time = datetime.now()
 
     prev_time = current_time - timedelta(hours=1)
@@ -279,7 +272,6 @@ def get_coinsurance_receipts():
 @login_required
 @admin_required
 def add_coinsurance_receipts():
-
     # from extensions import db
 
     form = CoinsuranceReceiptAddForm()
@@ -307,7 +299,6 @@ def add_coinsurance_receipts_model_form():
     if request.method == "POST":
         form = ReceiptForm(request.form, obj=receipt)
         if form.validate():
-
             form.populate_obj(receipt)
             db.session.add(receipt)
             db.session.commit()
@@ -325,14 +316,12 @@ def add_coinsurance_receipts_model_form():
 @login_required
 @admin_required
 def edit_coinsurance_receipts(id):
-
     # from extensions import db
 
     receipt = db.get_or_404(CoinsuranceReceipts, id)
     form = CoinsuranceReceiptEditForm(obj=receipt)
 
     if form.validate_on_submit():
-
         form.populate_obj(receipt)
         db.session.commit()
         return redirect(url_for("coinsurance.list_coinsurance_receipts"))
@@ -1210,7 +1199,6 @@ def add_settlement_data():
 
     form = SettlementForm()
     if form.validate_on_submit():
-
         settlement = Settlement()
         form.populate_obj(settlement)
         db.session.add(settlement)
@@ -1256,7 +1244,6 @@ def edit_settlement_entry(settlement_id):
     settlement = db.get_or_404(Settlement, settlement_id)
     form = SettlementForm(obj=settlement)
     if form.validate_on_submit():
-
         form.populate_obj(settlement)
         if form.data["settlement_file"]:
             upload_document(

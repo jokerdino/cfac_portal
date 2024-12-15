@@ -42,7 +42,6 @@ def populate_period_choices(form):
 @coinsurance_bp.route("/coinsurance_balance/", methods=["POST", "GET"])
 @login_required
 def query_view_coinsurance_balance():
-
     form = CoinsuranceBalanceQueryForm()
     period = populate_period_choices(form)
 
@@ -68,7 +67,7 @@ def query_view_coinsurance_balance():
         .order_by(CoinsuranceBalances.company_name)
     )
 
-    if form.data["head_office_balance"] == False:
+    if not form.data["head_office_balance"]:
         summary = summary.filter(
             CoinsuranceBalances.office_code.not_in(("000100", "660000", "001900"))
         )
@@ -96,7 +95,6 @@ def query_view_coinsurance_balance():
 @login_required
 @admin_required
 def delete_coinsurance_balance():
-
     form = DeleteCoinsuranceBalanceEntries()
     _period = populate_period_choices(form)
 
@@ -117,7 +115,6 @@ def delete_coinsurance_balance():
 @login_required
 @admin_required
 def generate_coinsurance_balance():
-
     form = CoinsuranceBalanceForm()
 
     if form.validate_on_submit():
