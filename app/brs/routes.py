@@ -351,51 +351,48 @@ def list_month_deletions():
 def upload_brs(brs_key):
     from server import db
 
+    # Fetch the BRS entry and list of months where deletion is enabled
     brs_entry = BRS.query.get_or_404(brs_key)
-    query_list_months_delete = DeleteEntries.query.with_entities(
-        DeleteEntries.txt_month
-    ).filter(DeleteEntries.bool_enable_delete)
-    list_months_delete = [txt_month[0] for txt_month in query_list_months_delete]
+    deletable_months = (
+        DeleteEntries.query.with_entities(DeleteEntries.txt_month)
+        .filter(DeleteEntries.bool_enable_delete)
+        .all()
+    )
+    deletable_months = [month[0] for month in deletable_months]
 
-    # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
-    # As per requirement, both HO user and RO user can soft delete the BRS data.
+    # Determine roles allowed to delete BRS entries
+    roles_allowed_to_delete = (
+        ["admin", "ro_user"] if brs_entry.month in deletable_months else []
+    )
 
-    list_delete_brs = []
-    if brs_entry.month in list_months_delete:
-        list_delete_brs = ["admin", "ro_user"]
-
+    # Initialize form and handle submission
     form = BRSForm()
     if form.validate_on_submit():
-        if form.data["delete_cash_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.cash_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.cash_brs_id = None
-        if form.data["delete_cheque_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.cheque_brs_id = None
-        if form.data["delete_pos_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.pos_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.pos_brs_id = None
-        if form.data["delete_pg_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.pg_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.pg_brs_id = None
-        if form.data["delete_bbps_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.bbps_brs_id = None
-        if form.data["delete_local_collection_brs"]:
-            brs_month = BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
-            brs_month.status = "Deleted"
-            brs_entry.local_collection_brs_id = None
+        delete_mapping = {
+            "delete_cash_brs": "cash_brs_id",
+            "delete_cheque_brs": "cheque_brs_id",
+            "delete_pos_brs": "pos_brs_id",
+            "delete_pg_brs": "pg_brs_id",
+            "delete_bbps_brs": "bbps_brs_id",
+            "delete_local_collection_brs": "local_collection_brs_id",
+        }
+
+        # Process each deletion option and update the database
+        for field, attr in delete_mapping.items():
+            if form.data[field]:
+                brs_month = BRS_month.query.get_or_404(getattr(brs_entry, attr))
+                brs_month.status = "Deleted"
+                setattr(brs_entry, attr, None)
 
         db.session.commit()
         flash("BRS entry has been deleted.")
         return redirect(url_for("brs.upload_brs", brs_key=brs_key))
+
     return render_template(
-        "open_brs.html", brs_entry=brs_entry, form=form, list_delete_brs=list_delete_brs
+        "open_brs.html",
+        brs_entry=brs_entry,
+        form=form,
+        list_delete_brs=roles_allowed_to_delete,
     )
 
 
