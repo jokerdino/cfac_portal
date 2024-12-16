@@ -404,44 +404,24 @@ def upload_brs(brs_key):
 def view_consolidated_brs(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
 
-    cash_brs = (
-        BRS_month.query.get_or_404(brs_entry.cash_brs_id)
-        if brs_entry.cash_brs_id
-        else None
-    )
+    brs_ids = {
+        "cash_brs": brs_entry.cash_brs_id,
+        "cheque_brs": brs_entry.cheque_brs_id,
+        "pg_brs": brs_entry.pg_brs_id,
+        "pos_brs": brs_entry.pos_brs_id,
+        "bbps_brs": brs_entry.bbps_brs_id,
+        "local_collection_brs": brs_entry.local_collection_brs_id,
+    }
 
-    cheque_brs = (
-        BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
-        if brs_entry.cheque_brs_id
-        else None
-    )
-    pg_brs = (
-        BRS_month.query.get_or_404(brs_entry.pg_brs_id) if brs_entry.pg_brs_id else None
-    )
-    pos_brs = (
-        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
-        if brs_entry.pos_brs_id
-        else None
-    )
-    bbps_brs = (
-        BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
-        if brs_entry.bbps_brs_id
-        else None
-    )
-    local_collection_brs = (
-        BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
-        if brs_entry.local_collection_brs_id
-        else None
-    )
+    brs_data = {
+        key: BRS_month.query.get_or_404(brs_id) if brs_id else None
+        for key, brs_id in brs_ids.items()
+    }
+
     return render_template(
         "view_consolidated_brs.html",
+        **brs_data,
         brs_month=brs_entry,
-        cash_brs=cash_brs,
-        cheque_brs=cheque_brs,
-        pg_brs=pg_brs,
-        pos_brs=pos_brs,
-        bbps_brs=bbps_brs,
-        local_collection_brs=local_collection_brs,
         pdf=False,
     )
 

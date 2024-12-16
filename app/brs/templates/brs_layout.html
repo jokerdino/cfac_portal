@@ -20,7 +20,7 @@
                 <div class="navbar-start">
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('brs.brs_home_page')}}">BRS home</a>
+                    <a class="navbar-item" href="{{ url_for('brs.brs_home_page') }}">BRS home</a>
 
                     {% if current_user.user_type in ["admin", "ro_user"] %}
                     <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
