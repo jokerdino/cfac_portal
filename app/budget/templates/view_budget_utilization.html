@@ -1,56 +1,131 @@
 {% extends "budget_layout.html" %}
 {% block content %}
 
-<div class="container">
-    <h1 class="title">Budget utilization</h1>
-    <table class="table is-bordered is-hoverable" id="budget_table">
-        <thead>
-            <tr>
-                <th class="has-text-centered is-vcentered" rowspan="2">FY</th>
-                <th class="has-text-centered is-vcentered" rowspan="2">RO Code</th>
-                <th class="has-text-centered is-vcentered" rowspan="2">Expense head</th>
-                <th class="has-text-centered" colspan="2">Budget allocated</th>
-                <th class="has-text-centered" colspan="4">Budget utilized</th>
-            </tr>
-            <tr>
-                <th class="has-text-centered">Original</th>
-                <th class="has-text-centered">Revised</th>
-                <th class="has-text-centered">I</th>
-                <th class="has-text-centered">II</th>
-                <th class="has-text-centered">III</th>
-                <th class="has-text-centered">IV</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in budget %}
-            <tr>
-                {% set budget_usage = ((item[4] or item[3] or 0) - (item[8] or item[7] or item[6] or item[5] or
-                0)) %}
-                {% if budget_usage >= 0 %}
-                <td class="has-text-centered">{{ item[0] }}</td>
-                <td class="has-text-centered">{{ item[1] }}</td>
-                <td>{{ item[2] }}</td>
-                <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}</td>
-                {% else %}
-                <td class="has-text-centered has-background-danger-light">{{ item[0] }}</td>
-                <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
-                <td class="has-background-danger-light">{{ item[2] }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}</td>
-                <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}</td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="container is-fluid">
+
+    <div class="tabs is-boxed">
+        <ul>
+            <li id="budget_utilized_tab" class="is-active"><a onclick="show_budget_utilized()">Budget utilization</a>
+            </li>
+            <li id="budget_exhausted_tab"><a onclick="show_budget_exhausted()">Budget exhausted</a></li>
+        </ul>
+    </div>
+    <div id="budget_utilized" class="container is-fluid">
+        <h1 class="title">Budget utilization</h1>
+        <table class="table is-bordered is-hoverable" id="budget_table">
+            <thead>
+                <tr>
+                    <th class="has-text-centered is-vcentered" rowspan="2">FY</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">RO Code</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">Expense head</th>
+                    <th class="has-text-centered" colspan="2">Budget allocated</th>
+                    <th class="has-text-centered" colspan="4">Budget utilized</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">% utilized</th>
+                </tr>
+                <tr>
+                    <th class="has-text-centered">Original</th>
+                    <th class="has-text-centered">Revised</th>
+                    <th class="has-text-centered">I</th>
+                    <th class="has-text-centered">II</th>
+                    <th class="has-text-centered">III</th>
+                    <th class="has-text-centered">IV</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in budget %}
+
+                {% set budget_used = (item[8] or item[7] or item[6] or item[5] or 0) %}
+                {% set budget_allocated = (item[4] or item[3] or 0) %}
+                {% set budget_usage = budget_allocated - budget_used %}
+
+                {% if budget_usage >= 0 %}<tr>
+                    <td class="has-text-centered">{{ item[0] }}</td>
+                    <td class="has-text-centered">{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (budget_used / budget_allocated * 100)|
+                        indian_number_format }}%</td>
+                    {% else %}
+                    <td class="has-text-centered has-background-danger-light">{{ item[0] }}</td>
+                    <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
+                    <td class="has-background-danger-light">{{ item[2] }}</td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (budget_used / budget_allocated * 100)|
+                        indian_number_format }}%</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="budget_exhausted" class=" container is-fluid is-hidden">
+        <h1 class="title">Budget exhausted</h1>
+        <table class="table is-bordered is-hoverable" id="exhausted_budget_table">
+            <thead>
+                <tr>
+                    <th class="has-text-centered is-vcentered" rowspan="2">FY</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">RO Code</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">Expense head</th>
+                    <th class="has-text-centered" colspan="2">Budget allocated</th>
+                    <th class="has-text-centered" colspan="4">Budget utilized</th>
+                    <th class="has-text-centered is-vcentered" rowspan="2">% utilized</th>
+                </tr>
+                <tr>
+                    <th class="has-text-centered">Original</th>
+                    <th class="has-text-centered">Revised</th>
+                    <th class="has-text-centered">I</th>
+                    <th class="has-text-centered">II</th>
+                    <th class="has-text-centered">III</th>
+                    <th class="has-text-centered">IV</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in budget %}
+                {% set budget_used = (item[8] or item[7] or item[6] or item[5] or 0) %}
+                {% set budget_allocated = (item[4] or item[3] or 0) %}
+                {% set budget_usage = budget_allocated - budget_used %}
+                {% if budget_usage < 0 %} <tr>
+                    <td class="has-text-centered has-background-danger-light">{{ item[0] }}
+                    </td>
+                    <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
+                    <td class="has-background-danger-light">{{ item[2] }}</td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right has-background-danger-light">{{ (budget_used / budget_allocated * 100)|
+                        indian_number_format }}%</td>
+                    </tr>
+                    {% endif %}
+
+                    {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {% block scripts %}
@@ -66,13 +141,50 @@
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[9, 'desc']],
+        //  order: [[9, 'desc']],
         pagingType: 'full_numbers',
         pageLength: 50,
         lengthMenu: [
             [10, 25, 50, 100, -1],
             [10, 25, 50, 100, 'All'],]
     });
+    var exhausted_budget_table = new DataTable('#exhausted_budget_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        //  order: [[9, 'desc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+    function show_budget_exhausted() {
+
+        document.getElementById("budget_utilized").classList.add("is-hidden");
+        document.getElementById("budget_utilized_tab").classList.remove("is-active");
+
+        document.getElementById("budget_exhausted").classList.remove("is-hidden");
+        document.getElementById("budget_exhausted_tab").classList.add("is-active");
+
+        exhausted_budget_table.fixedHeader.enable();
+
+    }
+    function show_budget_utilized() {
+        document.getElementById("budget_utilized").classList.remove("is-hidden");
+        document.getElementById("budget_utilized_tab").classList.add("is-active");
+
+        document.getElementById("budget_exhausted").classList.add("is-hidden");
+        document.getElementById("budget_exhausted_tab").classList.remove("is-active");
+
+        exhausted_budget_table.fixedHeader.disable();
+    }
 
 </script>
 
