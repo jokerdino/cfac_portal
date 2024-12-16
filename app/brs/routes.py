@@ -73,7 +73,6 @@ def brs_auto_upload_prev_month():
         db.select(BRS).where(BRS.month == prev_month.strftime("%B-%Y"))
     )
     for entry in brs_entries:
-
         new_entry = BRS(
             **asdict(entry),
             month=current_month.strftime("%B-%Y"),
@@ -355,7 +354,7 @@ def upload_brs(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
     query_list_months_delete = DeleteEntries.query.with_entities(
         DeleteEntries.txt_month
-    ).filter(DeleteEntries.bool_enable_delete == True)
+    ).filter(DeleteEntries.bool_enable_delete)
     list_months_delete = [txt_month[0] for txt_month in query_list_months_delete]
 
     # list_delete_brs contains list of roles enabled for deleting BRS entered by Operating office and Regional office
@@ -724,7 +723,6 @@ def render_error_message(
     requirement: str,
     brs_id: int,
 ) -> tuple[int, pd.DataFrame]:
-
     status_validate_os_entries, df_outstanding_entries, sum_of_instrument_amount = (
         validate_outstanding_entries(
             form_data,
@@ -733,33 +731,6 @@ def render_error_message(
             brs_id,
         )
     )
-
-    # if status_validate_os_entries == 1:
-    #     flash("Date of instrument must be entered in dd/mm/yyyy format.")
-    # elif status_validate_os_entries == 2:
-    #     flash("Instrument number must be entered.")
-    # elif status_validate_os_entries == 3:
-    #     flash("Please do not enter negative amounts.")
-    # elif status_validate_os_entries == 4:
-    #     flash("Date of collection must be entered in dd/mm/yyyy format")
-    # elif status_validate_os_entries == 5:
-    #     flash(
-    #         f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}."
-    #     )
-    # elif status_validate_os_entries == 6:
-    #     flash(
-    #         "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format."
-    #     )
-    # elif status_validate_os_entries == 7:
-    #     flash("Date of collection cannot be after BRS period.")
-    # elif status_validate_os_entries == 8:
-    #     flash("Date of instrument cannot be after BRS period.")
-    # elif status_validate_os_entries == 9:
-    #     flash("instrument_amount is not entered in uploaded file.")
-    # elif status_validate_os_entries == 11:
-    #     flash("Date of collection must be entered in dd/mm/yyyy format.")
-    # elif status_validate_os_entries == 12:
-    #     flash("Date of instrument/collection must be entered in dd/mm/yyyy format.")
 
     display_error_messages: dict[int, str] = {
         1: "Date of instrument must be entered in dd/mm/yyyy format.",
@@ -899,7 +870,6 @@ def enter_brs(requirement, brs_id):
                             "Please upload details of entries which are deposited but not credited."
                         )
                     else:
-
                         status_validate_os_entries, df_outstanding_entries = (
                             render_error_message(
                                 deposited_not_credited,
@@ -914,7 +884,6 @@ def enter_brs(requirement, brs_id):
                     if not form.data["file_short_credit_entries"]:
                         flash("Please upload details of short credited entries.")
                     else:
-
                         status_validate_short_credited, df_short_credit_entries = (
                             render_error_message(
                                 short_credited,
@@ -929,7 +898,6 @@ def enter_brs(requirement, brs_id):
                     if not form.data["file_excess_credit_entries"]:
                         flash("Please upload details of excess credited entries.")
                     else:
-
                         (
                             status_validate_excess_credited,
                             df_excess_credit_entries,
@@ -947,7 +915,6 @@ def enter_brs(requirement, brs_id):
                     == status_validate_excess_credited
                     == 10
                 ):
-
                     db.session.add(brs)
                     db.session.commit()
                     update_brs_id(requirement, brs_entry, brs.id)
@@ -1300,55 +1267,51 @@ def list_excess_credit_entries():
     return render_template("brs_raw_data_form.html", form=form)
 
 
-def get_brs_bank(brs_id, requirement):
+def get_brs_bank(brs_id, brs_type):
     brs_entry = BRS.query.get_or_404(brs_id)
-    if requirement == "cash":
-        return brs_entry.cash_bank
-    elif requirement == "cheque":
-        return brs_entry.cheque_bank
-    elif requirement == "pos":
-        return brs_entry.pos_bank
-    elif requirement == "pg":
-        return brs_entry.pg_bank
-    elif requirement == "bbps":
-        return brs_entry.bbps_bank
-    elif requirement == "local_collection":
-        return brs_entry.local_collection_bank
+    bank_mapping = {
+        "cash": brs_entry.cash_bank,
+        "cheque": brs_entry.cheque_bank,
+        "pos": brs_entry.pos_bank,
+        "pg": brs_entry.pg_bank,
+        "bbps": brs_entry.bbps_bank,
+        "local_collection": brs_entry.local_collection_bank,
+    }
+    return bank_mapping.get(brs_type)
 
 
-@brs_bp.route(
-    "/api/v1/brs/get_closing_balance/<string:office_code>/<string:month>/<string:brs_type>"
-)
-def get_brs_closing_balance(office_code, month, brs_type):
-    """for feeding into E-Formats
-    returns closing balance if office code, month and type of BRS is provided
-    Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/get_closing_balance/500200/January-2024/local_collection
-    """
+# @brs_bp.route(
+#     "/api/v1/brs/get_closing_balance/<string:office_code>/<string:month>/<string:brs_type>"
+# )
+# def get_brs_closing_balance(office_code, month, brs_type):
+#     """for feeding into E-Formats
+#     returns closing balance if office code, month and type of BRS is provided
+#     Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/get_closing_balance/500200/January-2024/local_collection
+#     """
 
-    filtered_brs = BRS.query.filter(
-        (BRS.uiic_office_code == office_code) & (BRS.month == month)
-    ).first()
-    if brs_type == "cash":
-        brs_entry_id = filtered_brs.cash_brs_id
-    elif brs_type == "cheque":
-        brs_entry_id = filtered_brs.cheque_brs_id
-    elif brs_type == "pos":
-        brs_entry_id = filtered_brs.pos_brs_id
-    elif brs_type == "pg":
-        brs_entry_id = filtered_brs.pg_brs_id
-    elif brs_type == "bbps":
-        brs_entry_id = filtered_brs.bbps_brs_id
-    elif brs_type == "local_collection":
-        brs_entry_id = filtered_brs.local_collection_brs_id
+#     filtered_brs = BRS.query.filter(
+#         (BRS.uiic_office_code == office_code) & (BRS.month == month)
+#     ).first()
+#     if brs_type == "cash":
+#         brs_entry_id = filtered_brs.cash_brs_id
+#     elif brs_type == "cheque":
+#         brs_entry_id = filtered_brs.cheque_brs_id
+#     elif brs_type == "pos":
+#         brs_entry_id = filtered_brs.pos_brs_id
+#     elif brs_type == "pg":
+#         brs_entry_id = filtered_brs.pg_brs_id
+#     elif brs_type == "bbps":
+#         brs_entry_id = filtered_brs.bbps_brs_id
+#     elif brs_type == "local_collection":
+#         brs_entry_id = filtered_brs.local_collection_brs_id
 
-    brs_entry = BRS_month.query.get(brs_entry_id)
+#     brs_entry = BRS_month.query.get(brs_entry_id)
 
-    closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-    return f"{closing_balance}"
+#     closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#     return f"{closing_balance}"
 
 
 def get_bank_account_detail(requirement: str, bank_name: str) -> str:
-
     bank = (
         BankReconAccountDetails.query.with_entities(
             BankReconAccountDetails.str_bank_account_number,
@@ -1364,8 +1327,129 @@ def get_bank_account_detail(requirement: str, bank_name: str) -> str:
     return bank
 
 
+# @brs_bp.route("/api/v1/brs/<string:office_code>/<string:month>/")
+# def get_schedule_bbc(office_code: str, month: str) -> dict:
+#     """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
+#     Function for entering BBC schedule in E formats
+#     Input: Office code and month
+#     Output: dictionary containing office code, month, each BRS type,
+#     name of bank, ifsc code, account number, closing balance and bank balance
+#     """
+#     filtered_brs = BRS.query.filter(
+#         (BRS.uiic_office_code == office_code) & (BRS.month == month)
+#     ).first()
+
+#     # return all existing brs types for the office code
+#     # if brs type exists, return bank name
+#     # and closing balance
+#     json_dict = {f"{office_code}": {"month": month}}
+#     if not filtered_brs:
+#         return json_dict
+#     if filtered_brs.cash_bank:
+#         account_number, ifsc_code = get_bank_account_detail(
+#             "cash", filtered_brs.cash_bank
+#         )
+#         json_dict[f"{office_code}"].update(
+#             {
+#                 "cash": {
+#                     "bank": filtered_brs.cash_bank.upper(),
+#                     "account_number": account_number,
+#                     "ifsc_code": ifsc_code,
+#                 }
+#             }
+#         )
+
+#         if filtered_brs.cash_brs_id:
+#             brs_entry = BRS_month.query.get(filtered_brs.cash_brs_id)
+#             closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#             bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
+#             json_dict[f"{office_code}"]["cash"].update(
+#                 {"closing_balance": closing_balance, "bank_balance": bank_balance}
+#             )
+#     if filtered_brs.cheque_bank:
+#         account_number, ifsc_code = get_bank_account_detail(
+#             "cheque", filtered_brs.cheque_bank
+#         )
+#         json_dict[f"{office_code}"].update(
+#             {
+#                 "cheque": {
+#                     "bank": filtered_brs.cheque_bank.upper(),
+#                     "account_number": account_number,
+#                     "ifsc_code": ifsc_code,
+#                 }
+#             }
+#         )
+#         if filtered_brs.cheque_brs_id:
+#             brs_entry = BRS_month.query.get(filtered_brs.cheque_brs_id)
+#             closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#             bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
+#             json_dict[f"{office_code}"]["cheque"].update(
+#                 {"closing_balance": closing_balance, "bank_balance": bank_balance}
+#             )
+#     if filtered_brs.pg_bank:
+#         account_number, ifsc_code = get_bank_account_detail("pg", filtered_brs.pg_bank)
+#         json_dict[f"{office_code}"].update(
+#             {
+#                 "pg": {
+#                     "bank": filtered_brs.pg_bank.upper(),
+#                     "account_number": account_number,
+#                     "ifsc_code": ifsc_code,
+#                 }
+#             }
+#         )
+#         if filtered_brs.pg_brs_id:
+#             brs_entry = BRS_month.query.get(filtered_brs.pg_brs_id)
+#             closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#             bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
+#             json_dict[f"{office_code}"]["pg"].update(
+#                 {"closing_balance": closing_balance, "bank_balance": bank_balance}
+#             )
+#     if filtered_brs.bbps_bank:
+#         account_number, ifsc_code = get_bank_account_detail(
+#             "bbps", filtered_brs.bbps_bank
+#         )
+#         json_dict[f"{office_code}"].update(
+#             {
+#                 "bbps": {
+#                     "bank": filtered_brs.bbps_bank.upper(),
+#                     "account_number": account_number,
+#                     "ifsc_code": ifsc_code,
+#                 }
+#             }
+#         )
+#         if filtered_brs.bbps_brs_id:
+#             brs_entry = BRS_month.query.get(filtered_brs.bbps_brs_id)
+#             closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#             bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
+#             json_dict[f"{office_code}"]["bbps"].update(
+#                 {"closing_balance": closing_balance, "bank_balance": bank_balance}
+#             )
+#     if filtered_brs.pos_bank:
+#         account_number, ifsc_code = get_bank_account_detail(
+#             "pos", filtered_brs.pos_bank
+#         )
+#         json_dict[f"{office_code}"].update(
+#             {
+#                 "pos": {
+#                     "bank": filtered_brs.pos_bank.upper(),
+#                     "account_number": account_number,
+#                     "ifsc_code": ifsc_code,
+#                 }
+#             }
+#         )
+#         if filtered_brs.pos_brs_id:
+#             brs_entry = BRS_month.query.get(filtered_brs.pos_brs_id)
+#             closing_balance = brs_entry.int_closing_balance if brs_entry else 0
+#             bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
+#             json_dict[f"{office_code}"]["pos"].update(
+#                 {"closing_balance": closing_balance, "bank_balance": bank_balance}
+#             )
+
+#     return json_dict
+
+
 @brs_bp.route("/api/v1/brs/<string:office_code>/<string:month>/")
-def get_schedule_bbc(office_code: str, month: str) -> dict:
+def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
     """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
     Function for entering BBC schedule in E formats
     Input: Office code and month
@@ -1382,105 +1466,41 @@ def get_schedule_bbc(office_code: str, month: str) -> dict:
     json_dict = {f"{office_code}": {"month": month}}
     if not filtered_brs:
         return json_dict
-    if filtered_brs.cash_bank:
-        account_number, ifsc_code = get_bank_account_detail(
-            "cash", filtered_brs.cash_bank
-        )
-        json_dict[f"{office_code}"].update(
-            {
-                "cash": {
-                    "bank": filtered_brs.cash_bank.upper(),
-                    "account_number": account_number,
-                    "ifsc_code": ifsc_code,
-                }
-            }
-        )
+    brs_types = {
+        "cash": (filtered_brs.cash_bank, filtered_brs.cash_brs_id),
+        "cheque": (filtered_brs.cheque_bank, filtered_brs.cheque_brs_id),
+        "pg": (filtered_brs.pg_bank, filtered_brs.pg_brs_id),
+        "bbps": (filtered_brs.bbps_bank, filtered_brs.bbps_brs_id),
+        "pos": (filtered_brs.pos_bank, filtered_brs.pos_brs_id),
+    }
 
-        if filtered_brs.cash_brs_id:
-            brs_entry = BRS_month.query.get(filtered_brs.cash_brs_id)
-            closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-            bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
-            json_dict[f"{office_code}"]["cash"].update(
-                {"closing_balance": closing_balance, "bank_balance": bank_balance}
-            )
-    if filtered_brs.cheque_bank:
-        account_number, ifsc_code = get_bank_account_detail(
-            "cheque", filtered_brs.cheque_bank
-        )
-        json_dict[f"{office_code}"].update(
-            {
-                "cheque": {
-                    "bank": filtered_brs.cheque_bank.upper(),
-                    "account_number": account_number,
-                    "ifsc_code": ifsc_code,
+    # Helper function to fetch details and update the JSON
+    def add_brs_details(brs_type, bank_name, brs_id):
+        if not bank_name:
+            return
+        account_number, ifsc_code = get_bank_account_detail(brs_type, bank_name)
+        details = {
+            "bank": bank_name.upper(),
+            "account_number": account_number,
+            "ifsc_code": ifsc_code,
+        }
+        if brs_id:
+            brs_entry = BRS_month.query.get(brs_id)
+            details.update(
+                {
+                    "closing_balance": (
+                        brs_entry.int_closing_balance if brs_entry else 0
+                    ),
+                    "bank_balance": (
+                        brs_entry.int_balance_as_per_bank if brs_entry else 0
+                    ),
                 }
-            }
-        )
-        if filtered_brs.cheque_brs_id:
-            brs_entry = BRS_month.query.get(filtered_brs.cheque_brs_id)
-            closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-            bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
-            json_dict[f"{office_code}"]["cheque"].update(
-                {"closing_balance": closing_balance, "bank_balance": bank_balance}
             )
-    if filtered_brs.pg_bank:
-        account_number, ifsc_code = get_bank_account_detail("pg", filtered_brs.pg_bank)
-        json_dict[f"{office_code}"].update(
-            {
-                "pg": {
-                    "bank": filtered_brs.pg_bank.upper(),
-                    "account_number": account_number,
-                    "ifsc_code": ifsc_code,
-                }
-            }
-        )
-        if filtered_brs.pg_brs_id:
-            brs_entry = BRS_month.query.get(filtered_brs.pg_brs_id)
-            closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-            bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
-            json_dict[f"{office_code}"]["pg"].update(
-                {"closing_balance": closing_balance, "bank_balance": bank_balance}
-            )
-    if filtered_brs.bbps_bank:
-        account_number, ifsc_code = get_bank_account_detail(
-            "bbps", filtered_brs.bbps_bank
-        )
-        json_dict[f"{office_code}"].update(
-            {
-                "bbps": {
-                    "bank": filtered_brs.bbps_bank.upper(),
-                    "account_number": account_number,
-                    "ifsc_code": ifsc_code,
-                }
-            }
-        )
-        if filtered_brs.bbps_brs_id:
-            brs_entry = BRS_month.query.get(filtered_brs.bbps_brs_id)
-            closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-            bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
-            json_dict[f"{office_code}"]["bbps"].update(
-                {"closing_balance": closing_balance, "bank_balance": bank_balance}
-            )
-    if filtered_brs.pos_bank:
-        account_number, ifsc_code = get_bank_account_detail(
-            "pos", filtered_brs.pos_bank
-        )
-        json_dict[f"{office_code}"].update(
-            {
-                "pos": {
-                    "bank": filtered_brs.pos_bank.upper(),
-                    "account_number": account_number,
-                    "ifsc_code": ifsc_code,
-                }
-            }
-        )
-        if filtered_brs.pos_brs_id:
-            brs_entry = BRS_month.query.get(filtered_brs.pos_brs_id)
-            closing_balance = brs_entry.int_closing_balance if brs_entry else 0
-            bank_balance = brs_entry.int_balance_as_per_bank if brs_entry else 0
-            json_dict[f"{office_code}"]["pos"].update(
-                {"closing_balance": closing_balance, "bank_balance": bank_balance}
-            )
+        json_dict[office_code][brs_type] = details
+
+    # Process each BRS type
+    for brs_type, (bank_name, brs_id) in brs_types.items():
+        add_brs_details(brs_type, bank_name, brs_id)
 
     return json_dict
 
@@ -1519,7 +1539,6 @@ def get_percent_completion(regional_office_code):
 @login_required
 @admin_required
 def get_percent_completion_list():
-
     ro_list = [
         "010000",
         "020000",
@@ -1577,7 +1596,6 @@ def add_bank_account():
     if request.method == "POST":
         form = BankReconAccountDetailsAddForm(request.form, obj=bank_account)
         if form.validate():
-
             form.populate_obj(bank_account)
             db.session.add(bank_account)
             db.session.commit()
