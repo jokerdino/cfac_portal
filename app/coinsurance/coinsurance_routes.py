@@ -353,7 +353,7 @@ def upload_document(model_object, form, field, document_type, folder_name):
     filename = secure_filename(form.data[field].filename)
     file_extension = filename.rsplit(".", 1)[1]
     document_filename = (
-        f"{document_type}_{datetime.now().strftime("%d%m%Y %H%M%S")}.{file_extension}"
+        f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
     )
 
     form.data[field].save(
