@@ -451,44 +451,24 @@ def view_consolidated_brs(brs_key):
 def view_consolidated_brs_pdf(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
 
-    cash_brs = (
-        BRS_month.query.get_or_404(brs_entry.cash_brs_id)
-        if brs_entry.cash_brs_id
-        else None
-    )
+    brs_ids = {
+        "cash_brs": brs_entry.cash_brs_id,
+        "cheque_brs": brs_entry.cheque_brs_id,
+        "pg_brs": brs_entry.pg_brs_id,
+        "pos_brs": brs_entry.pos_brs_id,
+        "bbps_brs": brs_entry.bbps_brs_id,
+        "local_collection_brs": brs_entry.local_collection_brs_id,
+    }
 
-    cheque_brs = (
-        BRS_month.query.get_or_404(brs_entry.cheque_brs_id)
-        if brs_entry.cheque_brs_id
-        else None
-    )
-    pg_brs = (
-        BRS_month.query.get_or_404(brs_entry.pg_brs_id) if brs_entry.pg_brs_id else None
-    )
-    pos_brs = (
-        BRS_month.query.get_or_404(brs_entry.pos_brs_id)
-        if brs_entry.pos_brs_id
-        else None
-    )
-    bbps_brs = (
-        BRS_month.query.get_or_404(brs_entry.bbps_brs_id)
-        if brs_entry.bbps_brs_id
-        else None
-    )
-    local_collection_brs = (
-        BRS_month.query.get_or_404(brs_entry.local_collection_brs_id)
-        if brs_entry.local_collection_brs_id
-        else None
-    )
+    brs_data = {
+        key: BRS_month.query.get_or_404(brs_id) if brs_id else None
+        for key, brs_id in brs_ids.items()
+    }
+
     html = render_template(
         "view_consolidated_brs.html",
+        **brs_data,
         brs_month=brs_entry,
-        cash_brs=cash_brs,
-        cheque_brs=cheque_brs,
-        pg_brs=pg_brs,
-        pos_brs=pos_brs,
-        bbps_brs=bbps_brs,
-        local_collection_brs=local_collection_brs,
         pdf=True,
     )
     return render_pdf(HTML(string=html))
@@ -568,22 +548,23 @@ def get_prev_month_amount(requirement: str, brs_id: int):
         return 0, 0
 
 
-def prevent_duplicate_brs(requirement: str, brs_id: int) -> bool:
+def prevent_duplicate_brs(brs_type: str, brs_id: int) -> bool:
+    """Check if BRS already exists for given BRS type and BRS ID"""
     brs_entry = BRS.query.get_or_404(brs_id)
 
-    brs_available: bool = False
-    if requirement == "cash":
-        brs_available = True if brs_entry.cash_brs_id else False
-    elif requirement == "cheque":
-        brs_available = True if brs_entry.cheque_brs_id else False
-    elif requirement == "pg":
-        brs_available = True if brs_entry.pg_brs_id else False
-    elif requirement == "pos":
-        brs_available = True if brs_entry.pos_brs_id else False
-    elif requirement == "bbps":
-        brs_available = True if brs_entry.bbps_brs_id else False
-    elif requirement == "local_collection":
-        brs_available = True if brs_entry.local_collection_brs_id else False
+    brs_available = False
+    if brs_type == "cash" and brs_entry.cash_brs_id:
+        brs_available = True
+    elif brs_type == "cheque" and brs_entry.cheque_brs_id:
+        brs_available = True
+    elif brs_type == "pg" and brs_entry.pg_brs_id:
+        brs_available = True
+    elif brs_type == "pos" and brs_entry.pos_brs_id:
+        brs_available = True
+    elif brs_type == "bbps" and brs_entry.bbps_brs_id:
+        brs_available = True
+    elif brs_type == "local_collection" and brs_entry.local_collection_brs_id:
+        brs_available = True
 
     return brs_available
 
@@ -699,20 +680,20 @@ def validate_outstanding_entries(
     return 10, df_os_entries, sum_os_entries
 
 
-def update_brs_id(requirement: str, brs_entry, integer_brs_id: int) -> None:
-
+def update_brs_id(requirement: str, brs_entry: BRS, brs_id: int) -> None:
+    """Update the BRS ID based on the requirement."""
     if requirement == "cash":
-        brs_entry.cash_brs_id = integer_brs_id
+        brs_entry.cash_brs_id = brs_id
     elif requirement == "cheque":
-        brs_entry.cheque_brs_id = integer_brs_id
+        brs_entry.cheque_brs_id = brs_id
     elif requirement == "pg":
-        brs_entry.pg_brs_id = integer_brs_id
+        brs_entry.pg_brs_id = brs_id
     elif requirement == "pos":
-        brs_entry.pos_brs_id = integer_brs_id
+        brs_entry.pos_brs_id = brs_id
     elif requirement == "bbps":
-        brs_entry.bbps_brs_id = integer_brs_id
+        brs_entry.bbps_brs_id = brs_id
     elif requirement == "local_collection":
-        brs_entry.local_collection_brs_id = integer_brs_id
+        brs_entry.local_collection_brs_id = brs_id
 
 
 # function to render error messages when outstanding entries/short_credit/excess_credit are uploaded
