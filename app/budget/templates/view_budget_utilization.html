@@ -38,7 +38,8 @@
                 {% set budget_allocated = (item[4] or item[3] or 0) %}
                 {% set budget_usage = budget_allocated - budget_used %}
 
-                {% if budget_usage >= 0 %}<tr>
+                {% if budget_usage >= 0 %}
+                <tr>
                     <td class="has-text-centered">{{ item[0] }}</td>
                     <td class="has-text-centered">{{ item[1] }}</td>
                     <td>{{ item[2] }}</td>
@@ -48,28 +49,31 @@
                     <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}</td>
                     <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}</td>
                     <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}</td>
-                    <td class="has-text-right">{{ (budget_used / budget_allocated * 100)|
+                    <td class="has-text-right">{{ (budget_used / (budget_allocated+1) * 100)|
                         indian_number_format }}%</td>
-                    {% else %}
-                    <td class="has-text-centered has-background-danger-light">{{ item[0] }}</td>
-                    <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
-                    <td class="has-background-danger-light">{{ item[2] }}</td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right has-background-danger-light">{{ (budget_used / budget_allocated * 100)|
-                        indian_number_format }}%</td>
-                    {% endif %}
                 </tr>
+                {% else %}
+                <tr class="has-background-danger-light">
+                    <td class="has-text-centered">{{ item[0] }}</td>
+                    <td class="has-text-centered">{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}
+                    </td>
+                    <td class="has-text-right">{{ (budget_used / (budget_allocated+1) * 100)|
+                        indian_number_format }}%</td>
+                </tr>
+                {% endif %}
+
                 {% endfor %}
             </tbody>
         </table>
@@ -100,24 +104,24 @@
                 {% set budget_used = (item[8] or item[7] or item[6] or item[5] or 0) %}
                 {% set budget_allocated = (item[4] or item[3] or 0) %}
                 {% set budget_usage = budget_allocated - budget_used %}
-                {% if budget_usage < 0 %} <tr>
-                    <td class="has-text-centered has-background-danger-light">{{ item[0] }}
+                {% if budget_usage < 0 %} <tr class="has-background-danger-light">
+                    <td class="has-text-centered">{{ item[0] }}
                     </td>
-                    <td class="has-text-centered has-background-danger-light">{{ item[1] }}</td>
-                    <td class="has-background-danger-light">{{ item[2] }}</td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[3] or 0) | indian_number_format }}
+                    <td class="has-text-centered ">{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[4] or 0) | indian_number_format }}
+                    <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[5] or 0) | indian_number_format }}
+                    <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[6] or 0) | indian_number_format }}
+                    <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[7] or 0) | indian_number_format }}
+                    <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (item[8] or 0) | indian_number_format }}
+                    <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}
                     </td>
-                    <td class="has-text-right has-background-danger-light">{{ (budget_used / budget_allocated * 100)|
+                    <td class="has-text-right">{{ (budget_used / (budget_allocated+1) * 100)|
                         indian_number_format }}%</td>
                     </tr>
                     {% endif %}
