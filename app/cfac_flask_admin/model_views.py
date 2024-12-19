@@ -15,6 +15,14 @@ class BRSView(DefaultModelView):
     column_searchable_list = ["uiic_office_code", "month"]
     column_filters = ["uiic_office_code", "month"]
     can_export = True
+    column_editable_list = [
+        "cash_bank",
+        "cheque_bank",
+        "pos_bank",
+        "pg_bank",
+        "bbps_bank",
+        "local_collection_bank",
+    ]
 
 
 class OSView(DefaultModelView):
