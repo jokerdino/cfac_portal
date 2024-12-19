@@ -1,8 +1,14 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms import SubmitField, SelectField, RadioField, SelectMultipleField
+from wtforms import (
+    SubmitField,
+    SelectField,
+    RadioField,
+    SelectMultipleField,
+)
 
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired
+from wtforms.widgets import CheckboxInput, ListWidget
 
 fy_choice_list = ["FY24-25", "FY25-26"]
 
@@ -35,15 +41,23 @@ class BudgetUtilizationForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+class MultiCheckboxField(SelectMultipleField):
+    """
+    A multiple-select, except displays a list of checkboxes.
+
+    Iterating the field will produce subfields, allowing custom rendering of
+    the enclosed checkbox fields.
+    """
+
+    widget = ListWidget(prefix_label=False)
+    option_widget = CheckboxInput()
+
+
 class BudgetQueryForm(FlaskForm):
     str_financial_year = SelectField(
         "Select financial year", choices=fy_choice_list, validators=[DataRequired()]
     )
-    str_ro_code = SelectMultipleField("Select RO code")
-    str_expense_head = SelectMultipleField("Select Expense head")
-    # str_type = RadioField(
-    #     "Select original or revised",
-    #     choices=["Original", "Revised"],
-    #     validators=[DataRequired()],
-    # )
+    str_ro_code = MultiCheckboxField("Select RO code")
+    str_expense_head = MultiCheckboxField("Select Expense head")
+
     submit = SubmitField("Submit")
