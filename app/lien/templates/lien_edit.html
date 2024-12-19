@@ -1,0 +1,33 @@
+{% extends "lien_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<div class="container is-centered">
+    <h1 class="title">{{ title }}</h1>
+    <form action="" method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="columns">
+
+            <div class="column">
+                <table class="table is-fullwidth is-narrow">
+                    {% for field in form if field.widget.input_type != "hidden" %}
+                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table(field) }} {% endif %} {% endfor
+                        %}</table>
+            </div>
+            <div class="column">
+                <table class="table is-fullwidth is-narrow">
+                    {% for field in form if field.widget.input_type != "hidden" %}
+                    {% if loop.index > (loop.length / 2) %}
+                    {{ render_field_table(field) }}
+                    {% endif %}
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

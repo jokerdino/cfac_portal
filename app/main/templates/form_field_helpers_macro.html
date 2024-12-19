@@ -72,6 +72,8 @@
             <div class="select is-fullwidth">{{ field }}</div>
             {% elif field.type in ["RadioField", "BooleanField"] %}
             {{ field }}
+            {% elif field.type in ["FileField"] %}
+            {{ field(class="file") }}
             {% else %}
             {{ field(class="input", placeholder=field.description) }}
             {% endif %}
