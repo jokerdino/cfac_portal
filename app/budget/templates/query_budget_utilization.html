@@ -12,25 +12,52 @@
                     <tr>
                         <th>{{ form.str_ro_code.label }}</th>
                         <td class="has-text-centered">
+                            <input type="checkbox" onclick="select_ro_code()" id="ro_code" /><label for="ro_code">Select
+                                all RO code</label>
                             {{ form.str_ro_code }}
                         </td>
                     </tr>
                 </table>
             </div>
-            <div class=" column is-half">
+            <div class="column is-half">
                 <table class="table">
                     <tr>
                         <th>{{ form.str_expense_head.label }}</th>
-                        <td>{{ form.str_expense_head }}</td>
+                        <td>
+                            <input type="checkbox" onclick="select_expense_head()" id="expense_head" /><label
+                                for="expense_head">Select all expense head
+                            </label>
+                            {{ form.str_expense_head }}
+                        </td>
                     </tr>
                 </table>
-
             </div>
-
         </div>
         <div class="has-text-centered">
             {{ form.submit(class="button is-success") }}
         </div>
     </form>
 </div>
+{% block scripts %}
+<script>
+    function select_ro_code() {
+
+        var checkbox = document.getElementsByName('str_ro_code');
+        for (var i = 0; i < checkbox.length; i++) {
+            if (checkbox[i].type == 'checkbox')
+
+                checkbox[i].checked = document.getElementById('ro_code').checked;
+        }
+    };
+    function select_expense_head() {
+
+        var checkbox = document.getElementsByName('str_expense_head');
+        for (var i = 0; i < checkbox.length; i++) {
+            if (checkbox[i].type == 'checkbox')
+
+                checkbox[i].checked = document.getElementById('expense_head').checked;
+        }
+    };
+</script>
+{% endblock scripts %}
 {% endblock content %}
