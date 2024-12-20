@@ -24,6 +24,8 @@ class Lien(db.Model):
 
     ro_remarks = db.Column(db.Text)
 
+    lien_status = db.Column(db.String)
+
     court_order_lien = db.Column(db.String)
     court_order_dd = db.Column(db.String)
     court_order_lien_reversal = db.Column(db.String)

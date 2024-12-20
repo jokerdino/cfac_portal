@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import DateField, StringField, TextAreaField, IntegerField
+from wtforms import DateField, StringField, TextAreaField, IntegerField, SelectField
 from wtforms.validators import DataRequired, Optional
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 
@@ -20,6 +20,7 @@ class LienForm(FlaskForm):
     account_number = StringField()
 
     ro_remarks = TextAreaField("RO Remarks")
+    lien_status = SelectField(choices=["Lien exists", "Lien removed", "DD issued"])
 
     court_order_lien_file = FileField("Upload court order - lien")
     court_order_dd_file = FileField("Upload DD copy")

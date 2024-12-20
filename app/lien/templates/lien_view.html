@@ -53,6 +53,10 @@
             <td class="word-wrap">{{ lien.ro_remarks }}</td>
         </tr>
         <tr>
+            <th>Lien status</th>
+            <td>{{ lien.lien_status }}</td>
+        </tr>
+        <tr>
             <th>Court order - lien</th>
             <td>{% if lien.court_order_lien %}<a class="button is-small is-outlined is-link"
                     href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='lien_order') }}">Download
