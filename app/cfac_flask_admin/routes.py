@@ -18,6 +18,7 @@ from app.cfac_flask_admin.model_views import (
     OSView,
     ReconSummaryView,
     UserView,
+    PoolCreditView,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -276,7 +277,7 @@ admin.add_view(
 # Pool Credits module
 
 admin.add_view(
-    DefaultModelView(
+    PoolCreditView(
         PoolCredits, db.session, endpoint="pool_credits_", category="Pool credits"
     )
 )

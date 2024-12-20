@@ -43,3 +43,7 @@ class ReconSummaryView(DefaultModelView):
         "input_ho_balance_dr_cr",
     ]
     column_searchable_list = ["str_period", "str_regional_office_code"]
+
+
+class PoolCreditView(DefaultModelView):
+    column_searchable_list = ["description"]
