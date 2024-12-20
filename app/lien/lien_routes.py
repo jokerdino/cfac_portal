@@ -111,8 +111,10 @@ def download_document(document_type, lien_id):
 @login_required
 @admin_required
 def lien_list():
-    liens = db.session.scalars(db.select(Lien))
-    column_names = [column.name for column in Lien.__table__.columns][1:13]
+    liens = db.session.scalars(
+        db.select(Lien)
+    )  # .where(Lien.lien_status == "Lien exists"))
+    column_names = [column.name for column in Lien.__table__.columns][1:14]
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
 
 
