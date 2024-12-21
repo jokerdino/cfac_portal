@@ -3,23 +3,21 @@ import pandas as pd
 from flask import (
     abort,
     current_app,
-    flash,
     redirect,
     render_template,
-    request,
     url_for,
     send_from_directory,
 )
-from flask_login import current_user, login_required
+from flask_login import login_required
 from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
 from extensions import db
-from set_view_permissions import admin_required
+from set_view_permissions import admin_required, ro_user_only
 
 from . import lien_bp
 from .lien_model import Lien
-from .lien_forms import LienForm, LienUploadForm
+from .lien_forms import LienForm, LienUploadForm, LienAddRemarks
 
 
 @lien_bp.route("/add", methods=["GET", "POST"])
@@ -49,9 +47,22 @@ def lien_add():
     return render_template("lien_edit.html", form=form, title="Add new lien")
 
 
+@lien_bp.route("/remarks/<lien_id>/", methods=["GET", "POST"])
+@login_required
+@ro_user_only
+def lien_add_remarks(lien_id):
+    lien = db.get_or_404(Lien, lien_id)
+    form = LienAddRemarks(obj=lien)
+    if form.validate_on_submit():
+        form.populate_obj(lien)
+        db.session.commit()
+        return redirect(url_for("lien.lien_view", lien_id=lien.id))
+    return render_template("lien_add_remarks.html", form=form, lien=lien)
+
+
 @lien_bp.route("/view/<lien_id>", methods=["GET", "POST"])
 @login_required
-@admin_required
+@ro_user_only
 def lien_view(lien_id):
     lien = db.get_or_404(Lien, lien_id)
     return render_template("lien_view.html", lien=lien)
@@ -83,6 +94,7 @@ def lien_edit(lien_id):
 
 @lien_bp.get("/download/<int:lien_id>/<string:document_type>/")
 @login_required
+@ro_user_only
 def download_document(document_type, lien_id):
     lien = Lien.query.get_or_404(lien_id)
 
@@ -109,7 +121,7 @@ def download_document(document_type, lien_id):
 
 @lien_bp.route("/")
 @login_required
-@admin_required
+@ro_user_only
 def lien_list():
     liens = db.session.scalars(
         db.select(Lien)

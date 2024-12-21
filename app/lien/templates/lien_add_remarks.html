@@ -1,0 +1,91 @@
+{% extends "lien_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+<div class="container">
+    <h1 class="title">Details of lien</h1>
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-narrow">
+            <tr>
+                <th>RO Code</th>
+                <td>{{ lien.ro_code }}</td>
+
+            </tr>
+            <tr>
+                <th>RO name</th>
+                <td>{{ lien.ro_name }}</td>
+            </tr>
+            <tr>
+                <th>Court name</th>
+                <td>{{ lien.court_name }}</td>
+            </tr>
+            <tr>
+                <th>Case number</th>
+                <td>{{ lien.case_number }}</td>
+            </tr>
+            <tr>
+                <th>Petitioner name</th>
+                <td>{{ lien.petitioner_name }}</td>
+            </tr>
+            <tr>
+                <th>Date of order</th>
+                <td>{{ lien.date_of_order }}</td>
+            </tr>
+            <tr>
+                <th>Lien amount</th>
+                <td>{{ lien.lien_amount }}</td>
+            </tr>
+            <tr>
+                <th>DD amount</th>
+                <td>{{ lien.dd_amount }}</td>
+            </tr>
+            <tr>
+                <th>Action taken by banker</th>
+                <td class="word-wrap">{{ lien.action_taken_by_banker }}</td>
+            </tr>
+            <tr>
+                <th>Bank name</th>
+                <td>{{ lien.bank_name }}</td>
+            </tr>
+            <tr>
+                <th>Account number</th>
+                <td>{{ lien.account_number }}</td>
+            </tr>
+
+            <tr>
+                <th>Lien status</th>
+                <td>{{ lien.lien_status }}</td>
+            </tr>
+            <tr>
+                <th>Court order - lien</th>
+                <td>{% if lien.court_order_lien %}<a class="button is-small is-outlined is-link"
+                        href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='lien_order') }}">Download
+                        lien order</a>
+                    {% else %}Court order not uploaded{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>DD Copy</th>
+                <td>{% if lien.court_order_dd %}<a class="button is-small is-outlined is-link"
+                        href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='dd_copy') }}">Download
+                        DD copy</a>
+                    {% else %}DD copy not uploaded{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Court order - lien reversal</th>
+                <td>{% if lien.court_order_lien_reversal %}<a class="button is-small is-outlined is-link"
+                        href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='lien_reversal') }}">Download
+                        lien reversal order</a>
+                    {% else %}Lien reversal document not uploaded{% endif %}</td>
+            </tr>
+            {{ render_field_table(form.ro_remarks) }}
+
+        </table>
+        <div class="has-text-centered">
+            <a class="button is-link" href="{{ url_for('lien.lien_list') }}">Go home</a>
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

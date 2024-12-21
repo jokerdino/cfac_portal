@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import DateField, StringField, TextAreaField, IntegerField, SelectField
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import Optional
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 
@@ -31,3 +31,7 @@ class LienUploadForm(FlaskForm):
     lien_file = FileField(
         "Upload lien file", validators=[FileRequired(), FileAllowed(["xlsx"])]
     )
+
+
+class LienAddRemarks(FlaskForm):
+    ro_remarks = TextAreaField("RO Remarks")

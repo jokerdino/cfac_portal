@@ -49,10 +49,6 @@
             <td>{{ lien.account_number }}</td>
         </tr>
         <tr>
-            <th>RO remarks</th>
-            <td class="word-wrap">{{ lien.ro_remarks }}</td>
-        </tr>
-        <tr>
             <th>Lien status</th>
             <td>{{ lien.lien_status }}</td>
         </tr>
@@ -69,19 +65,28 @@
             <td>{% if lien.court_order_dd %}<a class="button is-small is-outlined is-link"
                     href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='dd_copy') }}">Download
                     DD copy</a>
-                {% else %}Court order not uploaded{% endif %}</td>
+                {% else %}DD copy not uploaded{% endif %}</td>
         </tr>
         <tr>
             <th>Court order - lien reversal</th>
             <td>{% if lien.court_order_lien_reversal %}<a class="button is-small is-outlined is-link"
                     href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='lien_reversal') }}">Download
                     lien reversal order</a>
-                {% else %}Court order not uploaded{% endif %}</td>
+                {% else %}Lien reversal order not uploaded{% endif %}</td>
+        </tr>
+        <tr class="has-background-info-light">
+            <th>RO remarks</th>
+            <td class="word-wrap">{{ lien.ro_remarks }}</td>
         </tr>
     </table>
     <div class="has-text-centered">
-        <a class="button is-link" href="{{ url_for('lien.lien_list') }}">Back</a>
-        <a class="button is-link" href="{{ url_for('lien.lien_edit', lien_id = lien.id) }}">Edit</a>
+        <a class="button is-link" href="{{ url_for('lien.lien_list') }}">Go home</a>
+        {% if current_user.user_type == "admin" %}
+        <a class="button is-link is-outlined" href="{{ url_for('lien.lien_edit', lien_id=lien.id) }}">Edit</a>
+        {% elif current_user.user_type == "ro_user" %}
+        <a class="button is-link is-outlined" href="{{ url_for('lien.lien_add_remarks', lien_id=lien.id) }}">Add
+            remarks</a>
+        {% endif %}
     </div>
 </div>
 
