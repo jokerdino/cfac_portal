@@ -38,17 +38,14 @@ from set_view_permissions import ro_user_only, admin_required
 @login_required
 @ro_user_only
 def pool_credits_list_identified_api(status):
-    from extensions import db
-
     if request.method == "POST":
-
         list_pool_keys = request.form.getlist("pool_keys")
-        updated_time = datetime.now()
+        #  updated_time = datetime.now()
         for key in list_pool_keys:
             pool_credit_entry = PoolCredits.query.get_or_404(key)
             pool_credit_entry.bool_jv_passed = True
-            pool_credit_entry.jv_passed_by = current_user.username
-            pool_credit_entry.jv_passed_on = updated_time
+            #            pool_credit_entry.jv_passed_by = current_user.username
+            #           pool_credit_entry.jv_passed_on = updated_time
             db.session.commit()
 
     return render_template("pool_credits_list_ajax.html", status=status)
@@ -249,20 +246,15 @@ def get_data(status):
 @login_required
 @ro_user_only
 def update_pool_credit(id):
-    from extensions import db
-
-    #    id = int(id)
     entry = db.session.query(PoolCredits).get_or_404(id)
     form = UpdatePoolCreditsForm(obj=entry)
     if current_user.user_type != "admin":
         form.str_regional_office_code.choices = [current_user.ro_code]
-    if entry.bool_jv_passed == True:
+    if entry.bool_jv_passed:
         flash("JV has already been passed.")
     elif form.validate_on_submit():
         form.populate_obj(entry)
-
         db.session.commit()
-
         return redirect(url_for("pool_credits.view_pool_credit", id=id))
 
     return render_template("pool_credits_edit.html", entry=entry, form=form)
@@ -272,8 +264,6 @@ def update_pool_credit(id):
 @login_required
 @ro_user_only
 def view_pool_credit(id):
-    from extensions import db
-
     entry = db.session.query(PoolCredits).get_or_404(id)
 
     return render_template("pool_credits_view.html", entry=entry)
@@ -283,8 +273,6 @@ def view_pool_credit(id):
 @login_required
 @admin_required
 def view_pool_credit_summary():
-    from extensions import db
-
     case_unidentified = case(
         (
             PoolCredits.str_regional_office_code.is_(None),
@@ -296,7 +284,7 @@ def view_pool_credit_summary():
     case_identified = case(
         (
             (PoolCredits.str_regional_office_code.is_not(None))
-            & (PoolCredits.bool_jv_passed == False),
+            & (PoolCredits.bool_jv_passed.is_(False)),
             PoolCredits.credit,
         ),
         else_=0,
@@ -304,7 +292,7 @@ def view_pool_credit_summary():
 
     case_jv_passed = case(
         (
-            PoolCredits.bool_jv_passed == True,
+            PoolCredits.bool_jv_passed.is_(True),
             PoolCredits.credit,
         ),
         else_=0,
@@ -331,11 +319,11 @@ def view_pool_credit_summary():
     return render_template("summary_view.html", query=summary_query)
 
 
+@pool_credits_bp.route("/daily_jv/")
 @pool_credits_bp.route("/identified/")
 @login_required
 @ro_user_only
 def identified_entries():
-
     return render_template("daily_jv_entries.html")
 
 
@@ -343,7 +331,6 @@ def identified_entries():
 @login_required
 @ro_user_only
 def daily_jv_entries():
-
     # query
     START_DATE = datetime(2024, 10, 1)
     daily_jv_entries = (

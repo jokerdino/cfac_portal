@@ -10,7 +10,6 @@ from sqlalchemy.orm import column_property
 
 @dataclass
 class PoolCredits(db.Model):
-
     id: int = db.Column(db.Integer, primary_key=True)
     date_uploaded_date = db.Column(db.Date)
 
@@ -53,7 +52,7 @@ class PoolCredits(db.Model):
 class PoolCreditsPortal(db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
 
-    txt_reference_number: str = db.Column(db.String)
+    txt_reference_number = db.Column(db.String)
     date_value_date: datetime.date = db.Column(db.Date)
     amount_credit: float = db.Column(db.Numeric(20, 2))
     txt_name_of_remitter: str = db.Column(db.String)
@@ -67,7 +66,12 @@ class PoolCreditsPortal(db.Model):
     deleted_by = db.Column(db.String)
 
     office_code: str = field(init=False)
+    reference_number: str = field(init=False)
 
     @property
     def office_code(self):
         return "000100"
+
+    @property
+    def reference_number(self):
+        return self.txt_reference_number.replace(" 00:00:00", "")

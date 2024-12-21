@@ -6,7 +6,6 @@ from flask_login import current_user
 
 
 def extract_number(input_string):
-
     matches = re.findall(r"\d+", input_string)
     return matches[0] if matches else "0"
 
