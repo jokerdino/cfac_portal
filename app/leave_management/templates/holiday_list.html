@@ -1,0 +1,53 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container table-container is-fluid">
+
+    <h1 class="title">List of holidays - {{ year }}</h1>
+
+    <table class="table is-bordered is-hoverable is-striped is-fullwidth" id="holiday_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Date of holiday</th>
+                <th class="has-text-centered">Day of holiday</th>
+                <th class="has-text-centered">Name of holiday</th>
+                <th class="has-text-centered">Type of holiday</th>
+                <th class="has-text-centered">Type of list</th>
+            </tr>
+        </thead>
+        <tbody>{% for holiday in holiday_list %}
+            <tr>
+                <td data-sort="{{ holiday.date_of_leave }}">{{ holiday.date_of_holiday.strftime("%d/%m/%Y") }}</td>
+                <td data-sort="{{ holiday.date_of_leave }}">{{ holiday.date_of_holiday.strftime("%A") }}</td>
+                <td>{{ holiday.name_of_holiday }}</td>
+                <td>{{ holiday.type_of_holiday }}</td>
+                <td>{{ holiday.type_of_list }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="has-text-centered">
+        <img src="{{ url_for('static', filename=image) }}" alt="holiday" height=1000 width=1500 class="mt-5" />
+    </div>
+</div>
+{% block scripts %}
+<script>
+    new DataTable('#holiday_table', {
+
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+
+        fixedHeader: true,
+        pageLength: 50,
+
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+
+    });
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

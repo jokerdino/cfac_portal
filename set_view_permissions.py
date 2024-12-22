@@ -48,3 +48,14 @@ def fund_managers(f):
             return redirect(url_for("funds.funds_reports"))
 
     return wrap
+
+
+def leave_managers(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if "leave_manager" in current_user.role:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for("main.index"))
+
+    return wrap

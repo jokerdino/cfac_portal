@@ -2,36 +2,66 @@
 {% block content %}
 
 <div class="container">
-    <table class="table is-fullwidth is-bordered">
-        <thead>
-            <tr>
-                <th class="has-text-centered">Date</th>
-                <th class="has-text-centered">Week day</th>
-                <th class="has-text-centered">Present</th>
-                <th class="has-text-centered">On leave</th>
-                <th class="has-text-centered">On leave-half day</th>
-                <th class="has-text-centered">On duty</th>
-                <th class="has-text-centered">On tour</th>
-                <th class="has-text-centered">Total on roll</th>
-                <th class="has-text-centered">Edit</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in list %}
-            <tr>
-                <td class="has-text-centered">{{ item[0].strftime(" %d/%m/%Y") }}</td>
-                <td>{{ item[0].strftime("%A") }}</td>
-                <td class="has-text-right">{{ item[1] }}</td>
-                <td class="has-text-right">{{ item[2] }}</td>
-                <td class="has-text-right">{{ item[3] }}</td>
-                <td class="has-text-right">{{ item[4] }}</td>
-                <td class="has-text-right">{{ item[5] }}</td>
-                <td class="has-text-right">{{ item[6] }}</td>
-                <td><a class="button is-small is-link" target="_blank"
-                        href="{{ url_for('.edit_attendance', date_string=item[0].strftime('%d%m%Y')) }}">Edit</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div class="notification is-danger">
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <form method="post">
+        {% if "leave_admin" in current_user.role %}
+        <div class="has-text-right">
+            <button class="button is-danger">Delete selected dates</button>
+        </div>
+        {% endif %}
+        <h1 class="title">Daily attendance summary</h1>
+        <table class="table is-fullwidth is-bordered mt-5">
+            <thead>
+                <tr>
+                    {% if "leave_admin" in current_user.role %}
+                    <th class="has-text-centered">Select</th>
+                    {% endif %}
+                    <th class="has-text-centered">Date</th>
+                    <th class="has-text-centered">Week day</th>
+                    <th class="has-text-centered">Present</th>
+                    <th class="has-text-centered">On leave</th>
+                    <th class="has-text-centered">On leave-half day</th>
+                    <th class="has-text-centered">On duty</th>
+                    <th class="has-text-centered">On tour</th>
+                    <th class="has-text-centered">Total on roll</th>
+                    <th class="has-text-centered">Edit</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in list %}
+                <tr>
+                    {% if "leave_admin" in current_user.role %}
+                    <td class="has-text-centered">
+                        <label class="checkbox">
+                            <input type="checkbox" name="date_keys" value="{{ item[0] }}" />
+                        </label>
+                    </td>
+                    {% endif %}
+                    <td class="has-text-centered">{{ item[0].strftime(" %d/%m/%Y") }}</td>
+                    <td>{{ item[0].strftime("%A") }}</td>
+                    <td class="has-text-right">{{ item[1] }}</td>
+                    <td class="has-text-right">{{ item[2] }}</td>
+                    <td class="has-text-right">{{ item[3] }}</td>
+                    <td class="has-text-right">{{ item[4] }}</td>
+                    <td class="has-text-right">{{ item[5] }}</td>
+                    <td class="has-text-right">{{ item[6] }}</td>
+                    <td><a class="button is-small is-link" target="_blank"
+                            href="{{ url_for('.edit_attendance', date_string=item[0].strftime('%d%m%Y')) }}">Edit</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
 </div>
 {% endblock content %}

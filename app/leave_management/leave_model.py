@@ -1,7 +1,10 @@
-from dataclasses import dataclass
-from datetime import date, datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 
 from flask_login import current_user
+
+from sqlalchemy import func
+from sqlalchemy.orm import column_property
 
 from extensions import db
 
@@ -71,11 +74,22 @@ class LeaveApplication(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
+    @property
+    def list_of_days(self):
+        return [date for date in self.get_list_of_days(self.end_date, self.start_date)]
+
+    @staticmethod
+    def get_list_of_days(start_date, end_date):
+        for n in range(int((end_date - start_date).days) + 1):
+            yield start_date + timedelta(n)
+
 
 # credit SO answer: https://stackoverflow.com/a/42973595/1037268
 # lambda function to set default value depending on another column
 
-same_as = lambda col: lambda ctx: ctx.current_parameters.get(col)
+
+def same_as(col):
+    return lambda ctx: ctx.current_parameters.get(col)
 
 
 class LeaveBalance(db.Model):
@@ -146,3 +160,26 @@ class LeaveSubmissionData(db.Model):
 
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+
+@dataclass
+class PublicHoliday(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_of_holiday: datetime.date = db.Column(db.Date)
+    name_of_holiday: str = db.Column(db.String)
+    type_of_holiday: str = db.Column(db.String)
+    type_of_list: str = db.Column(db.String)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+    year = column_property(func.to_char(date_of_holiday, "YYYY"))
+    holiday_value: str = field(init=False)
+
+    @property
+    def holiday_value(self) -> int | None:
+        holiday_dict = {"PUBLIC HOLIDAY": 1, "TAMIL NADU": 2, "ALL INDIA": 3}
+        return holiday_dict.get(self.type_of_list, 0)

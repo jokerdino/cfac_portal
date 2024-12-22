@@ -1,5 +1,6 @@
 import datetime  # , date
 from flask_wtf import FlaskForm, Form
+from flask_wtf.file import FileRequired, FileAllowed, FileField
 
 from wtforms import (
     DateField,
@@ -136,3 +137,10 @@ class LeaveSubmittedDateForm(FlaskForm):
 
 class LeaveBalanceCloseForm(FlaskForm):
     submit = SubmitField()
+
+
+class UploadFileForm(FlaskForm):
+    file_upload = FileField(
+        "Upload document", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )
+    upload_document = SubmitField("Upload")

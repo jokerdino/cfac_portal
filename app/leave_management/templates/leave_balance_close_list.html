@@ -1,7 +1,7 @@
 {% extends "leave_layout.html" %}
 {% block content %}
 
-<div class="container table-container is-fluid">
+<div class="container table-container">
     <form method="post">
         {{ form.csrf_token }}
 
@@ -15,7 +15,10 @@
         {% endif %}
         {% endwith %}
 
-        <button class="button is-success">Close selected leave records</button>
+        <div class="has-text-right">
+            <button class="button is-success">Close selected leave records</button>
+        </div>
+        <h1 class="title">List of employee leave balances</h1>
         <table class="table is-bordered is-hoverable mt-5">
             <thead>
                 <tr>

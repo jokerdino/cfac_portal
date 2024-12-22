@@ -2,6 +2,7 @@
 {% block content %}
 
 <div class="container">
+    <h1 class="title">List of employees with pending leaves</h1>
     <table class="table is-bordered">
         <thead>
             <tr>
@@ -13,7 +14,12 @@
             {% for employee in pending %}
             <tr>
                 <td>{{ employee[0] }}</td>
-                <td>{{ employee[1] }}</td>
+                <td>
+                    <a href="{{ url_for('.leaves_taken_list', status='pending', employee_number=employee[1]) }}"
+                        target="_blank">
+                        <div class="has-text-right">{{ employee[2] }}</div>
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

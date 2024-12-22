@@ -63,6 +63,7 @@ from app.leave_management.leave_model import (
     LeaveApplication,
     AttendanceRegister,
     LeaveSubmissionData,
+    PublicHoliday,
 )
 from app.lien.lien_model import Lien
 
@@ -375,6 +376,15 @@ admin.add_view(
         LeaveSubmissionData,
         db.session,
         endpoint="leave_submission",
+        category="Leave",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        PublicHoliday,
+        db.session,
+        endpoint="public_holiday",
         category="Leave",
     )
 )

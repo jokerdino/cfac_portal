@@ -2,15 +2,22 @@
 {% block content %}
 
 <div class="container">
-    <table class="table is-fullwidth is-bordered">
+    <div class="has-text-right">
+        <a href="{{ url_for('.add_employee_data') }}" class="button is-link is-outlined">Add employee data</a>
+    </div>
+    <h1 class="title">List of employees</h1>
+    <table class="table is-fullwidth is-bordered mt-5">
         <thead>
             <tr>
                 <th class="has-text-centered">Employee name</th>
                 <th class="has-text-centered">Employee number</th>
                 <th class="has-text-centered">Employee designation</th>
                 <th class="has-text-centered">Current status</th>
-
                 <th class="has-text-centered">Edit</th>
+                <th class="has-text-centered">Pending leaves</th>
+                <th class="has-text-centered">Leave applications</th>
+                <th class="has-text-centered">Leave encashment</th>
+
             </tr>
         </thead>
         <tbody>
@@ -24,6 +31,16 @@
 
                 <td><a class="button is-small is-link" target="_blank"
                         href="{{ url_for('.edit_employee_data', id=item['id']) }}">Edit</a></td>
+                <td><a class="button is-small is-link is-outlined" target="_blank"
+                        href="{{ url_for('.leaves_taken_list', status='pending',employee_number=item['employee_number']) }}">Pending
+                        leaves</a></td>
+                <td><a class="button is-small is-link is-outlined" target="_blank"
+                        href="{{ url_for('.leave_application_list', employee_number=item['employee_number']) }}">Leave
+                        applications</a>
+                </td>
+                <td><a class="button is-small is-link is-outlined" target="_blank"
+                        href="{{ url_for('.leave_encashment_add', employee_number=item['employee_number']) }}">Leave
+                        encashment</a></td>
             </tr>
             {% endfor %}
         </tbody>
