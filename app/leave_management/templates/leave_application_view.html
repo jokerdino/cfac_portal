@@ -25,7 +25,7 @@
         </tr>
         <tr>
             <th>Period of leave</th>
-            <td>From {{ leave.start_date }} to {{ leave.end_date }}</td>
+            <td>From {{ leave.start_date.strftime("%d/%m/%Y") }} to {{ leave.end_date.strftime("%d/%m/%Y") }}</td>
         </tr>
         <tr>
             <th>Reason for leave</th>

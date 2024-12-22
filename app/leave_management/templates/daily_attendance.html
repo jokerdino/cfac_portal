@@ -2,7 +2,11 @@
 {% block content %}
 
 <div class="container">
+    <div class="has-text-right">
+        <a href="{{ url_for('.add_employee_data') }}" class="button is-link is-outlined">Add employee data</a>
+    </div>
     <h1 class="title">Attendance for {{ date_string.strftime("%d/%m/%Y (%A)") }}</h1>
+
     <form method="post">
 
         {{ form.csrf_token }}

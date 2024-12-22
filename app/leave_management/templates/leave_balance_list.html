@@ -2,7 +2,11 @@
 {% block content %}
 
 <div class="container table-container is-fluid">
-    <table class="table is-fullwidth is-bordered">
+    <div class="has-text-right">
+        <a href="{{ url_for('.add_employee_leave_balance') }}" class="button is-link is-outlined">Add employee leave
+            balance</a>
+    </div>
+    <table class="table is-fullwidth is-bordered mt-5">
         <thead>
             <tr>
                 <th class="has-text-centered is-vcentered">Edit</th>

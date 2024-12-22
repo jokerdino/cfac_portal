@@ -35,7 +35,7 @@
         </tr>
         <tr>
             <th>Period of leave</th>
-            <td>From {{ leave.start_date }} to {{ leave.end_date }}</td>
+            <td>From {{ leave.start_date.strftime("%d/%m/%Y") }} to {{ leave.end_date.strftime("%d/%m/%Y") }}</td>
         </tr>
         <tr>
             <th>Reason for leave</th>
@@ -50,7 +50,7 @@
     <table class="table is-bordered is-fullwidth">
         <tr>
             <th width="50%">Available leave credit</th>
-            <td>{{ leave.available_leave_credit }}</td>
+            <td>{{ to_mixed_fraction_11(leave.available_leave_credit) }}</td>
         </tr>
         {% endif %}
     </table>
@@ -71,7 +71,8 @@
             <td colspan="2">
                 {{ leave.type_of_leave }} applied for is GRANTED / REFUSED for {{
                 leave.number_of_days_leave
-                }} days from {{ leave.start_date }} to {{ leave.end_date }}</td>
+                }} days from {{ leave.start_date.strftime("%d/%m/%Y") }} to {{ leave.end_date.strftime("%d/%m/%Y") }}.
+            </td>
         </tr>
     </table>
     <div class="has-text-left mt-5">Date: _________________</div>

@@ -13,7 +13,6 @@ class EmployeeData(db.Model):
     employee_name: str = db.Column(db.String)
     employee_number: int = db.Column(db.Integer, unique=True)
     employee_designation: str = db.Column(db.String)
-    employee_username = db.Column(db.String)
 
     current_status = db.Column(db.String, default="Active")
     created_by = db.Column(db.String, default=lambda: current_user.username)
@@ -27,7 +26,7 @@ class EmployeeData(db.Model):
 class AttendanceRegister(db.Model):
     id: int = db.Column(db.Integer, primary_key=True)
 
-    date_of_attendance: datetime.date = db.Column(db.Date)  # , default=date.today)
+    date_of_attendance: datetime.date = db.Column(db.Date)
     employee_name: str = db.Column(db.String)
     employee_number: int = db.Column(db.Integer)
     employee_designation: str = db.Column(db.String)
@@ -43,13 +42,13 @@ class AttendanceRegister(db.Model):
 
 
 class LeaveApplication(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
 
     type_of_leave = db.Column(db.String)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
     number_of_days_leave = db.Column(db.Numeric(6, 2))
+    number_of_days_off_duty = db.Column(db.Numeric(6, 2))
 
     employee_name = db.Column(db.String)
     employee_number = db.Column(db.Integer)
@@ -80,12 +79,11 @@ same_as = lambda col: lambda ctx: ctx.current_parameters.get(col)
 
 
 class LeaveBalance(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
 
     calendar_year = db.Column(db.Integer)
     employee_name = db.Column(db.String)
-    employee_number = db.Column(db.Integer, unique=True)
+    employee_number = db.Column(db.Integer)
 
     opening_casual_leave_balance = db.Column(db.Numeric(6, 2))
     opening_sick_leave_balance = db.Column(db.Numeric(6, 2))
@@ -122,7 +120,8 @@ class LeaveBalance(db.Model):
     maternity_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
     paternity_leave_taken = db.Column(db.Numeric(6, 2), default=0.0)
 
-    leave_encashment = db.Column(db.Numeric(6, 2))
+    leave_encashment_days = db.Column(db.Numeric(6, 2))
+    leave_encashment_block_year = db.Column(db.String)
     date_of_leave_encashment = db.Column(db.Date)
 
     opening_balance_date = db.Column(db.Date)

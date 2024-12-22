@@ -1,32 +1,10 @@
 {% extends "leave_layout.html" %}
 {% block content %}
 
-<div class="container is-fluid">
+<div class="container">
 
-    <h1 class="title">Leave balance</h1>
-    <table class="table is-bordered mb-5">
-        <thead>
-            <tr>
-                <th>Employee name</th>
-                <th>Employee number</th>
+    {% include "leave_balance.html" %}
 
-                <th>Current casual leave balance</th>
-                <th>Current sick leave balance</th>
-                <th>Current earned leave balance</th>
-                <th>Current restricted holiday balance</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="has-text-centered">{{ leave_balance.employee_name }}</td>
-                <td class="has-text-centered">{{ leave_balance.employee_number }}</td>
-                <td class="has-text-centered">{{ leave_balance.current_casual_leave_balance }}</td>
-                <td class="has-text-centered">{{ leave_balance.current_sick_leave_balance }}</td>
-                <td class="has-text-centered">{{ leave_balance.current_privileged_leave_balance }}</td>
-                <td class="has-text-centered">{{ leave_balance.current_rh_balance }}</td>
-            </tr>
-        </tbody>
-    </table>
     <h1 class="title">Leave applications</h1>
     <table class="table is-fullwidth is-bordered">
         <thead>
@@ -55,8 +33,8 @@
                 <td>{{ item.employee_number }}</td>
                 <td>{{ item.employee_designation }}</td>
                 <td>{{ item.type_of_leave }}</td>
-                <td>{{ item.start_date }}</td>
-                <td>{{ item.end_date }}</td>
+                <td>{{ item.start_date.strftime("%d/%m/%Y") }}</td>
+                <td>{{ item.end_date.strftime("%d/%m/%Y") }}</td>
                 <td>{{ item.number_of_days_leave }}</td>
                 <td>{{ item.purpose_of_leave }}</td>
                 <td>{{ item.leave_approved_by }}</td>
@@ -82,4 +60,5 @@
         </tbody>
     </table>
 </div>
+
 {% endblock content %}

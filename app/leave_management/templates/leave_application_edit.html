@@ -23,11 +23,11 @@
             </tr>
             <tr>
                 <th>Leave start date</th>
-                <td>{{ leave.start_date }}</td>
+                <td>{{ leave.start_date.strftime("%d/%m/%Y") }}</td>
             </tr>
             <tr>
                 <th>Leave end date</th>
-                <td>{{ leave.end_date }}</td>
+                <td>{{ leave.end_date.strftime("%d/%m/%Y") }}</td>
             </tr>
             <tr>
                 <th>Number of days</th>

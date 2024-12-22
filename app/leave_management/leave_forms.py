@@ -1,25 +1,21 @@
+import datetime  # , date
 from flask_wtf import FlaskForm, Form
-from flask_wtf.file import FileAllowed, FileField, FileRequired
+
 from wtforms import (
-    BooleanField,
     DateField,
     DecimalField,
     FieldList,
-    FileField,
     FormField,
     HiddenField,
     IntegerField,
-    RadioField,
     SelectField,
     StringField,
     SubmitField,
-    TextAreaField,
 )
 from wtforms.validators import (
     DataRequired,
     InputRequired,
     NumberRange,
-    Optional,
     ValidationError,
 )
 
@@ -48,7 +44,7 @@ class UpdateLeaveTypeForm(FlaskForm):
 
 
 class AddEmployeeLeaveBalanceForm(FlaskForm):
-    calendar_year = SelectField(choices=[2024], validators=[DataRequired()])
+    calendar_year = SelectField(choices=[2024, 2025], validators=[DataRequired()])
     employee_name = StringField(validators=[DataRequired()])
     employee_number = IntegerField(validators=[DataRequired()])
 
@@ -69,7 +65,6 @@ class AddEmployeeLeaveBalanceForm(FlaskForm):
 
 
 class LeaveAttendanceForm(Form):
-
     date_of_attendance = DateField(render_kw={"readonly": True, "class": "input"})
     employee_name = StringField(render_kw={"readonly": True, "class": "input"})
     employee_number = StringField(render_kw={"readonly": True, "class": "input"})
@@ -87,11 +82,12 @@ class LeaveAttendanceRegisterForm(FlaskForm):
 
 
 class EmployeeDataForm(FlaskForm):
-
     employee_name = StringField(validators=[DataRequired()])
     employee_number = IntegerField(validators=[DataRequired()])
     employee_designation = SelectField(
         choices=[
+            "Assistant",
+            "Senior Assistant",
             "Admin Officer",
             "Assistant Manager",
             "Deputy Manager",
@@ -100,15 +96,12 @@ class EmployeeDataForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
-    employee_username = StringField(validators=[DataRequired()])
-
     current_status = SelectField(
         choices=["Active", "Inactive"], validators=[DataRequired()]
     )
 
 
 class LeaveApplicationForm(FlaskForm):
-
     purpose_of_leave = StringField(validators=[DataRequired()])
     leave_approved_by = StringField(validators=[DataRequired()])
     leave_approver_designation = SelectField(
@@ -121,3 +114,25 @@ class LeaveApplicationForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
+
+
+class LeaveEncashmentForm(FlaskForm):
+    leave_encashment_days = IntegerField(
+        validators=[DataRequired(), NumberRange(min=1, max=15)]
+    )
+    leave_encashment_block_year = SelectField(
+        choices=["2024-25", "2026-27"], validators=[DataRequired()]
+    )
+    date_of_leave_encashment = DateField(validators=[DataRequired()])
+
+    def validate_date_of_leave_encashment(form, field):
+        if field.data > datetime.date.today():
+            raise ValidationError("The date cannot be in the future!")
+
+
+class LeaveSubmittedDateForm(FlaskForm):
+    leaves_submitted_to_est_dept = DateField()
+
+
+class LeaveBalanceCloseForm(FlaskForm):
+    submit = SubmitField()

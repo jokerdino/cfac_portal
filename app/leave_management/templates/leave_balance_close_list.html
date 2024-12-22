@@ -1,0 +1,55 @@
+{% extends "leave_layout.html" %}
+{% block content %}
+
+<div class="container table-container is-fluid">
+    <form method="post">
+        {{ form.csrf_token }}
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="notification is-danger">
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <button class="button is-success">Close selected leave records</button>
+        <table class="table is-bordered is-hoverable mt-5">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Calendar year</th>
+                    <th>Employee name</th>
+                    <th>Employee number</th>
+                    <th>Current status</th>
+                    <th>Current casual leave balance</th>
+                    <th>Current sick leave balance</th>
+                    <th>Current restricted holiday balance</th>
+                    <th>Current earned leave balance</th>
+                </tr>
+            </thead>
+            <tbody>{% for item in list %}
+                <tr>
+                    <td class="has-text-centered">
+                        <label class="checkbox">
+                            <input type="checkbox" name="leave_balance_keys" onchange="callFunction()"
+                                value="{{ item.id }}" />
+                        </label>
+                    </td>
+                    <td>{{ item.calendar_year }}</td>
+                    <td>{{ item.employee_name }}</td>
+                    <td>{{ item.employee_number }}</td>
+                    <td>{{ item.current_status }}</td>
+                    <td>{{ item.current_casual_leave_balance }}</td>
+                    <td>{{ item.current_sick_leave_balance }}</td>
+                    <td>{{ item.current_rh_balance }}</td>
+                    <td>{{ to_mixed_fraction_11(calculate_earned_leave(item.employee_number)) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+</div>
+{% endblock content %}

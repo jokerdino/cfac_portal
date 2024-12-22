@@ -1,0 +1,35 @@
+<h1 class="title">Leave balance</h1>
+<table class="table is-bordered mb-5">
+    <thead>
+        <tr>
+            <th class="is-vcentered has-text-centered">Calendar year</th>
+            <th class="is-vcentered has-text-centered">Employee name</th>
+            <th class="is-vcentered has-text-centered">Employee number</th>
+            <th class="is-vcentered has-text-centered">Current casual leave balance</th>
+            <th class="is-vcentered has-text-centered">Current sick leave balance</th>
+            <th class="is-vcentered has-text-centered">Current restricted holiday balance</th>
+            <th class="is-vcentered has-text-centered">Current privileged leave balance (tentative)</th>
+            <th class="is-vcentered has-text-centered">Leave encashment</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="has-text-centered">
+            <td class="is-vcentered">{{ leave_balance.calendar_year }}</td>
+            <td class="is-vcentered">{{ leave_balance.employee_name }}</td>
+            <td class="is-vcentered">{{ leave_balance.employee_number }}</td>
+            <td class="is-vcentered">{{ leave_balance.current_casual_leave_balance }}</td>
+            <td class="is-vcentered">{{ leave_balance.current_sick_leave_balance }}</td>
+            <td class="is-vcentered">{{ leave_balance.current_rh_balance }}</td>
+            <td class="is-vcentered"> {{
+                to_mixed_fraction_11(calculate_earned_leave(leave_balance.employee_number)) }}</td>
+            <td class="is-vcentered">
+                {% if leave_balance.leave_encashment_days %}Encashed {{
+                leave_balance.leave_encashment_days }} days on
+                {{ leave_balance.date_of_leave_encashment.strftime("%d/%m/%Y") }}
+                {% else %}
+                Not encashed
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+</table>
