@@ -5,14 +5,14 @@
 <table class="table is-fullwidth is-bordered" id="kb_table">
 
     <thead>
-        <tr class="has-text-centered">
-            <th>Topic</th>
-            <th>Title</th>
-            <th>Uploaded on</th>
+        <tr>
+            <th class="has-text-centered">Topic</th>
+            <th class="has-text-centered">Title</th>
+            <th class="has-text-centered">Uploaded on</th>
             {% if current_user.user_type == "admin" %}
-            <th>Can be accessed by</th>
-            <th>View</th>
-            <th>Edit</th>
+            <th class="has-text-centered">Can be accessed by</th>
+            <th class="has-text-centered">View</th>
+            <th class="has-text-centered">Edit</th>
             {% endif %}
         </tr>
     </thead>
@@ -20,7 +20,7 @@
         {% for entry in kb_query %}
         <tr>
             <td class="is-vcentered">{{ entry.topic }}</td>
-            <td class="is-vcentered"><a href="{{ url_for('knowledge_base.download_kb_document', kb_id = entry.id)}}">{{
+            <td class="is-vcentered"><a href="{{ url_for('knowledge_base.download_kb_document', kb_id = entry.id) }}">{{
                     entry.title }}</a></td>
             <td class="is-vcentered" data-sort="{{ entry.created_on }}" title="{{ entry.created_on }}">{{
                 entry.created_on | humanize_datetime }}</td>

@@ -14,23 +14,27 @@ from app.knowledge_base import knowledge_base_bp
 from app.knowledge_base.knowledge_base_form import KnowledgeBaseForm
 from app.knowledge_base.knowledge_base_model import KnowledgeBase
 
-# from app.tickets.tickets_routes import humanize_datetime
+from extensions import db
+from set_view_permissions import admin_required
 
 
 @knowledge_base_bp.route("/add", methods=["POST", "GET"])
 @login_required
+@admin_required
 def add_knowledge_base_document():
     form = KnowledgeBaseForm()
-    from extensions import db
+    # from extensions import db
 
     if form.validate_on_submit():
-        topic: str = form.data["topic"]
-        title: str = form.data["title"]
+        kb = KnowledgeBase()
+        form.populate_obj(kb)
+        #    topic: str = form.data["topic"]
+        #   title: str = form.data["title"]
 
         is_visible: bool = True if (form.data["is_visible"] == "True") else False
         status: bool = True if (form.data["status"] == "True") else False
-        created_by: str = current_user.username
-        created_on: datetime = datetime.now()
+        #      created_by: str = current_user.username
+        #     created_on: datetime = datetime.now()
 
         if form.data["knowledge_base_document"]:
             kb_filename_data: str = secure_filename(
@@ -49,17 +53,19 @@ def add_knowledge_base_document():
             )
         else:
             kb_filename: str = None
-
-        knowledge_base = KnowledgeBase(
-            topic=topic,
-            title=title,
-            is_visible=is_visible,
-            status=status,
-            knowledge_base_document=kb_filename,
-            created_by=created_by,
-            created_on=created_on,
-        )
-        db.session.add(knowledge_base)
+        kb.is_visible = is_visible
+        kb.status = status
+        kb.knowledge_base_document = kb_filename
+        # knowledge_base = KnowledgeBase(
+        #     topic=topic,
+        #     title=title,
+        #     is_visible=is_visible,
+        #     status=status,
+        #     knowledge_base_document=kb_filename,
+        #     #            created_by=created_by,
+        #     #           created_on=created_on,
+        # )
+        db.session.add(kb)
         db.session.commit()
         return redirect(url_for("knowledge_base.knowledge_base_home_page"))
     return render_template("kb_add_entry.html", form=form, title="Upload document")
@@ -75,24 +81,26 @@ def view_knowledge_base_entry(key):
     )
 
 
-@knowledge_base_bp.route("/edit/<int:key>", methods=["POST", "GET"])
+@knowledge_base_bp.route("/edit/<int:key>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_knowledge_base_entry(key):
-    from extensions import db
+    # from extensions import db
 
     kb = KnowledgeBase.query.get_or_404(key)
-    form = KnowledgeBaseForm()
+    form = KnowledgeBaseForm(obj=kb)
     form.knowledge_base_document.validators = []
     if form.validate_on_submit():
-        kb.topic = form.data["topic"]
-        kb.title = form.data["title"]
+        form.populate_obj(kb)
+        # kb.topic = form.data["topic"]
+        # kb.title = form.data["title"]
         kb.is_visible = True if (form.data["is_visible"] == "True") else False
         kb.status = True if (form.data["status"] == "True") else False
         db.session.commit()
         return redirect(url_for("knowledge_base.view_knowledge_base_entry", key=key))
 
-    form.topic.data = kb.topic
-    form.title.data = kb.title
+    # form.topic.data = kb.topic
+    # form.title.data = kb.title
     form.is_visible.data = "True" if kb.is_visible else "False"
     form.status.data = "True" if kb.status else "False"
 
@@ -113,7 +121,7 @@ def knowledge_base_home_page():
     )
 
 
-@knowledge_base_bp.route("/download/<int:kb_id>")
+@knowledge_base_bp.route("/download/<int:kb_id>/")
 @login_required
 def download_kb_document(kb_id):
     kb = KnowledgeBase.query.get_or_404(kb_id)

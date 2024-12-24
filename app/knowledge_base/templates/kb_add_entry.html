@@ -1,34 +1,38 @@
 {% extends "kb_layout.html" %}
 {% block content %}
 {% if current_user.user_type == "admin" %}
-
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
-<h1 class="title">{{ title }}</h1>
+    <h1 class="title">{{ title }}</h1>
     <form action="" method="post" enctype="multipart/form-data">
-    {{ form.csrf_token }}
+        {{ form.csrf_token }}
 
-<table class="table is-fullwidth">
-    <tr><th>{{ form.topic.label }}</th><td>{{ form.topic(class="select") }}</td></tr>
-    <tr><th>{{ form.title.label }}</th><td>{{ form.title(class="input") }}</td></tr>
-    <tr><th>{{ form.knowledge_base_document.label }}</th>
-    <td>
-        {% if not edit %}
-            {{ form.knowledge_base_document(class="file") }}
-        {% else %}
-            <a href="{{ url_for('knowledge_base.download_kb_document', kb_id = key) }}">Download document</a>
-        {% endif %}
-    </td>
-    </tr>
-    <tr><th>{{ form.is_visible.label }}</th><td>{{ form.is_visible }}</td></tr>
-    <tr><th>{{ form.status.label }}</th><td>{{ form.status }}</td></tr>
-</table>
-<div class="has-text-centered">
-    <button class="button is-success">Save</button>
-</div>
-</form>
-   {% for field, errors in form.errors.items() %}
+        <table class="table is-fullwidth">
+
+            {{ render_field_table(form.topic) }}
+            {{ render_field_table(form.title) }}
+
+            <tr>
+                <th>{{ form.knowledge_base_document.label }}</th>
+                <td>
+                    {% if not edit %}
+                    {{ form.knowledge_base_document(class="file") }}
+                    {% else %}
+                    <a href="{{ url_for('knowledge_base.download_kb_document', kb_id = key) }}">Download document</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {{ render_field_table(form.is_visible) }}
+            {{ render_field_table(form.status) }}
+
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Save</button>
+        </div>
+    </form>
+    {% for field, errors in form.errors.items() %}
     <div class="notification is-danger">
-        {{ field }}       {{ ', '.join(errors) }}
+        {{ field }} {{ ', '.join(errors) }}
     </div>
     {% endfor %}
 </div>
