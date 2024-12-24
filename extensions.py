@@ -1,4 +1,5 @@
 from flask_admin import Admin
+from flask_admin.theme import Bootstrap4Theme
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -22,7 +23,7 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata)
 
 admin = Admin(
+    theme=Bootstrap4Theme(fluid=True, swatch="united"),
     name="CFAC portal",
-    template_mode="bootstrap4",
     index_view=MyAdminIndexView(),
 )
