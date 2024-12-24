@@ -52,7 +52,7 @@ from app.mis_tracker.mis_model import MisTracker
 from app.outstanding_expenses.os_model import OutstandingExpenses
 from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 from app.tickets.tickets_model import TicketRemarks, Tickets
-from app.users.user_model import Log_user, User
+from app.users.user_model import LogUser, User
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
 from app.lien.lien_model import Lien
@@ -77,7 +77,7 @@ admin.add_view(
     UserView(User, db.session, endpoint="user_", category="Users")
 )  # , name="User"))
 admin.add_view(
-    DefaultModelView(Log_user, db.session, endpoint="log_user_", category="Users")
+    DefaultModelView(LogUser, db.session, endpoint="log_user_", category="Users")
 )
 
 

@@ -1,4 +1,4 @@
-from random import *
+from random import randint
 
 import pandas as pd
 from flask import abort, current_app, flash, render_template, request
@@ -9,9 +9,9 @@ from werkzeug.security import generate_password_hash
 
 from app.portal_admin import admin_bp
 from app.portal_admin.admin_forms import UpdateUserForm
-from app.users.user_model import Log_user, User
+from app.users.user_model import LogUser, User
 
-# from app.tickets.tickets_routes import humanize_datetime
+from extensions import db
 
 
 @admin_bp.route("/upload", methods=["POST", "GET"])
@@ -31,7 +31,6 @@ def upload_users():
         password_hash = generate_password_hash("united")
 
         for df_user_upload in df_user_upload_chunk:
-
             df_user_upload["password"] = password_hash
             df_user_upload["reset_password"] = True
             engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
@@ -49,7 +48,6 @@ def upload_users():
 @login_required
 def view_user_page(user_key):
     form = UpdateUserForm()
-    from server import db
 
     user = User.query.get_or_404(user_key)
 
@@ -57,9 +55,7 @@ def view_user_page(user_key):
         user.user_type != "oo_user" or user.ro_code != current_user.ro_code
     ):
         abort(404)
-    user_log = (
-        db.session.query(Log_user).filter(Log_user.user_id == user.username).all()
-    )
+    user_log = db.session.query(LogUser).filter(LogUser.user_id == user.username).all()
 
     if form.validate_on_submit():
         # change type of user based on selectfield
@@ -75,11 +71,8 @@ def view_user_page(user_key):
             flash(f"New password generated: {password_string}")
 
         user.user_type = user_type
-        # user.reset_password = reset_password_page
-        #        db.session.add(user)
         db.session.commit()
         admin_check()
-    #  return redirect(url_for("portal_admin.view_list_users"))
 
     form.change_user_type.data = user.user_type
     form.reset_password_page.data = user.reset_password
@@ -89,7 +82,6 @@ def view_user_page(user_key):
         user=user,
         form=form,
         user_log=user_log,
-        #       humanize_datetime=humanize_datetime,
     )
 
 
@@ -105,13 +97,10 @@ def view_list_users():
     return render_template(
         "view_all_users.html",
         users=users,
-        #      humanize_datetime=humanize_datetime,
     )
 
 
 def admin_check():
-    from server import db
-
     admin = db.session.query(User).filter(User.user_type == "admin").first()
     if not admin:
         user = User(
@@ -120,6 +109,6 @@ def admin_check():
             user_type="admin",
             reset_password=True,
         )
-        # user = db.session.query(User).first()
+
         db.session.add(user)
         db.session.commit()

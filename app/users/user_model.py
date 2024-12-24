@@ -21,7 +21,7 @@ class User(UserMixin, db.Model):
         return True
 
 
-class Log_user(db.Model):
+class LogUser(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String)
 
