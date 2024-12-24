@@ -13,6 +13,8 @@ class User(UserMixin, db.Model):
     reset_password = db.Column(db.Boolean)
     time_last_login = db.Column(db.DateTime)
 
+    role = db.Column(db.ARRAY(db.String))
+
     @property
     def is_active(self):
         return True
