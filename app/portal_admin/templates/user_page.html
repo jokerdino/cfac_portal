@@ -1,5 +1,6 @@
 {% extends "admin_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container is-fluid">
     <h1 class="title">User details</h1>
 
@@ -29,17 +30,11 @@
                 <td>{{ user.time_last_login }}</td>
                 {% endif %}
             </tr>
-
-            <tr>
-                <th> {{ form.reset_password_page.label }}</th>
-                <td> {{ form.reset_password_page }} </td>
-            </tr>
+            {{ render_field_table(form.reset_password) }}
 
             {% if current_user.user_type in ["admin"] %}
-            <tr>
-                <th>{{ form.change_user_type.label }}</th>
-                <td> {{ form.change_user_type }} </td>
-            </tr>
+            {{ render_field_table(form.user_type) }}
+
             {% endif %}
         </table>
 

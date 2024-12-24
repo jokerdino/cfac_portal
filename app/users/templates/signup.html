@@ -5,10 +5,18 @@
     <h3 class="title">Sign Up</h3>
     <div class="box">
         <form method="post">
-          {{ form.csrf_token }}
-            <div class="field"> <div class="control"> {{ form.username(class="input is-large", placeholder="Username", autofocus="") }} </div> </div>
-            <div class="field"> <div class="control"> {{ form.password (class="input is-large",  placeholder="Password")}} </div> </div>
-            <div class="field"> <div class="control"> {{ form.emp_number (class='input is-large',  placeholder='Employee Number') }} </div> </div>
+            {{ form.csrf_token }}
+            <div class="field">
+                <div class="control"> {{ form.username(class="input is-large", placeholder="Username", autofocus="") }}
+                </div>
+            </div>
+            <div class="field">
+                <div class="control"> {{ form.password (class="input is-large", placeholder="Password") }} </div>
+            </div>
+            <div class="field">
+                <div class="control"> {{ form.emp_number (class='input is-large', placeholder='Employee Number') }}
+                </div>
+            </div>
 
             <button class="button is-block is-info is-large is-fullwidth">Sign Up</button>
 

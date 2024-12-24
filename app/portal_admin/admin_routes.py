@@ -47,10 +47,8 @@ def upload_users():
 @admin_bp.route("/view_user/<int:user_key>", methods=["POST", "GET"])
 @login_required
 def view_user_page(user_key):
-    form = UpdateUserForm()
-
     user = User.query.get_or_404(user_key)
-
+    form = UpdateUserForm(obj=user)
     if current_user.user_type == "ro_user" and (
         user.user_type != "oo_user" or user.ro_code != current_user.ro_code
     ):
@@ -61,21 +59,21 @@ def view_user_page(user_key):
         # change type of user based on selectfield
 
         # reset password should set some random password and enable reset_password for the user
-        user_type = form.data["change_user_type"] or user.user_type
-
-        if form.data["reset_password_page"]:
-            user.reset_password = True
+        #      user_type = form.data["change_user_type"] or user.user_type
+        form.populate_obj(user)
+        if form.data["reset_password"]:
+            #           user.reset_password = True
             password_string = f"Welcome{str(randint(1,1000))}"
             user.password = generate_password_hash(password_string)
 
             flash(f"New password generated: {password_string}")
 
-        user.user_type = user_type
+        #        user.user_type = user_type
         db.session.commit()
         admin_check()
 
-    form.change_user_type.data = user.user_type
-    form.reset_password_page.data = user.reset_password
+    # form.change_user_type.data = user.user_type
+    # form.reset_password_page.data = user.reset_password
 
     return render_template(
         "user_page.html",
