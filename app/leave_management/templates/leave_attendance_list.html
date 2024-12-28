@@ -13,7 +13,7 @@
     {% endwith %}
 
     <form method="post">
-        {% if "leave_admin" in current_user.role %}
+        {% if current_user.role and "leave_admin" in current_user.role %}
         <div class="has-text-right">
             <button class="button is-danger">Delete selected dates</button>
         </div>
@@ -22,7 +22,7 @@
         <table class="table is-fullwidth is-bordered mt-5">
             <thead>
                 <tr>
-                    {% if "leave_admin" in current_user.role %}
+                    {% if current_user.role and "leave_admin" in current_user.role %}
                     <th class="has-text-centered">Select</th>
                     {% endif %}
                     <th class="has-text-centered">Date</th>
@@ -40,7 +40,7 @@
             <tbody>
                 {% for item in list %}
                 <tr>
-                    {% if "leave_admin" in current_user.role %}
+                    {% if current_user.role and "leave_admin" in current_user.role %}
                     <td class="has-text-centered">
                         <label class="checkbox">
                             <input type="checkbox" name="date_keys" value="{{ item[0] }}" />

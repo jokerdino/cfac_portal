@@ -36,7 +36,7 @@
                     <a class="navbar-item" href="{{ url_for('.leave_application_list') }}">Leave application</a>
                     <a class="navbar-item" href="{{ url_for('.leave_encashment_add') }}">Apply leave encashment</a>
                     <a class="navbar-item" href="{{ url_for('.holiday_list') }}">Holiday list</a>
-                    {% if "leave_manager" in current_user.role %}
+                    {% if current_user.role and "leave_manager" in current_user.role %}
                     <a class="navbar-item" href="{{ url_for('.leave_attendance_list') }}">Attendance</a>
                     <a class="navbar-item" href="{{ url_for('.pending_leaves_list') }}">Pending leaves</a>
                     <a class="navbar-item" href="{{ url_for('.leave_balance_list') }}">Leave balance</a>

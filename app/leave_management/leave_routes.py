@@ -57,7 +57,7 @@ def num_of_days(start_date, end_date):
 @login_required
 @admin_required
 def leave_home():
-    if "leave_manager" in current_user.role:
+    if current_user.role and "leave_manager" in current_user.role:
         return redirect(
             url_for(".edit_attendance", date_string=date.today().strftime("%d%m%Y"))
         )
@@ -172,7 +172,7 @@ def get_employee_number(employee_number):
     Return the employee number, defaulting to the last 5 characters of the current_user's username
     if the current_user is not a leave_manager and no employee_number is given.
     """
-    if "leave_manager" not in current_user.role:
+    if current_user.role and "leave_manager" not in current_user.role:
         return current_user.username[-5:]
     elif employee_number is None:
         return current_user.username[-5:]
@@ -482,6 +482,7 @@ def leave_balance_open_list():
 @leave_mgmt_bp.route("/holiday/", defaults={"year": None})
 @leave_mgmt_bp.route("/holiday/<string:year>/")
 @login_required
+@admin_required
 def holiday_list(year):
     if not year:
         year = str(date.today().year)
