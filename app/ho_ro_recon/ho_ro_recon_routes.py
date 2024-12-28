@@ -38,14 +38,12 @@ from app.ho_ro_recon.ho_ro_recon_model import (
 )
 
 from app.users.user_model import User
+from extensions import db
 
 
 @ho_ro_recon_bp.route("/add", methods=["POST", "GET"])
 @login_required
 def add_ho_ro_recon():
-
-    from extensions import db
-
     form = ReconEntriesForm()
 
     if form.str_department_inter_region.data == "RO":
@@ -105,8 +103,6 @@ def check_for_status(recon):
 @ho_ro_recon_bp.route("/edit/<int:key>", methods=["POST", "GET"])
 @login_required
 def update_source_ro(key):
-    from extensions import db
-
     recon = ReconEntries.query.get_or_404(key)
     if current_user.user_type == "ro_user":
         if not recon.str_regional_office_code == current_user.ro_code:
@@ -121,9 +117,7 @@ def update_source_ro(key):
     elif form.str_ro_code.data == current_user.ro_code:
         flash("Selected RO code cannot be same as the RO code of the user.")
     elif form.validate_on_submit():
-
         if form.delete_button.data:
-
             recon.str_head_office_status = "Deleted"
             recon.deleted_by = current_user.username
             recon.date_deleted_date = datetime.now()
@@ -171,7 +165,6 @@ def update_target_ro(key):
     form = RegionalOfficeAcceptForm()
     if not recon.str_target_ro_code == current_user.ro_code:
         abort(404)
-    from extensions import db
 
     if not check_for_status(recon):
         flash("Cannot edit the entry as the status is no longer pending.")
@@ -215,24 +208,21 @@ def update_target_ro(key):
 def update_ho(key):
     if not current_user.user_type == "admin":
         abort(404)
-    from extensions import db
 
     recon = ReconEntries.query.get_or_404(key)
 
     form = HeadOfficeAcceptForm()
-
-    if current_user.username in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+    if current_user.role and "chief_manager" in current_user.role:
         ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
         form.str_assigned_to.choices = [
             person.username.upper()
             for person in ho_staff
             if "admin" not in person.username
         ]
-    elif current_user.username not in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+    elif current_user.role and "chief_manager" not in current_user.role:
         form.str_assigned_to.choices = [current_user.username.upper()]
 
     if form.validate_on_submit():
-
         recon.str_assigned_to = (
             form.str_assigned_to.data
             if form.str_assigned_to.data
@@ -261,13 +251,10 @@ def update_ho(key):
 @ho_ro_recon_bp.route("/", methods=["POST", "GET"])
 @login_required
 def recon_home():
-    from extensions import db
-
     form = HeadOfficeAcceptForm()
     # initialize form
     if current_user.user_type == "admin":
-
-        if current_user.username in ["bar44515", "hem27596", "jan27629", "ush25768"]:
+        if current_user.role and "chief_manager" in current_user.role:
             ho_staff = User.query.filter(User.user_type == "admin").order_by(
                 User.username
             )
@@ -276,12 +263,7 @@ def recon_home():
                 for person in ho_staff
                 if "admin" not in person.username
             ]
-        elif current_user.username not in [
-            "bar44515",
-            "hem27596",
-            "jan27629",
-            "ush25768",
-        ]:
+        elif current_user.role and "chief_manager" not in current_user.role:
             form.str_assigned_to.choices = [current_user.username.upper()]
 
     query = ReconEntries.query.filter(
@@ -293,7 +275,6 @@ def recon_home():
         )
 
     if form.validate_on_submit():
-
         list_recon_keys = request.form.getlist("recon_keys")
         updated_time = datetime.now()
         for key in list_recon_keys:
@@ -379,7 +360,6 @@ def list_recon_summary():
 
 
 def calculate_amount(ro_code):
-
     query = (
         ReconEntries.query.with_entities(func.sum(ReconEntries.amount_recon))
         .filter(ReconEntries.str_regional_office_code == ro_code)
@@ -417,8 +397,6 @@ def calculate_amount(ro_code):
 @ho_ro_recon_bp.route("/summary/edit/<int:id>", methods=["POST", "GET"])
 @login_required
 def update_recon_summary(id):
-    from extensions import db
-
     summary = ReconSummary.query.get_or_404(id)
     if current_user.user_type == "ro_user":
         if current_user.ro_code != summary.str_regional_office_code:
@@ -499,7 +477,6 @@ def update_recon_summary(id):
 @ho_ro_recon_bp.route("/upload_summary_template", methods=["GET", "POST"])
 @login_required
 def upload_summary_template():
-
     form = UploadFileForm()
 
     if form.validate_on_submit():
@@ -533,8 +510,6 @@ def upload_summary_template():
 @ho_ro_recon_bp.route("/upload_updated_summary_balance", methods=["GET", "POST"])
 @login_required
 def upload_new_ho_balance_summary():
-    from extensions import db
-
     form = UploadFileForm()
     if form.validate_on_submit():
         db.session.query(ReconUpdateBalance).delete()
@@ -574,7 +549,6 @@ def upload_new_ho_balance_summary():
                 & (ReconUpdateBalance.str_period == str_period.scalar_subquery())
             ).first()
             if updated_recon_summary_balance:
-
                 recon_summary.input_ro_balance_dr_cr = (
                     updated_recon_summary_balance.ro_dr_cr
                 )
@@ -653,7 +627,6 @@ def upload_csv_files():
 
 
 def compress_files(file_list):
-
     zip_file_name = f"zip_{datetime.now().strftime('%Y%m%d_%H%M_%S')}.zip"
     zipf = zipfile.ZipFile(
         f"download_data/ho_ro_recon/{zip_file_name}", "w", zipfile.ZIP_DEFLATED
@@ -666,7 +639,6 @@ def compress_files(file_list):
 
 
 def generate_consol_dataframe(df_ro, df_ho, df_flags):
-
     df_consol = pd.concat([df_ro, df_ho])
     df_consol = df_consol[
         ~df_consol["Description Of Accounting"].str.contains(
@@ -731,7 +703,6 @@ def generate_consol_dataframe(df_ro, df_ho, df_flags):
 
 
 def worksheet_formatter(writer, sheet_name):
-
     format_workbook = writer.book
     format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
 
@@ -749,7 +720,6 @@ def worksheet_formatter(writer, sheet_name):
 
 
 def prepare_pivot(df_consol):
-
     df_consol_closing_balance = df_consol[df_consol["HEAD"] == "Closing Balance"]
     int_closing_balance_ro = df_consol_closing_balance[
         df_consol_closing_balance["Source"] == "RO"

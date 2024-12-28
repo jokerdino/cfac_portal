@@ -51,7 +51,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    {% if current_user.username == "bar44515" %}
+                    {% if current_user.role and "brs_admin" in current_user.role %}
 
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">Enable deletion</a>

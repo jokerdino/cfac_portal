@@ -31,15 +31,7 @@ def ro_user_only(f):
 def fund_managers(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if current_user.username in [
-            "bar44515",
-            "vin38405",
-            "sug29777",
-            "sud45327",
-            "jan27629",
-            "ush25768",
-            "hem27596",
-        ]:
+        if current_user.role and "fund_manager" in current_user.role:
             return f(*args, **kwargs)
 
         else:

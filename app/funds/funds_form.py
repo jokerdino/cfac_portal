@@ -5,7 +5,6 @@ from flask_wtf.file import FileField, FileAllowed, FileRequired
 
 from wtforms import (
     BooleanField,
-    FileField,
     StringField,
     SelectField,
     TextAreaField,

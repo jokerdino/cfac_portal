@@ -39,7 +39,7 @@
                             <a class="navbar-item"
                                 href="{{ url_for('coinsurance.generate_coinsurance_balance') }}">Generate
                                 coinsurance balance</a>
-                            {% if current_user.username == "bar44515" %}
+                            {% if current_user.role and "coinsurance_admin" in current_user.role %}
                             <a class="navbar-item" href="{{ url_for('coinsurance.delete_coinsurance_balance') }}">Delete
                                 coinsurance balance</a>
                             {% endif %}

@@ -34,12 +34,12 @@ from app.ho_accounts.ho_accounts_model import (
 )
 
 from app.users.user_model import User
+from extensions import db
 
 
 @ho_accounts_bp.route("/upload_previous_month/")
 def upload_previous_month():
     """View function to upload previous quarter HO checklist itemes after scheduled quarterly cron job"""
-    from extensions import db
 
     # current_month refers to month that just ended
     current_month = date.today() - relativedelta(months=1)
@@ -54,7 +54,6 @@ def upload_previous_month():
         )
     )
     for entry in recon_entries:
-
         new_entry = HeadOfficeBankReconTracker(
             **asdict(entry),
             str_period=current_month.strftime("%b-%y"),
@@ -69,7 +68,6 @@ def upload_previous_month():
         )
     )
     for entry in accounts_entries:
-
         new_entry = HeadOfficeAccountsTracker(
             **asdict(entry),
             str_period=current_month.strftime("%b-%y"),
@@ -87,7 +85,6 @@ def upload_previous_month():
 @login_required
 def bulk_upload_trackers():
     form = BulkUploadFileForm()
-    from extensions import db
 
     if form.validate_on_submit():
         engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
@@ -132,7 +129,6 @@ def bulk_upload_trackers():
 
 
 def mask_account_number(account_number: str) -> str:
-
     if not account_number:
         return None
     return account_number[:2] + ((len(account_number) - 6) * "*") + account_number[-4:]
@@ -141,8 +137,6 @@ def mask_account_number(account_number: str) -> str:
 @ho_accounts_bp.route("/", methods=["POST", "GET"])
 @login_required
 def ho_accounts_tracker_home():
-    from extensions import db
-
     form = FilterPeriodForm()
 
     period_list_query_brs = HeadOfficeBankReconTracker.query.with_entities(
@@ -200,8 +194,6 @@ def view_mis(id):
 @ho_accounts_bp.route("/edit_work/<int:id>/", methods=["POST", "GET"])
 @login_required
 def edit_accounts_work(id):
-    from extensions import db
-
     work = HeadOfficeAccountsTracker.query.get_or_404(id)
     form = AccountsTrackerForm()
     ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
@@ -230,7 +222,6 @@ def edit_accounts_work(id):
 @login_required
 def add_work():
     form = WorkAddForm()
-    from extensions import db
 
     ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
     form.str_assigned_to.choices = [
@@ -257,8 +248,6 @@ def add_work():
 @ho_accounts_bp.route("/add_mis", methods=["POST", "GET"])
 @login_required
 def add_mis():
-    from extensions import db
-
     form = BRSAddForm()
     ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
     form.str_assigned_to.choices = [
@@ -298,8 +287,6 @@ def add_mis():
 @ho_accounts_bp.route("/edit_mis/<int:id>/", methods=["POST", "GET"])
 @login_required
 def edit_mis(id):
-    from extensions import db
-
     mis = HeadOfficeBankReconTracker.query.get_or_404(id)
     form = BRSTrackerForm()
     ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
@@ -323,7 +310,6 @@ def edit_mis(id):
         )
 
         if form.data["str_brs_file_upload"]:
-
             brs_filename_data = secure_filename(
                 form.data["str_brs_file_upload"].filename
             )
@@ -378,7 +364,6 @@ def edit_mis(id):
 def download_mis_documents(requirement, id):
     mis = HeadOfficeBankReconTracker.query.get_or_404(id)
     if requirement == "bank_confirmation":
-
         file_extension = mis.str_bank_confirmation_file_upload.rsplit(".", 1)[1]
         path = mis.str_bank_confirmation_file_upload
     elif requirement == "brs":

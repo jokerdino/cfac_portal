@@ -19,17 +19,15 @@
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('ho_accounts.ho_accounts_tracker_home')}}">Checklist
+                    <a class="navbar-item" href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Checklist
                         home</a>
+                    {% if current_user.role and "chief_manager" in current_user.role %}
                     <a class="navbar-item" href="{{ url_for('ho_accounts.bulk_upload_trackers') }}">Bulk upload
                         trackers</a>
-                    {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
                     <a class="navbar-item" href="{{ url_for('ho_accounts.add_mis') }}">Add bank account</a>
                     <a class="navbar-item" href="{{ url_for('ho_accounts.add_work') }}">Add general item</a>
                     {% endif %}
                 </div>
-            </div>
-            </div>
             </div>
 
             <div class="navbar-end">
@@ -38,10 +36,10 @@
                         {% if not current_user.is_authenticated %}
 
                         <div>
-                            <a class="button is-link" href="{{ url_for('users.login_page') }}"> Login</a>
+                            <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                             {% else %}
                             <a class="button"> {{ current_user.username }} </a>
-                            <a class="button is-link" href="{{ url_for('users.logout_page') }}"> Log out</a>
+                            <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                             {% endif %}
                         </div>
                     </div>

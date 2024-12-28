@@ -56,7 +56,7 @@
             <tr>
                 <th>{{ form.str_assigned_to.label }}</th>
                 <td>
-                    {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+                    {% if current_user.role and "chief_manager" in current_user.role %}
                     {{ form.str_assigned_to(class="select") }}
                     {% elif not recon.str_assigned_to %}
                     {{ form.str_assigned_to(class="select") }}

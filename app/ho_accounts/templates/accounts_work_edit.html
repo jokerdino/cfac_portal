@@ -10,7 +10,7 @@
                 <td>{{ work.str_period }}</td>
             </tr>
 
-            {% if current_user.username in ['bar44515', 'hem27596', 'jan27629','ush25768'] %}
+            {% if current_user.role and "chief_manager" in current_user.role %}
 
             {{ render_field_table(form.str_work) }}
             {{ render_field_table(form.str_assigned_to) }}

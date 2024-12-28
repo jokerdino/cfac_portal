@@ -20,8 +20,7 @@
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
 
-                    {% if current_user.username in ["bar44515", "vin38405", "sug29777", "sud45327", "jan27629",
-                    "hem27596"] %}
+                    {% if current_user.role and "fund_manager" in current_user.role %}
                     <a class="navbar-item" href="{{ url_for('funds.funds_home') }}">Funds home</a>
 
                     <div class="navbar-item has-dropdown is-hoverable">
@@ -72,7 +71,7 @@
                     </div>
                     {% endif %}
                     <a class="navbar-item" href="{{ url_for('funds.funds_reports') }}">Funds - Reports</a>
-                    {% if current_user.username in ["bar44515", "sud45327"] %}
+                    {% if current_user.role and "fund_admin" in current_user.role %}
                     <a class="navbar-item" href="{{ url_for('funds.modify_dates') }}">Modify dates</a>
                     {% endif %}
                 </div>

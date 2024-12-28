@@ -29,7 +29,8 @@ class MyAdminIndexView(AdminIndexView):
         if not current_user.is_authenticated and current_user.user_type == "admin":
             return redirect(url_for("users.login_page"))
 
-        if current_user.user_type == "admin" and current_user.username == "bar44515":
+        if current_user.role and "super_admin" in current_user.role:
+            # current_user.user_type == "admin" and current_user.username == "bar44515":
             return super().index()
         else:
             return redirect(url_for("main.index"))
