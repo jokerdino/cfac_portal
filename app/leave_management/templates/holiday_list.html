@@ -17,8 +17,8 @@
         </thead>
         <tbody>{% for holiday in holiday_list %}
             <tr>
-                <td data-sort="{{ holiday.date_of_leave }}">{{ holiday.date_of_holiday.strftime("%d/%m/%Y") }}</td>
-                <td data-sort="{{ holiday.date_of_leave }}">{{ holiday.date_of_holiday.strftime("%A") }}</td>
+                <td data-sort="{{ holiday.date_of_holiday }}">{{ holiday.date_of_holiday.strftime("%d/%m/%Y") }}</td>
+                <td data-sort="{{ holiday.date_of_holiday }}">{{ holiday.date_of_holiday.strftime("%A") }}</td>
                 <td>{{ holiday.name_of_holiday }}</td>
                 <td>{{ holiday.type_of_holiday }}</td>
                 <td>{{ holiday.type_of_list }}</td>
