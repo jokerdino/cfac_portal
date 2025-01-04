@@ -54,12 +54,13 @@
             </div>
         </nav>
     </header>
-
+    {% if current_user.role and "budget_manager" in current_user.role %}
     <div class="container is-fluid is-max-desktop mt-5 mb-5">
 
         {% block content %}{% endblock content %}
 
     </div>
+    {% endif %}
     <script type="text/javascript" charset="utf8"
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
     {% block scripts %}
