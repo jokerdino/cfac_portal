@@ -1,0 +1,34 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+
+<div class="container is-centered mt-5">
+    <h1 class="title">{{ title }}</h1>
+    <form action="" method="post">
+        {{ form.csrf_token }}
+
+        {% for field in form if field.widget.input_type != "hidden" %}
+        {{ render_field_div_horizontal(field) }}
+        {% endfor %}
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }} {{ ', '.join(errors) }}
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}

@@ -46,6 +46,7 @@ class PoolCredits(db.Model):
     jv_passed_by = db.Column(db.String)
 
     month = column_property(func.to_char(value_date, "YYYY-MM"))
+    month_string = column_property(func.to_char(value_date, "Mon-YY"))
 
 
 @dataclass
@@ -75,3 +76,16 @@ class PoolCreditsPortal(db.Model):
     @property
     def reference_number(self):
         return self.txt_reference_number.replace(" 00:00:00", "")
+
+
+class PoolCreditsJournalVoucher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    str_regional_office_code = db.Column(db.String, unique=True)
+    gl_code = db.Column(db.String)
+    sl_code = db.Column(db.String)
+
+    created_on = db.Column(db.DateTime, default=datetime.now)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)

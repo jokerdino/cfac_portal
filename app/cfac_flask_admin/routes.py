@@ -50,7 +50,11 @@ from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
 from app.knowledge_base.knowledge_base_model import KnowledgeBase
 from app.mis_tracker.mis_model import MisTracker
 from app.outstanding_expenses.os_model import OutstandingExpenses
-from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
+from app.pool_credits.pool_credits_model import (
+    PoolCredits,
+    PoolCreditsPortal,
+    PoolCreditsJournalVoucher,
+)
 from app.tickets.tickets_model import TicketRemarks, Tickets
 from app.users.user_model import LogUser, User
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
@@ -302,6 +306,14 @@ admin.add_view(
     )
 )
 
+admin.add_view(
+    DefaultModelView(
+        PoolCreditsJournalVoucher,
+        db.session,
+        endpoint="pool_credits_jv_",
+        category="Pool credits",
+    )
+)
 
 # Budget module
 admin.add_view(

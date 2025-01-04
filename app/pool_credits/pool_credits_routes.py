@@ -26,7 +26,11 @@ from flask_login import current_user, login_required
 import pandas as pd
 from . import pool_credits_bp
 from .pool_credits_form import UpdatePoolCreditsForm, FilterMonthForm
-from .pool_credits_model import PoolCredits, PoolCreditsPortal
+from .pool_credits_model import (
+    PoolCredits,
+    PoolCreditsPortal,
+    PoolCreditsJournalVoucher,
+)
 
 from app.funds.funds_model import FundBankStatement, FundJournalVoucherFlagSheet
 
@@ -165,8 +169,6 @@ def dynamic_query_column(entries, column_name, params):
 @login_required
 @ro_user_only
 def get_data(status):
-    from extensions import db
-
     if status == "unidentified":
         entries = db.session.query(PoolCredits).filter(
             PoolCredits.str_regional_office_code.is_(None)
@@ -250,6 +252,18 @@ def update_pool_credit(id):
     form = UpdatePoolCreditsForm(obj=entry)
     if current_user.user_type != "admin":
         form.str_regional_office_code.choices = [current_user.ro_code]
+    elif current_user.user_type == "admin":
+        ro_choices_list = (
+            db.session.query(PoolCreditsJournalVoucher.str_regional_office_code)
+            .order_by(PoolCreditsJournalVoucher.str_regional_office_code)
+            .distinct()
+            .all()
+        )
+        ro_choices = [
+            (choice.str_regional_office_code, choice.str_regional_office_code)
+            for choice in ro_choices_list
+        ]
+        form.str_regional_office_code.choices = ro_choices
     if entry.bool_jv_passed:
         flash("JV has already been passed.")
     elif form.validate_on_submit():

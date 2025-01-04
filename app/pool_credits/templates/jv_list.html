@@ -1,0 +1,53 @@
+{% extends "pool_credits_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="title">JV mappings</h1>
+
+    <table class="table is-fullwidth is-bordered" id="jv_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">RO Code</th>
+                <th class="has-text-centered is-vcentered">GL Code</th>
+                <th class="has-text-centered is-vcentered">SL Code</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in jv_list %}
+            <tr>
+                <td>{{ item['str_regional_office_code'] }}</td>
+                <td>{{ item['gl_code'] }}</td>
+                <td>{{ item['sl_code'] }}</td>
+                <td><a class="button is-link is-outlined is-small"
+                        href="{{ url_for('pool_credits.jv_edit', jv_id=item['id']) }}">Edit</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+{% block scripts %}
+
+<script>
+    new DataTable('#jv_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+
+    })
+</script>
+{% endblock scripts %}
+{% endblock content %}
