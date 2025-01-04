@@ -8,7 +8,7 @@ from flask import (
     url_for,
     send_from_directory,
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 from sqlalchemy import create_engine
 from werkzeug.utils import secure_filename
 
@@ -138,6 +138,10 @@ def lien_bulk_upload():
     if form.validate_on_submit():
         lien_file = form.lien_file.data
         df_lien = pd.read_excel(lien_file)
+
+        df_lien["created_on"] = datetime.now()
+        df_lien["created_by"] = current_user.username
+
         df_lien.to_sql(
             "lien",
             create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI")),
