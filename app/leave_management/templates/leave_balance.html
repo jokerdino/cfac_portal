@@ -21,7 +21,7 @@
             <td class="is-vcentered">{{ leave_balance.current_sick_leave_balance }}</td>
             <td class="is-vcentered">{{ leave_balance.current_rh_balance }}</td>
             <td class="is-vcentered"> {{
-                to_mixed_fraction_11(calculate_earned_leave(leave_balance.employee_number)) }}</td>
+                to_mixed_fraction_11(calculate_earned_leave(leave_balance.employee_number, today_date)) }}</td>
             <td class="is-vcentered">
                 {% if leave_balance.leave_encashment_days %}Encashed {{
                 leave_balance.leave_encashment_days }} days on

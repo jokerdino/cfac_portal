@@ -579,7 +579,7 @@ def leaves_taken_list(status, employee_number):
         .order_by(LeaveBalance.calendar_year.desc())
         .first_or_404()
     )
-    calculate_earned_leave(employee_number)
+    # calculate_earned_leave(employee_number)
     query = (
         db.select(AttendanceRegister)
         .where(
@@ -857,10 +857,11 @@ def get_leave_submission():
         leave_submitted=last_leave_submitted_date,
         calculate_earned_leave=calculate_earned_leave,
         to_mixed_fraction_11=to_mixed_fraction_11,
+        today_date=date.today(),
     )
 
 
-def get_days_off_duty(employee_number, opening_balance_date, end_date=date.today()):
+def get_days_off_duty(employee_number, opening_balance_date, end_date):
     off_duty_count = (
         db.session.query(func.sum(LeaveApplication.number_of_days_off_duty))
         .filter(
@@ -878,7 +879,7 @@ def get_days_off_duty(employee_number, opening_balance_date, end_date=date.today
 
 
 def get_days_on_duty(
-    employee_number: int, opening_balance_date: date, end_date: date = date.today()
+    employee_number: int, opening_balance_date: date, end_date: date
 ) -> int:
     """
     Calculate the number of days an employee was on duty between the given dates.
@@ -905,7 +906,7 @@ def get_days_on_duty(
 
 
 def get_earned_leave_taken(
-    employee_number: int, opening_balance_date: date, end_date: date = date.today()
+    employee_number: int, opening_balance_date: date, end_date: date
 ) -> float:
     """
     Calculate the total number of earned leave days taken by an employee between the opening balance date and the end date.
@@ -925,16 +926,14 @@ def get_earned_leave_taken(
     return earned_leave_taken or 0
 
 
-def get_leave_encashment_days(leave_balance, calculation_date=date.today()):
+def get_leave_encashment_days(leave_balance, calculation_date):
     if leave_balance.date_of_leave_encashment:
         if leave_balance.date_of_leave_encashment <= calculation_date:
             return leave_balance.leave_encashment_days
     return 0
 
 
-def calculate_earned_leave(
-    employee_number: int, date_of_calculation: date = date.today()
-) -> float:
+def calculate_earned_leave(employee_number: int, date_of_calculation: date) -> float:
     """Calculate the earned leave balance of an employee as of a given date."""
     leave_balance = (
         db.session.query(LeaveBalance)
