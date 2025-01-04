@@ -97,6 +97,7 @@ class EmployeeDataForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
+    date_of_joining_current_cadre = DateField(validators=[DataRequired()])
     current_status = SelectField(
         choices=["Active", "Inactive"], validators=[DataRequired()]
     )

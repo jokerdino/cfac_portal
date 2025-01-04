@@ -1,7 +1,7 @@
 {% extends "leave_layout.html" %}
 {% block content %}
 
-<div class="container">
+<div class="container mb-5">
     <div class="has-text-right">
         <a href="{{ url_for('.add_employee_data') }}" class="button is-link is-outlined">Add employee data</a>
     </div>
@@ -12,6 +12,7 @@
                 <th class="has-text-centered">Employee name</th>
                 <th class="has-text-centered">Employee number</th>
                 <th class="has-text-centered">Employee designation</th>
+                <th class="has-text-centered">Date of joining current cadre</th>
                 <th class="has-text-centered">Current status</th>
                 <th class="has-text-centered">Edit</th>
                 <th class="has-text-centered">Pending leaves</th>
@@ -27,6 +28,8 @@
                 <td>{{ item['employee_name'] }}</td>
                 <td>{{ item['employee_number'] }}</td>
                 <td>{{ item['employee_designation'] }}</td>
+                <td>{{ item['date_of_joining_current_cadre'].strftime("%d/%m/%Y") if
+                    item['date_of_joining_current_cadre'] }}</td>
                 <td>{{ item['current_status'] }}</td>
 
                 <td><a class="button is-small is-link" target="_blank"

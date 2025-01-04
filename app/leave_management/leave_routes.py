@@ -124,9 +124,12 @@ def edit_attendance(date_string):
     param_date = datetime.strptime(date_string, "%d%m%Y")
     populate_attendance_register(param_date)
 
+    case_designation = order_by_designation(AttendanceRegister)
     attendance = db.session.scalars(
-        db.select(AttendanceRegister).where(
-            AttendanceRegister.date_of_attendance == param_date
+        db.select(AttendanceRegister)
+        .where(AttendanceRegister.date_of_attendance == param_date)
+        .order_by(
+            case_designation.desc(), AttendanceRegister.date_of_joining_current_cadre
         )
     )
     form_data = {"daily_attendance": attendance}
@@ -307,8 +310,35 @@ def leave_application_print(id):
 @login_required
 @leave_managers
 def employee_data_list():
-    list = db.session.scalars(db.select(EmployeeData))
-    return render_template("employee_data_list.html", list=list)
+    case_designation = order_by_designation(EmployeeData)
+
+    query = db.session.scalars(
+        db.select(EmployeeData).order_by(
+            case_designation.desc(), EmployeeData.date_of_joining_current_cadre
+        )
+    )
+    return render_template("employee_data_list.html", list=query)
+
+
+def order_by_designation(model):
+    designation_list = [
+        "Assistant",
+        "Senior Assistant",
+        "Admin Officer",
+        "Assistant Manager",
+        "Deputy Manager",
+        "Manager",
+        "Chief Manager",
+    ]
+
+    case_designation = case(
+        *[
+            (getattr(model, "employee_designation") == value, index)
+            for index, value in enumerate(designation_list)
+        ],
+        else_=len(designation_list),  # Fallback for values not in the list
+    )
+    return case_designation
 
 
 @leave_mgmt_bp.route("/employee/data/add", methods=["GET", "POST"])

@@ -16,6 +16,7 @@ class EmployeeData(db.Model):
     employee_name: str = db.Column(db.String)
     employee_number: int = db.Column(db.Integer, unique=True)
     employee_designation: str = db.Column(db.String)
+    date_of_joining_current_cadre: datetime.date = db.Column(db.Date)
 
     current_status = db.Column(db.String, default="Active")
     created_by = db.Column(db.String, default=lambda: current_user.username)
@@ -33,6 +34,7 @@ class AttendanceRegister(db.Model):
     employee_name: str = db.Column(db.String)
     employee_number: int = db.Column(db.Integer)
     employee_designation: str = db.Column(db.String)
+    date_of_joining_current_cadre: datetime.date = db.Column(db.Date)
     status_of_attendance: str = db.Column(db.String)
 
     type_of_leave = db.Column(db.String)
