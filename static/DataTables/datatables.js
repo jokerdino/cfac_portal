@@ -4,10 +4,10 @@
  *
  * To rebuild or modify this file with the latest versions of the included
  * software please visit:
- *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.1.3/b-3.1.1/b-html5-3.1.1/fc-5.0.1/fh-4.0.1
+ *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.1.8/b-3.2.0/b-html5-3.2.0/fc-5.0.4/fh-4.0.1
  *
  * Included libraries:
- *   jQuery 3 3.7.0, JSZip 3.10.1, DataTables 2.1.3, Buttons 3.1.1, HTML5 export 3.1.1, FixedColumns 5.0.1, FixedHeader 4.0.1
+ *   jQuery 3 3.7.0, JSZip 3.10.1, DataTables 2.1.8, Buttons 3.2.0, HTML5 export 3.2.0, FixedColumns 5.0.4, FixedHeader 4.0.1
  */
 
 /*!
@@ -22294,14 +22294,14 @@ module.exports = ZStream;
 },{}]},{},[10])(10)
 });
 
-/*! DataTables 2.1.3
+/*! DataTables 2.1.8
  * © SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     DataTables
  * @description Paginate, search and order HTML tables
- * @version     2.1.3
+ * @version     2.1.8
  * @author      SpryMedia Ltd
  * @contact     www.datatables.net
  * @copyright   SpryMedia Ltd.
@@ -22550,6 +22550,7 @@ module.exports = ZStream;
 				"caption",
 				"layout",
 				"orderDescReverse",
+				"typeDetect",
 				[ "iCookieDuration", "iStateDuration" ], // backwards compat
 				[ "oSearch", "oPreviousSearch" ],
 				[ "aoSearchCols", "aoPreSearchCols" ],
@@ -22773,7 +22774,7 @@ module.exports = ZStream;
 				} );
 			}
 			else {
-				_fnCallbackFire( oSettings, null, 'i18n', [oSettings]);
+				_fnCallbackFire( oSettings, null, 'i18n', [oSettings], true);
 				_fnInitialise( oSettings );
 			}
 		} );
@@ -22822,7 +22823,7 @@ module.exports = ZStream;
 		 *
 		 *  @type string
 		 */
-		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.1.3/b-3.1.1/b-html5-3.1.1/fc-5.0.1/fh-4.0.1",
+		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.1.8/b-3.2.0/b-html5-3.2.0/fc-5.0.4/fh-4.0.1",
 
 
 		/**
@@ -23349,7 +23350,8 @@ module.exports = ZStream;
 			active: 'current',
 			button: 'dt-paging-button',
 			container: 'dt-paging',
-			disabled: 'disabled'
+			disabled: 'disabled',
+			nav: ''
 		}
 	} );
 
@@ -23512,7 +23514,7 @@ module.exports = ZStream;
 		// is essential here
 		if ( prop2 !== undefined ) {
 			for ( ; i<ien ; i++ ) {
-				if ( a[ order[i] ][ prop ] ) {
+				if ( a[ order[i] ] && a[ order[i] ][ prop ] ) {
 					out.push( a[ order[i] ][ prop ][ prop2 ] );
 				}
 			}
@@ -23612,8 +23614,11 @@ module.exports = ZStream;
 		}
 
 		// It is faster to just run `normalize` than it is to check if
-		// we need to with a regex!
-		var res = str.normalize("NFD");
+		// we need to with a regex! (Check as it isn't available in old
+		// Safari)
+		var res = str.normalize
+			? str.normalize("NFD")
+			: str;
 
 		// Equally, here we check if a regex is needed or not
 		return res.length !== str.length
@@ -24548,7 +24553,7 @@ module.exports = ZStream;
 	 */
 	function _typeResult (typeDetect, res) {
 		return res === true
-			? typeDetect.name
+			? typeDetect._name
 			: res;
 	}
 
@@ -24565,12 +24570,6 @@ module.exports = ZStream;
 		var i, ien, j, jen, k, ken;
 		var col, detectedType, cache;
 
-		// If SSP then we don't have the full data set, so any type detection would be
-		// unreliable and error prone
-		if (_fnDataSource( settings ) === 'ssp') {
-			return;
-		}
-
 		// For each column, spin over the data type detection functions, seeing if one matches
 		for ( i=0, ien=columns.length ; i<ien ; i++ ) {
 			col = columns[i];
@@ -24580,6 +24579,12 @@ module.exports = ZStream;
 				col.sType = col._sManualType;
 			}
 			else if ( ! col.sType ) {
+				// With SSP type detection can be unreliable and error prone, so we provide a way
+				// to turn it off.
+				if (! settings.typeDetect) {
+					return;
+				}
+
 				for ( j=0, jen=types.length ; j<jen ; j++ ) {
 					var typeDetect = types[j];
 
@@ -25331,8 +25336,8 @@ module.exports = ZStream;
 	 * @returns
 	 */
 	function _fnGetRowDisplay (settings, rowIdx) {
-		let rowModal = settings.aoData[rowIdx];
-		let columns = settings.aoColumns;
+		var rowModal = settings.aoData[rowIdx];
+		var columns = settings.aoColumns;
 
 		if (! rowModal.displayData) {
 			// Need to render and cache
@@ -25416,6 +25421,9 @@ module.exports = ZStream;
 				) {
 					_fnWriteCell(nTd, display[i]);
 				}
+
+				// column class
+				_addClass(nTd, oCol.sClass);
 
 				// Visibility - add or remove as required
 				if ( oCol.bVisible && create )
@@ -25534,9 +25542,6 @@ module.exports = ZStream;
 		else {
 			settings.aoFooter = detected;
 		}
-
-		// ARIA role for the rows
-		$(target).children('tr').attr('role', 'row');
 
 		// Every cell needs to be passed through the renderer
 		$(target).children('tr').children('th, td')
@@ -25748,7 +25753,6 @@ module.exports = ZStream;
 					var td = aoData.anCells[i];
 
 					_addClass(td, _ext.type.className[col.sType]); // auto class
-					_addClass(td, col.sClass); // column class
 					_addClass(td, oSettings.oClasses.tbody.cell); // all cells
 				}
 
@@ -26629,6 +26633,7 @@ module.exports = ZStream;
 		}
 		settings.aiDisplay = settings.aiDisplayMaster.slice();
 
+		_fnColumnTypes(settings);
 		_fnDraw( settings, true );
 		_fnInitComplete( settings );
 		_fnProcessingDisplay( settings, false );
@@ -27522,21 +27527,37 @@ module.exports = ZStream;
 		// is because of Responsive which might remove `col` elements, knocking the alignment
 		// of the indexes out.
 		if (settings.aiDisplay.length) {
-			// Get the column sizes from the first row in the table
-			var colSizes = table.children('tbody').eq(0).children('tr').eq(0).children('th, td').map(function (vis) {
-				return {
-					idx: _fnVisibleToColumnIndex(settings, vis),
-					width: $(this).outerWidth()
+			// Get the column sizes from the first row in the table. This should really be a
+			// [].find, but it wasn't supported in Chrome until Sept 2015, and DT has 10 year
+			// browser support
+			var firstTr = null;
+
+			for (i=settings._iDisplayStart ; i<settings.aiDisplay.length ; i++) {
+				var idx = settings.aiDisplay[i];
+				var tr = settings.aoData[idx].nTr;
+
+				if (tr) {
+					firstTr = tr;
+					break;
 				}
-			});
+			}
 
-			// Check against what the colgroup > col is set to and correct if needed
-			for (var i=0 ; i<colSizes.length ; i++) {
-				var colEl = settings.aoColumns[ colSizes[i].idx ].colEl[0];
-				var colWidth = colEl.style.width.replace('px', '');
+			if (firstTr) {
+				var colSizes = $(firstTr).children('th, td').map(function (vis) {
+					return {
+						idx: _fnVisibleToColumnIndex(settings, vis),
+						width: $(this).outerWidth()
+					}
+				});
 
-				if (colWidth !== colSizes[i].width) {
-					colEl.style.width = colSizes[i].width + 'px';
+				// Check against what the colgroup > col is set to and correct if needed
+				for (var i=0 ; i<colSizes.length ; i++) {
+					var colEl = settings.aoColumns[ colSizes[i].idx ].colEl[0];
+					var colWidth = colEl.style.width.replace('px', '');
+
+					if (colWidth !== colSizes[i].width) {
+						colEl.style.width = colSizes[i].width + 'px';
+					}
 				}
 			}
 		}
@@ -29064,6 +29085,7 @@ module.exports = ZStream;
 			return new _Api( context, data );
 		}
 
+		var i;
 		var settings = [];
 		var ctxSettings = function ( o ) {
 			var a = _toSettings( o );
@@ -29073,7 +29095,7 @@ module.exports = ZStream;
 		};
 
 		if ( Array.isArray( context ) ) {
-			for ( var i=0, ien=context.length ; i<ien ; i++ ) {
+			for ( i=0 ; i<context.length ; i++ ) {
 				ctxSettings( context[i] );
 			}
 		}
@@ -29088,7 +29110,16 @@ module.exports = ZStream;
 
 		// Initial data
 		if ( data ) {
-			this.push.apply(this, data);
+			// Chrome can throw a max stack error if apply is called with
+			// too large an array, but apply is faster.
+			if (data.length < 10000) {
+				this.push.apply(this, data);
+			}
+			else {
+				for (i=0 ; i<data.length ; i++) {
+					this.push(data[i]);
+				}
+			}
 		}
 
 		// selector
@@ -29971,7 +30002,7 @@ module.exports = ZStream;
 	// Reduce the API instance to the first item found
 	var _selector_first = function ( old )
 	{
-		let inst = new _Api(old.context[0]);
+		var inst = new _Api(old.context[0]);
 
 		// Use a push rather than passing to the constructor, since it will
 		// merge arrays down automatically, which isn't what is wanted here
@@ -30778,8 +30809,10 @@ module.exports = ZStream;
 				switch( match[2] ) {
 					case 'visIdx':
 					case 'visible':
-						if (match[1]) {
+						// Selector is a column index
+						if (match[1] && match[1].match(/^\d+$/)) {
 							var idx = parseInt( match[1], 10 );
+
 							// Visible index given, convert to column index
 							if ( idx < 0 ) {
 								// Counting from the right
@@ -30792,9 +30825,19 @@ module.exports = ZStream;
 							return [ _fnVisibleToColumnIndex( settings, idx ) ];
 						}
 
-						// `:visible` on its own
-						return columns.map( function (col, i) {
-							return col.bVisible ? i : null;
+						return columns.map( function (col, idx) {
+							// Not visible, can't match
+							if (! col.bVisible) {
+								return null;
+							}
+
+							// Selector
+							if (match[1]) {
+								return $(nodes[idx]).filter(match[1]).length > 0 ? idx : null;
+							}
+
+							// `:visible` on its own
+							return idx;
 						} );
 
 					case 'name':
@@ -31954,7 +31997,7 @@ module.exports = ZStream;
 				fn.call(this);
 			}
 			else {
-				this.on('init', function () {
+				this.on('init.dt.DT', function () {
 					fn.call(this);
 				});
 			}
@@ -32107,7 +32150,7 @@ module.exports = ZStream;
 	 *  @type string
 	 *  @default Version number
 	 */
-	DataTable.version = "2.1.3";
+	DataTable.version = "2.1.8";
 
 	/**
 	 * Private data store, containing all of the settings objects that are
@@ -34207,7 +34250,10 @@ module.exports = ZStream;
 		colgroup: null,
 
 		/** Delay loading of data */
-		deferLoading: null
+		deferLoading: null,
+
+		/** Allow auto type detection */
+		typeDetect: true
 	};
 
 	/**
@@ -34429,7 +34475,7 @@ module.exports = ZStream;
 
 			// Add type detection and sorting specific to this date format - we need to be able to identify
 			// date type columns as such, rather than as numbers in extensions. Hence the need for this.
-			if (! DataTable.ext.type.order[typeName]) {
+			if (! DataTable.ext.type.order[typeName + '-pre']) {
 				DataTable.type(typeName, {
 					detect: function (d) {
 						// The renderer will give the value to type detect as the type!
@@ -34668,7 +34714,7 @@ module.exports = ZStream;
 			return {
 				className: _extTypes.className[name],
 				detect: _extTypes.detect.find(function (fn) {
-					return fn.name === name;
+					return fn._name === name;
 				}),
 				order: {
 					pre: _extTypes.order[name + '-pre'],
@@ -34686,10 +34732,10 @@ module.exports = ZStream;
 		var setDetect = function (detect) {
 			// `detect` can be a function or an object - we set a name
 			// property for either - that is used for the detection
-			Object.defineProperty(detect, "name", {value: name});
+			Object.defineProperty(detect, "_name", {value: name});
 
 			var idx = _extTypes.detect.findIndex(function (item) {
-				return item.name === name;
+				return item._name === name;
 			});
 
 			if (idx === -1) {
@@ -34752,13 +34798,13 @@ module.exports = ZStream;
 	// Get a list of types
 	DataTable.types = function () {
 		return _extTypes.detect.map(function (fn) {
-			return fn.name;
+			return fn._name;
 		});
 	};
 
 	var __diacriticSort = function (a, b) {
-		a = a.toString().toLowerCase();
-		b = b.toString().toLowerCase();
+		a = a !== null && a !== undefined ? a.toString().toLowerCase() : '';
+		b = b !== null && b !== undefined ? b.toString().toLowerCase() : '';
 
 		// Checked for `navigator.languages` support in `oneOf` so this code can't execute in old
 		// Safari and thus can disable this check
@@ -34781,7 +34827,7 @@ module.exports = ZStream;
 			pre: function ( a ) {
 				// This is a little complex, but faster than always calling toString,
 				// http://jsperf.com/tostring-v-check
-				return _empty(a) ?
+				return _empty(a) && typeof a !== 'boolean' ?
 					'' :
 					typeof a === 'string' ?
 						a.toLowerCase() :
@@ -35034,6 +35080,12 @@ module.exports = ZStream;
 						return;               // table, not a nested one
 					}
 
+					var sorting = ctx.sortDetails;
+
+					if (! sorting) {
+						return;
+					}
+
 					var i;
 					var orderClasses = classes.order;
 					var columns = ctx.api.columns( cell );
@@ -35042,7 +35094,6 @@ module.exports = ZStream;
 					var ariaType = '';
 					var indexes = columns.indexes();
 					var sortDirs = columns.orderable(true).flatten();
-					var sorting = ctx.sortDetails;
 					var orderedColumns = _pluck(sorting, 'col');
 
 					cell
@@ -35410,7 +35461,11 @@ module.exports = ZStream;
 
 		var host = $('<div/>')
 			.addClass(settings.oClasses.paging.container + (opts.type ? ' paging_' + opts.type : ''))
-			.append('<nav>');
+			.append(
+				$('<nav>')
+					.attr('aria-label', 'pagination')
+					.addClass(settings.oClasses.paging.nav)
+			);
 		var draw = function () {
 			_pagingDraw(settings, host.children(), opts);
 		};
@@ -35463,15 +35518,17 @@ module.exports = ZStream;
 			all        = len === -1,
 			page = all ? 0 : Math.ceil( start / len ),
 			pages = all ? 1 : Math.ceil( visRecords / len ),
-			buttons = plugin(opts)
+			buttons = [],
+			buttonEls = [],
+			buttonsNested = plugin(opts)
 				.map(function (val) {
 					return val === 'numbers'
 						? _pagingNumbers(page, pages, opts.buttons, opts.boundaryNumbers)
 						: val;
-				})
-				.flat();
+				});
 
-		var buttonEls = [];
+		// .flat() would be better, but not supported in old Safari
+		buttons = buttons.concat.apply(buttons, buttonsNested);
 
 		for (var i=0 ; i<buttons.length ; i++) {
 			var button = buttons[i];
@@ -35750,14 +35807,14 @@ module.exports = ZStream;
 
 		// Save text node content for macro updating
 		var textNodes = [];
-		div.find('label')[0].childNodes.forEach(function (el) {
+		Array.from(div.find('label')[0].childNodes).forEach(function (el) {
 			if (el.nodeType === Node.TEXT_NODE) {
 				textNodes.push({
 					el: el,
 					text: el.textContent
 				});
 			}
-		})
+		});
 
 		// Update the label text in case it has an entries value
 		var updateEntries = function (len) {
@@ -35917,6 +35974,9 @@ $.extend( true, DataTable.ext.classes, {
 	},
 	processing: {
 		container: "dt-processing card"
+	},
+	paging: {
+		nav: 'pagination'
 	}
 } );
 
@@ -35944,11 +36004,7 @@ DataTable.ext.renderer.pagingButton.bulma = function (settings, buttonType, cont
 };
 
 DataTable.ext.renderer.pagingContainer.bulma = function (settings, buttonEls) {
-	var nav = $('<nav class="pagination" role="navigation" aria-label="pagination"><ul class="pagination-list"></ul></nav>');
-
-	nav.find('ul').append(buttonEls);
-
-	return nav;
+	return $('<ul class="pagination-list"></ul>').append(buttonEls);
 };
 
 DataTable.ext.renderer.layout.bulma = function ( settings, container, items ) {
@@ -36017,7 +36073,7 @@ return DataTable;
 }));
 
 
-/*! Buttons for DataTables 3.1.1
+/*! Buttons for DataTables 3.2.0
  * © SpryMedia Ltd - datatables.net/license
  */
 
@@ -36321,9 +36377,20 @@ $.extend(Buttons.prototype, {
 	disable: function (node) {
 		var button = this._nodeToButton(node);
 
-		$(button.node)
-			.addClass(this.c.dom.button.disabled)
-			.prop('disabled', true);
+		if (button.isSplit) {
+			$(button.node.childNodes[0])
+				.addClass(this.c.dom.button.disabled)
+				.prop('disabled', true);
+		}
+		else {
+			$(button.node)
+				.addClass(this.c.dom.button.disabled)
+				.prop('disabled', true);
+		}
+
+		button.disabled = true;
+
+		this._checkSplitEnable();
 
 		return this;
 	},
@@ -36374,9 +36441,21 @@ $.extend(Buttons.prototype, {
 		}
 
 		var button = this._nodeToButton(node);
-		$(button.node)
-			.removeClass(this.c.dom.button.disabled)
-			.prop('disabled', false);
+
+		if (button.isSplit) {
+			$(button.node.childNodes[0])
+				.removeClass(this.c.dom.button.disabled)
+				.prop('disabled', false);
+		}
+		else {
+			$(button.node)
+				.removeClass(this.c.dom.button.disabled)
+				.prop('disabled', false);
+		}
+
+		button.disabled = false;
+
+		this._checkSplitEnable();
 
 		return this;
 	},
@@ -36689,14 +36768,19 @@ $.extend(Buttons.prototype, {
 				attachTo.push(built);
 			}
 
+			// Any button type can have a drop icon set
+			if (built.conf.dropIcon && ! built.conf.split) {
+				$(built.node)
+					.addClass(this.c.dom.button.dropClass)
+					.append(this.c.dom.button.dropHtml);
+			}
+
 			// Create the dropdown for a collection
 			if (built.conf.buttons) {
 				built.collection = $(
 					'<' + domCollection.container.content.tag + '/>'
 				);
 				built.conf._collection = built.collection;
-
-				$(built.node).append(domCollection.action.dropHtml);
 
 				this._expandButton(
 					built.buttons,
@@ -36965,6 +37049,7 @@ $.extend(Buttons.prototype, {
 				.append(button);
 
 			var dropButtonConfig = $.extend(config, {
+				autoClose: true,
 				align: dropdownConf.dropdown.align,
 				attr: {
 					'aria-haspopup': 'dialog',
@@ -37001,7 +37086,8 @@ $.extend(Buttons.prototype, {
 					dropdownConf.dropdown.className +
 					' dt-button"></button>'
 			)
-				.html(dropdownConf.dropdown.dropHtml)
+				.html(this.c.dom.button.dropHtml)
+				.addClass(this.c.dom.button.dropClass)
 				.on('click.dtb', function (e) {
 					e.preventDefault();
 					e.stopPropagation();
@@ -37044,6 +37130,57 @@ $.extend(Buttons.prototype, {
 	},
 
 	/**
+	 * Spin over buttons checking if splits should be enabled or not.
+	 * @param {*} buttons Array of buttons to check
+	 */
+	_checkSplitEnable: function (buttons) {
+		if (! buttons) {
+			buttons = this.s.buttons;
+		}
+
+		for (var i=0 ; i<buttons.length ; i++) {
+			var button = buttons[i];
+
+			// Check if the button is a split one and if so, determine
+			// its state
+			if (button.isSplit) {
+				var splitBtn = button.node.childNodes[1];
+
+				if (this._checkAnyEnabled(button.buttons)) {
+					// Enable the split
+					$(splitBtn)
+						.removeClass(this.c.dom.button.disabled)
+						.prop('disabled', false);
+				}
+				else {
+					$(splitBtn)
+						.addClass(this.c.dom.button.disabled)
+						.prop('disabled', false);
+				}
+			}
+			else if (button.isCollection) {
+				// Nest down into collections
+				this._checkSplitEnable(button.buttons);
+			}
+		}
+	},
+
+	/**
+	 * Check an array of buttons and see if any are enabled in it
+	 * @param {*} buttons Button array
+	 * @returns true if a button is enabled, false otherwise
+	 */
+	_checkAnyEnabled: function (buttons) {
+		for (var i=0 ; i<buttons.length ; i++) {
+			if (! buttons[i].disabled) {
+				return true;
+			}
+		}
+
+		return false;
+	},
+
+	/**
 	 * Get the button object from a node (recursive)
 	 * @param  {node} node Button node
 	 * @param  {array} [buttons] Button array, uses base if not defined
@@ -37056,7 +37193,7 @@ $.extend(Buttons.prototype, {
 		}
 
 		for (var i = 0, ien = buttons.length; i < ien; i++) {
-			if (buttons[i].node === node) {
+			if (buttons[i].node === node || $(buttons[i].node).children().eq(0).get(0) === node) {
 				return buttons[i];
 			}
 
@@ -37325,7 +37462,8 @@ $.extend(Buttons.prototype, {
 
 		var containerSelector =
 			options.tag + '.' + options.containerClassName.replace(/ /g, '.');
-		var hostNode = hostButton.node();
+		var hostButtonNode = hostButton.node();
+		var hostNode = options.collectionLayout.includes('fixed') ? $('body') : hostButton.node();
 
 		var close = function () {
 			closed = true;
@@ -37352,6 +37490,8 @@ $.extend(Buttons.prototype, {
 			$('body').off('.dtb-collection');
 			dt.off('buttons-action.b-internal');
 			dt.off('destroy');
+
+			$('body').trigger('buttons-popover-hide.dt');
 		};
 
 		if (content === false) {
@@ -37369,6 +37509,26 @@ $.extend(Buttons.prototype, {
 			}
 
 			close();
+		}
+
+		// Sort buttons if defined
+		if (options.sort) {
+			var elements = $('button', content)
+				.map(function (idx, el) {
+					return {
+						text: $(el).text(),
+						el: el
+					};
+				})
+				.toArray();
+
+			elements.sort(function (a, b) {
+				return a.text.localeCompare(b.text);
+			});
+
+			$(content).append(elements.map(function (v) {
+				return v.el;
+			}));
 		}
 
 		// Try to be smart about the layout
@@ -37401,7 +37561,7 @@ $.extend(Buttons.prototype, {
 			.attr('role', 'menu')
 			.appendTo(display);
 
-		hostNode.attr('aria-expanded', 'true');
+		hostButtonNode.attr('aria-expanded', 'true');
 
 		if (hostNode.parents('body')[0] !== document.body) {
 			hostNode = document.body.lastChild;
@@ -37533,7 +37693,7 @@ $.extend(Buttons.prototype, {
 					popoverSizes.marginBottom;
 			}
 
-			if (containerPosition.top + top < $(window).scrollTop()) {
+			if (offsetParent.offset().top + top < $(window).scrollTop()) {
 				// Correction for when the top is beyond the top of the page
 				top = buttonPosition.top + hostNode.outerHeight();
 			}
@@ -37933,6 +38093,14 @@ Buttons.stripData = function (str, config) {
 		}
 	}
 
+	// Prevent Excel from running a formula
+	if (!config || config.escapeExcelFormula) {
+		if (str.match(/^[=+\-@\t\r]/)) {
+			console.log('matching and updateing');
+			str = "'" + str;
+		}
+	}
+
 	return str;
 };
 
@@ -37995,10 +38163,6 @@ Buttons.defaults = {
 			className: 'dt-buttons'
 		},
 		collection: {
-			action: {
-				// action button
-				dropHtml: '<span class="dt-button-down-arrow">&#x25BC;</span>'
-			},
 			container: {
 				// The element used for the dropdown
 				className: 'dt-button-collection',
@@ -38024,7 +38188,9 @@ Buttons.defaults = {
 			liner: {
 				tag: 'span',
 				className: ''
-			}
+			},
+			dropClass: '',
+			dropHtml: '<span class="dt-button-down-arrow">&#x25BC;</span>'
 		},
 		split: {
 			action: {
@@ -38036,7 +38202,6 @@ Buttons.defaults = {
 				// button to trigger the dropdown
 				align: 'split-right',
 				className: 'dt-button-split-drop',
-				dropHtml: '<span class="dt-button-down-arrow">&#x25BC;</span>',
 				splitAlignClass: 'dt-button-split-left',
 				tag: 'button'
 			},
@@ -38054,7 +38219,7 @@ Buttons.defaults = {
  * @type {string}
  * @static
  */
-Buttons.version = '3.1.1';
+Buttons.version = '3.2.0';
 
 $.extend(_dtButtons, {
 	collection: {
@@ -38063,6 +38228,7 @@ $.extend(_dtButtons, {
 		},
 		className: 'buttons-collection',
 		closeButton: false,
+		dropIcon: true,
 		init: function (dt, button) {
 			button.attr('aria-expanded', false);
 		},
@@ -38657,6 +38823,7 @@ var _exportData = function (dt, inOpts) {
 			stripHtml: true,
 			stripNewlines: true,
 			decodeEntities: true,
+			escapeExcelFormula: false,
 			trim: true,
 			format: {
 				header: function (d) {
@@ -38902,13 +39069,14 @@ $.extend(true, DataTable.Buttons.defaults, {
 		button: {
 			className: 'button',
 			active: 'is-active',
-			disabled: 'is-disabled'
+			disabled: 'is-disabled',
+			dropHtml: '<span class="icon is-small"><i class="fa fa-angle-down" aria-hidden="true"></i></span>',
+			dropClass: ''
 		},
 		collection: {
 			action: {
 				tag: 'div',
-				className: 'dropdown-content',
-				dropHtml: ''
+				className: 'dropdown-content'
 			},
 			button: {
 				tag: 'a',
@@ -38936,7 +39104,6 @@ $.extend(true, DataTable.Buttons.defaults, {
 			},
 			dropdown: {
 				tag: 'button',
-				dropHtml: '<i class="fa fa-angle-down" aria-hidden="true"></i>',
 				className: 'button',
 				closeButton: false,
 				align: 'split-left',
@@ -38954,13 +39121,6 @@ $.extend(true, DataTable.Buttons.defaults, {
 		if (config.buttons) {
 			// Wrap the dropdown content in a menu element
 			config._collection = $('<div class="dropdown-menu"/>').append(config._collection);
-
-			// And add the collection dropdown icon
-			$(button).append(
-				'<span class="icon is-small">' +
-					'<i class="fa fa-angle-down" aria-hidden="true"></i>' +
-					'</span>'
-			);
 		}
 
 		return button;
@@ -39941,18 +40101,20 @@ DataTable.ext.buttons.copyHtml5 = {
 				hiddenDiv.remove();
 
 				if (successful) {
-					dt.buttons.info(
-						dt.i18n('buttons.copyTitle', 'Copy to clipboard'),
-						dt.i18n(
-							'buttons.copySuccess',
-							{
-								1: 'Copied one row to clipboard',
-								_: 'Copied %d rows to clipboard'
-							},
-							exportData.rows
-						),
-						2000
-					);
+					if (config.copySuccess) {
+						dt.buttons.info(
+							dt.i18n('buttons.copyTitle', 'Copy to clipboard'),
+							dt.i18n(
+								'buttons.copySuccess',
+								{
+									1: 'Copied one row to clipboard',
+									_: 'Copied %d rows to clipboard'
+								},
+								exportData.rows
+							),
+							2000
+						);
+					}
 
 					cb();
 					return;
@@ -39992,7 +40154,10 @@ DataTable.ext.buttons.copyHtml5 = {
 			dt.buttons.info(false);
 		};
 
-		container.on('click.buttons-copy', close);
+		container.on('click.buttons-copy', function () {
+			close();
+			cb();
+		});
 		$(document)
 			.on('keydown.buttons-copy', function (e) {
 				if (e.keyCode === 27) {
@@ -40008,6 +40173,8 @@ DataTable.ext.buttons.copyHtml5 = {
 	},
 
 	async: 100,
+
+	copySuccess: true,
 
 	exportOptions: {},
 
@@ -40084,7 +40251,9 @@ DataTable.ext.buttons.csvHtml5 = {
 
 	extension: '.csv',
 
-	exportOptions: {},
+	exportOptions: {
+		escapeExcelFormula: true
+	},
 
 	fieldSeparator: ',',
 
@@ -40664,7 +40833,7 @@ return DataTable;
 }));
 
 
-/*! FixedColumns 5.0.1
+/*! FixedColumns 5.0.4
  * © SpryMedia Ltd - datatables.net/license
  */
 
@@ -41063,7 +41232,7 @@ var DataTable = $.fn.dataTable;
             }
             return widths.slice(0, index).reduce(function (accum, val) { return accum + val; }, 0);
         };
-        FixedColumns.version = '5.0.1';
+        FixedColumns.version = '5.0.4';
         FixedColumns.classes = {
             bottomBlocker: 'dtfc-bottom-blocker',
             fixedEnd: 'dtfc-fixed-end',
@@ -41090,7 +41259,7 @@ var DataTable = $.fn.dataTable;
         return FixedColumns;
     }());
 
-    /*! FixedColumns 5.0.1
+    /*! FixedColumns 5.0.4
      * © SpryMedia Ltd - datatables.net/license
      */
     setJQuery($);
