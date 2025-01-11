@@ -1,0 +1,61 @@
+<div class="modal" id="modal_inflow">
+    <div class="modal-background"></div>
+
+    <div class="modal-content">
+        <div class="box">
+
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-weight-bold has-text-centered">
+                        <td>Collections</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for flag in flag_description | sort | unique %}
+                    <tr>
+                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
+                        <td>{{ flag[0] }}</td>
+
+                        <td class="has-text-right">
+
+                            {{ (display_inflow(display_date, flag[0]) or 0) | indian_number_format }}
+
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    <tr>
+                        <td>Other receipts</td>
+                        <td class="has-text-right">
+
+                            {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0) | indian_number_format }}
+
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>HDFC OPENING BAL</td>
+                        <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
+                            "HDFC") | indian_number_format }}
+
+                        </td>
+                    </tr>
+
+                    {% set inflow_total = get_inflow_total(display_date) %}
+                    <tr class="has-text-weight-bold">
+                        <td>Total</td>
+                        <td class="has-text-right">
+                            {{ (display_inflow(display_date) +
+                            return_prev_day_closing_balance(display_date,
+                            "HDFC")) | indian_number_format }}
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+            <button class="modal-close is-large" aria-label="close"></button>
+
+        </div>
+    </div>
+</div>

@@ -1,0 +1,39 @@
+<div class="modal" id="modal_outflow">
+    <div class="modal-background"></div>
+
+    <div class="modal-content">
+        <div class="box">
+
+            <table class="table is-bordered is-fullwidth">
+                <thead>
+                    <tr class="has-text-centered has-text-weight-bold">
+                        <td>Payments</td>
+                        <td>Amount</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for label, item in outflow_items | sort %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td class="has-text-right">
+
+                            {{ (display_outflow(display_date, item) or 0) | indian_number_format }}
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr class="has-text-weight-bold">
+                        <td>Total</td>
+                        <td class="has-text-right">
+
+                            {{ (display_outflow(display_date) or 0) | indian_number_format }}
+
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
