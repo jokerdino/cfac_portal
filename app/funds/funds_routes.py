@@ -229,10 +229,59 @@ def get_ibt_details(outflow_description):
 @fund_managers
 def funds_home_data():
     # Query for paginated records
-    query = db.session.query(distinct(FundBankStatement.date_uploaded_date)).order_by(
-        FundBankStatement.date_uploaded_date.desc()
+    subquery = (
+        db.session.query(
+            FundDailySheet.date_current_date.label("date_current_date"),
+            func.sum(FundDailyOutflow.outflow_amount).label("outflow_amount"),
+            FundDailySheet.float_amount_given_to_investments.label("investment_given"),
+            FundDailySheet.float_amount_taken_from_investments.label(
+                "investment_taken"
+            ),
+            FundDailySheet.float_amount_investment_closing_balance.label(
+                "investment_closing_balance"
+            ),
+            FundDailySheet.float_amount_hdfc_closing_balance.label(
+                "hdfc_closing_balance"
+            ),
+        )
+        .join(
+            FundDailyOutflow,
+            FundDailySheet.date_current_date == FundDailyOutflow.outflow_date,
+        )
+        .group_by(
+            FundDailySheet.date_current_date,
+            FundDailySheet.float_amount_given_to_investments,
+            FundDailySheet.float_amount_taken_from_investments,
+            FundDailySheet.float_amount_investment_closing_balance,
+            FundDailySheet.float_amount_hdfc_closing_balance,
+        )
+        .subquery()  # Convert this to a subquery
     )
 
+    # Main query to join the subquery with FundBankStatement
+    query = (
+        db.session.query(
+            FundBankStatement.date_uploaded_date,
+            subquery.c.investment_given,
+            subquery.c.investment_taken,
+            subquery.c.investment_closing_balance,
+            subquery.c.hdfc_closing_balance,
+            subquery.c.outflow_amount,
+        )
+        .outerjoin(
+            subquery,
+            FundBankStatement.date_uploaded_date == subquery.c.date_current_date,
+        )
+        .group_by(
+            FundBankStatement.date_uploaded_date,
+            subquery.c.investment_given,
+            subquery.c.investment_taken,
+            subquery.c.investment_closing_balance,
+            subquery.c.hdfc_closing_balance,
+            subquery.c.outflow_amount,
+        )
+        .order_by(FundBankStatement.date_uploaded_date.desc())
+    )
     total_records = query.count()
     # Filtered record count (same as total here unless filters are applied)
     records_filtered = query.count()
@@ -246,21 +295,13 @@ def funds_home_data():
         {
             "date_uploaded_date": row[0],
             "credit": get_inflow_total(row[0]),
-            "outflow": fill_outflow(row[0]),
-            "net_cashflow": (get_inflow_total(row[0])) - (fill_outflow(row[0])),
-            "investment_given": get_daily_summary_refactored(
-                row[0], "investment_given"
-            ),
-            "investment_taken": get_daily_summary_refactored(
-                row[0], "investment_taken"
-            ),
-            "net_investment": get_daily_summary_refactored(row[0], "net_investment"),
-            "investment_closing_balance": get_daily_summary_refactored(
-                row[0], "investment_closing_balance"
-            ),
-            "hdfc_closing_balance": get_daily_summary_refactored(
-                row[0], "hdfc_closing_balance"
-            ),
+            "outflow": row[5] or 0,
+            "net_cashflow": (get_inflow_total(row[0])) - (row[5] or 0),
+            "investment_given": row[1] or 0,
+            "investment_taken": row[2] or 0,
+            "net_investment": (row[1] or 0) - (row[2] or 0),
+            "investment_closing_balance": row[3] or 0,
+            "hdfc_closing_balance": row[4] or 0,
         }
         for row in query
     ]
