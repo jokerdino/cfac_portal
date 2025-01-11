@@ -1,4 +1,3 @@
-# from datetime import datetime
 import datetime
 from math import fabs
 
@@ -127,6 +126,7 @@ def fill_outflow(date, description=None):
 
 
 def return_prev_day_closing_balance(date: datetime, type: str):
+    """Obsolete function. Please use 'get_previous_day_closing_balance_refactored' instead"""
     daily_summary = (
         db.session.query(FundDailySheet)
         .filter(FundDailySheet.date_current_date < date)
@@ -144,6 +144,7 @@ def return_prev_day_closing_balance(date: datetime, type: str):
 
 
 def get_daily_summary(input_date, requirement):
+    """Obsolete function. Please use 'get_daily_summary_refactored' instead."""
     daily_sheet = FundDailySheet.query.filter(
         FundDailySheet.date_current_date == input_date
     ).first()
@@ -194,6 +195,7 @@ def get_requirement(daily_sheet, requirement):
         "net_investment": daily_sheet.get_net_investment,
         "HDFC": daily_sheet.float_amount_hdfc_closing_balance or 0,
         "closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
+        "hdfc_closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
         "Investment": daily_sheet.float_amount_investment_closing_balance or 0,
         "investment_closing_balance": daily_sheet.float_amount_investment_closing_balance
         or 0,
@@ -211,7 +213,7 @@ def get_inflow_total(date):
         - (get_daily_summary_refactored(date, "investment_taken"))
     )
 
-    return inflow_total
+    return inflow_total or 0
 
 
 def get_ibt_details(outflow_description):
@@ -220,6 +222,63 @@ def get_ibt_details(outflow_description):
     ).first()
 
     return outflow
+
+
+@funds_bp.route("/api/v1/data/funds", methods=["GET"])
+@login_required
+@fund_managers
+def funds_home_data():
+    # Query for paginated records
+    query = db.session.query(distinct(FundBankStatement.date_uploaded_date)).order_by(
+        FundBankStatement.date_uploaded_date.desc()
+    )
+
+    total_records = query.count()
+    # Filtered record count (same as total here unless filters are applied)
+    records_filtered = query.count()
+    start = request.args.get("start", type=int)
+    length = request.args.get("length", type=int)
+
+    query = query.offset(start).limit(length)
+
+    # Format the data for DataTables
+    data = [
+        {
+            "date_uploaded_date": row[0],
+            "credit": get_inflow_total(row[0]),
+            "outflow": fill_outflow(row[0]),
+            "net_cashflow": (get_inflow_total(row[0])) - (fill_outflow(row[0])),
+            "investment_given": get_daily_summary_refactored(
+                row[0], "investment_given"
+            ),
+            "investment_taken": get_daily_summary_refactored(
+                row[0], "investment_taken"
+            ),
+            "net_investment": get_daily_summary_refactored(row[0], "net_investment"),
+            "investment_closing_balance": get_daily_summary_refactored(
+                row[0], "investment_closing_balance"
+            ),
+            "hdfc_closing_balance": get_daily_summary_refactored(
+                row[0], "hdfc_closing_balance"
+            ),
+        }
+        for row in query
+    ]
+
+    # return response
+    return {
+        "draw": request.args.get("draw", type=int),
+        "recordsTotal": total_records,
+        "recordsFiltered": records_filtered,
+        "data": data,
+    }
+
+
+@funds_bp.route("/home")
+@login_required
+@fund_managers
+def funds_home_api():
+    return render_template("funds_home_api.html")
 
 
 @funds_bp.route("/", methods=["GET"])
@@ -233,10 +292,10 @@ def funds_home():
     return render_template(
         "funds_home.html",
         query=query,
-        display_inflow=display_inflow,
-        display_outflow=fill_outflow,
-        get_inflow_total=get_inflow_total,
-        get_daily_summary=get_daily_summary_refactored,
+        # display_inflow=display_inflow,
+        # display_outflow=fill_outflow,
+        # get_inflow_total=get_inflow_total,
+        # get_daily_summary=get_daily_summary_refactored,
     )
 
 
@@ -981,3 +1040,13 @@ def delete_date():
         flash(f"{delete_date} has been deleted.")
 
     return render_template("delete_date.html", form=form)
+
+
+@funds_bp.context_processor
+def funds_context():
+    return dict(
+        display_inflow=display_inflow,
+        display_outflow=fill_outflow,
+        get_inflow_total=get_inflow_total,
+        get_daily_summary=get_daily_summary_refactored,
+    )

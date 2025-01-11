@@ -88,7 +88,7 @@
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
               checklist</a></li>
           {% if current_user.role and "fund_manager" in current_user.role %}
-          <li><a href="{{ url_for('funds.funds_home') }}">Funds</a></li>
+          <li><a href="{{ url_for('funds.funds_home_api') }}">Funds</a></li>
           {% else %}
           <li><a href="{{ url_for('funds.funds_reports') }}">Funds - Reports</a></li>
           {% endif %}

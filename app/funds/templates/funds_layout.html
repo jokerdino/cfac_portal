@@ -21,7 +21,7 @@
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
 
                     {% if current_user.role and "fund_manager" in current_user.role %}
-                    <a class="navbar-item" href="{{ url_for('funds.funds_home') }}">Funds home</a>
+                    <a class="navbar-item" href="{{ url_for('funds.funds_home_api') }}">Funds home</a>
 
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">Flags</a>
