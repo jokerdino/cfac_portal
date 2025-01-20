@@ -1,0 +1,67 @@
+{% extends "leave_balance_layout.html" %}
+{% block content %}
+
+<div class="container is-fluid">
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        {{ field.label }} field is to be completed.
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+
+    {% endwith %}
+
+    <h1 class="title">SL balance update</h1>
+
+    <form method="post">
+
+        {{ form.csrf_token }}
+
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">RO Code</th>
+                    <th class="has-text-centered">OO Code</th>
+                    <th class="has-text-centered">Employee name</th>
+                    <th class="has-text-centered">Employee number</th>
+                    <th class="has-text-centered">Employee designation</th>
+                    <th class="has-text-centered">Opening balance</th>
+                    <th class="has-text-centered">Leave accrued</th>
+                    <th class="has-text-centered">Leave availed</th>
+                    <th class="has-text-centered">Leave lapsed</th>
+                    <th class="has-text-centered">Closing balance</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in form.sick_leave %}
+                <tr>
+                    {% for field in employee %}
+                    <td> {% if field.type != "SelectField" %}
+                        {{ field }}
+                        {% elif field.type == "SelectField" %}
+                        <div class="select">{{ field }}</div>
+                        {% endif %}
+                    </td>
+
+                    {% endfor %}
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

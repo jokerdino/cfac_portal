@@ -34,3 +34,19 @@ summary {
     padding: var(--bulma-message-header-padding);
     position: relative;
 }
+
+.input-like {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    /*font-family: Arial, sans-serif; */
+    font-size: 12px;
+    color: #333;
+    cursor: not-allowed;
+    width: 160px;
+}
+.input-like:focus {
+    background-color: #fff;  /* On focus, change the background */
+    border-color: #888;      /* Change the border color when focused */
+}

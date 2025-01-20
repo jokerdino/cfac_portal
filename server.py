@@ -26,6 +26,7 @@ from app.pg_tieup import pg_tieup_bp
 from app.lien import lien_bp
 
 from app.leave_management import leave_mgmt_bp
+from app.employee_leave_balance import leave_balance_bp
 
 from app.mis_tracker import mis_bp
 
@@ -81,6 +82,7 @@ def create_app(config_class=Config):
     app.register_blueprint(pg_tieup_bp, url_prefix="/pg_tieup")
     app.register_blueprint(lien_bp, url_prefix="/lien")
     app.register_blueprint(leave_mgmt_bp, url_prefix="/leave")
+    app.register_blueprint(leave_balance_bp, url_prefix="/leave_balance")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")

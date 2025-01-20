@@ -74,6 +74,8 @@ from app.leave_management.leave_model import (
 )
 from app.lien.lien_model import Lien
 
+from app.employee_leave_balance.model import PrivilegeLeaveBalance, SickLeaveBalance
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -89,6 +91,7 @@ admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Leave", parent_name="Leave")
+admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
 
 # User models
 admin.add_view(
@@ -418,5 +421,24 @@ admin.add_view(
         Lien,
         db.session,
         endpoint="lien_",
+    )
+)
+
+# Leave balance module
+admin.add_view(
+    DefaultModelView(
+        PrivilegeLeaveBalance,
+        db.session,
+        endpoint="PL",
+        category="Leave balance",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        SickLeaveBalance,
+        db.session,
+        endpoint="SL",
+        category="Leave balance",
     )
 )
