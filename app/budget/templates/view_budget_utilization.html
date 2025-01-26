@@ -38,8 +38,7 @@
                 {% set budget_allocated = (item[4] or item[3] or 0) %}
                 {% set budget_usage = budget_allocated - budget_used %}
 
-                {% if budget_usage >= 0 %}
-                <tr>
+                <tr {% if budget_usage < 0 %} class="has-background-danger-light" {% endif %}>
                     <td class="has-text-centered">{{ item[0] }}</td>
                     <td class="has-text-centered">{{ item[1] }}</td>
                     <td>{{ item[2] }}</td>
@@ -52,27 +51,6 @@
                     <td class="has-text-right">{{ (budget_used / (budget_allocated+1) * 100)|
                         indian_number_format }}%</td>
                 </tr>
-                {% else %}
-                <tr class="has-background-danger-light">
-                    <td class="has-text-centered">{{ item[0] }}</td>
-                    <td class="has-text-centered">{{ item[1] }}</td>
-                    <td>{{ item[2] }}</td>
-                    <td class="has-text-right">{{ (item[3] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (item[4] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (item[5] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (item[6] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (item[7] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (item[8] or 0) | indian_number_format }}
-                    </td>
-                    <td class="has-text-right">{{ (budget_used / (budget_allocated+1) * 100)|
-                        indian_number_format }}%</td>
-                </tr>
-                {% endif %}
 
                 {% endfor %}
             </tbody>

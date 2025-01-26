@@ -47,3 +47,13 @@ class ReconSummaryView(DefaultModelView):
 
 class PoolCreditView(DefaultModelView):
     column_searchable_list = ["description"]
+
+
+class BudgetAllocationView(DefaultModelView):
+    column_searchable_list = ["str_expense_head", "str_ro_code"]
+    column_filters = ["str_expense_head", "str_ro_code"]
+
+
+class BudgetUtilizationView(DefaultModelView):
+    column_searchable_list = ["str_expense_head", "str_ro_code"]
+    column_filters = ["str_expense_head", "str_ro_code"]

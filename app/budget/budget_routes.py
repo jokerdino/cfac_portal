@@ -107,7 +107,6 @@ def view_budget_utilization():
     form.str_ro_code.choices = sorted([ro_code[0] for ro_code in ro_list])
     form.str_expense_head.choices = sorted([expense[0] for expense in expense_list])
     if form.validate_on_submit():
-
         case_original = case(
             (
                 BudgetAllocation.str_type == "Original",
@@ -150,47 +149,120 @@ def view_budget_utilization():
             ),
             else_=None,
         )
-        budget = (
-            db.session.query(BudgetAllocation, BudgetUtilization)
+        budget_allocation = (
+            db.session.query(BudgetAllocation)
             .with_entities(
-                BudgetAllocation.str_financial_year,
-                BudgetAllocation.str_ro_code,
-                BudgetAllocation.str_expense_head,
-                func.sum(case_original),
-                func.sum(case_revised),
-                func.sum(case_first_quarter),
-                func.sum(case_second_quarter),
-                func.sum(case_third_quarter),
-                func.sum(case_fourth_quarter),
-            )
-            .outerjoin(
-                BudgetUtilization,
-                and_(
-                    BudgetAllocation.str_financial_year
-                    == BudgetUtilization.str_financial_year,
-                    BudgetAllocation.str_ro_code == BudgetUtilization.str_ro_code,
-                    BudgetAllocation.str_expense_head
-                    == BudgetUtilization.str_expense_head,
-                ),
+                BudgetAllocation.str_financial_year.label("str_financial_year"),
+                BudgetAllocation.str_ro_code.label("str_ro_code"),
+                BudgetAllocation.str_expense_head.label("str_expense_head"),
+                func.sum(case_original).label("case_original"),
+                func.sum(case_revised).label("case_revised"),
             )
             .group_by(
                 BudgetAllocation.str_financial_year,
                 BudgetAllocation.str_ro_code,
                 BudgetAllocation.str_expense_head,
             )
-            .order_by(BudgetAllocation.str_ro_code, BudgetAllocation.str_expense_head)
+        ).subquery("budget_allocation")
+        budget_utilization = (
+            db.session.query(BudgetUtilization)
+            .with_entities(
+                BudgetUtilization.str_financial_year.label("str_financial_year"),
+                BudgetUtilization.str_ro_code.label("str_ro_code"),
+                BudgetUtilization.str_expense_head.label("str_expense_head"),
+                func.sum(case_first_quarter).label("case_first_quarter"),
+                func.sum(case_second_quarter).label("case_second_quarter"),
+                func.sum(case_third_quarter).label("case_third_quarter"),
+                func.sum(case_fourth_quarter).label("case_fourth_quarter"),
+            )
+            .group_by(
+                BudgetUtilization.str_financial_year,
+                BudgetUtilization.str_ro_code,
+                BudgetUtilization.str_expense_head,
+            )
+        ).subquery("budget_utilization")
+        budget = (
+            db.session.query(budget_allocation)
+            .with_entities(
+                budget_allocation.c.str_financial_year,
+                budget_allocation.c.str_ro_code,
+                budget_allocation.c.str_expense_head,
+                budget_allocation.c.case_original,
+                budget_allocation.c.case_revised,
+                budget_utilization.c.case_first_quarter,
+                budget_utilization.c.case_second_quarter,
+                budget_utilization.c.case_third_quarter,
+                budget_utilization.c.case_fourth_quarter,
+            )
+            .outerjoin(
+                budget_utilization,
+                and_(
+                    budget_allocation.c.str_financial_year
+                    == budget_utilization.c.str_financial_year,
+                    budget_allocation.c.str_ro_code == budget_utilization.c.str_ro_code,
+                    budget_allocation.c.str_expense_head
+                    == budget_utilization.c.str_expense_head,
+                ),
+            )
+            .group_by(
+                budget_allocation.c.str_financial_year,
+                budget_allocation.c.str_ro_code,
+                budget_allocation.c.str_expense_head,
+                budget_allocation.c.case_original,
+                budget_allocation.c.case_revised,
+                budget_utilization.c.case_first_quarter,
+                budget_utilization.c.case_second_quarter,
+                budget_utilization.c.case_third_quarter,
+                budget_utilization.c.case_fourth_quarter,
+            )
+            .order_by(
+                budget_allocation.c.str_ro_code, budget_allocation.c.str_expense_head
+            )
         )
+
+        # budget = (
+        #     db.session.query(BudgetAllocation, BudgetUtilization)
+        #     .with_entities(
+        #         BudgetAllocation.str_financial_year,
+        #         BudgetAllocation.str_ro_code,
+        #         BudgetAllocation.str_expense_head,
+        #         func.sum(case_original),
+        #         func.sum(case_revised),
+        #         func.sum(case_first_quarter),
+        #         func.sum(case_second_quarter),
+        #         func.sum(case_third_quarter),
+        #         func.sum(case_fourth_quarter),
+        #     )
+        #     .outerjoin(
+        #         BudgetUtilization,
+        #         and_(
+        #             BudgetAllocation.str_financial_year
+        #             == BudgetUtilization.str_financial_year,
+        #             BudgetAllocation.str_ro_code == BudgetUtilization.str_ro_code,
+        #             BudgetAllocation.str_expense_head
+        #             == BudgetUtilization.str_expense_head,
+        #         ),
+        #     )
+        #     .group_by(
+        #         BudgetAllocation.str_financial_year,
+        #         BudgetAllocation.str_ro_code,
+        #         BudgetAllocation.str_expense_head,
+        #     )
+        #     .order_by(BudgetAllocation.str_ro_code, BudgetAllocation.str_expense_head)
+        # )
 
         str_financial_year = form.data["str_financial_year"]
         budget = budget.filter(
-            BudgetAllocation.str_financial_year == str_financial_year
+            budget_allocation.c.str_financial_year == str_financial_year
         )
         if form.data["str_expense_head"]:
             expense_list = form.data["str_expense_head"]
-            budget = budget.filter(BudgetAllocation.str_expense_head.in_(expense_list))
+            budget = budget.filter(
+                budget_allocation.c.str_expense_head.in_(expense_list)
+            )
         if form.data["str_ro_code"]:
             ro_code_list = form.data["str_ro_code"]
-            budget = budget.filter(BudgetAllocation.str_ro_code.in_(ro_code_list))
+            budget = budget.filter(budget_allocation.c.str_ro_code.in_(ro_code_list))
 
         return render_template(
             "view_budget_utilization.html",

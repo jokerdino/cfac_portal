@@ -19,6 +19,8 @@ from app.cfac_flask_admin.model_views import (
     ReconSummaryView,
     UserView,
     PoolCreditView,
+    BudgetAllocationView,
+    BudgetUtilizationView,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -317,7 +319,7 @@ admin.add_view(
 
 # Budget module
 admin.add_view(
-    DefaultModelView(
+    BudgetAllocationView(
         BudgetAllocation,
         db.session,
         endpoint="budget_allocation_",
@@ -326,7 +328,7 @@ admin.add_view(
 )
 
 admin.add_view(
-    DefaultModelView(
+    BudgetUtilizationView(
         BudgetUtilization,
         db.session,
         endpoint="budget_utilization_",
