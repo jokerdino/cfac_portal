@@ -315,11 +315,121 @@ def funds_home_data():
     }
 
 
+@funds_bp.route("/api/v2/data/funds", methods=["GET"])
+@login_required
+@fund_managers
+def funds_home_data_v2():
+    # Query for paginated records
+    subquery = (
+        db.session.query(
+            FundDailySheet.date_current_date.label("date_current_date"),
+            func.sum(FundDailyOutflow.outflow_amount).label("outflow_amount"),
+            FundDailySheet.float_amount_given_to_investments.label("investment_given"),
+            FundDailySheet.float_amount_taken_from_investments.label(
+                "investment_taken"
+            ),
+            FundDailySheet.float_amount_investment_closing_balance.label(
+                "investment_closing_balance"
+            ),
+            FundDailySheet.float_amount_hdfc_closing_balance.label(
+                "hdfc_closing_balance"
+            ),
+            func.lag(FundDailySheet.float_amount_hdfc_closing_balance)
+            .over(order_by=FundDailySheet.date_current_date)
+            .label("prev_hdfc_balance"),
+        )
+        .join(
+            FundDailyOutflow,
+            FundDailySheet.date_current_date == FundDailyOutflow.outflow_date,
+        )
+        .group_by(
+            FundDailySheet.date_current_date,
+            FundDailySheet.float_amount_given_to_investments,
+            FundDailySheet.float_amount_taken_from_investments,
+            FundDailySheet.float_amount_investment_closing_balance,
+            FundDailySheet.float_amount_hdfc_closing_balance,
+        )
+        .subquery()  # Convert this to a subquery
+    )
+
+    # Main query to join the subquery with FundBankStatement
+    query = (
+        db.session.query(
+            FundBankStatement.date_uploaded_date,
+            func.sum(FundBankStatement.credit)
+            + subquery.c.prev_hdfc_balance
+            - subquery.c.investment_taken,
+            subquery.c.outflow_amount,
+            func.sum(FundBankStatement.credit)
+            + subquery.c.prev_hdfc_balance
+            - subquery.c.investment_taken
+            - subquery.c.outflow_amount,
+            subquery.c.investment_given,
+            subquery.c.investment_taken,
+            subquery.c.investment_given - subquery.c.investment_taken,
+            subquery.c.investment_closing_balance,
+            subquery.c.hdfc_closing_balance,
+        )
+        .outerjoin(
+            subquery,
+            FundBankStatement.date_uploaded_date == subquery.c.date_current_date,
+        )
+        .group_by(
+            FundBankStatement.date_uploaded_date,
+            subquery.c.investment_given,
+            subquery.c.investment_taken,
+            subquery.c.investment_closing_balance,
+            subquery.c.hdfc_closing_balance,
+            subquery.c.outflow_amount,
+            subquery.c.prev_hdfc_balance,
+        )
+        .order_by(FundBankStatement.date_uploaded_date.desc())
+    )
+    total_records = query.count()
+    # Filtered record count (same as total here unless filters are applied)
+    records_filtered = query.count()
+    start = request.args.get("start", type=int)
+    length = request.args.get("length", type=int)
+
+    query = query.offset(start).limit(length)
+
+    # Format the data for DataTables
+    data = [
+        {
+            "date_uploaded_date": row[0],
+            "credit": row[1],
+            "outflow": row[2],
+            "net_cashflow": row[3],
+            "investment_given": row[4],
+            "investment_taken": row[5],
+            "net_investment": row[6],
+            "investment_closing_balance": row[7],
+            "hdfc_closing_balance": row[8],
+        }
+        for row in query
+    ]
+
+    # return response
+    return {
+        "draw": request.args.get("draw", type=int),
+        "recordsTotal": total_records,
+        "recordsFiltered": records_filtered,
+        "data": data,
+    }
+
+
 @funds_bp.route("/home")
 @login_required
 @fund_managers
 def funds_home_api():
     return render_template("funds_home_api.html")
+
+
+@funds_bp.route("/home2")
+@login_required
+@fund_managers
+def funds_home_api_2():
+    return render_template("funds_home_api_v2.html")
 
 
 @funds_bp.route("/", methods=["GET"])
