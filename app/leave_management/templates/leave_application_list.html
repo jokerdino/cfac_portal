@@ -49,7 +49,7 @@
                         href="{{ url_for('.leave_application_view', id=item.id) }}">View</a>
                 </td>
                 <td><a class="button is-small is-link" {% if item.current_status=="Submitted" %}
-                        href="{{ url_for('.leave_application_print', id=item.id) }}" {% else %} disabled
+                        href="{{ url_for('.leave_application_print', id=item.id) }}" target="_blank" {% else %} disabled
                         title="Leave application cannot be printed without submission." {% endif %}>
                         Print
                     </a>

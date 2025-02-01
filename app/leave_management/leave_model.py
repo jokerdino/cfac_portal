@@ -58,6 +58,7 @@ class LeaveApplication(db.Model):
     employee_name = db.Column(db.String)
     employee_number = db.Column(db.Integer)
     employee_designation = db.Column(db.String)
+    date_of_joining_current_cadre: datetime.date = db.Column(db.Date)
 
     available_leave_credit = db.Column(db.Numeric(6, 2))
 

@@ -633,21 +633,24 @@ def leaves_taken_list(status, employee_number):
             .with_entities(AttendanceRegister.date_of_attendance)
             .filter(AttendanceRegister.id.in_(list_leave_keys))
         )
-        end_date, start_date = max(leaves)[0], min(leaves)[0]
-
-        validate_status = validate_leave(
-            form.leave_type.data,
-            employee_number,
-            start_date,
-            end_date,
-            list_leave_keys,
-        )
-        if validate_status:
-            return redirect(
-                url_for(".leave_application_list", employee_number=employee_number)
+        try:
+            end_date, start_date = max(leaves)[0], min(leaves)[0]
+            validate_status = validate_leave(
+                form.leave_type.data,
+                employee_number,
+                start_date,
+                end_date,
+                list_leave_keys,
             )
-        else:
-            flash(f"Not enough leave balance for {form.leave_type.data}")
+            if validate_status:
+                return redirect(
+                    url_for(".leave_application_list", employee_number=employee_number)
+                )
+            else:
+                flash(f"Not enough leave balance for {form.leave_type.data}")
+        except ValueError as e:
+            flash("No leave days has been selected.")
+
     return render_template(
         "leaves_list.html",
         leaves_taken=leaves_taken,
@@ -1021,7 +1024,7 @@ def to_mixed_fraction_11(number) -> str:
         return f"{integer_part}"
 
     # Return the mixed fraction
-    return f"{integer_part if integer_part > 0 else ""} {numerator}/11"
+    return f"{integer_part if integer_part > 0 else ''} {numerator}/11"
 
 
 def get_all_weekends(year: str) -> pd.DataFrame:
