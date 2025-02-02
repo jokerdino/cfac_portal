@@ -15,21 +15,19 @@
 
 <body>
     <header>
-        <nav class="navbar has-background-primary-light" aria-label="main navigation">
+        <nav class="navbar has-background-link-light" aria-label="main navigation">
             <div class="navbar-brand">
                 <div class="navbar-start">
-                    <div class="navbar-item">
-                        <div class="buttons">
-                            <a class="button is-link" href="{{ url_for('main.index') }}">Home</a>
-                            <a class="button is-link" href="{{ url_for('portal_admin.view_list_users') }}">Admin
-                                home</a>
-                            {% if current_user.user_type == "admin" %}
-                            <a class="button is-link" href="{{ url_for('portal_admin.upload_users') }}">Bulk upload
-                                users</a>
 
-                            {% endif %}
-                        </div>
-                    </div>
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="navbar-item" href="{{ url_for('portal_admin.view_list_users') }}">Admin
+                        home</a>
+                    {% if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('portal_admin.upload_users') }}">Bulk upload
+                        users</a>
+                    <a class="navbar-item" href="{{ url_for('portal_admin.user_add') }}">Add new user</a>
+                    {% endif %}
+
                 </div>
             </div>
 
