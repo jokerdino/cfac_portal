@@ -69,7 +69,6 @@ class QueryForm(FlaskForm):
 
 
 class CoinsuranceForm(FlaskForm):
-
     uiic_regional_code = StringField("Regional office code")
     uiic_office_code = StringField("Operating office code")
     follower_company_name = SelectField("Name of coinsurer", choices=coinsurer_list)
@@ -214,7 +213,6 @@ class UploadFileForm(FlaskForm):
 
 
 class CoinsuranceBalanceForm(FlaskForm):
-
     period = StringField(
         description="Enter in mmm-yy format (example: 'Aug-24')",
         validators=[DataRequired()],
@@ -230,7 +228,6 @@ class CoinsuranceBalanceForm(FlaskForm):
 
 
 class CoinsuranceBankMandateForm(FlaskForm):
-
     company_name = SelectField(choices=coinsurer_list, validators=[DataRequired()])
     office_code = StringField(validators=[DataRequired()])
 
@@ -252,7 +249,6 @@ class CoinsuranceBankMandateForm(FlaskForm):
 
 
 class CoinsuranceReceiptEditForm(FlaskForm):
-
     status = RadioField(choices=["Pending", "Receipted"], validators=[DataRequired()])
     receipting_office = SelectField(
         choices=["", "South", "West", "East", "North", "Head Office"],
@@ -262,7 +258,7 @@ class CoinsuranceReceiptEditForm(FlaskForm):
     remarks = TextAreaField(validators=[Optional()])
 
 
-class DeleteCoinsuranceBalanceEntries(FlaskForm):
+class FilterMonthForm(FlaskForm):
     period = SelectField()
 
 

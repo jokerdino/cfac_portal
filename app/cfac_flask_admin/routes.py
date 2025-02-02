@@ -31,6 +31,7 @@ from app.coinsurance.coinsurance_model import (
     Settlement,
     CoinsuranceBankMandate,
     CoinsuranceReceipts,
+    CoinsuranceReceiptsJournalVoucher,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
@@ -178,6 +179,14 @@ admin.add_view(
         CoinsuranceReceipts,
         db.session,
         endpoint="coinsurance_receipts",
+        category="Coinsurance",
+    )
+)
+admin.add_view(
+    ModelView(
+        CoinsuranceReceiptsJournalVoucher,
+        db.session,
+        endpoint="coinsurance_receipts_jv",
         category="Coinsurance",
     )
 )

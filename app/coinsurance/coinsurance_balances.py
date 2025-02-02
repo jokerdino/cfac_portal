@@ -13,7 +13,7 @@ from . import coinsurance_bp
 from .coinsurance_form import (
     CoinsuranceBalanceForm,
     CoinsuranceBalanceQueryForm,
-    DeleteCoinsuranceBalanceEntries,
+    FilterMonthForm,
 )
 from .coinsurance_model import CoinsuranceBalances
 
@@ -95,7 +95,7 @@ def query_view_coinsurance_balance():
 @login_required
 @admin_required
 def delete_coinsurance_balance():
-    form = DeleteCoinsuranceBalanceEntries()
+    form = FilterMonthForm()
     _period = populate_period_choices(form)
 
     if form.validate_on_submit():

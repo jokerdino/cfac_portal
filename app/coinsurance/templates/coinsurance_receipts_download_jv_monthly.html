@@ -1,0 +1,14 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container box mt-5">
+    <h1 class="title">Download coinsurance receipts JV</h1>
+    <form method="post">
+        {{ form.csrf_token }}
+        {{ render_field_div_horizontal(form.period) }}
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

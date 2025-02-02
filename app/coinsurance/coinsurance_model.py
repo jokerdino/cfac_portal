@@ -241,7 +241,6 @@ class CoinsuranceCashCall(db.Model):
 
 @dataclass
 class CoinsuranceBankMandate(db.Model):
-
     id: int = db.Column(db.Integer, primary_key=True)
 
     company_name: str = db.Column(db.String)
@@ -274,6 +273,22 @@ class CoinsuranceReceipts(db.Model):
     status = db.Column(db.String)
     receipting_office = db.Column(db.String)
     date_of_receipt = db.Column(db.Date)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+    period = column_property(func.to_char(value_date, "Mon-YY"))
+
+
+class CoinsuranceReceiptsJournalVoucher(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    pattern = db.Column(db.String)
+    company_name = db.Column(db.String)
+    gl_code = db.Column(db.String)
 
     created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)

@@ -92,8 +92,17 @@
                         confirmations</a>
                     {% endif %}
                     {% if current_user.user_type in ["admin"] %}
-                    <a class="navbar-item" href="{{ url_for('coinsurance.list_coinsurance_receipts') }}">Receipts
-                        tracker</a>
+                    <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link">Receipts</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item"
+                                href="{{ url_for('coinsurance.list_coinsurance_receipts') }}">Receipts
+                                tracker</a>
+                            <hr class="navbar-divider" />
+                            <a class="navbar-item" href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV pattern</a>
+                            <a class="navbar-item"
+                                href="{{ url_for('.coinsurance_receipts_jv_download_monthly') }}">Download JV</a>
+                        </div>
+                    </div>
                     {% endif %}
 
                 </div>
@@ -105,10 +114,10 @@
                         {% if not current_user.is_authenticated %}
 
                         <div>
-                            <a class="button is-link" href="{{ url_for('users.login_page') }}"> Login</a>
+                            <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                             {% else %}
                             <a class="button"> {{ current_user.username }} </a>
-                            <a class="button is-link" href="{{ url_for('users.logout_page') }}"> Log out</a>
+                            <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                             {% endif %}
                         </div>
                     </div>
