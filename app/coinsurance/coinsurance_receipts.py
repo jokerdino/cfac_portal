@@ -89,8 +89,8 @@ def coinsurance_receipts_jv_download_monthly():
     return render_template("coinsurance_receipts_download_jv_monthly.html", form=form)
 
 
-def prepare_coinsurance_receipts_jv(df_receipts) -> pd.DataFrame:
-    df_receipts = df_receipts[
+def prepare_coinsurance_receipts_jv(df) -> pd.DataFrame:
+    df_receipts = df[
         [
             "gl_code",
             "value_date",
@@ -99,19 +99,19 @@ def prepare_coinsurance_receipts_jv(df_receipts) -> pd.DataFrame:
             "transaction_code",
             "reference_no",
         ]
-    ]
+    ].copy()
     df_receipts["value_date"] = pd.to_datetime(
         df_receipts["value_date"], format="%Y-%m-%d"
     ).dt.strftime("%d/%m/%y")
     df_receipts["Remarks"] = df_receipts["transaction_code"].str.cat(
         df_receipts[["value_date", "company_name_1", "reference_no"]], sep=" "
     )
-    df_receipts.rename(columns={"gl_code": "GL Code", "credit": "Credit"}, inplace=True)
+    df_receipts.rename(columns={"gl_code": "GL Code", "credit": "Amount"}, inplace=True)
     df_receipts["Office Location"] = "000100"
     df_receipts["SL Code"] = 0
     df_receipts["DR/CR"] = "CR"
     df_receipts = df_receipts[
-        ["Office Location", "GL Code", "SL Code", "DR/CR", "Credit", "Remarks"]
+        ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
     ]
 
     df_receipts_copy = df_receipts.copy()

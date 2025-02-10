@@ -127,10 +127,10 @@ def generate_coinsurance_balance():
         df_concat = pd.concat(list_df, ignore_index=True)
 
         # Adjust credit and debit by dividing by 2 where the office code is 100
-        df_concat.loc[df_concat["Office Code"] == 100, "Credit"] = (
-            df_concat["Credit"] / 2
-        )
-        df_concat.loc[df_concat["Office Code"] == 100, "Debit"] = df_concat["Debit"] / 2
+        # df_concat.loc[df_concat["Office Code"] == 100, "Credit"] = (
+        #     df_concat["Credit"] / 2
+        # )
+        # df_concat.loc[df_concat["Office Code"] == 100, "Debit"] = df_concat["Debit"] / 2
 
         # Calculate the net amount by subtracting debits from credits
         df_concat["Net amount"] = df_concat["Credit"] - df_concat["Debit"]
