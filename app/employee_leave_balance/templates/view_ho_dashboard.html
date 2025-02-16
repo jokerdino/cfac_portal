@@ -1,13 +1,13 @@
 {% extends "leave_balance_layout.html" %}
 {% block content %}
 <div class="container pb-5">
-    <table class="table is-bordered">
+    <table class="table is-bordered" id="dashboard_table">
         <thead>
             <tr>
-                <th>RO Code</th>
-                <th>Employee count</th>
-                <th>Pending PL data</th>
-                <th>Pending SL data</th>
+                <th class="has-text-centered">RO Code</th>
+                <th class="has-text-centered">Employee count</th>
+                <th class="has-text-centered">Pending PL data</th>
+                <th class="has-text-centered">Pending SL data</th>
             </tr>
         </thead>
         <tbody>
@@ -17,13 +17,33 @@
                         <div>{{ item.employee_ro_code }}</div>
                     </a></td>
                 <td>{{ item.employee_count }}</td>
-                <td>{{ item.pending_pl_data }}
-                </td>
-                <td>{{ item.pending_sl_data }}
-                </td>
+                <td>{{ item.pending_pl_data }}</td>
+                <td>{{ item.pending_sl_data }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+{% block scripts %}
+<script>
+    new DataTable('#dashboard_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [10, 25, 50, { label: 'All', value: -1 }],
+        pageLength: 50,
+
+    });
+
+</script>
+{% endblock scripts %}
 {% endblock content %}
