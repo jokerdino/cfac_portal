@@ -1,17 +1,15 @@
-from datetime import datetime, date
+from datetime import datetime
 from io import BytesIO
 from flask import (
     abort,
-    current_app,
     flash,
     redirect,
     render_template,
-    request,
     url_for,
     send_file,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, case, func
+from sqlalchemy import case, func
 import pandas as pd
 
 from extensions import db
@@ -76,17 +74,12 @@ def update_pl(oo_code):
     form_data = {"privilege_leave": pl_data}
     form = PrivilegeLeaveBulkUpdateForm(data=form_data)
     if form.validate_on_submit():
-        for pl_form in form.privilege_leave.data:
-            person = db.get_or_404(PrivilegeLeaveBalance, pl_form["id"])
-            person.opening_balance = pl_form["opening_balance"]
-            person.leave_accrued = pl_form["leave_accrued"]
-            person.leave_availed = pl_form["leave_availed"]
-            person.leave_encashed = pl_form["leave_encashed"]
-            person.leave_lapsed = pl_form["leave_lapsed"]
-            person.closing_balance = pl_form["closing_balance"]
+        for pl_form in form.privilege_leave.entries:
+            person = db.get_or_404(PrivilegeLeaveBalance, pl_form.data["id"])
+            pl_form.form.populate_obj(person)
         db.session.commit()
         flash("Employee leave balance has been updated successfully.")
-        return redirect(url_for(".update_pl"))
+        return redirect(url_for(".update_pl", oo_code=oo_code))
 
     return render_template("pl_balance_update.html", form=form)
 
@@ -108,16 +101,12 @@ def update_sl(oo_code):
     form_data = {"sick_leave": pl_data}
     form = SickLeaveBulkUpdateForm(data=form_data)
     if form.validate_on_submit():
-        for pl_form in form.sick_leave.data:
-            person = db.get_or_404(SickLeaveBalance, pl_form["id"])
-            person.opening_balance = pl_form["opening_balance"]
-            person.leave_accrued = pl_form["leave_accrued"]
-            person.leave_availed = pl_form["leave_availed"]
-            person.leave_lapsed = pl_form["leave_lapsed"]
-            person.closing_balance = pl_form["closing_balance"]
+        for pl_form in form.sick_leave.entries:  # Use .entries instead of .data
+            person = db.get_or_404(SickLeaveBalance, pl_form.data["id"])
+            pl_form.form.populate_obj(person)  # Use form instance to populate object
         db.session.commit()
         flash("Employee leave balance has been updated successfully.")
-        return redirect(url_for(".update_sl"))
+        return redirect(url_for(".update_sl", oo_code=oo_code))
 
     return render_template("sl_balance_update.html", form=form)
 
