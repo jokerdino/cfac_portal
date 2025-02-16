@@ -151,11 +151,14 @@ def edit_attendance(date_string):
 @login_required
 @leave_managers
 def pending_leaves_list():
+    case_designation = order_by_designation(AttendanceRegister)
     pending = db.session.execute(
         db.select(
             AttendanceRegister.employee_name,
             AttendanceRegister.employee_number,
             func.count(AttendanceRegister.status_of_attendance),
+            case_designation,
+            AttendanceRegister.date_of_joining_current_cadre,
         )
         .where(
             (
@@ -165,7 +168,16 @@ def pending_leaves_list():
             )
             & (AttendanceRegister.type_of_leave.is_(None))
         )
-        .group_by(AttendanceRegister.employee_name, AttendanceRegister.employee_number)
+        .group_by(
+            AttendanceRegister.employee_name,
+            AttendanceRegister.employee_number,
+            case_designation,
+            AttendanceRegister.date_of_joining_current_cadre,
+        )
+        .order_by(
+            case_designation.desc(),
+            AttendanceRegister.date_of_joining_current_cadre,
+        )
     )
     return render_template("pending_leaves_count.html", pending=pending)
 
