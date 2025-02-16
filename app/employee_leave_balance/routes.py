@@ -1,12 +1,21 @@
 from datetime import datetime, date
-
-from flask import abort, current_app, flash, redirect, render_template, request, url_for
+from io import BytesIO
+from flask import (
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+    send_file,
+)
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, case
+from sqlalchemy import create_engine, case, func
 import pandas as pd
 
 from extensions import db
-from set_view_permissions import admin_required
+from set_view_permissions import admin_required, ro_user_only
 
 from . import leave_balance_bp
 from .form import UploadFileForm, PrivilegeLeaveBulkUpdateForm, SickLeaveBulkUpdateForm
@@ -21,20 +30,25 @@ def employee_list_upload():
     if form.validate_on_submit():
         employee_list = form.data["file_upload"]
         df_employee_list = pd.read_excel(employee_list)
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
+        df_employee_list["employee_ro_code"] = (
+            df_employee_list["employee_ro_code"].astype(str).str.zfill(6)
+        )
+        df_employee_list["employee_oo_code"] = (
+            df_employee_list["employee_oo_code"].astype(str).str.zfill(6)
+        )
         df_employee_list["created_on"] = datetime.now()
         df_employee_list["created_by"] = current_user.username
 
         df_employee_list.to_sql(
             "privilege_leave_balance",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
         df_employee_list.to_sql(
             "sick_leave_balance",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -45,13 +59,15 @@ def employee_list_upload():
     )
 
 
-@leave_balance_bp.route("/pl/", methods=["GET", "POST"])
+@leave_balance_bp.route("/pl/", defaults={"oo_code": None}, methods=["GET", "POST"])
+@leave_balance_bp.route("/pl/<string:oo_code>/", methods=["GET", "POST"])
 @login_required
-def update_pl():
+def update_pl(oo_code):
+    oo_code = get_oo_code(oo_code)
     case_designation = order_by_designation(PrivilegeLeaveBalance)
     pl_data = db.session.scalars(
         db.select(PrivilegeLeaveBalance)
-        .where(PrivilegeLeaveBalance.employee_oo_code == current_user.oo_code)
+        .where(PrivilegeLeaveBalance.employee_oo_code == oo_code)
         .order_by(
             case_designation.asc(),
             PrivilegeLeaveBalance.employee_number.asc(),
@@ -69,19 +85,21 @@ def update_pl():
             person.leave_lapsed = pl_form["leave_lapsed"]
             person.closing_balance = pl_form["closing_balance"]
         db.session.commit()
-
+        flash("Employee leave balance has been updated successfully.")
         return redirect(url_for(".update_pl"))
 
     return render_template("pl_balance_update.html", form=form)
 
 
-@leave_balance_bp.route("/sl/", methods=["GET", "POST"])
+@leave_balance_bp.route("/sl/", defaults={"oo_code": None}, methods=["GET", "POST"])
+@leave_balance_bp.route("/sl/<string:oo_code>/", methods=["GET", "POST"])
 @login_required
-def update_sl():
+def update_sl(oo_code):
+    oo_code = get_oo_code(oo_code)
     case_designation = order_by_designation(SickLeaveBalance)
     pl_data = db.session.scalars(
         db.select(SickLeaveBalance)
-        .where(SickLeaveBalance.employee_oo_code == current_user.oo_code)
+        .where(SickLeaveBalance.employee_oo_code == oo_code)
         .order_by(
             case_designation.asc(),
             SickLeaveBalance.employee_number.asc(),
@@ -98,10 +116,139 @@ def update_sl():
             person.leave_lapsed = pl_form["leave_lapsed"]
             person.closing_balance = pl_form["closing_balance"]
         db.session.commit()
-
+        flash("Employee leave balance has been updated successfully.")
         return redirect(url_for(".update_sl"))
 
     return render_template("sl_balance_update.html", form=form)
+
+
+@leave_balance_bp.route(
+    "/dashboard/", defaults={"ro_code": None}, methods=["GET", "POST"]
+)
+@leave_balance_bp.route("/dashboard/<string:ro_code>/", methods=["GET", "POST"])
+@login_required
+@ro_user_only
+def view_ro_dashboard(ro_code):
+    ro_code = get_oo_code(ro_code)
+    query = (
+        db.session.query(
+            PrivilegeLeaveBalance.employee_ro_code,
+            PrivilegeLeaveBalance.employee_oo_code,
+            func.count(PrivilegeLeaveBalance.id).label("employee_count"),
+            (
+                func.count(PrivilegeLeaveBalance.id)
+                - func.count(PrivilegeLeaveBalance.closing_balance)
+            ).label("pending_pl_data"),
+            (
+                func.count(PrivilegeLeaveBalance.id)
+                - func.count(SickLeaveBalance.closing_balance)
+            ).label("pending_sl_data"),
+        )
+        .join(
+            SickLeaveBalance,
+            SickLeaveBalance.employee_number == PrivilegeLeaveBalance.employee_number,
+        )
+        .filter(PrivilegeLeaveBalance.employee_ro_code == ro_code)
+        .group_by(
+            PrivilegeLeaveBalance.employee_ro_code,
+            PrivilegeLeaveBalance.employee_oo_code,
+        )
+        .order_by(
+            PrivilegeLeaveBalance.employee_ro_code,
+            PrivilegeLeaveBalance.employee_oo_code,
+        )
+    )
+
+    return render_template("view_ro_dashboard.html", query=query)
+
+
+@leave_balance_bp.route("/ho_dashboard/", methods=["GET", "POST"])
+@login_required
+@admin_required
+def view_ho_dashboard():
+    query = (
+        db.session.query(
+            PrivilegeLeaveBalance.employee_ro_code,
+            func.count(PrivilegeLeaveBalance.id).label("employee_count"),
+            (
+                func.count(PrivilegeLeaveBalance.id)
+                - func.count(PrivilegeLeaveBalance.closing_balance)
+            ).label("pending_pl_data"),
+            (
+                func.count(PrivilegeLeaveBalance.id)
+                - func.count(SickLeaveBalance.closing_balance)
+            ).label("pending_sl_data"),
+        )
+        .join(
+            SickLeaveBalance,
+            SickLeaveBalance.employee_number == PrivilegeLeaveBalance.employee_number,
+        )
+        .group_by(
+            PrivilegeLeaveBalance.employee_ro_code,
+        )
+        .order_by(
+            PrivilegeLeaveBalance.employee_ro_code,
+        )
+    )
+
+    return render_template("view_ho_dashboard.html", query=query)
+
+
+@leave_balance_bp.route("/download/")
+@login_required
+@admin_required
+def download_data():
+    pl_query = db.session.query(
+        PrivilegeLeaveBalance.calendar_year,
+        PrivilegeLeaveBalance.employee_ro_code,
+        PrivilegeLeaveBalance.employee_oo_code,
+        PrivilegeLeaveBalance.employee_name,
+        PrivilegeLeaveBalance.employee_designation,
+        PrivilegeLeaveBalance.employee_number,
+        PrivilegeLeaveBalance.opening_balance,
+        PrivilegeLeaveBalance.leave_accrued,
+        PrivilegeLeaveBalance.leave_availed,
+        PrivilegeLeaveBalance.leave_encashed,
+        PrivilegeLeaveBalance.leave_lapsed,
+        PrivilegeLeaveBalance.closing_balance,
+    ).order_by(
+        PrivilegeLeaveBalance.calendar_year,
+        PrivilegeLeaveBalance.employee_ro_code,
+        PrivilegeLeaveBalance.employee_oo_code,
+        PrivilegeLeaveBalance.employee_designation,
+    )
+    sl_query = db.session.query(
+        SickLeaveBalance.calendar_year,
+        SickLeaveBalance.employee_ro_code,
+        SickLeaveBalance.employee_oo_code,
+        SickLeaveBalance.employee_name,
+        SickLeaveBalance.employee_designation,
+        SickLeaveBalance.employee_number,
+        SickLeaveBalance.opening_balance,
+        SickLeaveBalance.leave_accrued,
+        SickLeaveBalance.leave_availed,
+        SickLeaveBalance.leave_lapsed,
+        SickLeaveBalance.closing_balance,
+    ).order_by(
+        SickLeaveBalance.calendar_year,
+        SickLeaveBalance.employee_ro_code,
+        SickLeaveBalance.employee_oo_code,
+        SickLeaveBalance.employee_designation,
+    )
+    df_pl = pd.read_sql_query(pl_query.statement, db.engine)
+    df_sl = pd.read_sql_query(sl_query.statement, db.engine)
+
+    output = BytesIO()
+    with pd.ExcelWriter(output) as writer:
+        df_pl.to_excel(writer, sheet_name="Privilege Leave", index=False)
+        df_sl.to_excel(writer, sheet_name="Sick Leave", index=False)
+
+    # Set the buffer position to the beginning
+    output.seek(0)
+
+    filename = f"leave_balance_data_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+
+    return send_file(output, as_attachment=True, download_name=filename)
 
 
 def order_by_designation(model):
@@ -133,3 +280,16 @@ def order_by_designation(model):
         else_=len(designation_list),  # Fallback for values not in the list
     )
     return case_designation
+
+
+def get_oo_code(oo_code):
+    if oo_code is None:
+        return current_user.oo_code
+    elif current_user.user_type == "oo_user":
+        return current_user.oo_code
+    elif current_user.user_type == "ro_user":
+        if ((int(oo_code) // 10000) * 10000) == int(current_user.ro_code):
+            return oo_code
+        return current_user.ro_code
+    elif current_user.user_type == "admin":
+        return oo_code

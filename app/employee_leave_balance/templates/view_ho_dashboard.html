@@ -1,0 +1,29 @@
+{% extends "leave_balance_layout.html" %}
+{% block content %}
+<div class="container pb-5">
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>RO Code</th>
+                <th>Employee count</th>
+                <th>Pending PL data</th>
+                <th>Pending SL data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in query %}
+            <tr>
+                <td><a href="{{ url_for('.view_ro_dashboard', ro_code=item.employee_ro_code) }}">
+                        <div>{{ item.employee_ro_code }}</div>
+                    </a></td>
+                <td>{{ item.employee_count }}</td>
+                <td>{{ item.pending_pl_data }}
+                </td>
+                <td>{{ item.pending_sl_data }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}

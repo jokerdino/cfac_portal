@@ -1,0 +1,33 @@
+{% extends "leave_balance_layout.html" %}
+{% block content %}
+<div class="container pb-5">
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>RO Code</th>
+                <th>OO Code</th>
+                <th>Employee count</th>
+                <th>Pending PL data</th>
+                <th>Pending SL data</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in query %}
+            <tr>
+                <td>{{ item.employee_ro_code }}</td>
+                <td>{{ item.employee_oo_code }}</td>
+                <td>{{ item.employee_count }}</td>
+                <td><a href="{{ url_for('.update_pl', oo_code=item.employee_oo_code) }}">
+                        <div>{{ item.pending_pl_data }}</div>
+                    </a>
+                </td>
+                <td><a href="{{ url_for('.update_sl', oo_code=item.employee_oo_code) }}">
+                        <div>{{ item.pending_sl_data }}</div>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
