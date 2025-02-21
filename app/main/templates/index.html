@@ -77,6 +77,7 @@
         {% if current_user.user_type != "coinsurance_hub_user" %}
         <p class="menu-label">Data collection</p>
         <ul class="menu-list">
+          <li><a href="{{ url_for('employee_leave_balance.update_pl') }}">Employee leave balance</a></li>
           <li><a href="{{ url_for('outstanding_expenses.os_homepage') }}">Outstanding expenses</a></li>
           <li><a href="{{ url_for('bg.bg_homepage') }}">Bank guarantee</a></li>
         </ul>
