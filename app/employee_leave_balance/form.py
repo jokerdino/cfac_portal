@@ -32,22 +32,28 @@ class PrivilegeLeaveForm(Form):
     )
 
     opening_balance = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     leave_accrued = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     leave_availed = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     leave_encashed = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     leave_lapsed = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     closing_balance = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=270)],
+        render_kw={"class": "input is-small"},
     )
     id = HiddenField()
 
@@ -68,20 +74,25 @@ class SickLeaveForm(Form):
         render_kw={"readonly": True, "class": "input-like"}
     )
     opening_balance = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=240)],
+        render_kw={"class": "input is-small"},
     )
     leave_accrued = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=240)],
+        render_kw={"class": "input is-small"},
     )
     leave_availed = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=240)],
+        render_kw={"class": "input is-small"},
     )
 
     leave_lapsed = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=240)],
+        render_kw={"class": "input is-small"},
     )
     closing_balance = DecimalField(
-        validators=[Optional()], render_kw={"class": "input is-small"}
+        validators=[Optional(), NumberRange(min=0, max=240)],
+        render_kw={"class": "input is-small"},
     )
     id = HiddenField()
 
