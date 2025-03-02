@@ -45,6 +45,9 @@ class AttendanceRegister(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
+    month = column_property(func.to_char(date_of_attendance, "YYYY-MM"))
+    month_string = column_property(func.to_char(date_of_attendance, "Mon-YY"))
+
 
 class LeaveApplication(db.Model):
     id = db.Column(db.Integer, primary_key=True)

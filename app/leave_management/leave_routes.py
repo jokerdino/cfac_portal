@@ -16,6 +16,7 @@ from flask import (
 from flask_login import current_user, login_required
 import pandas as pd
 from sqlalchemy import case, func, and_, create_engine
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.exc import IntegrityError
 
 import calplot
@@ -179,7 +180,49 @@ def pending_leaves_list():
             AttendanceRegister.date_of_joining_current_cadre,
         )
     )
-    return render_template("pending_leaves_count.html", pending=pending)
+
+    pending_days = db.session.execute(
+        db.select(
+            AttendanceRegister.month,
+            AttendanceRegister.month_string,
+            AttendanceRegister.employee_name,
+            AttendanceRegister.employee_number,
+            case_designation,
+            AttendanceRegister.date_of_joining_current_cadre,
+            func.count(AttendanceRegister.status_of_attendance),
+            func.string_agg(
+                func.to_char(AttendanceRegister.date_of_attendance, "DD-MM-YYYY"),
+                aggregate_order_by(
+                    ", ", AttendanceRegister.date_of_attendance
+                ),  # Fix ordering
+            ).label("dates_on_leave"),
+        )
+        .where(
+            (
+                AttendanceRegister.status_of_attendance.in_(
+                    ["On leave", "On leave-half day"]
+                )
+            )
+            & (AttendanceRegister.type_of_leave.is_(None))
+        )
+        .group_by(
+            AttendanceRegister.month,
+            AttendanceRegister.month_string,
+            AttendanceRegister.employee_name,
+            AttendanceRegister.employee_number,
+            case_designation,
+            AttendanceRegister.date_of_joining_current_cadre,
+        )
+        .order_by(
+            AttendanceRegister.month.asc(),
+            case_designation.desc(),
+            AttendanceRegister.date_of_joining_current_cadre,
+        )
+    )
+
+    return render_template(
+        "pending_leaves_count.html", pending=pending, pending_days=pending_days
+    )
 
 
 def get_employee_number(employee_number):

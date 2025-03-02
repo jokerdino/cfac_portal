@@ -3,27 +3,117 @@
 
 <div class="container">
     <h1 class="title">List of employees with pending leaves</h1>
-    <table class="table is-bordered">
-        <thead>
-            <tr>
-                <th>Employee name</th>
-                <th>No of days pending</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for employee in pending %}
-            <tr>
-                <td>{{ employee[0] }}</td>
-                <td>
-                    <a href="{{ url_for('.leaves_taken_list', status='pending', employee_number=employee[1]) }}"
-                        target="_blank">
-                        <div class="has-text-right">{{ employee[2] }}</div>
-                    </a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="tabs is-boxed">
+        <ul>
+            <li id="summary_tab" class="is-active"><a onclick="show_summary()">Summary</a></li>
+            <li id="balances_tab"><a onclick="show_day_wise_balance()">Day wise breakup</a></li>
+        </ul>
+    </div>
+    <div id="summary" class="container is-fluid">
 
+        <table class="table is-bordered" id="summary_table">
+            <thead>
+                <tr>
+                    <th>Employee name</th>
+                    <th>No of days pending</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in pending %}
+                <tr>
+                    <td>{{ employee[0] }}</td>
+                    <td>
+                        <a href="{{ url_for('.leaves_taken_list', status='pending', employee_number=employee[1]) }}"
+                            target="_blank">
+                            <div class="has-text-right">{{ employee[2] }}</div>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="is-hidden is-fluid" id="balances">
+        <table class="table is-bordered" id="daywise_table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Employee name</th>
+                    <th>No of days taken</th>
+                    <th>No of days pending</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in pending_days %}
+                <tr>
+                    <td data-sort='{{ employee[0] }}'>{{ employee[1] }}</td>
+                    <td>{{ employee[2] }}</td>
+                    <td>{{ employee[6] }}</td>
+                    <td>{{ employee[7] }}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
+{% block scripts %}
+<script>
+    new DataTable('#summary_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        ordering: false,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+
+    });
+    new DataTable('#daywise_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+
+    });
+
+
+
+    function show_day_wise_balance() {
+        // remove active of summary
+        // add is-hidden class to summary
+
+        document.getElementById("summary").classList.add("is-hidden");
+        document.getElementById("summary_tab").classList.remove("is-active");
+
+        document.getElementById("balances").classList.remove("is-hidden");
+        document.getElementById("balances_tab").classList.add("is-active");
+        data_table.fixedHeader.enable();
+
+    }
+    function show_summary() {
+        // remove active of balances
+        // add is-hidden class to balances
+
+        document.getElementById("summary").classList.remove("is-hidden");
+        document.getElementById("summary_tab").classList.add("is-active");
+
+        document.getElementById("balances").classList.add("is-hidden");
+        document.getElementById("balances_tab").classList.remove("is-active");
+        data_table.fixedHeader.disable();
+    }
+
+</script>
+{% endblock scripts %}
 {% endblock content %}
