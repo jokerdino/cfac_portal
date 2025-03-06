@@ -268,78 +268,6 @@ def get_coinsurance_receipts():
     }
 
 
-@coinsurance_bp.route("/receipts/add", methods=["POST", "GET"])
-@login_required
-@admin_required
-def add_coinsurance_receipts():
-    # from extensions import db
-
-    form = CoinsuranceReceiptAddForm()
-    if form.validate_on_submit():
-        receipt = CoinsuranceReceipts(status="Pending")
-        form.populate_obj(receipt)
-        db.session.add(receipt)
-        db.session.commit()
-        return redirect(url_for("coinsurance.list_coinsurance_receipts"))
-    return render_template(
-        "coinsurance_receipts_add.html",
-        form=form,
-    )
-
-
-@coinsurance_bp.route("/receipts/model_add", methods=["POST", "GET"])
-@login_required
-@admin_required
-def add_coinsurance_receipts_model_form():
-    """Add new pending coinsurance receipts through model form"""
-    # from extensions import db
-
-    receipt = CoinsuranceReceipts(status="Pending")
-
-    if request.method == "POST":
-        form = ReceiptForm(request.form, obj=receipt)
-        if form.validate():
-            form.populate_obj(receipt)
-            db.session.add(receipt)
-            db.session.commit()
-            return redirect(url_for("coinsurance.list_coinsurance_receipts"))
-    else:
-        form = ReceiptForm()
-
-    return render_template(
-        "coinsurance_receipts_add.html",
-        form=form,
-    )
-
-
-@coinsurance_bp.route("/receipts/edit/<int:id>", methods=["POST", "GET"])
-@login_required
-@admin_required
-def edit_coinsurance_receipts(id):
-    # from extensions import db
-
-    receipt = db.get_or_404(CoinsuranceReceipts, id)
-    form = CoinsuranceReceiptEditForm(obj=receipt)
-
-    if form.validate_on_submit():
-        form.populate_obj(receipt)
-        db.session.commit()
-        return redirect(url_for("coinsurance.list_coinsurance_receipts"))
-    return render_template(
-        "coinsurance_receipts_edit_macro.html", form=form, receipt=receipt
-    )
-
-
-@coinsurance_bp.route("/receipts/")
-@login_required
-@admin_required
-def list_coinsurance_receipts():
-    # from extensions import db
-
-    receipts = db.session.scalars(db.select(CoinsuranceReceipts))
-    return render_template("coinsurance_receipts_list.html", receipts=receipts)
-
-
 def upload_document(model_object, form, field, document_type, folder_name):
     """
     Uploads a document to the folder specified by folder_name and saves the filename to the object.
@@ -1532,7 +1460,7 @@ def download_bank_mandate(key):
     return send_from_directory(
         directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/bank_mandates/",
         path=bank_mandate.bank_mandate,
-        download_name=f"{bank_mandate.company_name}_{bank_mandate.office_code}_{bank_mandate.bank_name}_{bank_mandate.bank_account_number [-5:]}.pdf",
+        download_name=f"{bank_mandate.company_name}_{bank_mandate.office_code}_{bank_mandate.bank_name}_{bank_mandate.bank_account_number[-5:]}.pdf",
         as_attachment=True,
     )
 

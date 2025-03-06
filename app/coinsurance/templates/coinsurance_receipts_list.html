@@ -2,40 +2,84 @@
 {% block content %}
 <div class="container is-fluid mb-5">
     <h1 class="title">Coinsurance receipts tracker</h1>
-    <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_table">
-        <thead>
-            <tr>
-                <th>Value date</th>
-                <th>Company name</th>
-                <th>Credit</th>
-                <th>Reference No</th>
-                <th>Transaction Code</th>
-                <th>Remarks</th>
-                <th>Status</th>
-                <th>Receipting office</th>
-                <th>Date of receipt</th>
-                <th>Edit</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in receipts %}
-            <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
-                <td>{{ entry['value_date'] }}</td>
-                <td>{{ entry['company_name'] }}</td>
-                <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
-                <td>{{ entry['reference_no'] }}</td>
-                <td>{{ entry['transaction_code'] }}</td>
-                <td>{{ entry['remarks'] or "" }}</td>
-                <td>{{ entry['status'] or "" }}</td>
-                <td>{{ entry['receipting_office'] or "" }}</td>
-                <td>{{ entry['date_of_receipt'] or "" }}</td>
-                <td><a class="button is-link is-small" target="_blank"
-                        href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
+    <div class="tabs is-boxed">
+        <ul>
+            <li id="all_tab" class="is-active"><a onclick="show_all_receipts()">All receipts</a></li>
+            <li id="pending_tab"><a onclick="show_pending_receipts()">Pending receipts</a></li>
+        </ul>
+    </div>
+    <div id="all_receipts" class="container is-fluid">
+        <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_table">
+            <thead>
+                <tr>
+                    <th>Value date</th>
+                    <th>Company name</th>
+                    <th>Credit</th>
+                    <th>Reference No</th>
+                    <th>Transaction Code</th>
+                    <th>Remarks</th>
+                    <th>Status</th>
+                    <th>Receipting office</th>
+                    <th>Date of receipt</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in receipts %}
+                <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
+                    <td>{{ entry['value_date'] }}</td>
+                    <td>{{ entry['company_name'] }}</td>
+                    <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
+                    <td>{{ entry['reference_no'] }}</td>
+                    <td>{{ entry['transaction_code'] }}</td>
+                    <td>{{ entry['remarks'] or "" }}</td>
+                    <td>{{ entry['status'] or "" }}</td>
+                    <td>{{ entry['receipting_office'] or "" }}</td>
+                    <td>{{ entry['date_of_receipt'] or "" }}</td>
+                    <td><a class="button is-link is-small" target="_blank"
+                            href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="is-hidden container is-fluid" id="pending_receipts">
+        <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_pending_table">
+            <thead>
+                <tr>
+                    <th>Value date</th>
+                    <th>Company name</th>
+                    <th>Credit</th>
+                    <th>Reference No</th>
+                    <th>Transaction Code</th>
+                    <th>Remarks</th>
+                    <th>Status</th>
+                    <th>Receipting office</th>
+                    <th>Date of receipt</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in pending_receipts %}
+                <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
+                    <td>{{ entry['value_date'] }}</td>
+                    <td>{{ entry['company_name'] }}</td>
+                    <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
+                    <td>{{ entry['reference_no'] }}</td>
+                    <td>{{ entry['transaction_code'] }}</td>
+                    <td>{{ entry['remarks'] or "" }}</td>
+                    <td>{{ entry['status'] or "" }}</td>
+                    <td>{{ entry['receipting_office'] or "" }}</td>
+                    <td>{{ entry['date_of_receipt'] or "" }}</td>
+                    <td><a class="button is-link is-small" target="_blank"
+                            href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% block scripts %}
 <script>
@@ -59,6 +103,50 @@
             [10, 25, 50, 100, -1],
             [10, 25, 50, 100, 'All'],]
     });
+    new DataTable('#coinsurance_receipts_pending_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        stateSave: true,
+        // fixedHeader: true,
+        order: [[0, 'desc']],
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+        pagingType: 'full_numbers',
+        pageLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+    function show_pending_receipts() {
+        // remove active of summary
+        // add is-hidden class to summary
+
+        document.getElementById("all_receipts").classList.add("is-hidden");
+        document.getElementById("all_tab").classList.remove("is-active");
+
+        document.getElementById("pending_receipts").classList.remove("is-hidden");
+        document.getElementById("pending_tab").classList.add("is-active");
+
+
+    }
+    function show_all_receipts() {
+        // remove active of balances
+        // add is-hidden class to balances
+
+        document.getElementById("all_receipts").classList.remove("is-hidden");
+        document.getElementById("all_tab").classList.add("is-active");
+
+        document.getElementById("pending_receipts").classList.add("is-hidden");
+        document.getElementById("pending_tab").classList.remove("is-active");
+
+    }
 </script>
 {% endblock scripts %}
 {% endblock content %}
