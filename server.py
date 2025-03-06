@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
@@ -48,6 +48,10 @@ def create_app(config_class=Config):
     app.jinja_env.filters["datetime_format"] = datetime_format
     app.jinja_env.filters["humanize_datetime"] = humanize_datetime
     app.jinja_env.filters["indian_number_format"] = indian_number_format
+
+    @app.context_processor
+    def inject_active_page():
+        return {"active_page": request.endpoint}
 
     # Initialize Flask extensions here
 

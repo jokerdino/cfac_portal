@@ -9,7 +9,7 @@ from app.announcements.announcements_model import Announcements
 from app.announcements.announcements_form import AnnouncementsForm
 
 
-@announcements_bp.route("/add_message", methods=["GET", "POST"])
+@announcements_bp.route("/add/", methods=["GET", "POST"])
 @login_required
 @admin_required
 def add_announcement():
@@ -27,7 +27,7 @@ def add_announcement():
     return render_template("add_announcement.html", form=form)
 
 
-@announcements_bp.route("/view_announcements")
+@announcements_bp.route("/")
 @login_required
 def view_announcements():
     from extensions import db

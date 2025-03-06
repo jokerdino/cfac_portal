@@ -117,7 +117,6 @@
         <table class="table is-fullwidth is-bordered" id="announcements_table">
           <thead>
             <tr>
-              <th class="has-text-centered">Posted by</th>
               <th class="has-text-centered">Posted on</th>
               <th class="has-text-centered">Title</th>
               <th class="has-text-centered">Message</th>
@@ -126,7 +125,6 @@
           <tbody>
             <tr>
               {% for item in query %}
-              <td>{{ item.created_by.upper() }}</td>
               <td title="{{ item.created_on }}">{{ item.created_on | humanize_datetime }}</td>
               <td>{{ item.txt_title }}</td>
               <td>{{ item.txt_message }}</td>

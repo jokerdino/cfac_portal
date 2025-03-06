@@ -11,7 +11,7 @@ from app.mis_tracker.mis_model import MisTracker
 @main_bp.route("/")
 def index():
     if current_user.is_authenticated:
-        query = Announcements.query.order_by(Announcements.created_on.desc()).limit(10)
+        query = Announcements.query.order_by(Announcements.created_on.desc()).limit(3)
         list = (
             MisTracker.query.order_by(MisTracker.created_on.desc())
             .order_by(MisTracker.created_on.desc(), MisTracker.id.asc())

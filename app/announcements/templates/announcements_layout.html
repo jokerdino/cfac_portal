@@ -22,10 +22,12 @@
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
 
-                    <a class="navbar-item" href="{{ url_for('announcements.view_announcements') }}">View all
+                    <a class="navbar-item {% if active_page == 'announcements.view_announcements' %} has-background-success-light {% endif %}"
+                        href="{{ url_for('.view_announcements') }}">View all
                         announcements</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('announcements.add_announcement') }}">Add announcement</a>
+                    <a class="navbar-item  {% if active_page == 'announcements.add_announcement' %} has-background-success-light {% endif %}"
+                        href="{{ url_for('.add_announcement') }}">Add announcement</a>
                     {% endif %}
                 </div>
             </div>
