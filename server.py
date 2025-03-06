@@ -51,7 +51,7 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_active_page():
-        return {"active_page": request.endpoint}
+        return {"active_page": request.endpoint, "view_args": request.view_args or {}}
 
     # Initialize Flask extensions here
 

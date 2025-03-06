@@ -19,26 +19,35 @@
             <div class="navbar-brand">
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('.identified_entries') }}">Identified entries</a>
-                    <a class="navbar-item" href="{{ url_for('.download_monthly') }}">Download identified entries</a>
-                    <a class="navbar-item"
+                    <a class="navbar-item {% if active_page == 'pool_credits.identified_entries' %} has-background-info-light {% endif %}"
+                        href="{{ url_for('.identified_entries') }}">Identified entries</a>
+                    <a class="navbar-item {% if active_page == 'pool_credits.download_monthly' %} has-background-info-light {% endif %}"
+                        href="{{ url_for('.download_monthly') }}">Download identified entries</a>
+                    <a class="navbar-item {% if active_page == 'pool_credits.pool_credits_list_identified_api' and view_args.get('status') == 'unidentified' %} has-background-info-light {% endif %}"
                         href="{{ url_for('.pool_credits_list_identified_api', status='unidentified') }}">Unidentified
                         entries</a>
-                    <a class="navbar-item"
+                    <a class="navbar-item {% if active_page == 'pool_credits.pool_credits_list_identified_api' and view_args.get('status') == 'confirmed' %} has-background-info-light {% endif %}"
                         href="{{ url_for('.pool_credits_list_identified_api', status='confirmed') }}">Confirmed
                         entries</a>
-                    <a class="navbar-item"
+                    <a class="navbar-item {% if active_page == 'pool_credits.pool_credits_list_identified_api' and view_args.get('status') == 'jv_passed' %} has-background-info-light {% endif %}"
                         href="{{ url_for('.pool_credits_list_identified_api', status='jv_passed') }}">JV
                         passed entries</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('.view_pool_credit_summary') }}">Summary</a>
+                    <a class="navbar-item {% if active_page == 'pool_credits.view_pool_credit_summary' %} has-background-info-light {% endif %}"
+                        href="{{ url_for('.view_pool_credit_summary') }}">Summary</a>
 
                     <div class="navbar-item has-dropdown is-hoverable">
-                        <a class="navbar-link">Journal vouchers</a>
+                        <a
+                            class="navbar-link
+                            {% if active_page in ('pool_credits.jv_list', 'pool_credits.jv_add', 'pool_credits.jv_bulk_upload') %} has-background-info-light {% endif %}">
+                            Journal vouchers</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('.jv_list') }}">JV mappings</a>
-                            <a class="navbar-item" href="{{ url_for('.jv_add') }}">Add new JV mapping</a>
-                            <a class="navbar-item" href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV mapping</a>
+                            <a class="navbar-item {% if active_page == 'pool_credits.jv_list' %} has-background-info-light {% endif %}"
+                                href="{{ url_for('.jv_list') }}">JV mappings</a>
+                            <a class="navbar-item {% if active_page == 'pool_credits.jv_add' %} has-background-info-light {% endif %}"
+                                href="{{ url_for('.jv_add') }}">Add new JV mapping</a>
+                            <a class="navbar-item {% if active_page == 'pool_credits.jv_bulk_upload' %} has-background-info-light {% endif %}"
+                                href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV mapping</a>
                             <hr class="navbar-divider" />
                             <a class="navbar-item" href="{{ url_for('.download_jv_confirmed_entries') }}">Download
                                 JV</a>
