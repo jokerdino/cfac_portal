@@ -191,7 +191,7 @@ def pending_leaves_list():
             AttendanceRegister.date_of_joining_current_cadre,
             func.count(AttendanceRegister.status_of_attendance),
             func.string_agg(
-                func.to_char(AttendanceRegister.date_of_attendance, "DD-MM-YYYY"),
+                func.to_char(AttendanceRegister.date_of_attendance, "DD"),
                 aggregate_order_by(
                     ", ", AttendanceRegister.date_of_attendance
                 ),  # Fix ordering
