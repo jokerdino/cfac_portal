@@ -81,26 +81,24 @@ from flask_admin_models import DefaultModelView
 
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
-admin.add_sub_category(name="Users", parent_name="Users")
 admin.add_sub_category(name="BRS", parent_name="BRS")
+admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
-admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
-admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
-admin.add_sub_category(name="Budget", parent_name="Budget")
-admin.add_sub_category(name="Leave", parent_name="Leave")
+admin.add_sub_category(name="Leave management", parent_name="Leave management")
 admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
+admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
+admin.add_sub_category(name="Tickets", parent_name="Tickets")
+admin.add_sub_category(name="Users", parent_name="Users")
 
-# User models
-admin.add_view(
-    UserView(User, db.session, endpoint="user_", category="Users")
-)  # , name="User"))
-admin.add_view(
-    DefaultModelView(LogUser, db.session, endpoint="log_user_", category="Users")
-)
 
+# announcements
+admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
+
+# bank guarantee
+admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
 
 # BRS models
 admin.add_view(BRSView(BRS, db.session, endpoint="brs_", category="BRS"))
@@ -136,7 +134,26 @@ admin.add_view(
     )
 )
 
-# coinsurance models
+# budget
+admin.add_view(
+    BudgetAllocationView(
+        BudgetAllocation,
+        db.session,
+        endpoint="budget_allocation_",
+        category="Budget",
+    )
+)
+
+admin.add_view(
+    BudgetUtilizationView(
+        BudgetUtilization,
+        db.session,
+        endpoint="budget_utilization_",
+        category="Budget",
+    )
+)
+
+# coinsurance
 admin.add_view(
     ModelView(Coinsurance, db.session, endpoint="coinsurance_", category="Coinsurance")
 )
@@ -193,31 +210,14 @@ admin.add_view(
         category="Coinsurance",
     )
 )
-# tickets models
-admin.add_view(
-    DefaultModelView(Tickets, db.session, endpoint="tickets_", category="Tickets")
-)
-admin.add_view(
-    DefaultModelView(
-        TicketRemarks, db.session, endpoint="tickets_remarks_", category="Tickets"
-    )
-)
 
-# contacts models
+# contacts
 admin.add_view(ModelView(Contacts, db.session, endpoint="contacts_"))
 
-# contracts models
+# contracts
 admin.add_view(ModelView(Contracts, db.session, endpoint="contracts_"))
 
-# knowledge models
-admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
-# bank guarantee models
-admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
-# outstanding expenses model
-admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))
-
-# funds model
-
+# funds
 admin.add_view(
     DefaultModelView(
         FundAmountGivenToInvestment,
@@ -268,11 +268,7 @@ admin.add_view(
     )
 )
 
-# misc models
-admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
-admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
-
-# ho_checklist models
+# ho checklist
 admin.add_view(
     DefaultModelView(
         HeadOfficeBankReconTracker,
@@ -290,8 +286,7 @@ admin.add_view(
     )
 )
 
-
-# HO RO recon models
+# horo recon
 admin.add_view(
     DefaultModelView(
         ReconEntries, db.session, endpoint="entries", category="HORO_recon"
@@ -303,8 +298,111 @@ admin.add_view(
     )
 )
 
-# Pool Credits module
+# knowledge base
+admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
 
+
+# leave management
+admin.add_view(
+    DefaultModelView(
+        EmployeeData,
+        db.session,
+        endpoint="employee_data",
+        category="Leave management",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        AttendanceRegister,
+        db.session,
+        endpoint="attendance_register",
+        category="Leave management",
+    )
+)
+
+
+admin.add_view(
+    DefaultModelView(
+        LeaveBalance,
+        db.session,
+        endpoint="leave_balance",
+        category="Leave management",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        LeaveApplication,
+        db.session,
+        endpoint="leave_application",
+        category="Leave management",
+    )
+)
+
+
+admin.add_view(
+    DefaultModelView(
+        LeaveSubmissionData,
+        db.session,
+        endpoint="leave_submission",
+        category="Leave management",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        PublicHoliday,
+        db.session,
+        endpoint="public_holiday",
+        category="Leave management",
+    )
+)
+
+# leave balance
+admin.add_view(
+    DefaultModelView(
+        PrivilegeLeaveBalance,
+        db.session,
+        endpoint="PL",
+        category="Leave balance",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        SickLeaveBalance,
+        db.session,
+        endpoint="SL",
+        category="Leave balance",
+    )
+)
+
+# lien
+admin.add_view(
+    DefaultModelView(
+        Lien,
+        db.session,
+        endpoint="lien_",
+    )
+)
+
+# mis tracker
+admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
+
+# outstanding expenses
+admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))
+
+# pg tieup
+admin.add_view(
+    DefaultModelView(
+        PaymentGatewayTieup,
+        db.session,
+        endpoint="pg_tieup_",
+    )
+)
+
+# pool credits
 admin.add_view(
     PoolCreditView(
         PoolCredits, db.session, endpoint="pool_credits_", category="Pool credits"
@@ -329,116 +427,18 @@ admin.add_view(
     )
 )
 
-# Budget module
+# tickets
 admin.add_view(
-    BudgetAllocationView(
-        BudgetAllocation,
-        db.session,
-        endpoint="budget_allocation_",
-        category="Budget",
-    )
+    DefaultModelView(Tickets, db.session, endpoint="tickets_", category="Tickets")
 )
-
-admin.add_view(
-    BudgetUtilizationView(
-        BudgetUtilization,
-        db.session,
-        endpoint="budget_utilization_",
-        category="Budget",
-    )
-)
-
-# PG tieup module
 admin.add_view(
     DefaultModelView(
-        PaymentGatewayTieup,
-        db.session,
-        endpoint="pg_tieup_",
+        TicketRemarks, db.session, endpoint="tickets_remarks_", category="Tickets"
     )
 )
 
-# Leave models
-
+# users
+admin.add_view(UserView(User, db.session, endpoint="user_", category="Users"))
 admin.add_view(
-    DefaultModelView(
-        EmployeeData,
-        db.session,
-        endpoint="employee_data",
-        category="Leave",
-    )
-)
-
-admin.add_view(
-    DefaultModelView(
-        AttendanceRegister,
-        db.session,
-        endpoint="attendance_register",
-        category="Leave",
-    )
-)
-
-
-admin.add_view(
-    DefaultModelView(
-        LeaveBalance,
-        db.session,
-        endpoint="leave_balance",
-        category="Leave",
-    )
-)
-
-admin.add_view(
-    DefaultModelView(
-        LeaveApplication,
-        db.session,
-        endpoint="leave_application",
-        category="Leave",
-    )
-)
-
-
-admin.add_view(
-    DefaultModelView(
-        LeaveSubmissionData,
-        db.session,
-        endpoint="leave_submission",
-        category="Leave",
-    )
-)
-
-admin.add_view(
-    DefaultModelView(
-        PublicHoliday,
-        db.session,
-        endpoint="public_holiday",
-        category="Leave",
-    )
-)
-
-# Lien module
-admin.add_view(
-    DefaultModelView(
-        Lien,
-        db.session,
-        endpoint="lien_",
-    )
-)
-
-# Leave balance module
-admin.add_view(
-    DefaultModelView(
-        PrivilegeLeaveBalance,
-        db.session,
-        endpoint="PL",
-        category="Leave balance",
-    )
-)
-
-admin.add_view(
-    DefaultModelView(
-        SickLeaveBalance,
-        db.session,
-        endpoint="SL",
-        category="Leave balance",
-    )
+    DefaultModelView(LogUser, db.session, endpoint="log_user_", category="Users")
 )
