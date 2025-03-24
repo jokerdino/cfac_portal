@@ -1,0 +1,62 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title">List of token request IDs</h1>
+    <table class="table is-bordered" id="token_id_table">
+        <thead>
+            <tr>
+                <th>Date of creation</th>
+                <th>Hub office code</th>
+                <th>Coinsurer name</th>
+                <th>Coinsurer office code</th>
+                <th>Name of insured</th>
+                <th>Request ID</th>
+                <th>Amount</th>
+                <th>Type of transaction</th>
+                <th>GL code</th>
+                <th>Remarks</th>
+                <th>Document</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in token_ids %}
+            <tr>
+                <td data-sort="{{ entry['created_on'] }}">{{ entry['created_on'].strftime("%d/%m/%Y") }}</td>
+                <td>{{ entry['hub_office_code'] }}</td>
+                <td>{{ entry['company_name'] }}</td>
+                <td>{{ entry['coinsurer_office_code'] }}</td>
+                <td>{{ entry['name_of_insured'] }}</td>
+                <td>{{ entry['request_id'] }}</td>
+                <td>{{ entry['amount'] }}</td>
+                <td>{{ entry['type_of_amount'] }}</td>
+                <td>{{ entry['gl_code'] }}</td>
+                <td>{{ entry['remarks'] }}</td>
+                <td>{% if entry['upload_document'] %}<a class="button is-small is-success is-outlined"
+                        href="{{ url_for('.download_token_id_document', key=entry['id']) }}">Download</a>
+                    {% endif %}</td>
+                <td><a class="button is-small is-link" href="{{ url_for('.token_id_edit', key=entry['id']) }}">Edit</a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+    new DataTable('#token_id_table', {
+        layout: {
+            topStart: 'buttons',
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}

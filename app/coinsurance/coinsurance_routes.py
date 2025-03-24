@@ -1,3 +1,4 @@
+import os
 import re
 
 from datetime import datetime, timedelta
@@ -36,6 +37,7 @@ from .coinsurance_form import (
     CoinsuranceBankMandateForm,
     CoinsuranceReceiptEditForm,
     CoinsuranceReceiptAddForm,
+    CoinsuranceTokenRequestIdForm,
 )
 from .coinsurance_model import (
     Coinsurance,
@@ -45,6 +47,7 @@ from .coinsurance_model import (
     CoinsuranceCashCall,
     CoinsuranceBankMandate,
     CoinsuranceReceipts,
+    CoinsuranceTokenRequestId,
 )
 
 from .coinsurance_model_forms import ReceiptForm
@@ -278,16 +281,19 @@ def upload_document(model_object, form, field, document_type, folder_name):
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
     :param folder_name: The folder to save the document in
     """
+    folder_path = os.path.join(
+        current_app.config.get("UPLOAD_FOLDER"), "coinsurance", folder_name
+    )
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
     filename = secure_filename(form.data[field].filename)
     file_extension = filename.rsplit(".", 1)[1]
     document_filename = (
         f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
     )
 
-    form.data[field].save(
-        f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/{folder_name}/"
-        + document_filename
-    )
+    form.data[field].save(os.path.join(folder_path, document_filename))
 
     setattr(model_object, document_type, document_filename)
 
@@ -1477,3 +1483,73 @@ def list_bank_mandates():
     )  # .scalars()
 
     return render_template("bank_mandate_list.html", bank_mandates=bank_mandates)
+
+
+@coinsurance_bp.route("/token_id/add/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def token_id_add():
+    form = CoinsuranceTokenRequestIdForm()
+    if form.validate_on_submit():
+        token_id = CoinsuranceTokenRequestId()
+        form.populate_obj(token_id)
+        db.session.add(token_id)
+        if form.data["upload_document_file"]:
+            upload_document(
+                token_id,
+                form,
+                "upload_document_file",
+                "upload_document",
+                "token_request_id",
+            )
+        db.session.commit()
+        return redirect(url_for("coinsurance.token_id_list"))
+    return render_template(
+        "token_id_edit.html", form=form, title="Add new token request ID details"
+    )
+
+
+@coinsurance_bp.route("/token_id/edit/<int:key>/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def token_id_edit(key):
+    token_id = db.get_or_404(CoinsuranceTokenRequestId, key)
+    form = CoinsuranceTokenRequestIdForm(obj=token_id)
+    if form.validate_on_submit():
+        form.populate_obj(token_id)
+        if form.data["upload_document_file"]:
+            upload_document(
+                token_id,
+                form,
+                "upload_document_file",
+                "upload_document",
+                "token_request_id",
+            )
+        db.session.commit()
+        return redirect(url_for("coinsurance.token_id_list"))
+    return render_template(
+        "token_id_edit.html",
+        form=form,
+        token_id=token_id,
+        title="Edit token request ID details",
+    )
+
+
+@coinsurance_bp.route("/token_id/")
+@login_required
+@admin_required
+def token_id_list():
+    token_ids = db.session.scalars(db.select(CoinsuranceTokenRequestId))
+    return render_template("token_id_list.html", token_ids=token_ids)
+
+
+@coinsurance_bp.route("/token_id/download/<int:key>/")
+@login_required
+def download_token_id_document(key):
+    token_id = db.get_or_404(CoinsuranceTokenRequestId, key)
+    return send_from_directory(
+        directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/token_request_id/",
+        path=token_id.upload_document,
+        download_name=f"{token_id.company_name}_{token_id.type_of_amount}_{token_id.amount}.pdf",
+        as_attachment=True,
+    )

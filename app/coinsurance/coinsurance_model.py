@@ -295,3 +295,24 @@ class CoinsuranceReceiptsJournalVoucher(db.Model):
 
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+
+class CoinsuranceTokenRequestId(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    hub_office_code = db.Column(db.String)
+    company_name = db.Column(db.String)
+    coinsurer_office_code = db.Column(db.String)
+    name_of_insured = db.Column(db.String)
+    request_id = db.Column(db.String)
+    amount = db.Column(db.Numeric(15, 2))
+    type_of_amount = db.Column(db.String)
+    gl_code = db.Column(db.String)
+    remarks = db.Column(db.Text)
+    upload_document = db.Column(db.String)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)

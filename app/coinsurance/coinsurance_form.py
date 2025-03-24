@@ -268,3 +268,21 @@ class CoinsuranceReceiptAddForm(FlaskForm):
     value_date = DateField(validators=[DataRequired()])
     reference_no = StringField(validators=[DataRequired()])
     transaction_code = StringField(validators=[DataRequired()])
+
+
+class CoinsuranceTokenRequestIdForm(FlaskForm):
+    hub_office_code = SelectField(
+        choices=["000100", "020051", "030051", "040051", "050051"],
+        validators=[DataRequired()],
+    )
+    company_name = SelectField(choices=coinsurer_list, validators=[DataRequired()])
+    coinsurer_office_code = StringField(validators=[DataRequired()])
+    name_of_insured = StringField(validators=[DataRequired()])
+    request_id = StringField(validators=[DataRequired()])
+    amount = DecimalField(validators=[DataRequired()])
+    type_of_amount = SelectField(
+        choices=["Receivable", "Payable"], validators=[DataRequired()]
+    )
+    gl_code = StringField(validators=[DataRequired()])
+    remarks = TextAreaField()
+    upload_document_file = FileField(validators=[FileAllowed(["pdf"])])

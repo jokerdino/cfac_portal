@@ -32,6 +32,7 @@ from app.coinsurance.coinsurance_model import (
     CoinsuranceBankMandate,
     CoinsuranceReceipts,
     CoinsuranceReceiptsJournalVoucher,
+    CoinsuranceTokenRequestId,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
@@ -207,6 +208,15 @@ admin.add_view(
         CoinsuranceReceiptsJournalVoucher,
         db.session,
         endpoint="coinsurance_receipts_jv",
+        category="Coinsurance",
+    )
+)
+
+admin.add_view(
+    ModelView(
+        CoinsuranceTokenRequestId,
+        db.session,
+        endpoint="coinsurance_token_request_id",
         category="Coinsurance",
     )
 )
