@@ -1,4 +1,5 @@
 {% macro render_field_table(field, disabled=False) %}
+{% if field.widget.input_type != "hidden" %}
 <tr>
     <th class="is-vcentered">{{ field.label }} </th>
 
@@ -25,6 +26,7 @@
 
     </td>
 </tr>
+{% endif %}
 {% endmacro %}
 
 {% macro render_field_div(field) %}
@@ -91,4 +93,33 @@
 
 </div>
 
+{% endmacro %}
+
+{% macro render_dashboard_dropdown(form) %}
+
+{{ form.csrf_token }}
+
+<div class="field is-horizontal">
+    {% for field in form if field.type == "SelectField" %}
+    <div class="field-label is-normal">
+        <label class="label">{{ field.label }}</label>
+    </div>
+    <div class="field-body">
+        <div class="field is-narrow">
+            <p class="control">
+            <div class="select is-fullwidth">{{ field }}</div>
+            </p>
+        </div>
+        {% for field in form if field.type == "SubmitField" %}
+        <div class="field">
+            <p class="control">
+                {{ field }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% endfor %}
+
+</div>
 {% endmacro %}
