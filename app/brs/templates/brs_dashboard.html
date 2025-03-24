@@ -61,13 +61,13 @@
             <td class="is-success">{{ entry[0] }} </td>
             <td class="is-success" data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }} </td>
             <td><a class="button is-success is-small"
-                    href="{{ url_for('brs.brs_ro_wise', ro_code = entry[0], month=entry[1] )}}">View</a></td>
+                    href="{{ url_for('brs.brs_ro_wise', ro_code = entry[0], month=entry[1] ) }}">View</a></td>
 
             {% else %}
             <td>{{ entry[0] }} </td>
             <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }} </td>
             <td><a class="button is-link is-outlined is-small"
-                    href="{{ url_for('brs.brs_ro_wise', ro_code = entry[0], month=entry[1] )}}">View</a></td>
+                    href="{{ url_for('brs.brs_ro_wise', ro_code = entry[0], month=entry[1] ) }}">View</a></td>
             {% endif %}
             {% if entry[2] - entry[3] == 0 %}
             <td class="is-success has-text-right">{{ entry[2] }} </td>
