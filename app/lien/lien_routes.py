@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import pandas as pd
 from flask import (
     abort,
@@ -163,14 +164,17 @@ def upload_document(model_object, form, field, document_type, folder_name):
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
     :param folder_name: The folder to save the document in
     """
+    folder_path = os.path.join(
+        current_app.config.get("UPLOAD_FOLDER"), "lien", folder_name
+    )
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
     if form.data[field]:
         filename = secure_filename(form.data[field].filename)
         file_extension = filename.rsplit(".", 1)[1]
         document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
 
-        form.data[field].save(
-            f"{current_app.config.get('UPLOAD_FOLDER')}lien/{folder_name}/"
-            + document_filename
-        )
+        form.data[field].save(os.path.join(folder_path, document_filename))
 
         setattr(model_object, document_type, document_filename)
