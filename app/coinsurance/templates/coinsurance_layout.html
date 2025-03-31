@@ -107,10 +107,8 @@
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{{ url_for('.token_id_list') }}">View token
                                 request IDs</a>
-                            {% if current_user.user_type in ["admin"] %}
                             <a class="navbar-item" href="{{ url_for('.token_id_add') }}">Add token
                                 request ID details</a>
-                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
