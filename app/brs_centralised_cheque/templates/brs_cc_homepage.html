@@ -1,0 +1,58 @@
+{% extends "brs_cc_layout.html" %}
+{% block content %}
+
+{% if query %}
+
+<table class="table is-bordered is-hoverable" id="brs_table">
+    <thead>
+        <tr>
+            <th>Regional Code</th>
+            <th>Operating Office</th>
+            <th>Period</th>
+            <th>Centralised cheque BRS status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in query %}
+        <tr>
+            <td>{{ entry.regional_office_code }}</td>
+            <td>{{ entry.operating_office_code }}</td>
+            <td data-sort="{{ entry.date_of_month }}"> {{ entry.month }}</td>
+            <td>{{ "Completed" if entry.centralised_cheque_brs_id else "Pending" }}</td>
+            <td><a class="button is-small is-link is-outlined"
+                    href="{{ url_for('.brs_cc_view_status', key = entry.id) }}">Open</a></td>
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+{% endif %}
+{% block scripts %}
+<script>
+
+    new DataTable('#brs_table', {
+        // dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+
+        fixedHeader: true,
+        pageLength: 50,
+        scrollY: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [
+            [50, 100, 150, 200, -1],
+            [50, 100, 150, 200, 'All'],]
+    });
+</script>
+
+{% endblock scripts %}
+
+{% endblock content %}

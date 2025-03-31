@@ -1,0 +1,189 @@
+{% extends "brs_layout.html" %}
+{% block body_attrs %} "onload=calculateSum(); onload=calculateClosingBalance();" {% endblock body_attrs %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+{% block content %}
+<div class="container mb-5">
+    <h1 class="title">BRS</h1>
+    <form action="" method="post" enctype="multipart/form-data"
+        onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-bordered is-hoverable">
+            <tr>
+                <th>Regional Office code</th>
+                <th>Operating Office Code</th>
+                <th>Month</th>
+                <th>BRS type</th>
+                <th>BRS bank</th>
+            </tr>
+            <tr>
+                <td>{{ brs.regional_office_code }}</td>
+                <td>{{ brs.operating_office_code }}</td>
+                <td>{{ brs.month }}</td>
+                <td>Centralised cheque BRS</td>
+                <td>{{ brs.centralised_cheque_bank }}</td>
+            </tr>
+        </table>
+        {% for field in form %}
+        {% if field.errors %}
+        <div class="notification is-danger">
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="notification is-danger">
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
+
+            {% set previous_month = brs.month | datetime_format("%B-%Y", "previous") %}
+            {% set current_month = brs.month | datetime_format("%B-%Y", "current") %}
+
+            {% for field, month, readonly in [
+            (form.prepared_by_employee_name,"",false),
+            (form.prepared_by_employee_number,"",false),
+            (form.opening_balance_unencashed, previous_month, false),
+            (form.opening_balance_stale, previous_month, false),
+            (form.cheques_issued, brs.month, false),
+            (form.cheques_reissued, brs.month, false),
+            (form.cheques_cleared, brs.month, false),
+            (form.cheques_cancelled, brs.month, false),
+            (form.closing_balance_unencashed, current_month, false),
+            (form.closing_balance_stale, current_month, false),
+            (form.remarks,"", false)
+            ] %}
+            <tr>
+                <th class="is-vcentered">{{ field.label }}</th>
+                <td>{{ month }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">
+                    {{ field(readonly=readonly) }}
+                </td>
+            </tr>
+            {% endfor %}
+
+        </table>
+
+        <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
+
+            {{ render_field_table(form.unencashed_cheques_file) }}
+            {{ render_field_table(form.stale_cheques_file) }}
+        </table>
+        <a class="button is-success is-outlined mt-5" href="{{ url_for('.download_format') }}">Download format</a>
+
+        <div class="buttons is-centered mt-5">
+            <a class="button is-link" href="{{ url_for('.brs_cc_view_status', key = brs.id) }}">Go back</a>
+
+            <button class="button is-primary is-big">Submit</button>
+        </div>
+</div>
+</form>
+
+{% block scripts %}
+<script>
+
+    // const formatter = new Intl.NumberFormat('en-IN', {
+    //     style: 'currency',
+    //     currency: 'INR',
+    //     minimumFractionDigits: 2,
+    //     maximumFractionDigits: 2,
+    //     trailingZeroDisplay: 'stripIfInteger'
+    // });
+    $(document).ready(function () {
+        calculateSum();
+        calculateClosingBalance();
+    });
+
+    function calculateSum() {
+        var opening_balance = parseFloat(document.getElementById("opening_balance").value === "" ? 0 : document.getElementById("opening_balance").value);
+        var opening_on_hand = parseFloat(document.getElementById("opening_on_hand").value === "" ? 0 : document.getElementById("opening_on_hand").value);
+        var transactions = parseFloat(document.getElementById("transactions").value === "" ? 0 : document.getElementById("transactions").value);
+        var cancellations = parseFloat(document.getElementById("cancellations").value === "" ? 0 : document.getElementById("cancellations").value);
+        var fund_transfer = parseFloat(document.getElementById("fund_transfer").value === "" ? 0 : document.getElementById("fund_transfer").value);
+        var bank_charges = parseFloat(document.getElementById("bank_charges").value === "" ? 0 : document.getElementById("bank_charges").value);
+        var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value === "" ? 0 : document.getElementById("closing_on_hand").value);
+        closing_balance = opening_balance + opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
+        balance_before_fund_transfer = opening_balance + opening_on_hand + transactions - cancellations
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+        document.getElementById("cal_closing_balance").innerText = formatter.format(closing_balance);
+        document.getElementById("cal_balance_before_fund_transfer").innerText = formatter.format(balance_before_fund_transfer);
+
+        return closing_balance;
+        // if (closing_balance > 0) {
+        //     document.getElementById("outstanding_entries").disabled = false;
+        // }
+        // else {
+        //     document.getElementById("outstanding_entries").disabled = true;
+        // }
+        // if (closing_balance != 0) {
+        //     document.getElementById('closing_balance_breakup').classList.remove("is-hidden");
+        // }
+        // else { document.getElementById('closing_balance_breakup').classList.add("is-hidden"); }
+    }
+    function calculateClosingBalance() {
+
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+
+        var not_credited = parseFloat(document.getElementById("int_deposited_not_credited").value === "" ? 0 : document.getElementById("int_deposited_not_credited").value);
+        var short_credited = parseFloat(document.getElementById("int_short_credited").value === "" ? 0 : document.getElementById("int_short_credited").value);
+        var excess_credited = parseFloat(document.getElementById("int_excess_credited").value === "" ? 0 : document.getElementById("int_excess_credited").value);
+        var closing_balance_bank_statement = parseFloat(document.getElementById("int_closing_balance_bank_statement").value === "" ? 0 : document.getElementById("int_closing_balance_bank_statement").value);
+
+        if (not_credited > 0) {
+            document.getElementById("file_outstanding_entries").disabled = false;
+        }
+        else {
+            document.getElementById("file_outstanding_entries").disabled = true;
+        }
+
+        if (excess_credited > 0) {
+            document.getElementById("file_excess_credit_entries").disabled = false;
+        }
+        else {
+            document.getElementById("file_excess_credit_entries").disabled = true;
+        }
+
+        if (short_credited > 0) {
+            document.getElementById("file_short_credit_entries").disabled = false;
+        }
+        else {
+            document.getElementById("file_short_credit_entries").disabled = true;
+        }
+
+        var closing_balance_breakup = not_credited + short_credited - excess_credited + closing_balance_bank_statement;
+
+        document.getElementById("cal_closing_bal_breakup").innerText = formatter.format(closing_balance_breakup);
+        return closing_balance_breakup;
+    }
+    function validateForm() {
+        const threshold = 0.001
+        closing_balance_gl = calculateSum();
+        closing_balance_breakup = calculateClosingBalance();
+        if (Math.abs(closing_balance_gl - closing_balance_breakup) > threshold) {
+            alert(`Closing balance ${closing_balance_gl} and closing balance breakup ${closing_balance_breakup} is not tallying.`)
+            return false;
+        }
+    }
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

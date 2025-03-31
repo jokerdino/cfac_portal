@@ -1,0 +1,80 @@
+{% extends "brs_cc_layout.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="title">BRS details</h1>
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-hoverable">
+
+            <tr>
+                <th>Regional Office code</th>
+                <td>{{ brs.regional_office_code }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Operating Office Code</th>
+                <td>{{ brs.operating_office_code }}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <th>Month</th>
+                <td>{{ brs.month }}</td>
+                <td></td>
+            </tr>
+
+            {% if brs.centralised_cheque_bank %}
+            <tr>
+                <th>Centralised cheque BRS</th>
+                <td>
+
+                    {% if brs.centralised_cheque_brs_id %}
+                    <a class="button is-success"
+                        href='{{ url_for(".brs_cc_view_entry", key = brs.centralised_cheque_brs_id) }}'>View
+                        Centralised cheque BRS</a>
+                <td class="is-vcentered">
+                    {% if delete_button %}
+                    {{ form.delete_cc_brs }} {{ form.delete_cc_brs.label }}
+                    {% endif %}
+                </td>
+                {% else %}
+                <a class="button is-danger" href='{{ url_for(".brs_cc_data_entry", key = brs.id) }}'>
+                    Enter Centralised cheque BRS</a>
+                </td>
+                <td></td>
+                {% endif %}
+            </tr>
+
+            {% endif %}
+        </table>
+
+        <div class="has-text-centered">
+
+            {% if delete_button %}
+            <button class="button is-primary is-big">Save</button>
+            {% endif %}
+        </div>
+
+    </form>
+
+    <div class="mt-5">
+        {% for field, errors in form.errors.items() %}
+        <div class="notification is-danger">
+            {{ field }} {{ ', '.join(errors) }}
+        </div>
+        {% endfor %}
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="notification is-danger">
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+{% endblock content %}

@@ -76,6 +76,13 @@ from app.leave_management.leave_model import (
 from app.lien.lien_model import Lien
 
 from app.employee_leave_balance.model import PrivilegeLeaveBalance, SickLeaveBalance
+from app.brs_centralised_cheque.models import (
+    CentralisedChequeSummary,
+    CentralisedChequeDetails,
+    CentralisedChequeInstrumentStaleDetails,
+    CentralisedChequeInstrumentUnencashedDetails,
+    CentralisedChequeEnableDelete,
+)
 
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
@@ -83,6 +90,7 @@ from flask_admin_models import DefaultModelView
 admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="BRS", parent_name="BRS")
+admin.add_sub_category(name="BRS_CC", parent_name="BRS_CC")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Funds", parent_name="Funds")
@@ -132,6 +140,43 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconAccountDetails, db.session, endpoint="bank_account_", category="BRS"
+    )
+)
+
+# brs_cc
+
+admin.add_view(
+    ModelView(
+        CentralisedChequeSummary, db.session, endpoint="cc_summary", category="BRS_CC"
+    )
+)
+admin.add_view(
+    ModelView(
+        CentralisedChequeDetails, db.session, endpoint="cc_details", category="BRS_CC"
+    )
+)
+admin.add_view(
+    ModelView(
+        CentralisedChequeInstrumentStaleDetails,
+        db.session,
+        endpoint="cc_stale",
+        category="BRS_CC",
+    )
+)
+admin.add_view(
+    ModelView(
+        CentralisedChequeInstrumentUnencashedDetails,
+        db.session,
+        endpoint="cc_unencashed",
+        category="BRS_CC",
+    )
+)
+admin.add_view(
+    ModelView(
+        CentralisedChequeEnableDelete,
+        db.session,
+        endpoint="cc_delete",
+        category="BRS_CC",
     )
 )
 

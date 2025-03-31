@@ -1,0 +1,128 @@
+{% if not pdf %}
+{% extends "brs_cc_layout.html" %}
+{% else %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
+{% endif %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title">View Centralised cheque BRS</h1>
+
+    <table class="table is-bordered is-hoverable">
+        <tr class="has-text-centered">
+            <th>Regional office code</th>
+            <th>Operating office code</th>
+
+            <th>Month</th>
+            <th>BRS type</th>
+            <th>Bank</th>
+        </tr>
+        <tr>
+            <td>{{ brs.summary.regional_office_code }}</td>
+            <td>{{ brs.summary.operating_office_code }}</td>
+            <td>{{ brs.summary.month }}</td>
+            <td>Centralised cheque BRS</td>
+            <td>{{ brs.summary.centralised_cheque_bank }}</td>
+        </tr>
+    </table>
+    <strong>Summary of General Ledger</strong>
+    <table class="table is-bordered is-hoverable">
+
+        {% for key, (label, extra) in column_labels.items() %}
+
+        <tr>
+
+            <td>{{ label }}</td>
+            <td>{{ extra }}</td>
+            <td class="has-text-right">{{ (brs[key] or 0) | indian_number_format }}</td>
+        </tr>
+
+        {% endfor %}
+    </table>
+
+    {% if brs.closing_balance_unencashed != 0 %}
+    <h3 class="title is-size-6">Unencashed cheques</h3>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>Instrument date</th>
+                <th>Instrument number</th>
+                <th>Instrument amount</th>
+                <th>Payee name</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for item in brs.unencashed_cheques %}
+            <tr>
+                <td class="has-text-centered">
+                    {{ item.instrument_date.strftime("%d/%m/%Y") }}
+                </td>
+                <td class="has-text-centered">{{ item.instrument_number }}</td>
+                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
+                <td>{{ item.payee_name }}</td>
+                <td>{{ item.remarks }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="has-text-right has-text-weight-bold" colspan="2">Total: </td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (brs.unencashed_cheques | sum(attribute="instrument_amount")) | indian_number_format }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% endif %}
+    {% if brs.closing_balance_stale != 0 %}
+    <h3 class="title is-size-6">Stale cheques</h3>
+    <table class="table is-bordered">
+        <thead>
+            <tr>
+                <th>Instrument date</th>
+                <th>Instrument number</th>
+                <th>Instrument amount</th>
+                <th>Payee name</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody> {% for item in brs.stale_cheques %}
+            <tr>
+
+                <td class="has-text-centered">
+                    {{ item.instrument_date.strftime("%d/%m/%Y") }}
+                </td>
+                <td class="has-text-centered">{{ item.instrument_number }}</td>
+                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
+                <td>{{ item.payee_name }}</td>
+                <td>{{ item.remarks }}</td>
+
+            </tr>{% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td class="has-text-right has-text-weight-bold" colspan="2">Total: </td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (brs.stale_cheques | sum(attribute="instrument_amount")) | indian_number_format }}</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    {% endif %}
+
+    <div class="pb-5">
+        Prepared by {{ brs.prepared_by }} (Employee Number: {{ brs.prepared_by_employee_number }}) on {{
+        brs.created_on.strftime("%d/%m/%Y %H:%M") }}.
+    </div>
+
+    {% if not pdf %}
+    <a class="button is-link" href="{{ url_for('.brs_cc_view_status', key = brs.summary_id) }}">Go back</a>
+    {% endif %}
+</div>
+
+{% endblock content %}
