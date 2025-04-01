@@ -87,7 +87,7 @@ class OutflowForm(FlaskForm):
     amount_axis_tds_gst = DecimalField("AXIS TDS RO", validators=[Optional()])
     amount_pension = DecimalField("Pension", validators=[Optional()])
     amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
-    amount_ro_bhopal_crop = DecimalField("RO Bhopal Crop", validators=[Optional()])
+    amount_axis_gst = DecimalField("AXIS GST", validators=[Optional()])
     amount_ro_nagpur_crop = DecimalField("RO Nagpur Crop", validators=[Optional()])
     amount_citi_omp = DecimalField("CITI OMP", validators=[Optional()])
     amount_hdfc_lien = DecimalField(

@@ -28,12 +28,12 @@ class FundBankStatement(db.Model):
     text_remarks = db.Column(db.Text)
     current_status = db.Column(db.String)
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
+    date_created_date = db.Column(db.DateTime, default=datetime.now)
+    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
     date_deleted_date = db.Column(db.DateTime)
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
     period = column_property(func.to_char(value_date, "YYYY-MM"))
@@ -162,12 +162,12 @@ class FundBankAccountNumbers(db.Model):
 
     current_status = db.Column(db.String)
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
+    date_created_date = db.Column(db.DateTime, default=datetime.now)
+    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
     date_deleted_date = db.Column(db.DateTime)
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
 
