@@ -33,11 +33,12 @@ from app.funds.funds_form import (
     FundsJVForm,
     FundsModifyDatesForm,
     MajorOutgoForm,
-    OutflowForm,
+    #    OutflowForm,
     ReportsForm,
     UploadFileForm,
     JVFlagAddForm,
     FundsDeleteForm,
+    generate_outflow_form,
 )
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
@@ -72,28 +73,32 @@ outflow_labels = [
     "AXIS GST",
     "RO NAGPUR CROP",
     "CITI OMP",
-    "Lien by HDFC",
+    "HDFC Lien",
     "Other payments",
     # "BOA TPA",
 ]
+
 outflow_amounts = [
-    "amount_citi_health",
-    "amount_mro1_health",
-    "amount_axis_neft",
-    "amount_citi_neft",
-    "amount_tncmchis",
-    "amount_axis_centralised_cheque",
-    "amount_axis_centralised_cheque_521",
-    "amount_axis_tds_gst",
-    "amount_pension",
-    "amount_gratuity",
-    "amount_axis_gst",
-    "amount_ro_nagpur_crop",
-    "amount_citi_omp",
-    "amount_hdfc_lien",
-    "amount_other_payments",
-    # "amount_boa_tpa",
+    f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
 ]
+# outflow_amounts = [
+#     "amount_citi_health",
+#     "amount_mro1_health",
+#     "amount_axis_neft",
+#     "amount_citi_neft",
+#     "amount_tncmchis",
+#     "amount_axis_centralised_cheque",
+#     "amount_axis_centralised_cheque_521",
+#     "amount_axis_tds_ro",
+#     "amount_pension",
+#     "amount_gratuity",
+#     "amount_axis_gst",
+#     "amount_ro_nagpur_crop",
+#     "amount_citi_omp",
+#     "amount_hdfc_lien",
+#     "amount_other_payments",
+#     # "amount_boa_tpa",
+# ]
 
 
 def display_inflow(input_date, inflow_description=None):
@@ -705,7 +710,9 @@ def enter_outflow(date_string):
             & (FundMajorOutgo.date_of_outgo < param_date)
         )
     )
-    form = OutflowForm()
+    #    form = OutflowForm()
+    DynamicOutflowForm = generate_outflow_form(outflow_labels)
+    form = DynamicOutflowForm()
     if form.validate_on_submit():
         for key, amount in form.data.items():
             if ("amount" in key) and (amount is not None):

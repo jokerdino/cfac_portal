@@ -63,40 +63,41 @@ class UploadFileForm(FlaskForm):
     upload_document = SubmitField("Upload")
 
 
-class OutflowForm(FlaskForm):
-    # drawn_from_investment = DecimalField(
-    #     "Drawn from investment", validators=[Optional()]
-    # )
-    # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
-    given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
-    expected_date_of_return = DateField(
-        "Enter expected date of return", validators=[Optional()]
-    )
-    amount_citi_health = DecimalField("CITI Health", validators=[Optional()])
-    amount_mro1_health = DecimalField("MRO1 Health", validators=[Optional()])
-
-    amount_axis_neft = DecimalField("AXIS NEFT", validators=[Optional()])
-    amount_citi_neft = DecimalField("CITI NEFT", validators=[Optional()])
-    amount_tncmchis = DecimalField("TNCMCHIS", validators=[Optional()])
-    amount_axis_centralised_cheque = DecimalField(
-        "AXIS Centralised Cheque", validators=[Optional()]
-    )
-    amount_axis_centralised_cheque_521 = DecimalField(
-        "AXIS Centralised Cheque 521", validators=[Optional()]
-    )
-    amount_axis_tds_gst = DecimalField("AXIS TDS RO", validators=[Optional()])
-    amount_pension = DecimalField("Pension", validators=[Optional()])
-    amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
-    amount_axis_gst = DecimalField("AXIS GST", validators=[Optional()])
-    amount_ro_nagpur_crop = DecimalField("RO Nagpur Crop", validators=[Optional()])
-    amount_citi_omp = DecimalField("CITI OMP", validators=[Optional()])
-    amount_hdfc_lien = DecimalField(
-        "Amount held by HDFC under Lien", validators=[Optional()]
-    )
-    amount_other_payments = DecimalField("Other payments", validators=[Optional()])
-
-
-#    amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
+# class OutflowForm(FlaskForm):
+#    # drawn_from_investment = DecimalField(
+#    #     "Drawn from investment", validators=[Optional()]
+#    # )
+#    # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
+#    given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
+#    expected_date_of_return = DateField(
+#        "Enter expected date of return", validators=[Optional()]
+#    )
+#    amount_citi_health = DecimalField("CITI Health", validators=[Optional()])
+#    amount_mro1_health = DecimalField("MRO1 Health", validators=[Optional()])
+#
+#    amount_axis_neft = DecimalField("AXIS NEFT", validators=[Optional()])
+#    amount_citi_neft = DecimalField("CITI NEFT", validators=[Optional()])
+#    amount_tncmchis = DecimalField("TNCMCHIS", validators=[Optional()])
+#    amount_axis_centralised_cheque = DecimalField(
+#        "AXIS Centralised Cheque", validators=[Optional()]
+#    )
+#    amount_axis_centralised_cheque_521 = DecimalField(
+#        "AXIS Centralised Cheque 521", validators=[Optional()]
+#    )
+#    amount_axis_tds_gst = DecimalField("AXIS TDS RO", validators=[Optional()])
+#    amount_pension = DecimalField("Pension", validators=[Optional()])
+#    amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
+#    amount_axis_gst = DecimalField("AXIS GST", validators=[Optional()])
+#    amount_ro_nagpur_crop = DecimalField("RO Nagpur Crop", validators=[Optional()])
+#    amount_citi_omp = DecimalField("CITI OMP", validators=[Optional()])
+#    amount_hdfc_lien = DecimalField(
+#        "Amount held by HDFC under Lien", validators=[Optional()]
+#    )
+#    amount_other_payments = DecimalField("Other payments", validators=[Optional()])
+#
+#
+##    amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
+#
 
 
 class FlagForm(FlaskForm):
@@ -195,3 +196,28 @@ class FundsDeleteForm(FlaskForm):
     def validate_delete_date(self, field):
         if field.data != date.today():
             raise ValidationError("Delete date should be today.")
+
+
+def generate_outflow_form(amount_categories):
+    """Dynamically generates the OutflowForm with amount fields."""
+
+    class DynamicOutflowForm(FlaskForm):
+        given_to_investment = DecimalField(
+            "Given to Investment", validators=[Optional()]
+        )
+        expected_date_of_return = DateField(
+            "Enter expected date of return", validators=[Optional()]
+        )
+
+    # Add dynamic fields
+    for category in amount_categories:
+        field_name = (
+            f"amount_{category.lower().replace(' ', '_')}"  # Normalize field names
+        )
+        setattr(
+            DynamicOutflowForm,
+            field_name,
+            DecimalField(category, validators=[Optional()]),
+        )
+
+    return DynamicOutflowForm
