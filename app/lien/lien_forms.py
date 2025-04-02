@@ -19,7 +19,9 @@ class LienForm(FlaskForm):
     bank_name = StringField()
     account_number = StringField()
 
-    ro_remarks = TextAreaField("RO Remarks")
+    bank_remarks = TextAreaField(render_kw={"rows": 3})
+
+    ro_remarks = TextAreaField("RO Remarks", render_kw={"rows": 3})
     lien_status = SelectField(choices=["Lien exists", "Lien removed", "DD issued"])
 
     court_order_lien_file = FileField("Upload court order - lien")

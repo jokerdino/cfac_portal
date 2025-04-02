@@ -22,6 +22,7 @@ class Lien(db.Model):
     bank_name = db.Column(db.String)
     account_number = db.Column(db.String)
 
+    bank_remarks = db.Column(db.Text)
     ro_remarks = db.Column(db.Text)
 
     lien_status = db.Column(db.String)
