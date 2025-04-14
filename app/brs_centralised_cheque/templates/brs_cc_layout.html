@@ -20,51 +20,39 @@
                 <div class="navbar-start">
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('brs.brs_home_page') }}">BRS home</a>
+                    <a class="navbar-item" href="{{ url_for('.brs_cc_dashboard') }}">BRS home</a>
 
                     {% if current_user.user_type in ["admin", "ro_user"] %}
-                    <a class="navbar-item" href="{{ url_for('brs.list_brs_entries') }}">BRS raw data</a>
 
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">List of entries</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
+                            <a class="navbar-item" href="{{ url_for('.list_brs_data') }}">BRS data</a>
+                            <a class="navbar-item" href="{{ url_for('.list_unencashed_entries') }}">Unencashed cheque
                                 entries</a>
-                            <a class="navbar-item" href="{{ url_for('brs.list_short_credit_entries') }}">Short
-                                credit entries</a>
-                            <a class="navbar-item" href="{{ url_for('brs.list_excess_credit_entries') }}">Excess credit entries</a>
+                            <a class="navbar-item" href="{{ url_for('.list_stale_entries') }}">Stale cheque entries</a>
                         </div>
                     </div>
                     {% endif %}
                     {% if current_user.user_type == "admin" %}
 
-                    <a class="navbar-item" href="{{ url_for('brs.bulk_upload_brs') }}">Bulk upload BRS new
+                    <a class="navbar-item" href="{{ url_for('.upload_brs_cc_summary') }}">Bulk upload BRS new
                         entries</a>
-                    <div class="navbar-item has-dropdown is-hoverable">
-                        <a class="navbar-link">Percent completion</a>
-                        <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('brs.brs_percentage') }}">Monthwise percentage
-                                completion</a>
-                            <a class="navbar-item" href="{{ url_for('brs.get_percent_completion_list') }}">
-                                Consolidated percentage completion</a>
-                        </div>
-                    </div>
                     {% endif %}
                     {% if current_user.role and "brs_admin" in current_user.role %}
 
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">Enable deletion</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('brs.list_month_deletions') }}">List of
+                            <a class="navbar-item" href="{{ url_for('.list_month_deletions') }}">List of
                                 months for deletion</a>
-                            <a class="navbar-item" href="{{ url_for('brs.enable_month_deletion') }}">Enable
+                            <a class="navbar-item" href="{{ url_for('.enable_month_deletion') }}">Enable
                                 month deletion
                             </a>
                         </div>
                     </div>
-                    <a class="navbar-item" href="{{ url_for('brs.add_bank_account') }}">Add bank account details</a>
-                    {% endif %}
 
+                    {% endif %}
                 </div>
             </div>
 

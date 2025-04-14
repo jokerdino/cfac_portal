@@ -1,5 +1,5 @@
-{% extends "brs_layout.html" %}
-{% block body_attrs %} "onload=calculateSum(); onload=calculateClosingBalance();" {% endblock body_attrs %}
+{% extends "brs_cc_layout.html" %}
+{% block body_attrs %} "onload=calculateSum(); calculateClosingBalance();" {% endblock body_attrs %}
 {% from "form_field_helpers_macro.html" import render_field_table %}
 {% block content %}
 <div class="container mb-5">
@@ -51,9 +51,10 @@
             (form.prepared_by_employee_name,"",false),
             (form.prepared_by_employee_number,"",false),
             (form.opening_balance_unencashed, previous_month, false),
-            (form.opening_balance_stale, previous_month, false),
             (form.cheques_issued, brs.month, false),
-            (form.cheques_reissued, brs.month, false),
+            (form.cheques_reissued_unencashed, brs.month, false),
+            (form.opening_balance_stale, previous_month, false),
+            (form.cheques_reissued_stale, brs.month, true),
             (form.cheques_cleared, brs.month, false),
             (form.cheques_cancelled, brs.month, false),
             (form.closing_balance_unencashed, current_month, false),
@@ -86,6 +87,7 @@
 </div>
 </form>
 
+{% endblock content %}
 {% block scripts %}
 <script>
 
@@ -102,15 +104,14 @@
     });
 
     function calculateSum() {
-        var opening_balance = parseFloat(document.getElementById("opening_balance").value === "" ? 0 : document.getElementById("opening_balance").value);
-        var opening_on_hand = parseFloat(document.getElementById("opening_on_hand").value === "" ? 0 : document.getElementById("opening_on_hand").value);
-        var transactions = parseFloat(document.getElementById("transactions").value === "" ? 0 : document.getElementById("transactions").value);
-        var cancellations = parseFloat(document.getElementById("cancellations").value === "" ? 0 : document.getElementById("cancellations").value);
-        var fund_transfer = parseFloat(document.getElementById("fund_transfer").value === "" ? 0 : document.getElementById("fund_transfer").value);
-        var bank_charges = parseFloat(document.getElementById("bank_charges").value === "" ? 0 : document.getElementById("bank_charges").value);
-        var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value === "" ? 0 : document.getElementById("closing_on_hand").value);
-        closing_balance = opening_balance + opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
-        balance_before_fund_transfer = opening_balance + opening_on_hand + transactions - cancellations
+        var opening_balance_unencashed = parseFloat(document.getElementById("opening_balance_unencashed").value === "" ? 0 : document.getElementById("opening_balance_unencashed").value);
+        var cheques_issued = parseFloat(document.getElementById("cheques_issued").value === "" ? 0 : document.getElementById("cheques_issued").value);
+        var cheques_reissued_unencashed = parseFloat(document.getElementById("cheques_reissued_unencashed").value === "" ? 0 : document.getElementById("cheques_reissued_unencashed").value);
+
+        var opening_balance_stale = parseFloat(document.getElementById("opening_balance_stale").value === "" ? 0 : document.getElementById("opening_balance_stale").value);
+        var cheques_cleared = parseFloat(document.getElementById("cheques_cleared").value === "" ? 0 : document.getElementById("cheques_cleared").value);
+        var cheques_cancelled = parseFloat(document.getElementById("cheques_cancelled").value === "" ? 0 : document.getElementById("cheques_cancelled").value);
+        centralised_cheque_amount = opening_balance_unencashed + opening_balance_stale + cheques_issued - cheques_cleared - cheques_cancelled
         const formatter = new Intl.NumberFormat('en-IN', {
             style: 'currency',
             currency: 'INR',
@@ -118,20 +119,9 @@
             maximumFractionDigits: 2,
             trailingZeroDisplay: 'stripIfInteger'
         });
-        document.getElementById("cal_closing_balance").innerText = formatter.format(closing_balance);
-        document.getElementById("cal_balance_before_fund_transfer").innerText = formatter.format(balance_before_fund_transfer);
-
-        return closing_balance;
-        // if (closing_balance > 0) {
-        //     document.getElementById("outstanding_entries").disabled = false;
-        // }
-        // else {
-        //     document.getElementById("outstanding_entries").disabled = true;
-        // }
-        // if (closing_balance != 0) {
-        //     document.getElementById('closing_balance_breakup').classList.remove("is-hidden");
-        // }
-        // else { document.getElementById('closing_balance_breakup').classList.add("is-hidden"); }
+        document.getElementById("cheques_reissued_stale").value = cheques_reissued_unencashed;
+        document.getElementById("closing_balance_unencashed").placeholder = centralised_cheque_amount;
+        return centralised_cheque_amount;
     }
     function calculateClosingBalance() {
 
@@ -143,41 +133,32 @@
             trailingZeroDisplay: 'stripIfInteger'
         });
 
-        var not_credited = parseFloat(document.getElementById("int_deposited_not_credited").value === "" ? 0 : document.getElementById("int_deposited_not_credited").value);
-        var short_credited = parseFloat(document.getElementById("int_short_credited").value === "" ? 0 : document.getElementById("int_short_credited").value);
-        var excess_credited = parseFloat(document.getElementById("int_excess_credited").value === "" ? 0 : document.getElementById("int_excess_credited").value);
-        var closing_balance_bank_statement = parseFloat(document.getElementById("int_closing_balance_bank_statement").value === "" ? 0 : document.getElementById("int_closing_balance_bank_statement").value);
+        var closing_balance_unencashed = parseFloat(document.getElementById("closing_balance_unencashed").value === "" ? 0 : document.getElementById("closing_balance_unencashed").value);
+        var closing_balance_stale = parseFloat(document.getElementById("closing_balance_stale").value === "" ? 0 : document.getElementById("closing_balance_stale").value);
 
-        if (not_credited > 0) {
-            document.getElementById("file_outstanding_entries").disabled = false;
+        if (closing_balance_unencashed > 0) {
+            document.getElementById("unencashed_cheques_file").disabled = false;
         }
         else {
-            document.getElementById("file_outstanding_entries").disabled = true;
+            document.getElementById("unencashed_cheques_file").disabled = true;
         }
 
-        if (excess_credited > 0) {
-            document.getElementById("file_excess_credit_entries").disabled = false;
+        if (closing_balance_stale > 0) {
+
+            document.getElementById("stale_cheques_file").disabled = false;
         }
         else {
-            document.getElementById("file_excess_credit_entries").disabled = true;
-        }
 
-        if (short_credited > 0) {
-            document.getElementById("file_short_credit_entries").disabled = false;
+            document.getElementById("stale_cheques_file").disabled = true;
         }
-        else {
-            document.getElementById("file_short_credit_entries").disabled = true;
-        }
+        var closing_balance_breakup = closing_balance_unencashed + closing_balance_stale;
 
-        var closing_balance_breakup = not_credited + short_credited - excess_credited + closing_balance_bank_statement;
-
-        document.getElementById("cal_closing_bal_breakup").innerText = formatter.format(closing_balance_breakup);
         return closing_balance_breakup;
     }
     function validateForm() {
         const threshold = 0.001
-        closing_balance_gl = calculateSum();
-        closing_balance_breakup = calculateClosingBalance();
+        let closing_balance_gl = calculateSum();
+        let closing_balance_breakup = calculateClosingBalance();
         if (Math.abs(closing_balance_gl - closing_balance_breakup) > threshold) {
             alert(`Closing balance ${closing_balance_gl} and closing balance breakup ${closing_balance_breakup} is not tallying.`)
             return false;
@@ -186,4 +167,3 @@
 
 </script>
 {% endblock scripts %}
-{% endblock content %}

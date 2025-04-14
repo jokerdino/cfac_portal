@@ -1,0 +1,13 @@
+{% extends "brs_cc_layout.html" %}
+
+{% block content %}
+
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
+
+<div class="container">
+    <form class="mb-5" method="post">
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
+</div>
+{% endblock content %}

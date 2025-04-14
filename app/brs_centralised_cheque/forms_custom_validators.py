@@ -50,7 +50,9 @@ class ExcelFileValidator:
                         df[date_col], errors="coerce", format="%d/%m/%Y"
                     )
                     if df[date_col].isnull().any():
-                        raise ValidationError(f"Invalid dates found in '{date_col}'.")
+                        raise ValidationError(
+                            f"Invalid dates found in '{date_col}'. Please enter dates in dd/mm/yyyy format."
+                        )
                     if df[date_col].gt(max_date).any():
                         raise ValidationError(
                             f"Dates in '{date_col}' cannot be in the future."

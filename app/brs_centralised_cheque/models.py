@@ -32,17 +32,19 @@ class CentralisedChequeSummary(db.Model):
     month = column_property(func.to_char(date_of_month, "FMMonth-YYYY"))
 
 
+@dataclass
 class CentralisedChequeDetails(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     summary_id = db.Column(db.Integer, db.ForeignKey("centralised_cheque_summary.id"))
-    opening_balance_unencashed = db.Column(db.Numeric(15, 2))
-    opening_balance_stale = db.Column(db.Numeric(15, 2))
-    cheques_issued = db.Column(db.Numeric(15, 2))
-    cheques_reissued = db.Column(db.Numeric(15, 2))
-    cheques_cleared = db.Column(db.Numeric(15, 2))
-    cheques_cancelled = db.Column(db.Numeric(15, 2))
-    closing_balance_unencashed = db.Column(db.Numeric(15, 2))
-    closing_balance_stale = db.Column(db.Numeric(15, 2))
+    opening_balance_unencashed: float = db.Column(db.Numeric(15, 2))
+    cheques_issued: float = db.Column(db.Numeric(15, 2))
+    cheques_reissued_unencashed: float = db.Column(db.Numeric(15, 2))
+    opening_balance_stale: float = db.Column(db.Numeric(15, 2))
+    cheques_reissued_stale: float = db.Column(db.Numeric(15, 2))
+    cheques_cleared: float = db.Column(db.Numeric(15, 2))
+    cheques_cancelled: float = db.Column(db.Numeric(15, 2))
+    closing_balance_unencashed: float = db.Column(db.Numeric(15, 2))
+    closing_balance_stale: float = db.Column(db.Numeric(15, 2))
 
     remarks = db.Column(db.Text)
 
@@ -70,16 +72,17 @@ class CentralisedChequeDetails(db.Model):
     )
 
 
+@dataclass
 class CentralisedChequeInstrumentStaleDetails(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
 
     voucher_number = db.Column(db.String)
     voucher_date = db.Column(db.Date)
     transaction_id = db.Column(db.String)
-    instrument_number = db.Column(db.String)
-    instrument_date = db.Column(db.Date)
-    instrument_amount = db.Column(db.Numeric(15, 2))
-    payee_name = db.Column(db.String)
+    instrument_number: str = db.Column(db.String)
+    instrument_date: datetime = db.Column(db.Date)
+    instrument_amount: float = db.Column(db.Numeric(15, 2))
+    payee_name: str = db.Column(db.String)
 
     remarks = db.Column(db.Text)
     instrument_status = db.Column(db.String)
@@ -95,16 +98,17 @@ class CentralisedChequeInstrumentStaleDetails(db.Model):
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
 
+@dataclass
 class CentralisedChequeInstrumentUnencashedDetails(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
 
     voucher_number = db.Column(db.String)
     voucher_date = db.Column(db.Date)
     transaction_id = db.Column(db.String)
-    instrument_number = db.Column(db.String)
-    instrument_date = db.Column(db.Date)
-    instrument_amount = db.Column(db.Numeric(15, 2))
-    payee_name = db.Column(db.String)
+    instrument_number: str = db.Column(db.String)
+    instrument_date: datetime = db.Column(db.Date)
+    instrument_amount: float = db.Column(db.Numeric(15, 2))
+    payee_name: str = db.Column(db.String)
 
     remarks = db.Column(db.Text)
     instrument_status = db.Column(db.String)

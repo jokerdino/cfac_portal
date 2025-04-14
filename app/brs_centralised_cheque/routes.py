@@ -188,7 +188,6 @@ def brs_cc_data_entry(key):
     form = CentralisedChequeBankReconForm(obj=brs)
 
     if form.validate_on_submit():
-
         brs_entry = CentralisedChequeDetails()
         form.populate_obj(brs_entry)
         brs_entry.summary_id = brs.id
@@ -250,12 +249,13 @@ def brs_cc_view_entry(key):
             "Opening balance: Unencashed cheques",
             datetime_format(brs.summary.month, "%B-%Y", "previous"),
         ),
+        "cheques_issued": ("Add: Cheques issued", brs.summary.month),
+        "cheques_reissued_unencashed": ("Add: Cheques reissued", brs.summary.month),
         "opening_balance_stale": (
             "Opening balance: Stale cheques",
             datetime_format(brs.summary.month, "%B-%Y", "previous"),
         ),
-        "cheques_issued": ("Add: Cheques issued", brs.summary.month),
-        "cheques_reissued": ("Add: Cheques reissued", brs.summary.month),
+        "cheques_reissued_stale": ("Less: Cheques reissued", brs.summary.month),
         "cheques_cleared": ("Less: Cheques cleared", brs.summary.month),
         "cheques_cancelled": ("Less: Cheques cancelled", brs.summary.month),
         "closing_balance_unencashed": (
@@ -324,3 +324,191 @@ def brs_auto_upload_prev_month():
 @login_required
 def download_format():
     return send_file("download_formats/brs_cc_cheques_upload_format.xlsx")
+
+
+@brs_cc_bp.route("/list_brs_data/", methods=["POST", "GET"])
+@login_required
+def list_brs_data():
+    form = CentralisedChequeDashboardForm()
+    month_choices = db.session.scalars(
+        db.select(
+            CentralisedChequeSummary.month, CentralisedChequeSummary.date_of_month
+        )
+        .distinct()
+        .order_by(CentralisedChequeSummary.date_of_month.desc())
+    )
+
+    form.month.choices = [month for month in month_choices]
+    if form.validate_on_submit():
+        month = form.month.data
+        query = (
+            db.select(CentralisedChequeDetails)
+            .join(CentralisedChequeSummary)
+            .where(
+                (CentralisedChequeSummary.month == month)
+                & (CentralisedChequeDetails.brs_status.is_(None))
+            )
+            .order_by(
+                CentralisedChequeSummary.regional_office_code,
+                CentralisedChequeSummary.operating_office_code,
+            )
+        )
+
+        if current_user.user_type == "ro_user":
+            query = query.where(
+                CentralisedChequeSummary.regional_office_code == current_user.ro_code
+            )
+        result = db.session.scalars(query)
+        return render_template("brs_list_summary.html", result=result)
+    return render_template("brs_summary_form.html", form=form)
+
+
+@brs_cc_bp.route("/list_unencashed_entries/", methods=["POST", "GET"])
+@login_required
+def list_unencashed_entries():
+    form = CentralisedChequeDashboardForm()
+    month_choices = db.session.scalars(
+        db.select(
+            CentralisedChequeSummary.month, CentralisedChequeSummary.date_of_month
+        )
+        .distinct()
+        .order_by(CentralisedChequeSummary.date_of_month.desc())
+    )
+    form.month.choices = [month for month in month_choices]
+
+    if form.validate_on_submit():
+        month = form.month.data
+        query = (
+            db.select(CentralisedChequeInstrumentUnencashedDetails)
+            .join(CentralisedChequeDetails)
+            .join(CentralisedChequeSummary)
+            .where(
+                (CentralisedChequeSummary.month == month)
+                & (CentralisedChequeDetails.brs_status.is_(None))
+            )
+            .order_by(
+                CentralisedChequeSummary.regional_office_code,
+                CentralisedChequeSummary.operating_office_code,
+            )
+        )
+
+        if current_user.user_type == "ro_user":
+            query = query.where(
+                CentralisedChequeSummary.regional_office_code == current_user.ro_code
+            )
+        result = db.session.scalars(query)
+        return render_template("brs_list_unencashed.html", result=result)
+    return render_template("brs_summary_form.html", form=form)
+
+
+@brs_cc_bp.route("/list_stale_entries/", methods=["POST", "GET"])
+@login_required
+def list_stale_entries():
+    form = CentralisedChequeDashboardForm()
+    month_choices = db.session.scalars(
+        db.select(
+            CentralisedChequeSummary.month, CentralisedChequeSummary.date_of_month
+        )
+        .distinct()
+        .order_by(CentralisedChequeSummary.date_of_month.desc())
+    )
+    form.month.choices = [month for month in month_choices]
+
+    if form.validate_on_submit():
+        month = form.month.data
+        query = (
+            db.select(CentralisedChequeInstrumentStaleDetails)
+            .join(CentralisedChequeDetails)
+            .join(CentralisedChequeSummary)
+            .where(
+                (CentralisedChequeSummary.month == month)
+                & (CentralisedChequeDetails.brs_status.is_(None))
+            )
+            .order_by(
+                CentralisedChequeSummary.regional_office_code,
+                CentralisedChequeSummary.operating_office_code,
+            )
+        )
+
+        if current_user.user_type == "ro_user":
+            query = query.where(
+                CentralisedChequeSummary.regional_office_code == current_user.ro_code
+            )
+        result = db.session.scalars(query)
+        return render_template("brs_list_stale.html", result=result)
+    return render_template("brs_summary_form.html", form=form)
+
+
+@brs_cc_bp.route(
+    "/api/v1/view_brs_cc/<string:office_code>/<string:month>/", methods=["POST", "GET"]
+)
+@login_required
+def view_brs_cc_api(office_code, month):
+    response = {"office_code": office_code, "month": month}
+    brs = db.session.scalars(
+        db.select(CentralisedChequeDetails)
+        .join(CentralisedChequeSummary)
+        .outerjoin(CentralisedChequeInstrumentUnencashedDetails)
+        .outerjoin(CentralisedChequeInstrumentStaleDetails)
+        .where(
+            (CentralisedChequeDetails.brs_status.is_(None))
+            & (CentralisedChequeSummary.month == month)
+            & (CentralisedChequeSummary.operating_office_code == office_code)
+        )
+    ).first()
+
+    if brs:
+        response["summary"] = asdict(brs.summary)
+        response["brs"] = asdict(brs)
+        if brs.unencashed_cheques:
+            response["brs"]["unencashed_cheques"] = [
+                asdict(unencashed_cheque)
+                for unencashed_cheque in brs.unencashed_cheques
+            ]
+        if brs.stale_cheques:
+            response["brs"]["stale_cheques"] = [
+                asdict(stale_cheque) for stale_cheque in brs.stale_cheques
+            ]
+
+    return response
+
+
+@brs_cc_bp.route("/enable_delete/add/", methods=["POST", "GET"])
+@login_required
+def enable_month_deletion():
+    form = EnableDeleteMonthForm()
+
+    if form.validate_on_submit():
+        delete_entries = CentralisedChequeEnableDelete()
+        form.populate_obj(delete_entries)
+        db.session.add(delete_entries)
+        db.session.commit()
+        flash("Added.")
+    return render_template("brs_cc_enable_month_delete.html", form=form)
+
+
+# edit month
+@brs_cc_bp.route("/enable_delete/edit/<int:month_id>/", methods=["POST", "GET"])
+@login_required
+def edit_month_deletion(month_id):
+    delete_entries = CentralisedChequeEnableDelete.query.get_or_404(month_id)
+    form = EnableDeleteMonthForm(obj=delete_entries)
+    if form.validate_on_submit():
+        form.populate_obj(delete_entries)
+        db.session.commit()
+        flash("Updated.")
+    return render_template("brs_cc_enable_month_delete.html", form=form)
+
+
+# list months
+@brs_cc_bp.route("/enable_delete/")
+@login_required
+def list_month_deletions():
+    list = CentralisedChequeEnableDelete.query.order_by(
+        CentralisedChequeEnableDelete.date_of_month
+    )
+    column_names = CentralisedChequeEnableDelete.query.statement.columns.keys()
+
+    return render_template(
+        "brs_cc_list_enable_delete.html", list=list, column_names=column_names
+    )

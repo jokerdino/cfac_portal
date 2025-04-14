@@ -1,0 +1,33 @@
+{% extends "brs_cc_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container">
+
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="box">
+            {% for field in form if field.widget.input_type not in [ "hidden","submit"] %}
+
+            {{ render_field_div_horizontal(field, is_narrow=False) }}
+
+            {% endfor %}
+            <div class="has-text-centered">
+                {{ form.submit }}
+            </div>
+
+        </div>
+
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
+
+{% endblock content %}

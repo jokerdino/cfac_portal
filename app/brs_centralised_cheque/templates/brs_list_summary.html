@@ -1,0 +1,103 @@
+{% extends "brs_cc_layout.html" %}
+
+{% block content %}
+
+<div class="container is-fluid">
+    <h1 class="title">BRS data</h1>
+    <table class="table is-bordered" id="brs_table">
+        <thead>
+            <tr>
+                <th>Regional office code</th>
+                <th>Operating office code</th>
+                <th>Month</th>
+                <th>Bank</th>
+                <th>Opening balance unencashed</th>
+                <th>Opening balance stale</th>
+                <th>Cheques issued</th>
+                <th>Cheques reissued</th>
+                <th>Cheques cleared</th>
+                <th>Cheques cancelled</th>
+                <th>Closing balance unencashed</th>
+                <th>Closing balance stale</th>
+                <th>Remarks</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody> {% for entry in result %}
+
+            <tr>
+                <td> {{ entry.summary.regional_office_code }}
+
+                </td>
+                <td> {{ entry.summary.operating_office_code }}
+
+                </td>
+                <td> {{ entry.summary.month }}
+
+                </td>
+                <td> {{ entry.summary.centralised_cheque_bank }}
+
+                </td>
+                <td> {{ (entry.opening_balance_unencashed or 0) | indian_number_format }}
+
+                </td>
+
+                <td> {{ (entry.cheques_issued or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.cheques_reissued_unencashed or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.cheques_reissued_stale or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.cheques_cleared or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.cheques_cancelled or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.closing_balance_unencashed or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ (entry.closing_balance_stale or 0) | indian_number_format }}
+
+                </td>
+                <td> {{ entry.remarks }}
+
+                </td>
+                <td><a href="{{ url_for('.brs_cc_view_entry', key=entry.id) }}">{{ entry.created_on }}</a>
+                </td>
+            </tr> {% endfor %}
+
+        </tbody>
+    </table>
+    <div class=" has-text-centered">
+        <a class="button is-link is-outlined" href="{{ url_for('brs_cc.brs_cc_dashboard') }}">
+            Back </a>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    new DataTable('#brs_table', {
+        // dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+        //       scrollY: true,
+        //     fixedHeader: true,
+        fixedHeader: true,
+        pageLength: 50,
+        scrollY: true,
+        scrollX: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[1, 'asc'], [0, 'asc']],
+        pagingType: 'full_numbers',
+
+    });
+
+</script>
+
+{% endblock scripts %}

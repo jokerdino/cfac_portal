@@ -1,0 +1,29 @@
+{% extends "brs_cc_layout.html" %}
+
+{% block content %}
+{% if current_user.user_type == "admin" %}
+<div class="container table-container">
+    <table class="table is-striped is-bordered" id="gst_table">
+        <thead>
+            <tr>
+                {% for i in column_names %}
+                <th>{{ i|upper }}</th>
+                {% endfor %}
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in list %}
+                {% for i in column_names %}
+                <td>{{ item[i] }}</td>
+                {% endfor %}
+                <td><a href="{{ url_for('.edit_month_deletion', month_id =item['id'] ) }}">Edit</a></td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock content %}

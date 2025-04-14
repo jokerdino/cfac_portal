@@ -25,7 +25,7 @@ from .forms_custom_validators import ExcelFileValidator
 class EnableDeleteMonthForm(FlaskForm):
     date_of_month = StringField()
     enable_delete = BooleanField()
-    submit = SubmitField()
+    submit = SubmitField(render_kw={"class": "button is-success"})
 
 
 class DeleteMonthForm(FlaskForm):
@@ -60,10 +60,15 @@ class CentralisedChequeBankReconForm(FlaskForm):
         validators=[InputRequired()],
         render_kw={"class": "input is-small"},
     )
-    cheques_reissued = DecimalField(
+    cheques_reissued_unencashed = DecimalField(
         "Add: Cheques reissued",
         validators=[InputRequired()],
         render_kw={"class": "input is-small"},
+    )
+    cheques_reissued_stale = DecimalField(
+        "Less: Cheques reissued",
+        validators=[InputRequired()],
+        render_kw={"class": "input is-small", "readonly": "readonly"},
     )
     cheques_cleared = DecimalField(
         "Less: Cheques cleared",
@@ -78,12 +83,20 @@ class CentralisedChequeBankReconForm(FlaskForm):
     closing_balance_unencashed = DecimalField(
         "Closing balance: Unencashed cheques",
         validators=[InputRequired()],
-        render_kw={"class": "input is-small"},
+        render_kw={
+            "class": "input is-small",
+            "onload": "calculateClosingBalance();",
+            "onkeyup": "calculateClosingBalance();",
+        },
     )
     closing_balance_stale = DecimalField(
         "Closing balance: Stale cheques",
         validators=[InputRequired()],
-        render_kw={"class": "input is-small"},
+        render_kw={
+            "class": "input is-small",
+            "onload": "calculateClosingBalance();",
+            "onkeyup": "calculateClosingBalance();",
+        },
     )
 
     remarks = TextAreaField(render_kw={"class": "textarea"}, validators=[Optional()])
@@ -155,7 +168,8 @@ class CentralisedChequeBankReconForm(FlaskForm):
         opening_unencashed = self.opening_balance_unencashed.data or 0
         opening_stale = self.opening_balance_stale.data or 0
         cheques_issued = self.cheques_issued.data or 0
-        cheques_reissued = self.cheques_reissued.data or 0
+        cheques_reissued_unencashed = self.cheques_reissued_unencashed.data or 0
+        cheques_reissued_stale = self.cheques_reissued_stale.data or 0
         cheques_cleared = self.cheques_cleared.data or 0
         cheques_cancelled = self.cheques_cancelled.data or 0
         closing_unencashed = self.closing_balance_unencashed.data or 0
@@ -168,7 +182,8 @@ class CentralisedChequeBankReconForm(FlaskForm):
                     opening_unencashed
                     + opening_stale
                     + cheques_issued
-                    + cheques_reissued
+                    + cheques_reissued_unencashed
+                    - cheques_reissued_stale
                     - cheques_cleared
                     - cheques_cancelled
                 )
@@ -186,7 +201,7 @@ class CentralisedChequeBankReconForm(FlaskForm):
 
 class CentralisedChequeDashboardForm(FlaskForm):
     month = SelectField()
-    refresh = SubmitField(render_kw={"class": "button is-success is-outlined"})
+    submit = SubmitField(render_kw={"class": "button is-success is-outlined"})
 
 
 class BulkUploadCentralisedChequeSummary(FlaskForm):
