@@ -18,7 +18,7 @@
                 {% for i in column_names %}
                 <td>{{ item[i] }}</td>
                 {% endfor %}
-                <td><a href="{{ url_for('brs.edit_month_deletion', month_id =item['id'] )}}">Edit</a></td>
+                <td><a href="{{ url_for('brs.edit_month_deletion', month_id =item['id'] ) }}">Edit</a></td>
             </tr>
             {% endfor %}
 
