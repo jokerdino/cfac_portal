@@ -7,15 +7,15 @@
 <table class="table is-striped is-fullwidth is-bordered" id="settlement_table">
     <thead>
         <tr>
-            <th>Coinsurer name</th>
-            <th>Paid / received</th>
-            <th>Amount settled</th>
-            <th>Date of settlement</th>
-            <th>UTR number</th>
-            <th>Notes</th>
-            <th>View</th>
+            <th class="has-text-centered is-vcentered">Coinsurer name</th>
+            <th class="has-text-centered is-vcentered">Paid / received</th>
+            <th class="has-text-centered is-vcentered">Amount settled</th>
+            <th class="has-text-centered is-vcentered">Date of settlement</th>
+            <th class="has-text-centered is-vcentered">UTR number</th>
+            <th class="has-text-centered is-vcentered">Notes</th>
+            <th class="has-text-centered is-vcentered">View</th>
             {% if current_user.user_type == "admin" %}
-            <th>Edit</th>
+            <th class="has-text-centered is-vcentered">Edit</th>
             {% endif %}
         </tr>
     </thead>

@@ -6,15 +6,15 @@
     <table class="table is-bordered" id="bank_mandate_table">
         <thead>
             <tr>
-                <th>Company name</th>
-                <th>Office code</th>
-                <th>Bank name</th>
-                <th>IFSC code</th>
-                <th>Bank account number</th>
-                <th>Bank mandate</th>
-                <th>Remarks</th>
+                <th class="has-text-centered is-vcentered">Company name</th>
+                <th class="has-text-centered is-vcentered">Office code</th>
+                <th class="has-text-centered is-vcentered">Bank name</th>
+                <th class="has-text-centered is-vcentered">IFSC code</th>
+                <th class="has-text-centered is-vcentered">Bank account number</th>
+                <th class="has-text-centered is-vcentered">Bank mandate</th>
+                <th class="has-text-centered is-vcentered">Remarks</th>
                 {% if current_user.user_type == "admin" %}
-                <th>Edit</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
                 {% endif %}
             </tr>
         </thead>
