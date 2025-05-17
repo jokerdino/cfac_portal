@@ -1,0 +1,12 @@
+{% extends "ri_layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="title">Upload document</h1>
+    <form action="" method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {{ form.file_upload(class="file") }}
+        {{ form.file_process_option }}
+        {{ form.upload_document(class="button is-success") }}
+    </form>
+</div>
+{% endblock content %}
