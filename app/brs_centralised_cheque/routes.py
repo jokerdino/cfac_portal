@@ -322,12 +322,14 @@ def brs_auto_upload_prev_month():
 
 @brs_cc_bp.route("/download_format/")
 @login_required
+@ro_user_only
 def download_format():
     return send_file("download_formats/brs_cc_cheques_upload_format.xlsx")
 
 
 @brs_cc_bp.route("/list_brs_data/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def list_brs_data():
     form = CentralisedChequeDashboardForm()
     month_choices = db.session.scalars(
@@ -365,6 +367,7 @@ def list_brs_data():
 
 @brs_cc_bp.route("/list_unencashed_entries/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def list_unencashed_entries():
     form = CentralisedChequeDashboardForm()
     month_choices = db.session.scalars(
@@ -403,6 +406,7 @@ def list_unencashed_entries():
 
 @brs_cc_bp.route("/list_stale_entries/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def list_stale_entries():
     form = CentralisedChequeDashboardForm()
     month_choices = db.session.scalars(
@@ -442,7 +446,6 @@ def list_stale_entries():
 @brs_cc_bp.route(
     "/api/v1/view_brs_cc/<string:office_code>/<string:month>/", methods=["POST", "GET"]
 )
-@login_required
 def view_brs_cc_api(office_code, month):
     response = {"office_code": office_code, "month": month}
     brs = db.session.scalars(
@@ -475,6 +478,7 @@ def view_brs_cc_api(office_code, month):
 
 @brs_cc_bp.route("/enable_delete/add/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def enable_month_deletion():
     form = EnableDeleteMonthForm()
 
@@ -490,6 +494,7 @@ def enable_month_deletion():
 # edit month
 @brs_cc_bp.route("/enable_delete/edit/<int:month_id>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_month_deletion(month_id):
     delete_entries = CentralisedChequeEnableDelete.query.get_or_404(month_id)
     form = EnableDeleteMonthForm(obj=delete_entries)
@@ -503,12 +508,13 @@ def edit_month_deletion(month_id):
 # list months
 @brs_cc_bp.route("/enable_delete/")
 @login_required
+@admin_required
 def list_month_deletions():
-    list = CentralisedChequeEnableDelete.query.order_by(
+    list_months = CentralisedChequeEnableDelete.query.order_by(
         CentralisedChequeEnableDelete.date_of_month
     )
     column_names = CentralisedChequeEnableDelete.query.statement.columns.keys()
 
     return render_template(
-        "brs_cc_list_enable_delete.html", list=list, column_names=column_names
+        "brs_cc_list_enable_delete.html", list=list_months, column_names=column_names
     )
