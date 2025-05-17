@@ -4,10 +4,10 @@
  *
  * To rebuild or modify this file with the latest versions of the included
  * software please visit:
- *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.1.8/b-3.2.0/b-html5-3.2.0/fc-5.0.4/fh-4.0.1
+ *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.3.1/b-3.2.3/b-html5-3.2.3/fc-5.0.4/fh-4.0.2
  *
  * Included libraries:
- *   jQuery 3 3.7.0, JSZip 3.10.1, DataTables 2.1.8, Buttons 3.2.0, HTML5 export 3.2.0, FixedColumns 5.0.4, FixedHeader 4.0.1
+ *   jQuery 3.7.0, JSZip 3.10.1, DataTables 2.3.1, Buttons 3.2.3, HTML5 export 3.2.3, FixedColumns 5.0.4, FixedHeader 4.0.2
  */
 
 /*!
@@ -22294,26 +22294,8 @@ module.exports = ZStream;
 },{}]},{},[10])(10)
 });
 
-/*! DataTables 2.1.8
+/*! DataTables 2.3.1
  * © SpryMedia Ltd - datatables.net/license
- */
-
-/**
- * @summary     DataTables
- * @description Paginate, search and order HTML tables
- * @version     2.1.8
- * @author      SpryMedia Ltd
- * @contact     www.datatables.net
- * @copyright   SpryMedia Ltd.
- *
- * This source file is free software, available under the following license:
- *   MIT license - https://datatables.net/license
- *
- * This source file is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
- *
- * For details please refer to: https://www.datatables.net
  */
 
 (function( factory ) {
@@ -22403,15 +22385,19 @@ module.exports = ZStream;
 			var defaults = DataTable.defaults;
 			var $this = $(this);
 
-
-			/* Sanity check */
+			// Sanity check
 			if ( this.nodeName.toLowerCase() != 'table' )
 			{
 				_fnLog( null, 0, 'Non-table node initialisation ('+this.nodeName+')', 2 );
 				return;
 			}
 
-			$(this).trigger( 'options.dt', oInit );
+			// Special case for options
+			if (oInit.on && oInit.on.options) {
+				_fnListener($this, 'options', oInit.on.options);
+			}
+
+			$this.trigger( 'options.dt', oInit );
 
 			/* Backwards compatibility for the defaults */
 			_fnCompatOpts( defaults );
@@ -22550,6 +22536,9 @@ module.exports = ZStream;
 				"caption",
 				"layout",
 				"orderDescReverse",
+				"orderIndicators",
+				"orderHandler",
+				"titleRow",
 				"typeDetect",
 				[ "iCookieDuration", "iStateDuration" ], // backwards compat
 				[ "oSearch", "oPreviousSearch" ],
@@ -22577,6 +22566,13 @@ module.exports = ZStream;
 			_fnCallbackReg( oSettings, 'aoPreDrawCallback',    oInit.fnPreDrawCallback );
 
 			oSettings.rowIdFn = _fnGetObjectDataFn( oInit.rowId );
+
+			// Add event listeners
+			if (oInit.on) {
+				Object.keys(oInit.on).forEach(function (key) {
+					_fnListener($this, key, oInit.on[key]);
+				});
+			}
 
 			/* Browser support detection */
 			_fnBrowserDetect( oSettings );
@@ -22638,7 +22634,7 @@ module.exports = ZStream;
 			/* HTML5 attribute detection - build an mData object automatically if the
 			 * attributes are found
 			 */
-			var rowOne = $this.children('tbody').find('tr').eq(0);
+			var rowOne = $this.children('tbody').find('tr:first-child').eq(0);
 
 			if ( rowOne.length ) {
 				var a = function ( cell, name ) {
@@ -22725,7 +22721,6 @@ module.exports = ZStream;
 				thead = $('<thead/>').appendTo($this);
 			}
 			oSettings.nTHead = thead[0];
-			$('tr', thead).addClass(oClasses.thead.row);
 
 			var tbody = $this.children('tbody');
 			if ( tbody.length === 0 ) {
@@ -22740,7 +22735,6 @@ module.exports = ZStream;
 				tfoot = $('<tfoot/>').appendTo($this);
 			}
 			oSettings.nTFoot = tfoot[0];
-			$('tr', tfoot).addClass(oClasses.tfoot.row);
 
 			// Copy the data index array
 			oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
@@ -22799,6 +22793,13 @@ module.exports = ZStream;
 	 */
 	DataTable.ext = _ext = {
 		/**
+		 * DataTables build type (expanded by the download builder)
+		 *
+		 *  @type string
+		 */
+		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.3.1/b-3.2.3/b-html5-3.2.3/fc-5.0.4/fh-4.0.2",
+
+		/**
 		 * Buttons. For use with the Buttons extension for DataTables. This is
 		 * defined here so other extensions can define buttons regardless of load
 		 * order. It is _not_ used by DataTables core.
@@ -22810,20 +22811,20 @@ module.exports = ZStream;
 
 
 		/**
+		 * ColumnControl buttons and content
+		 *
+		 *  @type object
+		 */
+		ccContent: {},
+
+
+		/**
 		 * Element class names
 		 *
 		 *  @type object
 		 *  @default {}
 		 */
 		classes: {},
-
-
-		/**
-		 * DataTables build type (expanded by the download builder)
-		 *
-		 *  @type string
-		 */
-		builder: "bm/jq-3.7.0/jszip-3.10.1/dt-2.1.8/b-3.2.0/b-html5-3.2.0/fc-5.0.4/fh-4.0.1",
 
 
 		/**
@@ -24191,6 +24192,26 @@ module.exports = ZStream;
 			init.scrollX = init.scrollX ? '100%' : '';
 		}
 
+		// Objects for ordering
+		if ( typeof init.bSort === 'object' ) {
+			init.orderIndicators = init.bSort.indicators !== undefined ? init.bSort.indicators : true;
+			init.orderHandler = init.bSort.handler !== undefined ? init.bSort.handler : true;
+			init.bSort = true;
+		}
+		else if (init.bSort === false) {
+			init.orderIndicators = false;
+			init.orderHandler = false;
+		}
+		else if (init.bSort === true) {
+			init.orderIndicators = true;
+			init.orderHandler = true;
+		}
+
+		// Which cells are the title cells?
+		if (typeof init.bSortCellsTop === 'boolean') {
+			init.titleRow = init.bSortCellsTop;
+		}
+
 		// Column search objects are in an array, so it needs to be converted
 		// element by element
 		var searchCols = init.aoSearchCols;
@@ -24457,6 +24478,10 @@ module.exports = ZStream;
 			var width = _fnColumnsSumWidth(settings, [i], false, false);
 
 			cols[i].colEl.css('width', width);
+
+			if (settings.oScroll.sX) {
+				cols[i].colEl.css('min-width', width);
+			}
 		}
 	}
 
@@ -25524,9 +25549,13 @@ module.exports = ZStream;
 
 			// Add the number of cells needed to make up to the number of columns
 			if (row.length === 1) {
-				var cells = $('td, th', row);
+				var cellCount = 0;
 
-				for ( i=cells.length, ien=columns.length ; i<ien ; i++ ) {
+				$('td, th', row).each(function () {
+					cellCount += this.colSpan;
+				});
+
+				for ( i=cellCount, ien=columns.length ; i<ien ; i++ ) {
 					$('<th/>')
 						.html( columns[i][titleProp] || '' )
 						.appendTo( row );
@@ -25538,9 +25567,11 @@ module.exports = ZStream;
 
 		if (side === 'header') {
 			settings.aoHeader = detected;
+			$('tr', target).addClass(classes.thead.row);
 		}
 		else {
 			settings.aoFooter = detected;
+			$('tr', target).addClass(classes.tfoot.row);
 		}
 
 		// Every cell needs to be passed through the renderer
@@ -25558,7 +25589,7 @@ module.exports = ZStream;
 	 * @param {*} settings DataTables settings
 	 * @param {*} source Source layout array
 	 * @param {*} incColumns What columns should be included
-	 * @returns Layout array
+	 * @returns Layout array in column index order
 	 */
 	function _fnHeaderLayout( settings, source, incColumns )
 	{
@@ -25842,7 +25873,9 @@ module.exports = ZStream;
 
 		_fnDraw( settings );
 
-		settings._drawHold = false;
+		settings.api.one('draw', function () {
+			settings._drawHold = false;
+		});
 	}
 
 
@@ -25854,10 +25887,9 @@ module.exports = ZStream;
 		var zero = oLang.sZeroRecords;
 		var dataSrc = _fnDataSource( settings );
 
-		if (
-			(settings.iDraw < 1 && dataSrc === 'ssp') ||
-			(settings.iDraw <= 1 && dataSrc === 'ajax')
-		) {
+		// Make use of the fact that settings.json is only set once the initial data has
+		// been loaded. Show loading when that isn't the case
+		if ((dataSrc === 'ssp' || dataSrc === 'ajax') && ! settings.json) {
 			zero = oLang.sLoadingRecords;
 		}
 		else if ( oLang.sEmptyTable && settings.fnRecordsTotal() === 0 )
@@ -26227,6 +26259,7 @@ module.exports = ZStream;
 		var rows = $(thead).children('tr');
 		var row, cell;
 		var i, k, l, iLen, shifted, column, colspan, rowspan;
+		var titleRow = settings.titleRow;
 		var isHeader = thead && thead.nodeName.toLowerCase() === 'thead';
 		var layout = [];
 		var unique;
@@ -26255,6 +26288,7 @@ module.exports = ZStream;
 					cell.nodeName.toUpperCase() == 'TH'
 				) {
 					var cols = [];
+					var jqCell = $(cell);
 
 					// Get the col and rowspan attributes from the DOM and sanitise them
 					colspan = cell.getAttribute('colspan') * 1;
@@ -26275,7 +26309,7 @@ module.exports = ZStream;
 					if ( write ) {
 						if (unique) {
 							// Allow column options to be set from HTML attributes
-							_fnColumnOptions( settings, shifted, $(cell).data() );
+							_fnColumnOptions( settings, shifted, jqCell.data() );
 
 							// Get the width for the column. This can be defined from the
 							// width attribute, style attribute or `columns.width` option
@@ -26292,7 +26326,14 @@ module.exports = ZStream;
 								// Column title handling - can be user set, or read from the DOM
 								// This happens before the render, so the original is still in place
 								if ( columnDef.sTitle !== null && ! columnDef.autoTitle ) {
-									cell.innerHTML = columnDef.sTitle;
+									if (
+										(titleRow === true && i === 0) || // top row
+										(titleRow === false && i === rows.length -1) || // bottom row
+										(titleRow === i) || // specific row
+										(titleRow === null)
+									) {
+										cell.innerHTML = columnDef.sTitle;
+									}
 								}
 
 								if (! columnDef.sTitle && unique) {
@@ -26310,12 +26351,12 @@ module.exports = ZStream;
 							// Fall back to the aria-label attribute on the table header if no ariaTitle is
 							// provided.
 							if (! columnDef.ariaTitle) {
-								columnDef.ariaTitle = $(cell).attr("aria-label") || columnDef.sTitle;
+								columnDef.ariaTitle = jqCell.attr("aria-label") || columnDef.sTitle;
 							}
 
 							// Column specific class names
 							if ( columnDef.className ) {
-								$(cell).addClass( columnDef.className );
+								jqCell.addClass( columnDef.className );
 							}
 						}
 
@@ -26327,9 +26368,26 @@ module.exports = ZStream;
 								.appendTo(cell);
 						}
 
-						if ( isHeader && $('span.dt-column-order', cell).length === 0) {
+						if (
+							settings.orderIndicators &&
+							isHeader &&
+							jqCell.filter(':not([data-dt-order=disable])').length !== 0 &&
+							jqCell.parent(':not([data-dt-order=disable])').length !== 0 &&
+							$('span.dt-column-order', cell).length === 0
+						) {
 							$('<span>')
 								.addClass('dt-column-order')
+								.appendTo(cell);
+						}
+
+						// We need to wrap the elements in the header in another element to use flexbox
+						// layout for those elements
+						var headerFooter = isHeader ? 'header' : 'footer';
+
+						if ( $('span.dt-column-' + headerFooter, cell).length === 0) {
+							$('<div>')
+								.addClass('dt-column-' + headerFooter)
+								.append(cell.childNodes)
 								.appendTo(cell);
 						}
 					}
@@ -26481,6 +26539,11 @@ module.exports = ZStream;
 
 		// Allow plug-ins and external processes to modify the data
 		_fnCallbackFire( oSettings, null, 'preXhr', [oSettings, data, baseAjax], true );
+
+		// Custom Ajax option to submit the parameters as a JSON string
+		if (baseAjax.submitAs === 'json' && typeof data === 'object') {
+			baseAjax.data = JSON.stringify(data);
+		}
 
 		if ( typeof ajax === 'function' )
 		{
@@ -26803,7 +26866,7 @@ module.exports = ZStream;
 			// So the array reference doesn't break set the results into the
 			// existing array
 			displayRows.length = 0;
-			displayRows.push.apply(displayRows, rows);
+			_fnArrayApply(displayRows, rows);
 		}
 	}
 
@@ -27531,8 +27594,11 @@ module.exports = ZStream;
 			// [].find, but it wasn't supported in Chrome until Sept 2015, and DT has 10 year
 			// browser support
 			var firstTr = null;
+			var start = _fnDataSource( settings ) !== 'ssp'
+				? settings._iDisplayStart
+				: 0;
 
-			for (i=settings._iDisplayStart ; i<settings.aiDisplay.length ; i++) {
+			for (i=start ; i<start + settings.aiDisplay.length ; i++) {
 				var idx = settings.aiDisplay[i];
 				var tr = settings.aoData[idx].nTr;
 
@@ -27547,7 +27613,7 @@ module.exports = ZStream;
 					return {
 						idx: _fnVisibleToColumnIndex(settings, vis),
 						width: $(this).outerWidth()
-					}
+					};
 				});
 
 				// Check against what the colgroup > col is set to and correct if needed
@@ -27557,6 +27623,10 @@ module.exports = ZStream;
 
 					if (colWidth !== colSizes[i].width) {
 						colEl.style.width = colSizes[i].width + 'px';
+
+						if (scroll.sX) {
+							colEl.style.minWidth = colSizes[i].width + 'px';
+						}
 					}
 				}
 			}
@@ -27649,6 +27719,14 @@ module.exports = ZStream;
 			i, column, columnIdx;
 
 		var styleWidth = table.style.width;
+		var containerWidth = _fnWrapperWidth(settings);
+
+		// Don't re-run for the same width as the last time
+		if (containerWidth === settings.containerWidth) {
+			return false;
+		}
+
+		settings.containerWidth = containerWidth;
 
 		// If there is no width applied as a CSS style or as an attribute, we assume that
 		// the width is intended to be 100%, which is usually is in CSS, but it is very
@@ -27706,6 +27784,8 @@ module.exports = ZStream;
 				// browser will collapse it. If this width is smaller than the
 				// width the column requires, then it will have no effect
 				if ( scrollX ) {
+					this.style.minWidth = width;
+
 					$( this ).append( $('<div/>').css( {
 						width: width,
 						margin: 0,
@@ -27774,15 +27854,15 @@ module.exports = ZStream;
 
 			// If there is no width attribute or style, then allow the table to
 			// collapse
-			if ( tmpTable.width() < tableContainer.clientWidth && tableWidthAttr ) {
-				tmpTable.width( tableContainer.clientWidth );
+			if ( tmpTable.outerWidth() < tableContainer.clientWidth && tableWidthAttr ) {
+				tmpTable.outerWidth( tableContainer.clientWidth );
 			}
 		}
 		else if ( scrollY ) {
-			tmpTable.width( tableContainer.clientWidth );
+			tmpTable.outerWidth( tableContainer.clientWidth );
 		}
 		else if ( tableWidthAttr ) {
-			tmpTable.width( tableWidthAttr );
+			tmpTable.outerWidth( tableWidthAttr );
 		}
 
 		// Get the width of each column in the constructed table
@@ -27815,20 +27895,64 @@ module.exports = ZStream;
 		}
 
 		if ( (tableWidthAttr || scrollX) && ! settings._reszEvt ) {
-			var bindResize = function () {
-				$(window).on('resize.DT-'+settings.sInstance, DataTable.util.throttle( function () {
-					if (! settings.bDestroying) {
-						_fnAdjustColumnSizing( settings );
-					}
-				} ) );
-			};
+			var resize = DataTable.util.throttle( function () {
+				var newWidth = _fnWrapperWidth(settings);
 
-			bindResize();
+				// Don't do it if destroying or the container width is 0
+				if (! settings.bDestroying && newWidth !== 0) {
+					_fnAdjustColumnSizing( settings );
+				}
+			} );
+
+			// For browsers that support it (~2020 onwards for wide support) we can watch for the
+			// container changing width.
+			if (window.ResizeObserver) {
+				// This is a tricky beast - if the element is visible when `.observe()` is called,
+				// then the callback is immediately run. Which we don't want. If the element isn't
+				// visible, then it isn't run, but we want it to run when it is then made visible.
+				// This flag allows the above to be satisfied.
+				var first = $(settings.nTableWrapper).is(':visible');
+
+				// Use an empty div to attach the observer so it isn't impacted by height changes
+				var resizer = $('<div>')
+					.css({
+						width: '100%',
+						height: 0
+					})
+					.addClass('dt-autosize')
+					.appendTo(settings.nTableWrapper);
+
+				settings.resizeObserver = new ResizeObserver(function (e) {
+					if (first) {
+						first = false;
+					}
+					else {
+						resize();
+					}
+				});
+
+				settings.resizeObserver.observe(resizer[0]);
+			}
+			else {
+				// For old browsers, the best we can do is listen for a window resize
+				$(window).on('resize.DT-'+settings.sInstance, resize);
+			}
 
 			settings._reszEvt = true;
 		}
 	}
 
+	/**
+	 * Get the width of the DataTables wrapper element
+	 *
+	 * @param {*} settings DataTables settings object
+	 * @returns Width
+	 */
+	function _fnWrapperWidth(settings) {
+		return $(settings.nTableWrapper).is(':visible')
+			? $(settings.nTableWrapper).width()
+			: 0;
+	}
 
 	/**
 	 * Get the maximum strlen for each data column
@@ -27921,24 +28045,30 @@ module.exports = ZStream;
 	function _fnSortInit( settings ) {
 		var target = settings.nTHead;
 		var headerRows = target.querySelectorAll('tr');
-		var legacyTop = settings.bSortCellsTop;
+		var titleRow = settings.titleRow;
 		var notSelector = ':not([data-dt-order="disable"]):not([data-dt-order="icon-only"])';
 
 		// Legacy support for `orderCellsTop`
-		if (legacyTop === true) {
+		if (titleRow === true) {
 			target = headerRows[0];
 		}
-		else if (legacyTop === false) {
+		else if (titleRow === false) {
 			target = headerRows[ headerRows.length - 1 ];
 		}
+		else if (titleRow !== null) {
+			target = headerRows[titleRow];
+		}
+		// else - all rows
 
-		_fnSortAttachListener(
-			settings,
-			target,
-			target === settings.nTHead
-				? 'tr'+notSelector+' th'+notSelector+', tr'+notSelector+' td'+notSelector
-				: 'th'+notSelector+', td'+notSelector
-		);
+		if (settings.orderHandler) {
+			_fnSortAttachListener(
+				settings,
+				target,
+				target === settings.nTHead
+					? 'tr'+notSelector+' th'+notSelector+', tr'+notSelector+' td'+notSelector
+					: 'th'+notSelector+', td'+notSelector
+			);
+		}
 
 		// Need to resolve the user input array into our internal structure
 		var order = [];
@@ -27953,7 +28083,9 @@ module.exports = ZStream;
 			var run = false;
 			var columns = column === undefined
 				? _fnColumnsFromHeader( e.target )
-				: [column];
+				: Array.isArray(column)
+					? column
+					: [column];
 
 			if ( columns.length ) {
 				for ( var i=0, ien=columns.length ; i<ien ; i++ ) {
@@ -28139,10 +28271,14 @@ module.exports = ZStream;
 			displayMaster = oSettings.aiDisplayMaster,
 			aSort;
 
+		// Make sure the columns all have types defined
+		_fnColumnTypes(oSettings);
+
 		// Allow a specific column to be sorted, which will _not_ alter the display
 		// master
 		if (col !== undefined) {
 			var srcCol = oSettings.aoColumns[col];
+
 			aSort = [{
 				src:       col,
 				col:       col,
@@ -28437,15 +28573,26 @@ module.exports = ZStream;
 			return;
 		}
 
+		// Sort state saving uses [[idx, order]] structure.
+		var sorting = [];
+		_fnSortResolve(settings, sorting, settings.aaSorting );
+
 		/* Store the interesting variables */
+		var columns = settings.aoColumns;
 		var state = {
 			time:    +new Date(),
 			start:   settings._iDisplayStart,
 			length:  settings._iDisplayLength,
-			order:   $.extend( true, [], settings.aaSorting ),
+			order:   sorting.map(function (sort) {
+				// If a column name is available, use it
+				return columns[sort[0]] && columns[sort[0]].sName
+					? [ columns[sort[0]].sName, sort[1] ]
+					: sort.slice();
+			} ),
 			search:  $.extend({}, settings.oPreviousSearch),
 			columns: settings.aoColumns.map( function ( col, i ) {
 				return {
+					name: col.sName,
 					visible: col.bVisible,
 					search: $.extend({}, settings.aoPreSearchCols[i])
 				};
@@ -28493,6 +28640,8 @@ module.exports = ZStream;
 	function _fnImplementState ( settings, s, callback) {
 		var i, ien;
 		var columns = settings.aoColumns;
+		var currentNames = _pluck(settings.aoColumns, 'sName');
+
 		settings._bLoadingState = true;
 
 		// When StateRestore was introduced the state could now be implemented at any time
@@ -28517,13 +28666,6 @@ module.exports = ZStream;
 		// cancelling of loading by returning false
 		var abStateLoad = _fnCallbackFire( settings, 'aoStateLoadParams', 'stateLoadParams', [settings, s] );
 		if ( abStateLoad.indexOf(false) !== -1 ) {
-			settings._bLoadingState = false;
-			callback();
-			return;
-		}
-
-		// Number of columns have changed - all bets are off, no restore of settings
-		if ( s.columns && columns.length !== s.columns.length ) {
 			settings._bLoadingState = false;
 			callback();
 			return;
@@ -28562,10 +28704,26 @@ module.exports = ZStream;
 		if ( s.order !== undefined ) {
 			settings.aaSorting = [];
 			$.each( s.order, function ( i, col ) {
-				settings.aaSorting.push( col[0] >= columns.length ?
-					[ 0, col[1] ] :
-					col
-				);
+				var set = [ col[0], col[1] ];
+
+				// A column name was stored and should be used for restore
+				if (typeof col[0] === 'string') {
+					// Find the name from the current list of column names
+					var idx = currentNames.indexOf(col[0]);
+
+					if (idx < 0) {
+						// If the column was not found ignore it and continue
+						return;
+					}
+
+					set[0] = idx;
+				}
+				else if (set[0] >= columns.length) {
+					// If the column index is out of bounds ignore it and continue
+					return;
+				}
+
+				settings.aaSorting.push(set);
 			} );
 		}
 
@@ -28576,30 +28734,64 @@ module.exports = ZStream;
 
 		// Columns
 		if ( s.columns ) {
-			for ( i=0, ien=s.columns.length ; i<ien ; i++ ) {
-				var col = s.columns[i];
+			var set = s.columns;
+			var incoming = _pluck(s.columns, 'name');
 
-				// Visibility
-				if ( col.visible !== undefined ) {
-					// If the api is defined, the table has been initialised so we need to use it rather than internal settings
-					if (api) {
-						// Don't redraw the columns on every iteration of this loop, we will do this at the end instead
-						api.column(i).visible(col.visible, false);
+			// Check if it is a 2.2 style state object with a `name` property for the columns, and if
+			// the name was defined. If so, then create a new array that will map the state object
+			// given, to the current columns (don't bother if they are already matching tho).
+			if (incoming.join('').length && incoming.join('') !== currentNames.join('')) {
+				set = [];
+
+				// For each column, try to find the name in the incoming array
+				for (i=0 ; i<currentNames.length ; i++) {
+					if (currentNames[i] != '') {
+						var idx = incoming.indexOf(currentNames[i]);
+
+						if (idx >= 0) {
+							set.push(s.columns[idx]);
+						}
+						else {
+							// No matching column name in the state's columns, so this might be a new
+							// column and thus can't have a state already.
+							set.push({});
+						}
 					}
 					else {
-						columns[i].bVisible = col.visible;
+						// If no name, but other columns did have a name, then there is no knowing
+						// where this one came from originally so it can't be restored.
+						set.push({});
 					}
-				}
-
-				// Search
-				if ( col.search !== undefined ) {
-					$.extend( settings.aoPreSearchCols[i], col.search );
 				}
 			}
 
-			// If the api is defined then we need to adjust the columns once the visibility has been changed
-			if (api) {
-				api.columns.adjust();
+			// If the number of columns to restore is different from current, then all bets are off.
+			if (set.length === columns.length) {
+				for ( i=0, ien=set.length ; i<ien ; i++ ) {
+					var col = set[i];
+
+					// Visibility
+					if ( col.visible !== undefined ) {
+						// If the api is defined, the table has been initialised so we need to use it rather than internal settings
+						if (api) {
+							// Don't redraw the columns on every iteration of this loop, we will do this at the end instead
+							api.column(i).visible(col.visible, false);
+						}
+						else {
+							columns[i].bVisible = col.visible;
+						}
+					}
+
+					// Search
+					if ( col.search !== undefined ) {
+						$.extend( settings.aoPreSearchCols[i], col.search );
+					}
+				}
+
+				// If the api is defined then we need to adjust the columns once the visibility has been changed
+				if (api) {
+					api.columns.adjust();
+				}
 			}
 		}
 
@@ -28917,6 +29109,47 @@ module.exports = ZStream;
 			replace(/_ENTRIES-TOTAL_/g, settings.api.i18n('entries', '', vis) );
 	}
 
+	/**
+	 * Add elements to an array as quickly as possible, but stack stafe.
+	 *
+	 * @param {*} arr Array to add the data to
+	 * @param {*} data Data array that is to be added
+	 * @returns
+	 */
+	function _fnArrayApply(arr, data) {
+		if (! data) {
+			return;
+		}
+
+		// Chrome can throw a max stack error if apply is called with
+		// too large an array, but apply is faster.
+		if (data.length < 10000) {
+			arr.push.apply(arr, data);
+		}
+		else {
+			for (i=0 ; i<data.length ; i++) {
+				arr.push(data[i]);
+			}
+		}
+	}
+
+	/**
+	 * Add one or more listeners to the table
+	 *
+	 * @param {*} that JQ for the table
+	 * @param {*} name Event name
+	 * @param {*} src Listener(s)
+	 */
+	function _fnListener(that, name, src) {
+		if (!Array.isArray(src)) {
+			src = [src];
+		}
+
+		for (i=0 ; i<src.length ; i++) {
+			that.on(name + '.dt', src[i]);
+		}
+	}
+
 
 
 	/**
@@ -29109,18 +29342,7 @@ module.exports = ZStream;
 			: settings;
 
 		// Initial data
-		if ( data ) {
-			// Chrome can throw a max stack error if apply is called with
-			// too large an array, but apply is faster.
-			if (data.length < 10000) {
-				this.push.apply(this, data);
-			}
-			else {
-				for (i=0 ; i<data.length ; i++) {
-					this.push(data[i]);
-				}
-			}
-		}
+		_fnArrayApply(this, data);
 
 		// selector
 		this.selector = {
@@ -29501,7 +29723,7 @@ module.exports = ZStream;
 			selector.forEach(function (sel) {
 				var inner = __table_selector(sel, a);
 
-				result.push.apply(result, inner);
+				_fnArrayApply(result, inner);
 			});
 
 			return result.filter( function (item) {
@@ -29584,12 +29806,24 @@ module.exports = ZStream;
 		['footer', 'aoFooter'],
 	].forEach(function (item) {
 		_api_register( 'table().' + item[0] + '.structure()' , function (selector) {
-			var indexes = this.columns(selector).indexes().flatten();
+			var indexes = this.columns(selector).indexes().flatten().toArray();
 			var ctx = this.context[0];
+			var structure = _fnHeaderLayout(ctx, ctx[item[1]], indexes);
 
-			return _fnHeaderLayout(ctx, ctx[item[1]], indexes);
-		} );
-	})
+			// The structure is in column index order - but from this method we want the return to be
+			// in the columns() selector API order. In order to do that we need to map from one form
+			// to the other
+			var orderedIndexes = indexes.slice().sort(function (a, b) {
+				return a - b;
+			});
+
+			return structure.map(function (row) {
+				return indexes.map(function (colIdx) {
+					return row[orderedIndexes.indexOf(colIdx)];
+				});
+			});
+		});
+	});
 
 
 	_api_registerPlural( 'tables().containers()', 'table().container()' , function () {
@@ -29938,7 +30172,7 @@ module.exports = ZStream;
 	{
 		var
 			out = [], res,
-			a, i, ien, j, jen,
+			i, ien,
 			selectorType = typeof selector;
 
 		// Can't just check for isArray here, as an API or jQuery instance might be
@@ -29948,22 +30182,15 @@ module.exports = ZStream;
 		}
 
 		for ( i=0, ien=selector.length ; i<ien ; i++ ) {
-			// Only split on simple strings - complex expressions will be jQuery selectors
-			a = selector[i] && selector[i].split && ! selector[i].match(/[[(:]/) ?
-				selector[i].split(',') :
-				[ selector[i] ];
+			res = selectFn( typeof selector[i] === 'string' ? selector[i].trim() : selector[i] );
 
-			for ( j=0, jen=a.length ; j<jen ; j++ ) {
-				res = selectFn( typeof a[j] === 'string' ? (a[j]).trim() : a[j] );
+			// Remove empty items
+			res = res.filter( function (item) {
+				return item !== null && item !== undefined;
+			});
 
-				// Remove empty items
-				res = res.filter( function (item) {
-					return item !== null && item !== undefined;
-				});
-
-				if ( res && res.length ) {
-					out = out.concat( res );
-				}
+			if ( res && res.length ) {
+				out = out.concat( res );
 			}
 		}
 
@@ -29992,6 +30219,7 @@ module.exports = ZStream;
 		}
 
 		return $.extend( {
+			columnOrder: 'implied',
 			search: 'none',
 			order: 'current',
 			page: 'all'
@@ -30355,7 +30583,7 @@ module.exports = ZStream;
 		// Return an Api.rows() extended instance, so rows().nodes() etc can be used
 		var modRows = this.rows( -1 );
 		modRows.pop();
-		modRows.push.apply(modRows, newRows);
+		_fnArrayApply(modRows, newRows);
 
 		return modRows;
 	} );
@@ -30753,23 +30981,60 @@ module.exports = ZStream;
 
 	var __column_header = function ( settings, column, row ) {
 		var header = settings.aoHeader;
-		var target = row !== undefined
-			? row
-			: settings.bSortCellsTop // legacy support
-				? 0
-				: header.length - 1;
+		var titleRow = settings.titleRow;
+		var target = null;
+
+		if (row !== undefined) {
+			target = row;
+		}
+		else if (titleRow === true) { // legacy orderCellsTop support
+			target = 0;
+		}
+		else if (titleRow === false) {
+			target = header.length - 1;
+		}
+		else if (titleRow !== null) {
+			target = titleRow;
+		}
+		else {
+			// Automatic - find the _last_ unique cell from the top that is not empty (last for
+			// backwards compatibility)
+			for (var i=0 ; i<header.length ; i++) {
+				if (header[i][column].unique && $('span.dt-column-title', header[i][column].cell).text()) {
+					target = i;
+				}
+			}
+
+			if (target === null) {
+				target = 0;
+			}
+		}
 
 		return header[target][column].cell;
 	};
+
+	var __column_header_cells = function (header) {
+		var out = [];
+
+		for (var i=0 ; i<header.length ; i++) {
+			for (var j=0 ; j<header[i].length ; j++) {
+				var cell = header[i][j].cell;
+
+				if (!out.includes(cell)) {
+					out.push(cell);
+				}
+			}
+		}
+
+		return out;
+	}
 
 	var __column_selector = function ( settings, selector, opts )
 	{
 		var
 			columns = settings.aoColumns,
-			names = _pluck( columns, 'sName' ),
-			titles = _pluck( columns, 'sTitle' ),
-			cells = DataTable.util.get('[].[].cell')(settings.aoHeader),
-			nodes = _unique( _flatten([], cells) );
+			names, titles,
+			nodes = __column_header_cells(settings.aoHeader);
 
 		var run = function ( s ) {
 			var selInt = _intVal( s );
@@ -30841,12 +31106,21 @@ module.exports = ZStream;
 						} );
 
 					case 'name':
+						// Don't get names, unless needed, and only get once if it is
+						if (!names) {
+							names = _pluck( columns, 'sName' );
+						}
+
 						// match by name. `names` is column index complete and in order
 						return names.map( function (name, i) {
 							return name === match[1] ? i : null;
 						} );
 
 					case 'title':
+						if (!titles) {
+							titles = _pluck( columns, 'sTitle' );
+						}
+
 						// match by column title
 						return titles.map( function (title, i) {
 							return title === match[1] ? i : null;
@@ -30868,7 +31142,10 @@ module.exports = ZStream;
 				.map( function () {
 					return _fnColumnsFromHeader( this ); // `nodes` is column index complete and in order
 				} )
-				.toArray();
+				.toArray()
+				.sort(function (a, b) {
+					return a - b;
+				});
 
 			if ( jqResult.length || ! s.nodeName ) {
 				return jqResult;
@@ -30882,7 +31159,11 @@ module.exports = ZStream;
 				[];
 		};
 
-		return _selector_run( 'column', selector, run, settings, opts );
+		var selected = _selector_run( 'column', selector, run, settings, opts );
+
+		return opts.columnOrder && opts.columnOrder === 'index'
+			? selected.sort(function (a, b) { return a - b; })
+			: selected; // implied
 	};
 
 
@@ -31006,6 +31287,12 @@ module.exports = ZStream;
 		}, 1 );
 	} );
 
+	_api_registerPlural( 'columns().names()', 'column().name()', function () {
+		return this.iterator( 'column', function ( settings, column ) {
+			return settings.aoColumns[column].sName;
+		}, 1 );
+	} );
+
 	_api_registerPlural( 'columns().nodes()', 'column().nodes()', function () {
 		return this.iterator( 'column-rows', function ( settings, column, i, j, rows ) {
 			return _pluck_order( settings.aoData, rows, 'anCells', column ) ;
@@ -31122,6 +31409,10 @@ module.exports = ZStream;
 
 	_api_register( 'columns.adjust()', function () {
 		return this.iterator( 'table', function ( settings ) {
+			// Force a column sizing to happen with a manual call - otherwise it can skip
+			// if the size hasn't changed
+			settings.containerWidth = -1;
+
 			_fnAdjustColumnSizing( settings );
 		}, 1 );
 	} );
@@ -31428,7 +31719,10 @@ module.exports = ZStream;
 		// otherwise a 2D array was passed in
 
 		return this.iterator( 'table', function ( settings ) {
-			settings.aaSorting = Array.isArray(order) ? order.slice() : order;
+			var resolved = [];
+			_fnSortResolve(settings, resolved, order);
+
+			settings.aaSorting = resolved;
 		} );
 	} );
 
@@ -31554,7 +31848,7 @@ module.exports = ZStream;
 			var fixed = settings.searchFixed;
 
 			if (! name) {
-				return Object.keys(fixed)
+				return Object.keys(fixed);
 			}
 			else if (search === undefined) {
 				return fixed[name];
@@ -31621,10 +31915,10 @@ module.exports = ZStream;
 				var fixed = settings.aoColumns[colIdx].searchFixed;
 
 				if (! name) {
-					return Object.keys(fixed)
+					return Object.keys(fixed);
 				}
 				else if (search === undefined) {
-					return fixed[name];
+					return fixed[name] || null;
 				}
 				else if (search === null) {
 					delete fixed[name];
@@ -31687,6 +31981,10 @@ module.exports = ZStream;
 		} );
 	} );
 
+	// Can be assigned in DateTable.use() - note luxon and moment vars are in helpers.js
+	var __bootstrap;
+	var __foundation;
+
 	/**
 	 * Set the libraries that DataTables uses, or the global objects.
 	 * Note that the arguments can be either way around (legacy support)
@@ -31720,6 +32018,14 @@ module.exports = ZStream;
 				case 'moment':
 					return __moment;
 
+				case 'bootstrap':
+					// Use local if set, otherwise try window, which could be undefined
+					return __bootstrap || window.bootstrap;
+
+				case 'foundation':
+					// Ditto
+					return __foundation || window.Foundation;
+
 				default:
 					return null;
 			}
@@ -31729,7 +32035,7 @@ module.exports = ZStream;
 		if (type === 'lib' || type === 'jq' || (module && module.fn && module.fn.jquery)) {
 			$ = module;
 		}
-		else if (type == 'win' || (module && module.document)) {
+		else if (type === 'win' || (module && module.document)) {
 			window = module;
 			document = module.document;
 		}
@@ -31741,6 +32047,14 @@ module.exports = ZStream;
 		}
 		else if (type === 'moment' || (module && module.isMoment)) {
 			__moment = module;
+		}
+		else if (type === 'bootstrap' || (module && module.Modal && module.Modal.NAME === 'modal'))
+		{
+			// This is currently for BS5 only. BS3/4 attach to jQuery, so no need to use `.use()`
+			__bootstrap = module;
+		}
+		else if (type === 'foundation' || (module && module.Reveal)) {
+			__foundation = module;
 		}
 	}
 
@@ -31993,12 +32307,14 @@ module.exports = ZStream;
 		// Function to run either once the table becomes ready or
 		// immediately if it is already ready.
 		return this.tables().every(function () {
+			var api = this;
+
 			if (this.context[0]._bInitComplete) {
-				fn.call(this);
+				fn.call(api);
 			}
 			else {
 				this.on('init.dt.DT', function () {
-					fn.call(this);
+					fn.call(api);
 				});
 			}
 		} );
@@ -32032,6 +32348,11 @@ module.exports = ZStream;
 				new _Api( settings ).columns().visible( true );
 			}
 
+			// Container width change listener
+			if (settings.resizeObserver) {
+				settings.resizeObserver.disconnect();
+			}
+
 			// Blitz all `DT` namespaced events (these are internal events, the
 			// lowercase, `dt` events are user subscribed and they are responsible
 			// for removing them
@@ -32049,20 +32370,31 @@ module.exports = ZStream;
 				jqTable.append( tfoot );
 			}
 
+			// Clean up the header / footer
+			cleanHeader(thead, 'header');
+			cleanHeader(tfoot, 'footer');
 			settings.colgroup.remove();
 
 			settings.aaSorting = [];
 			settings.aaSortingFixed = [];
 			_fnSortingClasses( settings );
 
+			$(jqTable).find('th, td').removeClass(
+				$.map(DataTable.ext.type.className, function (v) {
+					return v;
+				}).join(' ')
+			);
+
 			$('th, td', thead)
 				.removeClass(
+					orderClasses.none + ' ' +
 					orderClasses.canAsc + ' ' +
 					orderClasses.canDesc + ' ' +
 					orderClasses.isAsc + ' ' +
 					orderClasses.isDesc
 				)
-				.css('width', '');
+				.css('width', '')
+				.removeAttr('aria-sort');
 
 			// Add the TR elements back into the table in their original order
 			jqTbody.children().detach();
@@ -32142,6 +32474,19 @@ module.exports = ZStream;
 			: resolved;
 	} );
 
+	// Needed for header and footer, so pulled into its own function
+	function cleanHeader(node, className) {
+		$(node).find('span.dt-column-order').remove();
+		$(node).find('span.dt-column-title').each(function () {
+			var title = $(this).html();
+			$(this).parent().parent().append(title);
+			$(this).remove();
+		});
+		$(node).find('div.dt-column-' + className).remove();
+
+		$('th, td', node).removeAttr('data-dt-column');
+	}
+
 	/**
 	 * Version string for plug-ins to check compatibility. Allowed format is
 	 * `a.b.c-d` where: a:int, b:int, c:int, d:string(dev|beta|alpha). `d` is used
@@ -32150,7 +32495,7 @@ module.exports = ZStream;
 	 *  @type string
 	 *  @default Version number
 	 */
-	DataTable.version = "2.1.8";
+	DataTable.version = "2.3.1";
 
 	/**
 	 * Private data store, containing all of the settings objects that are
@@ -32757,6 +33102,10 @@ module.exports = ZStream;
 		"bSortCellsTop": null,
 
 
+		/** Specify which row is the title row in the header. Replacement for bSortCellsTop */
+		titleRow: null,
+
+
 		/**
 		 * Enable or disable the addition of the classes `sorting\_1`, `sorting\_2` and
 		 * `sorting\_3` to the columns which are currently being sorted on. This is
@@ -33035,6 +33384,13 @@ module.exports = ZStream;
 			},
 
 			/**
+			 * Page length options
+			 */
+			lengthLabels: {
+				'-1': 'All'
+			},
+
+			/**
 			 * This string is shown in preference to `zeroRecords` when the table is
 			 * empty of data (regardless of filtering). Note that this is an optional
 			 * parameter - if it is not given, the value of `zeroRecords` will be used
@@ -33304,7 +33660,10 @@ module.exports = ZStream;
 		/**
 		 * For server-side processing - use the data from the DOM for the first draw
 		 */
-		iDeferLoading: null
+		iDeferLoading: null,
+
+		/** Event listeners */
+		on: null
 	};
 
 	_fnHungarianMap( DataTable.defaults );
@@ -34131,10 +34490,7 @@ module.exports = ZStream;
 
 		/**
 		 * Indicate that if multiple rows are in the header and there is more than
-		 * one unique cell per column, if the top one (true) or bottom one (false)
-		 * should be used for sorting / title by DataTables.
-		 * Note that this parameter will be set by the initialisation routine. To
-		 * set a default use {@link DataTable.defaults}.
+		 * one unique cell per column. Replaced by titleRow
 		 */
 		"bSortCellsTop": null,
 
@@ -34253,7 +34609,25 @@ module.exports = ZStream;
 		deferLoading: null,
 
 		/** Allow auto type detection */
-		typeDetect: true
+		typeDetect: true,
+
+		/** ResizeObserver for the container div */
+		resizeObserver: null,
+
+		/** Keep a record of the last size of the container, so we can skip duplicates */
+		containerWidth: -1,
+
+		/** Reverse the initial order of the data set on desc ordering */
+		orderDescReverse: null,
+
+		/** Show / hide ordering indicators in headers */
+		orderIndicators: true,
+
+		/** Default ordering listener */
+		orderHandler: true,
+
+		/** Title row indicator */
+		titleRow: null
 	};
 
 	/**
@@ -34395,8 +34769,8 @@ module.exports = ZStream;
 
 
 	var __mlWarning = false;
-	var __luxon; // Can be assigned in DateTeble.use()
-	var __moment; // Can be assigned in DateTeble.use()
+	var __luxon; // Can be assigned in DateTable.use()
+	var __moment; // Can be assigned in DateTable.use()
 
 	/**
 	 *
@@ -34432,7 +34806,7 @@ module.exports = ZStream;
 				return null;
 			}
 
-			dt.setLocale(locale);
+			dt = dt.setLocale(locale);
 		}
 		else if (! format) {
 			// No format given, must be ISO
@@ -34815,6 +35189,13 @@ module.exports = ZStream;
 		});
 	}
 
+	var __diacriticHtmlSort = function (a, b) {
+		a = _stripHtml(a);
+		b = _stripHtml(b);
+
+		return __diacriticSort(a, b);
+	}
+
 	//
 	// Built in data types
 	//
@@ -34879,6 +35260,31 @@ module.exports = ZStream;
 					a.replace ?
 						_stripHtml(a).trim().toLowerCase() :
 						a+'';
+			}
+		},
+		search: _filterString(true, true)
+	});
+
+
+	DataTable.type('html-utf8', {
+		detect: {
+			allOf: function ( d ) {
+				return _empty( d ) || (typeof d === 'string' && d.indexOf('<') !== -1);
+			},
+			oneOf: function ( d ) {
+				// At least one data point must contain a `<` and a non-ASCII character
+				// eslint-disable-next-line compat/compat
+				return navigator.languages &&
+					! _empty( d ) &&
+					typeof d === 'string' &&
+					d.indexOf('<') !== -1 &&
+					typeof d === 'string' && d.match(/[^\x00-\x7F]/);
+			}
+		},
+		order: {
+			asc: __diacriticHtmlSort,
+			desc: function (a, b) {
+				return __diacriticHtmlSort(a, b) * -1;
 			}
 		},
 		search: _filterString(true, true)
@@ -35051,7 +35457,7 @@ module.exports = ZStream;
 					cell.addClass(classes.order.none);
 				}
 
-				var legacyTop = settings.bSortCellsTop;
+				var titleRow = settings.titleRow;
 				var headerRows = cell.closest('thead').find('tr');
 				var rowIdx = cell.parent().index();
 
@@ -35061,11 +35467,10 @@ module.exports = ZStream;
 					cell.attr('data-dt-order') === 'disable' ||
 					cell.parent().attr('data-dt-order') === 'disable' ||
 
-					// Legacy support for `orderCellsTop`. If it is set, then cells
-					// which are not in the top or bottom row of the header (depending
-					// on the value) do not get the sorting classes applied to them
-					(legacyTop === true && rowIdx !== 0) ||
-					(legacyTop === false && rowIdx !== headerRows.length - 1)
+					// titleRow support, for defining a specific row in the header
+					(titleRow === true && rowIdx !== 0) ||
+					(titleRow === false && rowIdx !== headerRows.length - 1) ||
+					(typeof titleRow === 'number' && rowIdx !== titleRow)
 				) {
 					return;
 				}
@@ -35075,7 +35480,7 @@ module.exports = ZStream;
 				// `DT` namespace will allow the event to be removed automatically
 				// on destroy, while the `dt` namespaced event is the one we are
 				// listening for
-				$(settings.nTable).on( 'order.dt.DT column-visibility.dt.DT', function ( e, ctx ) {
+				$(settings.nTable).on( 'order.dt.DT column-visibility.dt.DT', function ( e, ctx, column ) {
 					if ( settings !== ctx ) { // need to check this this is the host
 						return;               // table, not a nested one
 					}
@@ -35083,6 +35488,16 @@ module.exports = ZStream;
 					var sorting = ctx.sortDetails;
 
 					if (! sorting) {
+						return;
+					}
+
+					var orderedColumns = _pluck(sorting, 'col');
+
+					// This handler is only needed on column visibility if the column is part of the
+					// ordering. If it isn't, then we can bail out to save performance. It could be a
+					// separate event handler, but this is a balance between code reuse / size and performance
+					// console.log(e, e.name, column, orderedColumns, orderedColumns.includes(column))
+					if (e.type === 'column-visibility' && ! orderedColumns.includes(column)) {
 						return;
 					}
 
@@ -35094,7 +35509,8 @@ module.exports = ZStream;
 					var ariaType = '';
 					var indexes = columns.indexes();
 					var sortDirs = columns.orderable(true).flatten();
-					var orderedColumns = _pluck(sorting, 'col');
+					var tabIndex = settings.iTabIndex;
+					var canOrder = ctx.orderHandler && orderable;
 
 					cell
 						.removeClass(
@@ -35102,8 +35518,8 @@ module.exports = ZStream;
 							orderClasses.isDesc
 						)
 						.toggleClass( orderClasses.none, ! orderable )
-						.toggleClass( orderClasses.canAsc, orderable && sortDirs.includes('asc') )
-						.toggleClass( orderClasses.canDesc, orderable && sortDirs.includes('desc') );
+						.toggleClass( orderClasses.canAsc, canOrder && sortDirs.includes('asc') )
+						.toggleClass( orderClasses.canDesc, canOrder && sortDirs.includes('desc') );
 
 					// Determine if all of the columns that this cell covers are included in the
 					// current ordering
@@ -35152,15 +35568,20 @@ module.exports = ZStream;
 						cell.removeAttr('aria-sort');
 					}
 
-					cell.attr('aria-label', orderable
-						? col.ariaTitle + ctx.api.i18n('oAria.orderable' + ariaType)
-						: col.ariaTitle
-					);
-
 					// Make the headers tab-able for keyboard navigation
 					if (orderable) {
-						cell.find('.dt-column-title').attr('role', 'button');
-						cell.attr('tabindex', 0)
+						var orderSpan = cell.find('.dt-column-order');
+
+						orderSpan
+							.attr('role', 'button')
+							.attr('aria-label', orderable
+								? col.ariaTitle + ctx.api.i18n('oAria.orderable' + ariaType)
+								: col.ariaTitle
+							);
+
+						if (tabIndex !== -1) {
+							orderSpan.attr('tabindex', tabIndex);
+						}
 					}
 				} );
 			}
@@ -35174,7 +35595,7 @@ module.exports = ZStream;
 					.addClass(items.className || classes.row)
 					.appendTo( container );
 
-				$.each( items, function (key, val) {
+				DataTable.ext.renderer.layout._forLayoutRow(items, function (key, val) {
 					if (key === 'id' || key === 'className') {
 						return;
 					}
@@ -35205,7 +35626,31 @@ module.exports = ZStream;
 						})
 						.append( val.contents )
 						.appendTo( row );
-				} );
+				});
+			},
+
+			// Shared for use by the styling frameworks
+			_forLayoutRow: function (items, fn) {
+				// As we are inserting dom elements, we need start / end in a
+				// specific order, this function is used for sorting the layout
+				// keys.
+				var layoutEnum = function (x) {
+					switch (x) {
+						case '': return 0;
+						case 'start': return 1;
+						case 'end': return 2;
+						default: return 3;
+					}
+				};
+
+				Object
+					.keys(items)
+					.sort(function (a, b) {
+						return layoutEnum(a) - layoutEnum(b);
+					})
+					.forEach(function (key) {
+						fn(key, items[key]);
+					});
 			}
 		}
 	} );
@@ -35557,7 +36002,7 @@ module.exports = ZStream;
 				'data-dt-idx': button,
 				'tabIndex': btnInfo.disabled
 					? -1
-					: settings.iTabIndex
+					: settings.iTabIndex && btn.clicker[0].nodeName.toLowerCase() !== 'span'
 						? settings.iTabIndex
 						: null, // `0` doesn't need a tabIndex since it is the default
 			});
@@ -35591,12 +36036,16 @@ module.exports = ZStream;
 
 		// Responsive - check if the buttons are over two lines based on the
 		// height of the buttons and the container.
-		if (
-			buttonEls.length && // any buttons
-			opts.buttons > 1 && // prevent infinite
-			$(host).height() >= ($(buttonEls[0]).outerHeight() * 2) - 10
-		) {
-			_pagingDraw(settings, host, $.extend({}, opts, { buttons: opts.buttons - 2 }));
+		if (buttonEls.length) {
+			var outerHeight = $(buttonEls[0]).outerHeight();
+
+			if (
+				opts.buttons > 1 && // prevent infinite
+				outerHeight > 0 && // will be 0 if hidden
+				$(host).height() >= (outerHeight * 2) - 10
+			) {
+				_pagingDraw(settings, host, $.extend({}, opts, { buttons: opts.buttons - 2 }));
+			}
 		}
 	}
 
@@ -35620,7 +36069,6 @@ module.exports = ZStream;
 		switch ( button ) {
 			case 'ellipsis':
 				o.display = '&#x2026;';
-				o.disabled = true;
 				break;
 
 			case 'first':
@@ -35807,7 +36255,7 @@ module.exports = ZStream;
 
 		// Save text node content for macro updating
 		var textNodes = [];
-		Array.from(div.find('label')[0].childNodes).forEach(function (el) {
+		Array.prototype.slice.call(div.find('label')[0].childNodes).forEach(function (el) {
 			if (el.nodeType === Node.TEXT_NODE) {
 				textNodes.push({
 					el: el,
@@ -35825,18 +36273,22 @@ module.exports = ZStream;
 
 		// Next, the select itself, along with the options
 		var select = $('<select/>', {
-			'name':          tableId+'_length',
 			'aria-controls': tableId,
 			'class':         classes.select
 		} );
 
 		for ( i=0 ; i<lengths.length ; i++ ) {
-			select[0][ i ] = new Option(
-				typeof language[i] === 'number' ?
+			// Attempt to look up the length from the i18n options
+			var label = settings.api.i18n('lengthLabels.' + lengths[i], null);
+
+			if (label === null) {
+				// If not present, fallback to old style
+				label = typeof language[i] === 'number' ?
 					settings.fnFormatNumber( language[i] ) :
-					language[i],
-				lengths[i]
-			);
+					language[i];
+			}
+
+			select[0][ i ] = new Option(label, lengths[i]);
 		}
 
 		// add for and id to label and input
@@ -36014,7 +36466,7 @@ DataTable.ext.renderer.layout.bulma = function ( settings, container, items ) {
 		.addClass(items.className || classes.row)
 		.appendTo( container );
 
-	$.each( items, function (key, val) {
+	DataTable.ext.renderer.layout._forLayoutRow(items, function (key, val) {
 		if (key === 'id' || key === 'className') {
 			return;
 		}
@@ -36073,7 +36525,7 @@ return DataTable;
 }));
 
 
-/*! Buttons for DataTables 3.2.0
+/*! Buttons for DataTables 3.2.3
  * © SpryMedia Ltd - datatables.net/license
  */
 
@@ -36569,6 +37021,10 @@ $.extend(Buttons.prototype, {
 
 		$(button.node).remove();
 
+		if (button.inserter) {
+			$(button.inserter).remove();
+		}
+
 		var idx = $.inArray(button, host);
 		host.splice(idx, 1);
 
@@ -36884,6 +37340,7 @@ $.extend(Buttons.prototype, {
 			return {
 				conf: config,
 				node: spacer,
+				nodeChild: null,
 				inserter: spacer,
 				buttons: [],
 				inCollection: inCollection,
@@ -36930,7 +37387,7 @@ $.extend(Buttons.prototype, {
 				else {
 					run(e, dt, button, config, function () {});
 				}
-			}
+			};
 
 			var tag = config.tag || dom.tag;
 			var clickBlurs =
@@ -37116,9 +37573,12 @@ $.extend(Buttons.prototype, {
 			splitDiv.append(dropButton).attr(dropButtonConfig.attr);
 		}
 
+		var node = isSplit ? splitDiv.get(0) : button.get(0);
+
 		return {
 			conf: config,
-			node: isSplit ? splitDiv.get(0) : button.get(0),
+			node: node,
+			nodeChild: node && node.children && node.children.length ? node.children[0] : null,
 			inserter: isSplit ? splitDiv : inserter,
 			buttons: [],
 			inCollection: inCollection,
@@ -37193,7 +37653,7 @@ $.extend(Buttons.prototype, {
 		}
 
 		for (var i = 0, ien = buttons.length; i < ien; i++) {
-			if (buttons[i].node === node || $(buttons[i].node).children().eq(0).get(0) === node) {
+			if (buttons[i].node === node || buttons[i].nodeChild === node) {
 				return buttons[i];
 			}
 
@@ -37564,7 +38024,7 @@ $.extend(Buttons.prototype, {
 		hostButtonNode.attr('aria-expanded', 'true');
 
 		if (hostNode.parents('body')[0] !== document.body) {
-			hostNode = document.body.lastChild;
+			hostNode = $(document.body).children('div, section, p').last();
 		}
 
 		if (options.popoverTitle) {
@@ -38061,6 +38521,11 @@ Buttons.buttonSelector = function (insts, selector) {
  * @param {*} str Data to strip
  */
 Buttons.stripData = function (str, config) {
+	// If the input is an HTML element, we can use the HTML from it (HTML might be stripped below).
+	if (str !== null && typeof str === 'object' && str.nodeName && str.nodeType) {
+		str = str.innerHTML;
+	}
+
 	if (typeof str !== 'string') {
 		return str;
 	}
@@ -38219,7 +38684,7 @@ Buttons.defaults = {
  * @type {string}
  * @static
  */
-Buttons.version = '3.2.0';
+Buttons.version = '3.2.3';
 
 $.extend(_dtButtons, {
 	collection: {
@@ -40681,7 +41146,7 @@ DataTable.ext.buttons.pdfHtml5 = {
 									text: cell.title,
 									colSpan: cell.colspan,
 									rowSpan: cell.rowspan,
-									style: 'tableHeader'
+									style: 'tableFooter'
 							}
 							: {};
 					})
@@ -40741,7 +41206,8 @@ DataTable.ext.buttons.pdfHtml5 = {
 				},
 				tableFooter: {
 					bold: true,
-					fontSize: 11
+					fontSize: 11,
+					alignment: 'center'
 				},
 				table: {
 					margin: [0, 5, 0, 5]
@@ -41365,7 +41831,7 @@ return DataTable;
 }));
 
 
-/*! FixedHeader 4.0.1
+/*! FixedHeader 4.0.2
  * © SpryMedia Ltd - datatables.net/license
  */
 
@@ -41420,7 +41886,7 @@ var DataTable = $.fn.dataTable;
  * @summary     FixedHeader
  * @description Fix a table's header or footer, so it is always visible while
  *              scrolling
- * @version     4.0.1
+ * @version     4.0.2
  * @author      SpryMedia Ltd
  * @contact     datatables.net
  *
@@ -41940,11 +42406,13 @@ $.extend(FixedHeader.prototype, {
 				itemDom.placeholder = null;
 			}
 
-			if (item === 'header') {
-				itemDom.host.prepend(tablePart);
-			}
-			else {
-				itemDom.host.append(tablePart);
+			if (!$.contains(itemDom.host[0], tablePart[0])) {
+				if (item === 'header') {
+					itemDom.host.prepend(tablePart);
+				}
+				else {
+					itemDom.host.append(tablePart);
+				}
 			}
 
 			if (itemDom.floating) {
@@ -42173,14 +42641,17 @@ $.extend(FixedHeader.prototype, {
 					forceChange = true;
 				}
 				else {
-					this.dom.header.floatingParent
+					var child = this.dom.header.floatingParent
 						.css({
 							top: this.c.headerOffset,
 							position: 'fixed'
 						})
 						.children()
-						.eq(0)
-						.append(this.dom.header.floating);
+						.eq(0);
+
+					if (child.find(this.dom.header.floating).length === 0) {
+						child.append(this.dom.header.floating);
+					}
 				}
 			}
 			// Anything else and the view is below the table
@@ -42422,7 +42893,7 @@ $.extend(FixedHeader.prototype, {
  * @type {String}
  * @static
  */
-FixedHeader.version = '4.0.1';
+FixedHeader.version = '4.0.2';
 
 /**
  * Defaults
