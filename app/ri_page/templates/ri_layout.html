@@ -21,9 +21,7 @@
 
     <div class="container is-fluid is-max-desktop mt-5">
 
-        {% if current_user.user_type in ["admin","ro_user"] %}
         {% block content %}{% endblock content %}
-        {% endif %}
     </div>
     <script type="text/javascript" charset="utf8"
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
