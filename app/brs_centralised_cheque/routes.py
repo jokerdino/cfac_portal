@@ -205,12 +205,22 @@ def brs_cc_data_entry(key):
             "payee_name",
             "remarks",
         ]
+        str_columns_to_convert = [
+            "voucher_number",
+            "transaction_id",
+            "instrument_number",
+            "payee_name",
+            "remarks",
+        ]
         # upload unencashed entries
         if form.data["unencashed_cheques_file"]:
             df_unencashed = pd.read_excel(
                 form.data["unencashed_cheques_file"],
                 usecols=required_columns,
             )
+            df_unencashed[str_columns_to_convert] = df_unencashed[
+                str_columns_to_convert
+            ].astype(str)
             df_unencashed["centralised_cheque_details_id"] = brs_entry.id
             df_unencashed.to_sql(
                 "centralised_cheque_instrument_unencashed_details",
@@ -223,6 +233,9 @@ def brs_cc_data_entry(key):
             df_stale = pd.read_excel(
                 form.data["stale_cheques_file"],
                 usecols=required_columns,
+            )
+            df_stale[str_columns_to_convert] = df_stale[str_columns_to_convert].astype(
+                str
             )
             df_stale["centralised_cheque_details_id"] = brs_entry.id
             df_stale.to_sql(
