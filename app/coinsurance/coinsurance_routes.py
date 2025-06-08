@@ -188,7 +188,7 @@ def fetch_receipts():
     receipt_entries = []
     for receipt in receipts["data"]:
         receipt["transaction_code"] = re.findall(
-            r"UII688COINS[a-zA-Z0-9]{6}", receipt["description"]
+            r"UII688COINS[a-zA-Z0-9]{1,6}\b", receipt["description"]
         )[0]
         receipt["company_name"] = receipt["description"].split(
             receipt["transaction_code"]
@@ -296,7 +296,6 @@ def upload_document(model_object, form, field, document_type, folder_name):
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
 @login_required
 def add_coinsurance_entry():
-
     form = CoinsuranceForm()
 
     if form.validate_on_submit():
@@ -815,7 +814,6 @@ def list_settled_coinsurance_entries(utr_number):
 @coinsurance_bp.route("/settlements/list")
 @login_required
 def list_settlement_entries():
-
     settlement_entries = db.session.scalars(db.select(Settlement))
 
     return render_template(
@@ -826,7 +824,6 @@ def list_settlement_entries():
 @coinsurance_bp.route("/settlements/view/<int:settlement_id>/")
 @login_required
 def view_settlement_entry(settlement_id):
-
     settlement = db.get_or_404(Settlement, settlement_id)
     return render_template("view_settlement_entry.html", settlement=settlement)
 
@@ -834,7 +831,6 @@ def view_settlement_entry(settlement_id):
 @coinsurance_bp.route("/settlements/add_settlement_data/", methods=["POST", "GET"])
 @login_required
 def add_settlement_data():
-
     form = SettlementForm()
     if form.validate_on_submit():
         settlement = Settlement()
@@ -861,7 +857,6 @@ def add_settlement_data():
 @login_required
 @admin_required
 def edit_settlement_entry(settlement_id):
-
     settlement = db.get_or_404(Settlement, settlement_id)
     form = SettlementForm(obj=settlement)
     if form.validate_on_submit():
@@ -919,7 +914,6 @@ def add_cash_call():
 @coinsurance_bp.route("/cash_call/view/<int:cash_call_key>")
 @login_required
 def view_cash_call(cash_call_key):
-
     cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
     return render_template("cash_call_view.html", cash_call=cash_call)
 
@@ -927,7 +921,6 @@ def view_cash_call(cash_call_key):
 @coinsurance_bp.route("/cash_call/list/<string:status>")
 @login_required
 def list_cash_calls(status="all"):
-
     list = db.session.scalars(db.select(CoinsuranceCashCall))
 
     return render_template("cash_call_list.html", list=list)
@@ -936,7 +929,6 @@ def list_cash_calls(status="all"):
 @coinsurance_bp.route("/cash_call/edit/<int:cash_call_key>", methods=["POST", "GET"])
 @login_required
 def edit_cash_call(cash_call_key):
-
     cash_call = db.get_or_404(CoinsuranceCashCall, cash_call_key)
 
     form = CoinsuranceCashCallForm(obj=cash_call)
@@ -1010,7 +1002,6 @@ def bulk_upload_settlements():
 def query_coinsurance_entries():
     form = QueryForm()
     if form.validate_on_submit():
-
         status_list = form.status.data
         coinsurers_list = form.coinsurer_name.data
         coinsurance_entries = db.session.query(Coinsurance)
@@ -1043,7 +1034,6 @@ def query_coinsurance_entries():
 @login_required
 @admin_required
 def add_bank_mandate():
-
     form = CoinsuranceBankMandateForm()
     if form.validate_on_submit():
         bank_mandate = CoinsuranceBankMandate()
@@ -1064,7 +1054,6 @@ def add_bank_mandate():
 @login_required
 @admin_required
 def edit_bank_mandate(key):
-
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
     form = CoinsuranceBankMandateForm(obj=bank_mandate)
 
@@ -1089,7 +1078,6 @@ def edit_bank_mandate(key):
 @coinsurance_bp.route("/bank_mandate/download/<int:key>/")
 @login_required
 def download_bank_mandate(key):
-
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
     return send_from_directory(
         directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/bank_mandates/",
@@ -1102,7 +1090,6 @@ def download_bank_mandate(key):
 @coinsurance_bp.route("/bank_mandate/")
 @login_required
 def list_bank_mandates():
-
     bank_mandates = db.session.scalars(db.select(CoinsuranceBankMandate))
 
     return render_template("bank_mandate_list.html", bank_mandates=bank_mandates)
