@@ -459,116 +459,238 @@ def funds_home():
 @login_required
 @fund_managers
 def upload_bank_statement():
+    """
+    Upload and process a bank statement (.xlsx format):
+    - Parse the uploaded file
+    - Normalize data
+    - Check closing balance accuracy
+    - Insert into relevant DB tables
+    """
     form = UploadFileForm()
 
-    if form.validate_on_submit():
-        # collect bank statement from user upload
-        bank_statement = form.data["file_upload"]
-
-        # predetermined columns to be parsed as date types
-        date_columns = ["Book Date", "Value Date"]
-        df_bank_statement = pd.read_excel(
-            bank_statement,
-            parse_dates=date_columns,
-            date_format="dd-mm-yyyy",
-            dtype={
-                "Description": str,
-                "Ledger Balance": float,
-                "Credit": float,
-                "Debit": float,
-                "Reference No": str,
-                "Transaction Branch": str,
-            },
+    if not form.validate_on_submit():
+        return render_template(
+            "upload_file_template.html",
+            form=form,
+            title="Upload bank statement (in .xlsx file format)",
         )
-        # strip space in end of names
-        # lower case the column names
-        # replace space with underscore
 
-        df_bank_statement.columns = (
-            df_bank_statement.columns.str.lower().str.replace(" ", "_").str.rstrip()
+    try:
+        df = parse_bank_statement(form.data["file_upload"])
+        df = normalize_bank_statement(df)
+        df = add_flag(df)
+
+        if not verify_closing_balance(df):
+            return render_template(
+                "upload_file_template.html",
+                form=form,
+                title="Upload bank statement (in .xlsx file format)",
+            )
+
+        save_bank_statement_and_credits(df)
+
+        return redirect(
+            url_for(
+                "funds.enter_outflow",
+                date_string=datetime.date.today().strftime("%d%m%Y"),
+            )
         )
-        df_bank_statement["date_uploaded_date"] = datetime.date.today()
-        df_bank_statement["date_created_date"] = datetime.datetime.now()
-        df_bank_statement["created_by"] = current_user.username
-
-        # debit entries to be moved to credit entries
-        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "credit"] = (
-            df_bank_statement["debit"]
+    except Exception as e:
+        flash(f"Error processing bank statement: {str(e)}")
+        return render_template(
+            "upload_file_template.html",
+            form=form,
+            title="Upload bank statement (in .xlsx file format)",
         )
-        df_bank_statement.loc[df_bank_statement["debit"].notnull(), "debit"] = None
 
-        # adding flag from flag_sheet table
-        df_bank_statement = add_flag(df_bank_statement)
 
-        closing_balance_prev_day = get_previous_day_closing_balance_refactored(
-            datetime.date.today() + relativedelta(days=1), "HDFC"
-        )
-        # display_inflow(datetime.date.today())
-        sum_credits = df_bank_statement["credit"].sum()
-        sum_debits = df_bank_statement["debit"].sum()
-        closing_balance_statement = df_bank_statement.loc[
-            df_bank_statement["flag_description"] == "HDFC CLOSING BAL",
-            "ledger_balance",
-        ].item()
-
-        net_amount = float(closing_balance_prev_day) + sum_credits + sum_debits
-        if (fabs(float(net_amount) - float(closing_balance_statement))) > 0.001:
-            flash(
-                f"Amount is not tallying. As per uploaded bank statement, closing balance is: {closing_balance_statement}. However, closing balance as per existing entries and uploaded bank statement should be: {net_amount}"
-            )
-        # closing balance of previous day + today's credits - today's debit == closing balance of today's uploaded statement
-
-        # closing balance of previous day + already uploaded credits - already uploaded debits + newly uploaded credits - newly uploaded debits == closing balance of currently uploaded statement
-
-        # if above condition is ok, proceed
-
-        else:
-            #            engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-            # try:
-            df_bank_statement.to_sql(
-                "fund_bank_statement",
-                db.engine,
-                if_exists="append",
-                index=False,
-            )
-
-            # upload other receipts to pool_credits table
-
-            # filter other receipts
-            df_other_receipts = df_bank_statement[
-                df_bank_statement["flag_description"] == "OTHER RECEIPTS"
-            ]
-
-            # match it against JV table
-            df_unidentified_credits = filter_unidentified_credits(
-                df_other_receipts  # , db.engine
-            )
-            # if still assigned to others, to be uploaded to pool_credits table
-            df_unidentified_credits.to_sql(
-                "pool_credits", db.engine, if_exists="append", index=False
-            )
-
-            # prepare dataframe for uploading to pool credits portal
-
-            df_pool_credits_portal = prepare_dataframe(df_unidentified_credits)
-            df_pool_credits_portal.to_sql(
-                "pool_credits_portal", db.engine, if_exists="append", index=False
-            )
-
-            create_or_update_daily_sheet(closing_balance_statement)
-
-            # redirect to outflow form
-            return redirect(
-                url_for(
-                    "funds.enter_outflow",
-                    date_string=datetime.date.today().strftime("%d%m%Y"),
-                )
-            )
-    return render_template(
-        "upload_file_template.html",
-        form=form,
-        title="Upload bank statement (in .xlsx file format)",
+def parse_bank_statement(file) -> pd.DataFrame:
+    return pd.read_excel(
+        file,
+        parse_dates=["Book Date", "Value Date"],
+        date_format="dd-mm-yyyy",
+        dtype={
+            "Description": str,
+            "Ledger Balance": float,
+            "Credit": float,
+            "Debit": float,
+            "Reference No": str,
+            "Transaction Branch": str,
+        },
     )
+
+
+def normalize_bank_statement(df: pd.DataFrame) -> pd.DataFrame:
+    df.columns = df.columns.str.lower().str.replace(" ", "_")
+    df["date_uploaded_date"] = datetime.date.today()
+    df["date_created_date"] = datetime.datetime.now()
+    df["created_by"] = current_user.username
+
+    # Move debit values to credit, nullify debit
+    mask = df["debit"].notnull()
+    df.loc[mask, "credit"] = df.loc[mask, "debit"]
+    df.loc[mask, "debit"] = None
+
+    return df
+
+
+def verify_closing_balance(df: pd.DataFrame) -> bool:
+    closing_balance_prev = get_previous_day_closing_balance_refactored(
+        datetime.date.today() + relativedelta(days=1), "HDFC"
+    )
+
+    sum_credits = df["credit"].sum()
+    sum_debits = df["debit"].sum()
+
+    try:
+        closing_balance_stmt = df.loc[
+            df["flag_description"] == "HDFC CLOSING BAL", "ledger_balance"
+        ].item()
+    except ValueError:
+        flash("Closing balance entry not found in the uploaded statement.")
+        return False
+
+    expected_closing = float(closing_balance_prev) + sum_credits - sum_debits
+
+    if fabs(expected_closing - closing_balance_stmt) > 0.001:
+        flash(
+            f"Mismatch in closing balance. Uploaded: {closing_balance_stmt}, Expected: {expected_closing}"
+        )
+        return False
+
+    return True
+
+
+def save_bank_statement_and_credits(df: pd.DataFrame):
+    # Save full bank statement
+    df.to_sql("fund_bank_statement", db.engine, if_exists="append", index=False)
+
+    # Filter and process "Other Receipts"
+    other_receipts = df[df["flag_description"] == "OTHER RECEIPTS"]
+    unidentified_credits = filter_unidentified_credits(other_receipts)
+
+    # Upload unidentified credits
+    unidentified_credits.to_sql(
+        "pool_credits", db.engine, if_exists="append", index=False
+    )
+
+    # Upload to pool credits portal
+    df_portal = prepare_dataframe(unidentified_credits)
+    df_portal.to_sql("pool_credits_portal", db.engine, if_exists="append", index=False)
+
+    # Update daily sheet
+    closing_balance = df.loc[
+        df["flag_description"] == "HDFC CLOSING BAL", "ledger_balance"
+    ].item()
+    create_or_update_daily_sheet(closing_balance)
+
+
+# @funds_bp.route("/bank_statement/upload/", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def upload_bank_statement():
+#     """Upload a bank statement (in .xlsx file format)"""
+#     form = UploadFileForm()
+
+#     if form.validate_on_submit():
+#         # Collect bank statement from user upload
+#         bank_statement_file = form.data["file_upload"]
+
+#         # Parse the bank statement into a pandas dataframe
+#         df_bank_statement = pd.read_excel(
+#             bank_statement_file,
+#             parse_dates=["Book Date", "Value Date"],
+#             date_format="dd-mm-yyyy",
+#             dtype={
+#                 "Description": str,
+#                 "Ledger Balance": float,
+#                 "Credit": float,
+#                 "Debit": float,
+#                 "Reference No": str,
+#                 "Transaction Branch": str,
+#             },
+#         )
+
+#         # Strip spaces from column names and convert to lowercase
+#         df_bank_statement.columns = df_bank_statement.columns.str.lower().str.replace(
+#             " ", "_"
+#         )
+
+#         # Add upload date and time
+#         df_bank_statement["date_uploaded_date"] = datetime.date.today()
+#         df_bank_statement["date_created_date"] = datetime.datetime.now()
+#         df_bank_statement["created_by"] = current_user.username
+
+#         # Move debit entries to credit entries
+#         df_bank_statement.loc[df_bank_statement["debit"].notnull(), "credit"] = (
+#             df_bank_statement["debit"]
+#         )
+#         df_bank_statement.loc[df_bank_statement["debit"].notnull(), "debit"] = None
+
+#         # Add flag from flag_sheet table
+#         df_bank_statement = add_flag(df_bank_statement)
+
+#         # Check if the closing balance of the uploaded statement is correct
+#         closing_balance_prev_day = get_previous_day_closing_balance_refactored(
+#             datetime.date.today() + relativedelta(days=1), "HDFC"
+#         )
+#         sum_credits = df_bank_statement["credit"].sum()
+#         sum_debits = df_bank_statement["debit"].sum()
+#         closing_balance_statement = df_bank_statement.loc[
+#             df_bank_statement["flag_description"] == "HDFC CLOSING BAL",
+#             "ledger_balance",
+#         ].item()
+
+#         net_amount = float(closing_balance_prev_day) + sum_credits - sum_debits
+#         if (fabs(float(net_amount) - float(closing_balance_statement))) > 0.001:
+#             flash(
+#                 f"Amount is not tallying. As per uploaded bank statement, closing balance is: {closing_balance_statement}. However, closing balance as per existing entries and uploaded bank statement should be: {net_amount}"
+#             )
+
+#         else:
+#             # Upload the bank statement to the database
+#             df_bank_statement.to_sql(
+#                 "fund_bank_statement",
+#                 db.engine,
+#                 if_exists="append",
+#                 index=False,
+#             )
+
+#             # Upload other receipts to pool_credits table
+#             df_other_receipts = df_bank_statement[
+#                 df_bank_statement["flag_description"] == "OTHER RECEIPTS"
+#             ]
+
+#             # Match it against JV table
+#             df_unidentified_credits = filter_unidentified_credits(df_other_receipts)
+
+#             # Upload to pool_credits table
+#             df_unidentified_credits.to_sql(
+#                 "pool_credits", db.engine, if_exists="append", index=False
+#             )
+
+#             # Prepare dataframe for uploading to pool credits portal
+#             df_pool_credits_portal = prepare_dataframe(df_unidentified_credits)
+#             df_pool_credits_portal.to_sql(
+#                 "pool_credits_portal", db.engine, if_exists="append", index=False
+#             )
+
+#             # Update the daily sheet with the closing balance of the uploaded statement
+#             create_or_update_daily_sheet(closing_balance_statement)
+
+#             # Redirect to outflow form
+#             return redirect(
+#                 url_for(
+#                     "funds.enter_outflow",
+#                     date_string=datetime.date.today().strftime("%d%m%Y"),
+#                 )
+#             )
+
+#     return render_template(
+#         "upload_file_template.html",
+#         form=form,
+#         title="Upload bank statement (in .xlsx file format)",
+#     )
 
 
 def create_or_update_daily_sheet(closing_balance_statement):
