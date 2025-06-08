@@ -1,5 +1,5 @@
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -12,7 +12,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
-
+from sqlalchemy import literal, insert
 from set_view_permissions import admin_required
 
 from . import coinsurance_bp
@@ -23,7 +23,11 @@ from .coinsurance_form import (
     CoinsuranceReceiptEditForm,
 )
 from .coinsurance_model_forms import ReceiptForm
-from .coinsurance_model import CoinsuranceReceipts, CoinsuranceReceiptsJournalVoucher
+from .coinsurance_model import (
+    CoinsuranceReceipts,
+    CoinsuranceReceiptsJournalVoucher,
+    Settlement,
+)
 
 
 from extensions import db
@@ -197,3 +201,46 @@ def list_coinsurance_receipts():
         receipts=receipts,
         pending_receipts=pending_receipts,
     )
+
+
+@coinsurance_bp.route("/fetch_settlements/")
+def fetch_settlements():
+    current_time = datetime.now()
+
+    prev_time = current_time - timedelta(hours=1)
+
+    stmt = (
+        db.select(
+            CoinsuranceReceiptsJournalVoucher.company_name.label("name_of_company"),
+            CoinsuranceReceipts.value_date.label("date_of_settlement"),
+            CoinsuranceReceipts.credit.label("settled_amount"),
+            CoinsuranceReceipts.reference_no.label("utr_number"),
+            CoinsuranceReceipts.transaction_code.label("notes"),
+            literal("Received").label("type_of_transaction"),
+            literal("API").label("created_by"),
+        )
+        .join(
+            CoinsuranceReceiptsJournalVoucher,
+            CoinsuranceReceipts.description.like(
+                "%" + CoinsuranceReceiptsJournalVoucher.pattern + "%"
+            ),
+        )
+        .where(CoinsuranceReceipts.created_on > prev_time)
+    )
+
+    insert_stmt = insert(Settlement).from_select(
+        [
+            Settlement.name_of_company,
+            Settlement.date_of_settlement,
+            Settlement.settled_amount,
+            Settlement.utr_number,
+            Settlement.notes,
+            Settlement.type_of_transaction,
+            Settlement.created_by,
+        ],
+        stmt,
+    )
+    db.session.execute(insert_stmt)
+    db.session.commit()
+
+    return "Success"
