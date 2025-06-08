@@ -195,61 +195,111 @@ def brs_cc_data_entry(key):
         db.session.commit()
         brs.centralised_cheque_brs_id = brs_entry.id
         db.session.commit()
-        required_columns = [
-            "voucher_number",
-            "voucher_date",
-            "transaction_id",
-            "instrument_number",
-            "instrument_date",
-            "instrument_amount",
-            "payee_name",
-            "remarks",
-        ]
-        str_columns_to_convert = [
-            "voucher_number",
-            "transaction_id",
-            "instrument_number",
-            "payee_name",
-            "remarks",
-        ]
-        # upload unencashed entries
-        if form.data["unencashed_cheques_file"]:
-            df_unencashed = pd.read_excel(
-                form.data["unencashed_cheques_file"],
-                usecols=required_columns,
-            )
-            df_unencashed[str_columns_to_convert] = df_unencashed[
-                str_columns_to_convert
-            ].astype(str)
-            df_unencashed["centralised_cheque_details_id"] = brs_entry.id
-            df_unencashed.to_sql(
-                "centralised_cheque_instrument_unencashed_details",
-                db.engine,
-                if_exists="append",
-                index=False,
-            )
-        # upload stale entries
-        if form.data["stale_cheques_file"]:
-            df_stale = pd.read_excel(
-                form.data["stale_cheques_file"],
-                usecols=required_columns,
-            )
-            df_stale[str_columns_to_convert] = df_stale[str_columns_to_convert].astype(
-                str
-            )
-            df_stale["centralised_cheque_details_id"] = brs_entry.id
-            df_stale.to_sql(
-                "centralised_cheque_instrument_stale_details",
-                db.engine,
-                if_exists="append",
-                index=False,
-            )
+
+        # Upload unencashed cheques
+        process_cheque_file(
+            form.data.get("unencashed_cheques_file"),
+            "centralised_cheque_instrument_unencashed_details",
+            brs_entry.id,
+        )
+
+        # Upload stale cheques
+        process_cheque_file(
+            form.data.get("stale_cheques_file"),
+            "centralised_cheque_instrument_stale_details",
+            brs_entry.id,
+        )
+        # # upload unencashed entries
+        # if form.data["unencashed_cheques_file"]:
+        #     df_unencashed = pd.read_excel(
+        #         form.data["unencashed_cheques_file"],
+        #         usecols=required_columns,
+        #     )
+
+        #     for date_col in date_columns:
+        #         if date_col in df_unencashed.columns:
+        #             df_unencashed[date_col] = pd.to_datetime(
+        #                 df_unencashed[date_col], errors="coerce", format="%d/%m/%Y"
+        #             )
+        #     df_unencashed[str_columns_to_convert] = df_unencashed[
+        #         str_columns_to_convert
+        #     ].astype(str)
+        #     df_unencashed["centralised_cheque_details_id"] = brs_entry.id
+        #     df_unencashed.to_sql(
+        #         "centralised_cheque_instrument_unencashed_details",
+        #         db.engine,
+        #         if_exists="append",
+        #         index=False,
+        #     )
+        # # upload stale entries
+        # if form.data["stale_cheques_file"]:
+        #     df_stale = pd.read_excel(
+        #         form.data["stale_cheques_file"],
+        #         usecols=required_columns,
+        #     )
+
+        #     for date_col in date_columns:
+        #         if date_col in df_stale.columns:
+        #             df_stale[date_col] = pd.to_datetime(
+        #                 df_stale[date_col], errors="coerce", format="%d/%m/%Y"
+        #             )
+        #     df_stale[str_columns_to_convert] = df_stale[str_columns_to_convert].astype(
+        #         str
+        #     )
+        #     df_stale["centralised_cheque_details_id"] = brs_entry.id
+        #     df_stale.to_sql(
+        #         "centralised_cheque_instrument_stale_details",
+        #         db.engine,
+        #         if_exists="append",
+        #         index=False,
+        #     )
         return redirect(url_for(".brs_cc_view_status", key=brs.id))
 
     unencashed, stale = get_prev_month_closing_balance(brs.id)
     form.opening_balance_stale.data = stale
     form.opening_balance_unencashed.data = unencashed
     return render_template("brs_cc_data_entry.html", brs=brs, form=form)
+
+
+def process_cheque_file(file, table_name, brs_entry_id):
+    if not file:
+        return
+
+    required_columns = [
+        "voucher_number",
+        "voucher_date",
+        "transaction_id",
+        "instrument_number",
+        "instrument_date",
+        "instrument_amount",
+        "payee_name",
+        "remarks",
+    ]
+    str_columns = [
+        "voucher_number",
+        "transaction_id",
+        "instrument_number",
+        "payee_name",
+        "remarks",
+    ]
+    date_columns = ["instrument_date", "voucher_date"]
+    df = pd.read_excel(file, usecols=required_columns)
+
+    # Convert date columns
+    for date_col in date_columns:
+        if date_col in df.columns:
+            df[date_col] = pd.to_datetime(
+                df[date_col], errors="coerce", format="%d/%m/%Y"
+            )
+
+    # Convert string columns
+    df[str_columns] = df[str_columns].astype(str)
+
+    # Add foreign key
+    df["centralised_cheque_details_id"] = brs_entry_id
+
+    # Save to database
+    df.to_sql(table_name, db.engine, if_exists="append", index=False)
 
 
 @brs_cc_bp.route("/view/<int:key>/", methods=["POST", "GET"])
