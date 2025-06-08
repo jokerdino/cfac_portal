@@ -26,6 +26,8 @@ from app.coinsurance.coinsurance_model import (
     Coinsurance,
     CoinsuranceLog,
     CoinsuranceBalances,
+    CoinsuranceBalanceGeneralLedgerCodeFlagSheet,
+    CoinsuranceBalanceZoneFlagSheet,
     CoinsuranceCashCall,
     Remarks,
     Settlement,
@@ -219,6 +221,22 @@ admin.add_view(
         CoinsuranceBalances,
         db.session,
         endpoint="coinsurance_balances_",
+        category="Coinsurance",
+    )
+)
+admin.add_view(
+    ModelView(
+        CoinsuranceBalanceGeneralLedgerCodeFlagSheet,
+        db.session,
+        endpoint="coinsurance_balances_gl_code",
+        category="Coinsurance",
+    )
+)
+admin.add_view(
+    ModelView(
+        CoinsuranceBalanceZoneFlagSheet,
+        db.session,
+        endpoint="coinsurance_balances_zone",
         category="Coinsurance",
     )
 )

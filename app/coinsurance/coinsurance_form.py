@@ -221,9 +221,9 @@ class CoinsuranceBalanceForm(FlaskForm):
         "Upload CSV files", validators=[FileRequired(), FileAllowed(["csv"])]
     )
 
-    flag_sheet_file = FileField(
-        "Upload Flag sheet", validators=[FileRequired(), FileAllowed(["xlsx"])]
-    )
+    # flag_sheet_file = FileField(
+    #     "Upload Flag sheet", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    # )
     upload_document = SubmitField("Upload")
 
 

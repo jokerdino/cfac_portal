@@ -201,6 +201,33 @@ class CoinsuranceBalances(db.Model):
     deleted_on = db.Column(db.DateTime)
 
 
+class CoinsuranceBalanceGeneralLedgerCodeFlagSheet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    gl_code = db.Column(db.String)
+    description = db.Column(db.String)
+    company_name = db.Column(db.String)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+
+class CoinsuranceBalanceZoneFlagSheet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    regional_code = db.Column(db.String)
+    zone = db.Column(db.String)
+
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    created_on = db.Column(db.DateTime, default=datetime.now)
+
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+
 class CoinsuranceCashCall(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 

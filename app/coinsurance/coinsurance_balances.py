@@ -14,6 +14,7 @@ from .coinsurance_form import (
     CoinsuranceBalanceForm,
     CoinsuranceBalanceQueryForm,
     FilterMonthForm,
+    UploadFileForm,
 )
 from .coinsurance_model import CoinsuranceBalances
 
@@ -119,9 +120,12 @@ def generate_coinsurance_balance():
 
     if form.validate_on_submit():
         period = form.period.data
-        flag_sheet = form.flag_sheet_file.data
+        #        flag_sheet = form.flag_sheet_file.data
 
-        list_df = [pd.read_csv(file) for file in form.csv_files_upload.data]
+        list_df = [
+            pd.read_csv(file, dtype={"GLCode": str})
+            for file in form.csv_files_upload.data
+        ]
 
         # Concatenate all DataFrames into a single DataFrame
         df_concat = pd.concat(list_df, ignore_index=True)
@@ -139,27 +143,38 @@ def generate_coinsurance_balance():
         df_concat = df_concat[df_concat["Net amount"] != 0]
 
         # Load additional data for GL codes and zones from an Excel file
-        df_flag_sheet = pd.read_excel(flag_sheet, sheet_name="GLCodes")
-        df_zones = pd.read_excel(
-            flag_sheet, sheet_name="Zones", dtype={"Regional Code": str}
+        # df_flag_sheet = pd.read_excel(flag_sheet, sheet_name="GLCodes")
+        #   df_zones = pd.read_excel(
+        #      flag_sheet, sheet_name="Zones", dtype={"Regional Code": str}
+        # )
+        df_flag_sheet = pd.read_sql(
+            "coinsurance_balance_general_ledger_code_flag_sheet",
+            db.engine,
+            columns=["gl_code", "description", "company_name"],
         )
-
+        df_zones = pd.read_sql(
+            "coinsurance_balance_zone_flag_sheet",
+            db.engine,
+            columns=["regional_code", "zone"],
+        )
         # Merge the concatenated data with the flag sheet on GLCode
-        df_merged = df_concat.merge(df_flag_sheet, on="GLCode", how="left")
+        df_merged = df_concat.merge(
+            df_flag_sheet, left_on="GLCode", right_on="gl_code", how="left"
+        )
 
         # Generate office-wise and company-wise pivot tables
         pivot_df_merged_office = prepare_pivot(
-            df_merged, df_zones, ["Office Code", "Company name"], period
+            df_merged, df_zones, ["Office Code", "company_name"], period
         )
         pivot_df_merged = prepare_pivot(
-            df_merged, df_zones, ["Company name", "Office Code"], period
+            df_merged, df_zones, ["company_name", "Office Code"], period
         )
 
-        net_off_jv = prepare_net_off(df_merged, ["Company name"], period, df_flag_sheet)
+        net_off_jv = prepare_net_off(df_merged, ["company_name"], period, df_flag_sheet)
 
         # Generate a company-wise summary
         pivot_companywise = pivot_df_merged.pivot_table(
-            index="Company name", values="Net", aggfunc="sum"
+            index="company_name", values="Net", aggfunc="sum"
         )
         pivot_companywise.reset_index(inplace=True)
 
@@ -204,7 +219,7 @@ def prepare_net_off(df_merged, index_list, period, df_gl_codes):
     # Create a pivot table based on the specified index columns and descriptions
     df_net_off = df_merged.pivot_table(
         index=index_list,
-        columns="Description",
+        columns="description",
         values="Net amount",
         aggfunc="sum",
     )
@@ -224,24 +239,24 @@ def prepare_net_off(df_merged, index_list, period, df_gl_codes):
     ) * -1
 
     df_net_off.reset_index(inplace=True)
-    df_net_off = df_net_off[["Company name", "Due to", "Due from"]]
+    df_net_off = df_net_off[["company_name", "Due to", "Due from"]]
     df_net_off["Amount"] = df_net_off[["Due to", "Due from"]].min(axis=1)
 
-    df_gl_codes = df_gl_codes[df_gl_codes["Description"].str.contains("OO Due")].copy()
+    df_gl_codes = df_gl_codes[df_gl_codes["description"].str.contains("OO Due")].copy()
 
-    df_net_off_gl_merged = df_net_off.merge(df_gl_codes, on="Company name")
+    df_net_off_gl_merged = df_net_off.merge(df_gl_codes, on="company_name")
     df_net_off_gl_merged["Office Location"] = "000100"
     df_net_off_gl_merged["SL Code"] = 0
     df_net_off_gl_merged["Remarks"] = (
-        f"Net off JV {period} " + df_net_off_gl_merged["Company name"]
+        f"Net off JV {period} " + df_net_off_gl_merged["company_name"]
     )
     df_net_off_gl_merged.loc[
-        df_net_off_gl_merged["Description"] == "OO Due from", "DR/CR"
+        df_net_off_gl_merged["description"] == "OO Due from", "DR/CR"
     ] = "CR"
     df_net_off_gl_merged.loc[
-        df_net_off_gl_merged["Description"] == "OO Due to", "DR/CR"
+        df_net_off_gl_merged["description"] == "OO Due to", "DR/CR"
     ] = "DR"
-    df_net_off_gl_merged.rename(columns={"GLCode": "GL Code"}, inplace=True)
+    df_net_off_gl_merged.rename(columns={"gl_code": "GL Code"}, inplace=True)
 
     df_net_off_gl_merged = df_net_off_gl_merged[
         ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
@@ -265,7 +280,7 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
     # Create a pivot table based on the specified index columns and descriptions
     pivot_df_merged_office = df_merged.pivot_table(
         index=index_list,
-        columns="Description",
+        columns="description",
         values="Net amount",
         aggfunc="sum",
     )
@@ -298,7 +313,7 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
 
     # Merge the calculated regional codes with the zones data from the flag sheet
     pivot_df_merged_office = pivot_df_merged_office.merge(
-        df_zones, on="Regional Code", how="left"
+        df_zones, left_on="Regional Code", right_on="regional_code", how="left"
     )
 
     # Add the period to the pivot table
@@ -356,3 +371,46 @@ def upload_coinsurance_balance():
         )
         flash("Coinsurance balance has been uploaded to database.")
     return render_template("coinsurance_balance_upload.html")
+
+
+@coinsurance_bp.route("/coinsurance_balance/gl_code/upload/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def gl_code_flag_sheet_upload():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        df = pd.read_excel(form.data["file_upload"])
+        df.to_sql(
+            "coinsurance_balance_general_ledger_code_flag_sheet",
+            db.engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("Successfully uploaded.")
+    return render_template(
+        "coinsurance_upload_file_template.html",
+        form=form,
+        title="Upload GL code flag sheet",
+    )
+
+
+@coinsurance_bp.route("/coinsurance_balance/zones/upload/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def zone_flag_sheet_upload():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        df = pd.read_excel(form.data["file_upload"], dtype={"regional_code": str})
+        df.to_sql(
+            "coinsurance_balance_zone_flag_sheet",
+            db.engine,
+            if_exists="append",
+            index=False,
+        )
+        flash("Successfully uploaded.")
+
+    return render_template(
+        "coinsurance_upload_file_template.html",
+        form=form,
+        title="Upload Zone flag sheet",
+    )
