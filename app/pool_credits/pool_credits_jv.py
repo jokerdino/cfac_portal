@@ -3,7 +3,7 @@ from io import BytesIO
 
 import pandas as pd
 from flask import (
-    current_app,
+    #   current_app,
     flash,
     redirect,
     render_template,
@@ -15,7 +15,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import (
     func,
     literal,
-    create_engine,
+    #    create_engine,
 )
 from sqlalchemy.exc import IntegrityError
 
@@ -56,7 +56,7 @@ def jv_add():
     return render_template("jv_edit.html", form=form, title="Add new JV mapping")
 
 
-@pool_credits_bp.route("/jv/edit/<jv_id>", methods=["GET", "POST"])
+@pool_credits_bp.route("/jv/edit/<jv_id>/", methods=["GET", "POST"])
 @login_required
 @admin_required
 def jv_edit(jv_id):
@@ -74,7 +74,7 @@ def jv_edit(jv_id):
     return render_template("jv_edit.html", form=form, jv=jv, title="Edit JV mapping")
 
 
-@pool_credits_bp.route("/jv/bulk_upload", methods=["GET", "POST"])
+@pool_credits_bp.route("/jv/bulk_upload/", methods=["GET", "POST"])
 @login_required
 @admin_required
 def jv_bulk_upload():
@@ -89,7 +89,7 @@ def jv_bulk_upload():
         df_jv["created_by"] = current_user.username
         df_jv.to_sql(
             "pool_credits_journal_voucher",
-            create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI")),
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -131,8 +131,8 @@ def download_jv_confirmed_entries():
     START_DATE = datetime(2024, 10, 1)
     query = query.filter(PoolCredits.value_date >= START_DATE)
 
-    engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-    conn = engine.connect()
+    #    engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+    conn = db.engine.connect()
     df_confirmed_entries = pd.read_sql(query.statement, conn)
 
     df_confirmed_entries["Remarks"] = (
@@ -158,6 +158,6 @@ def download_jv_confirmed_entries():
     # Set the buffer position to the beginning
     output.seek(0)
 
-    filename = f"pool_credits_jv_{datetime.now().strftime("%Y%m%d%H%M%S")}.xlsx"
+    filename = f"pool_credits_jv_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
 
     return send_file(output, as_attachment=True, download_name=filename)

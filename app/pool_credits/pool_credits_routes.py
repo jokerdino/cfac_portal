@@ -7,7 +7,7 @@ from sqlalchemy import (
     case,
     cast,
     String,
-    create_engine,
+    #   create_engine,
 )
 
 
@@ -18,7 +18,7 @@ from flask import (
     render_template,
     url_for,
     request,
-    current_app,
+    #    current_app,
     send_from_directory,
 )
 from flask_login import current_user, login_required
@@ -448,8 +448,8 @@ def download_monthly():
             FundBankStatement.period == filter_period.strftime("%Y-%m")
         )
 
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        conn = engine.connect()
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        conn = db.engine.connect()
         df_funds = pd.read_sql_query(entries.statement, conn)
         df_funds = df_funds[
             [
