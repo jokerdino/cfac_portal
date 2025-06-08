@@ -68,7 +68,7 @@ outflow_labels = [
     "AXIS CENTRALISED CHEQUE",
     "AXIS CENTRALISED CHEQUE 521",
     "AXIS TDS RO",
-    "PENSION",
+    "PENSION PAYMENT",
     "GRATUITY",
     "AXIS GST",
     "RO NAGPUR CROP",
