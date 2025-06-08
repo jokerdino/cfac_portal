@@ -11,7 +11,7 @@
                 <th>{{ i|upper }}</th>
                 {% endif %}
                 {% endfor %}
-
+                <th>Edit</th>
             </tr>
         </thead>
         <tbody>
@@ -22,7 +22,8 @@
                 <td>{{ item[i] }}</td>
                 {% endif %}
                 {% endfor %}
-
+                <td><a class="button is-small is-link"
+                        href="{{ url_for('funds.edit_jv_flag', jv_id=item['id']) }}">Edit</a></td>
             </tr>
             {% endfor %}
 

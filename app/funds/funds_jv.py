@@ -24,6 +24,7 @@ from .funds_model import (
 )
 
 from set_view_permissions import fund_managers, admin_required
+from extensions import db
 
 
 @funds_bp.route("/download_jv/", methods=["POST", "GET"])
@@ -378,14 +379,12 @@ def upload_jv_flags():
 @admin_required
 def add_jv_flag():
     """Add new JV flag patterns through model form"""
-    from extensions import db
 
     jv = FundJournalVoucherFlagSheet()
 
     if request.method == "POST":
         form = JVFlagAddForm(request.form, obj=jv)
         if form.validate():
-
             form.populate_obj(jv)
             db.session.add(jv)
             db.session.commit()
@@ -397,4 +396,29 @@ def add_jv_flag():
         "jv_pattern_add.html",
         form=form,
         title="Add new JV pattern",
+    )
+
+
+@funds_bp.route("/jv_flags/<int:jv_id>/edit/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def edit_jv_flag(jv_id):
+    """Edit JV flag patterns through model form"""
+
+    jv = db.get_or_404(FundJournalVoucherFlagSheet, jv_id)
+
+    if request.method == "POST":
+        form = JVFlagAddForm(request.form, obj=jv)
+        if form.validate():
+            form.populate_obj(jv)
+            db.session.add(jv)
+            db.session.commit()
+            return redirect(url_for(".view_jv_flags"))
+    else:
+        form = JVFlagAddForm(obj=jv)
+
+    return render_template(
+        "jv_pattern_add.html",
+        form=form,
+        title="Edit JV pattern",
     )
