@@ -18,7 +18,7 @@ from sqlalchemy import (
     String,
     case,
     cast,
-    create_engine,
+    #    create_engine,
     distinct,
     func,
     text,
@@ -523,11 +523,11 @@ def upload_bank_statement():
         # if above condition is ok, proceed
 
         else:
-            engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+            #            engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
             # try:
             df_bank_statement.to_sql(
                 "fund_bank_statement",
-                engine,
+                db.engine,
                 if_exists="append",
                 index=False,
             )
@@ -541,18 +541,18 @@ def upload_bank_statement():
 
             # match it against JV table
             df_unidentified_credits = filter_unidentified_credits(
-                df_other_receipts, engine
+                df_other_receipts  # , db.engine
             )
             # if still assigned to others, to be uploaded to pool_credits table
             df_unidentified_credits.to_sql(
-                "pool_credits", engine, if_exists="append", index=False
+                "pool_credits", db.engine, if_exists="append", index=False
             )
 
             # prepare dataframe for uploading to pool credits portal
 
             df_pool_credits_portal = prepare_dataframe(df_unidentified_credits)
             df_pool_credits_portal.to_sql(
-                "pool_credits_portal", engine, if_exists="append", index=False
+                "pool_credits_portal", db.engine, if_exists="append", index=False
             )
 
             create_or_update_daily_sheet(closing_balance_statement)
@@ -589,8 +589,8 @@ def create_or_update_daily_sheet(closing_balance_statement):
 
 def add_flag(df_bank_statement):
     # obtain flag from database and store it as pandas dataframe
-    engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-    df_flag_sheet = pd.read_sql("fund_flag_sheet", engine)
+    #    engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+    df_flag_sheet = pd.read_sql("fund_flag_sheet", db.engine)
     df_flag_sheet = df_flag_sheet[["flag_description", "flag_reg_exp"]]
 
     # extract regular expression column into list
@@ -972,14 +972,14 @@ def upload_flag_sheet():
     if form.validate_on_submit():
         flag_sheet = form.data["file_upload"]
         df_flag_sheet = pd.read_excel(flag_sheet)
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_flag_sheet["date_created_date"] = datetime.datetime.now()
         df_flag_sheet["created_by"] = current_user.username
         # try:
         df_flag_sheet.to_sql(
             "fund_flag_sheet",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -999,7 +999,7 @@ def upload_investment_balance():
     if form.validate_on_submit():
         investment_balance = form.data["file_upload"]
         df_investment = pd.read_excel(investment_balance)
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         # df_flag_sheet["date_current_date"] = datetime.date.today()
         df_investment["date_created_date"] = datetime.datetime.now()
@@ -1007,7 +1007,7 @@ def upload_investment_balance():
         # try:
         df_investment.to_sql(
             "fund_daily_sheet",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -1031,14 +1031,14 @@ def upload_bank_account_number():
         df_bank_account = pd.read_excel(
             bank_account_number, dtype={"bank_account_number": str}
         )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_bank_account["date_created_date"] = datetime.datetime.now()
         df_bank_account["created_by"] = current_user.username
 
         df_bank_account.to_sql(
             "fund_bank_account_numbers",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )

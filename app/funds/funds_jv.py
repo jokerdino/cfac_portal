@@ -12,7 +12,7 @@ from flask import (
 )
 
 from flask_login import login_required, current_user
-from sqlalchemy import func, case, union, create_engine
+from sqlalchemy import func, case, union  # create_engine
 
 from . import funds_bp
 from .funds_form import FundsJVForm, UploadFileForm, JVFlagAddForm
@@ -141,15 +141,15 @@ def download_jv():
 
         query_set = union(*all_queries)
 
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        conn = engine.connect()
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        conn = db.engine.connect()
         df_funds = pd.read_sql_query(query_set, conn)
 
         df_funds["Office Location"] = "000100"
 
         df_funds["Date"] = pd.to_datetime(df_funds["Date"], format="%d/%m/%Y")
 
-        df_flags, flag_description = prepare_jv_flag(engine)
+        df_flags, flag_description = prepare_jv_flag()
         df_inflow = prepare_inflow_jv(df_funds, df_flags, flag_description)
         df_merged = pd.concat(
             [
@@ -161,7 +161,6 @@ def download_jv():
         )
 
         if not df_merged.empty:
-
             df_merged = df_merged[
                 ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
             ]
@@ -186,10 +185,10 @@ def download_jv():
     return render_template("jv_download_jv_macro.html", form=form)
 
 
-def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame:
+def filter_unidentified_credits(df_inflow: pd.DataFrame) -> pd.DataFrame:
     # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
-    flag_description: list[str] = prepare_jv_flag(engine)[1]
+    flag_description: list[str] = prepare_jv_flag()[1]
 
     df_inflow_copy = df_inflow.copy()
 
@@ -207,8 +206,8 @@ def filter_unidentified_credits(df_inflow: pd.DataFrame, engine) -> pd.DataFrame
     return df_unidentified_credits
 
 
-def prepare_jv_flag(engine) -> tuple[pd.DataFrame, list[str]]:
-    df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", engine)
+def prepare_jv_flag() -> tuple[pd.DataFrame, list[str]]:
+    df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", db.engine)
 
     df_flags = df_flags[["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]]
     df_flags = df_flags.drop_duplicates()
@@ -330,7 +329,6 @@ def prepare_inflow_jv(
 @login_required
 @fund_managers
 def view_jv_flags():
-
     list = FundJournalVoucherFlagSheet.query.order_by(FundJournalVoucherFlagSheet.id)
     column_names = FundJournalVoucherFlagSheet.query.statement.columns.keys()
 
@@ -341,7 +339,6 @@ def view_jv_flags():
 @login_required
 @fund_managers
 def upload_jv_flags():
-
     form = UploadFileForm()
 
     if form.validate_on_submit():
@@ -355,14 +352,14 @@ def upload_jv_flags():
                 "txt_sl_code": str,
             },
         )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_jv_flag_sheet["date_created_date"] = datetime.now()
         df_jv_flag_sheet["created_by"] = current_user.username
 
         df_jv_flag_sheet.to_sql(
             "fund_journal_voucher_flag_sheet",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
