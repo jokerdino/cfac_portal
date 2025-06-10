@@ -1,8 +1,9 @@
 from datetime import datetime
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
-from flask import current_app, flash, render_template, request, send_from_directory
+from flask import current_app, flash, render_template, request, send_file
 from flask_login import current_user, login_required
 from sqlalchemy import create_engine, func
 
@@ -177,11 +178,9 @@ def generate_coinsurance_balance():
             index="company_name", values="Net", aggfunc="sum"
         )
         pivot_companywise.reset_index(inplace=True)
-
+        output = BytesIO()
         # Write the pivot tables and summary to an Excel file
-        with pd.ExcelWriter(
-            f"download_data/coinsurance_balances/coinsurance_balance_{period}.xlsx"
-        ) as writer:
+        with pd.ExcelWriter(output) as writer:
             pivot_df_merged_office.to_excel(
                 writer, sheet_name="office_wise", index=False
             )
@@ -205,9 +204,9 @@ def generate_coinsurance_balance():
             format_worksheet_summary.set_column("B:B", 11, format_currency)
             format_worksheet_summary.autofit()
 
-        return send_from_directory(
-            directory="download_data/coinsurance_balances/",
-            path=f"coinsurance_balance_{period}.xlsx",
+        output.seek(0)
+        return send_file(
+            output,
             download_name=f"coinsurance_balance_{period}.xlsx",
             as_attachment=True,
         )
@@ -299,13 +298,13 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
     pivot_df_merged_office.reset_index(inplace=True)
 
     # Derive the regional code by dividing the office code by 10000 and rounding
-    pivot_df_merged_office["Regional Code"] = np.where(
+    pivot_df_merged_office["regional_code"] = np.where(
         pivot_df_merged_office["Office Code"].between(10000, 310000),
         (pivot_df_merged_office["Office Code"] // 10000) * 10000,
         pivot_df_merged_office["Office Code"],
     )
-    pivot_df_merged_office["Regional Code"] = (
-        pivot_df_merged_office["Regional Code"].astype(int).astype(str).str.zfill(6)
+    pivot_df_merged_office["regional_code"] = (
+        pivot_df_merged_office["regional_code"].astype(int).astype(str).str.zfill(6)
     )
     pivot_df_merged_office["Office Code"] = (
         pivot_df_merged_office["Office Code"].astype(str).str.zfill(6)
@@ -313,7 +312,7 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
 
     # Merge the calculated regional codes with the zones data from the flag sheet
     pivot_df_merged_office = pivot_df_merged_office.merge(
-        df_zones, left_on="Regional Code", right_on="regional_code", how="left"
+        df_zones, on="regional_code", how="left"
     )
 
     # Add the period to the pivot table
@@ -342,11 +341,12 @@ def upload_coinsurance_balance():
                 "OO Due from": float,
                 "Net": float,
                 "Period": str,
-                "Regional Code": str,
-                "Zone": str,
+                "regional_code": str,
+                "zone": str,
             },
         )
-        df_coinsurance_balance.rename(
+
+        df_coinsurance_balance = df_coinsurance_balance.rename(
             columns={
                 "Office Code": "office_code",
                 "Company name": "company_name",
@@ -358,16 +358,15 @@ def upload_coinsurance_balance():
                 "OO Due from": "oo_due_from",
                 "Net": "net_amount",
                 "Period": "period",
-                "Regional Code": "str_regional_office_code",
-                "Zone": "str_zone",
+                "regional_code": "str_regional_office_code",
+                "zone": "str_zone",
             },
-            inplace=True,
         )
         df_coinsurance_balance["created_by"] = current_user.username
         df_coinsurance_balance["created_on"] = datetime.now()
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_coinsurance_balance.to_sql(
-            "coinsurance_balances", engine, if_exists="append", index=False
+            "coinsurance_balances", db.engine, if_exists="append", index=False
         )
         flash("Coinsurance balance has been uploaded to database.")
     return render_template("coinsurance_balance_upload.html")
