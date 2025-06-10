@@ -1,10 +1,12 @@
 from datetime import datetime, date
+from io import BytesIO
+
 import pandas as pd
 
 from flask import (
     current_app,
     render_template,
-    send_from_directory,
+    send_file,
     flash,
     request,
     redirect,
@@ -42,7 +44,6 @@ def download_jv():
     """
 
     form = FundsJVForm()
-    from extensions import db
 
     if form.validate_on_submit():
         # if no start date is provided, default to today
@@ -166,15 +167,14 @@ def download_jv():
             ]
             df_merged["GL Code"] = pd.to_numeric(df_merged["GL Code"])
             df_merged["SL Code"] = pd.to_numeric(df_merged["SL Code"])
-            datetime_string = datetime.now()
-            with pd.ExcelWriter(
-                f"download_data/funds_jv/HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx"
-            ) as writer:
+            # datetime_string = datetime.now()
+            output = BytesIO()
+            with pd.ExcelWriter(output) as writer:
                 df_merged.to_excel(writer, sheet_name="JV", index=False)
                 df_inflow.to_excel(writer, sheet_name="inflow", index=False)
-            return send_from_directory(
-                directory="download_data/funds_jv/",
-                path=f"HDFC JV_{datetime_string:%d%m%Y%H%M%S}.xlsx",
+            output.seek(0)
+            return send_file(
+                output,
                 download_name=f"HDFC_JV_{start_date}_{end_date}.xlsx",
                 as_attachment=True,
             )

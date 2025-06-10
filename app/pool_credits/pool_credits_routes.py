@@ -1,5 +1,6 @@
 from datetime import datetime
 from dataclasses import asdict
+from io import BytesIO
 
 from sqlalchemy import (
     and_,
@@ -18,8 +19,7 @@ from flask import (
     render_template,
     url_for,
     request,
-    #    current_app,
-    send_from_directory,
+    send_file,
 )
 from flask_login import current_user, login_required
 
@@ -465,10 +465,9 @@ def download_monthly():
             ]
         ]
 
-        datetime_string = datetime.now()
-        with pd.ExcelWriter(
-            f"download_data/pool_credits/HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx"
-        ) as writer:
+        # datetime_string = datetime.now()
+        output = BytesIO()
+        with pd.ExcelWriter(output) as writer:
             df_funds.to_excel(writer, sheet_name="Inflow", index=False)
             format_workbook = writer.book
             format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
@@ -479,10 +478,9 @@ def download_monthly():
             format_worksheet.autofit()
             format_worksheet.autofilter("A1:I2")
             format_worksheet.freeze_panes(1, 0)
-
-        return send_from_directory(
-            directory="download_data/pool_credits/",
-            path=f"HDFC_Pool_credits_{datetime_string:%d%m%Y%H%M%S}.xlsx",
+        output.seek(0)
+        return send_file(
+            output,
             download_name=f"HDFC_Pool_credits_{filter_period.strftime('%B-%y')}.xlsx",
             as_attachment=True,
         )
