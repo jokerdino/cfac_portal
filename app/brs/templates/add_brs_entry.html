@@ -10,28 +10,33 @@
         onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
         {{ form.csrf_token }}
         <table class="table is-fullwidth is-bordered is-hoverable">
-            <tr>
-                <th>Regional Office code</th>
-                <th>Operating Office Code</th>
-                <th>Financial year</th>
-                <th>Month</th>
-                <th>BRS type</th>
-                <th>BRS bank</th>
-            </tr>
-            <tr>
-                <td>{{ brs_entry.uiic_regional_code }}</td>
-                <td>{{ brs_entry.uiic_office_code }}</td>
-                <td>{{ brs_entry.financial_year }}</td>
-                <td>{{ brs_entry.month }}</td>
-                <td>{{ requirement | upper() }}</td>
-                <td>{{ get_brs_bank(brs_entry.id, requirement) }}</td>
-            </tr>
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Regional Office code</th>
+                    <th class="has-text-centered">Operating Office Code</th>
+                    <th class="has-text-centered">Financial year</th>
+                    <th class="has-text-centered">Month</th>
+                    <th class="has-text-centered">BRS type</th>
+                    <th class="has-text-centered">BRS bank</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="has-text-centered">
+                    <td>{{ brs_entry.uiic_regional_code }}</td>
+                    <td>{{ brs_entry.uiic_office_code }}</td>
+                    <td>{{ brs_entry.financial_year }}</td>
+                    <td>{{ brs_entry.month }}</td>
+                    <td>{{ requirement | upper() | replace("_", " ") }}</td>
+                    <td>{{ get_brs_bank(brs_entry.id, requirement) }}</td>
+                </tr>
+            </tbody>
         </table>
-
         {% for field in form %}
         {% if field.errors %}
         <div class="notification is-danger">
-            {{ field.label }} field is to be completed.
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
         </div>
         {% endif %}
         {% endfor %}
@@ -47,71 +52,74 @@
         {% endwith %}
         <table class="table is-bordered is-fullwidth is-hoverable">
             <tr>
-                <th>{{ form.prepared_by.label }}</th>
+                <th class="is-vcentered">{{ form.prepared_by.label }}</th>
                 <td></td>
                 <td>{{ form.prepared_by(class="input") }}</td>
             </tr>
             <tr>
-                <th>{{ form.prepared_by_employee_number.label }}</th>
+                <th class="is-vcentered">{{ form.prepared_by_employee_number.label }}</th>
                 <td></td>
                 <td>{{ form.prepared_by_employee_number(class="input") }}</td>
             </tr>
             <tr>
-                <th>{{ form.opening_balance.label }}</th>
-                <td>{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_balance(class='input is-small',
+                <th class="is-vcentered">{{ form.int_opening_balance.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_opening_balance(class='input is-small',
                     readonly=true) }}
                 </td>
             </tr>
             <tr>
-                <th>{{ form.opening_on_hand.label }}</th>
-                <td>{{ brs_entry.month|datetime_format("%B-%Y", "previous") }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.opening_on_hand(class='input is-small',
+                <th class="is-vcentered">{{ form.int_opening_on_hand.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month|datetime_format("%B-%Y", "previous") }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_opening_on_hand(class='input is-small',
                     readonly=true) }}
                 </td>
             </tr>
             <tr>
-                <th>{{ form.transactions.label }}</th>
-                <td>{{ brs_entry.month }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.transactions(class='input is-small') }}
+                <th class="is-vcentered">{{ form.int_transactions.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_transactions(class='input is-small') }}
                 </td>
             </tr>
             <tr>
-                <th>{{ form.cancellations.label }}</th>
-                <td>{{ brs_entry.month }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.cancellations(class='input is-small') }}
+                <th class="is-vcentered">{{ form.int_cancellations.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_cancellations(class='input is-small')
+                    }}
                 </td>
             </tr>
             <tr>
-                <th>Balance before fund transfer</th>
-                <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+                <th class="is-vcentered">Balance before fund transfer</th>
+                <td class="is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
                 <td class="has-text-right"><label id="cal_balance_before_fund_transfer"></label></td>
             </tr>
             <tr>
-                <th>{{ form.fund_transfer.label }}</th>
-                <td>{{ brs_entry.month }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.fund_transfer(class='input is-small') }}
+                <th class="is-vcentered">{{ form.int_fund_transfer.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_fund_transfer(class='input is-small')
+                    }}
                 </td>
             </tr>
             <tr>
-                <th>{{ form.bank_charges.label }}</th>
-                <td>{{ brs_entry.month }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.bank_charges(class='input is-small') }}
+                <th class="is-vcentered">{{ form.int_bank_charges.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_bank_charges(class='input is-small') }}
                 </td>
             </tr>
             <tr>
-                <th>{{ form.closing_on_hand.label }}</th>
-                <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.closing_on_hand(class='input is-small') }}
+                <th class="is-vcentered">{{ form.int_closing_on_hand.label }}</th>
+                <td class="is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.int_closing_on_hand(class='input is-small')
+                    }}
                 </td>
             </tr>
             <tr>
-                <th>Closing balance as per GL</th>
-                <td>{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+                <th class="is-vcentered">Closing balance as per GL</th>
+                <td class="is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
                 <td class="has-text-right"><label id="cal_closing_balance"></label></td>
             </tr>
             <tr>
-                <th>Remarks</th>
+                <th class="is-vcentered">Remarks</th>
                 <td></td>
                 <td> {{ form.remarks(class='textarea') }} </td>
             </tr>
@@ -120,35 +128,41 @@
             <h1 class="title is-size-5">Provide breakup of closing balance</h1>
             <table class="table is-bordered is-fullwidth is-hoverable">
                 <tr>
-                    <th>{{ form.int_deposited_not_credited.label }}</th>
-                    <td><a href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
+                    <th class="is-vcentered">{{ form.int_deposited_not_credited.label }}</th>
+                    <td class="is-vcentered"><a
+                            href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
                     <td onload="calculateClosingBalance()" onkeyup="calculateClosingBalance()">{{
                         form.int_deposited_not_credited(class="input") }}</td>
-                    <td>{{ form.file_outstanding_entries(disabled="disabled", accept=".csv,text/csv") }}</td>
+                    <td class="is-vcentered">{{ form.file_outstanding_entries(disabled="disabled",
+                        accept=".csv,text/csv") }}</td>
                 </tr>
                 <tr>
-                    <th>{{ form.int_short_credited.label }}</th>
-                    <td><a href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
+                    <th class="is-vcentered">{{ form.int_short_credited.label }}</th>
+                    <td class="is-vcentered"><a
+                            href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
                     <td onload="calculateClosingBalance()" onkeyup="calculateClosingBalance()">{{
                         form.int_short_credited(class="input") }}</td>
-                    <td>{{ form.file_short_credit_entries(disabled="disabled", accept=".csv,text/csv") }}</td>
+                    <td class="is-vcentered">{{ form.file_short_credit_entries(disabled="disabled",
+                        accept=".csv,text/csv") }}</td>
                 </tr>
                 <tr>
-                    <th>{{ form.int_excess_credited.label }}</th>
-                    <td><a href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
+                    <th class="is-vcentered">{{ form.int_excess_credited.label }}</th>
+                    <td class="is-vcentered"><a
+                            href="{{ url_for('brs.download_format', requirement=requirement) }}">Upload Format</a></td>
                     <td onload="calculateClosingBalance()" onkeyup="calculateClosingBalance()">{{
                         form.int_excess_credited(class="input") }}</td>
-                    <td>{{ form.file_excess_credit_entries(disabled="disabled", accept=".csv,text/csv") }}</td>
+                    <td class="is-vcentered">{{ form.file_excess_credit_entries(disabled="disabled",
+                        accept=".csv,text/csv") }}</td>
                 </tr>
 
                 <tr>
-                    <th>{{ form.int_closing_balance_bank_statement.label }}</th>
+                    <th class="is-vcentered">{{ form.int_balance_as_per_bank.label }}</th>
                     <td></td>
                     <td onload="calculateClosingBalance()" onkeyup="calculateClosingBalance()">
                         {% if requirement == "local_collection" %}
-                        {{ form.int_closing_balance_bank_statement(class="input") }}
+                        {{ form.int_balance_as_per_bank(class="input") }}
                         {% else %}
-                        {{ form.int_closing_balance_bank_statement(class="input", disabled=disabled) }}
+                        {{ form.int_balance_as_per_bank(class="input", disabled=disabled) }}
                         {% endif %}
                     </td>
                     <td></td>
@@ -189,13 +203,13 @@
     });
 
     function calculateSum() {
-        var opening_balance = parseFloat(document.getElementById("opening_balance").value === "" ? 0 : document.getElementById("opening_balance").value);
-        var opening_on_hand = parseFloat(document.getElementById("opening_on_hand").value === "" ? 0 : document.getElementById("opening_on_hand").value);
-        var transactions = parseFloat(document.getElementById("transactions").value === "" ? 0 : document.getElementById("transactions").value);
-        var cancellations = parseFloat(document.getElementById("cancellations").value === "" ? 0 : document.getElementById("cancellations").value);
-        var fund_transfer = parseFloat(document.getElementById("fund_transfer").value === "" ? 0 : document.getElementById("fund_transfer").value);
-        var bank_charges = parseFloat(document.getElementById("bank_charges").value === "" ? 0 : document.getElementById("bank_charges").value);
-        var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value === "" ? 0 : document.getElementById("closing_on_hand").value);
+        var opening_balance = parseFloat(document.getElementById("int_opening_balance").value === "" ? 0 : document.getElementById("int_opening_balance").value);
+        var opening_on_hand = parseFloat(document.getElementById("int_opening_on_hand").value === "" ? 0 : document.getElementById("int_opening_on_hand").value);
+        var transactions = parseFloat(document.getElementById("int_transactions").value === "" ? 0 : document.getElementById("int_transactions").value);
+        var cancellations = parseFloat(document.getElementById("int_cancellations").value === "" ? 0 : document.getElementById("int_cancellations").value);
+        var fund_transfer = parseFloat(document.getElementById("int_fund_transfer").value === "" ? 0 : document.getElementById("int_fund_transfer").value);
+        var bank_charges = parseFloat(document.getElementById("int_bank_charges").value === "" ? 0 : document.getElementById("int_bank_charges").value);
+        var closing_on_hand = parseFloat(document.getElementById("int_closing_on_hand").value === "" ? 0 : document.getElementById("int_closing_on_hand").value);
         closing_balance = opening_balance + opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
         balance_before_fund_transfer = opening_balance + opening_on_hand + transactions - cancellations
         const formatter = new Intl.NumberFormat('en-IN', {
@@ -233,7 +247,7 @@
         var not_credited = parseFloat(document.getElementById("int_deposited_not_credited").value === "" ? 0 : document.getElementById("int_deposited_not_credited").value);
         var short_credited = parseFloat(document.getElementById("int_short_credited").value === "" ? 0 : document.getElementById("int_short_credited").value);
         var excess_credited = parseFloat(document.getElementById("int_excess_credited").value === "" ? 0 : document.getElementById("int_excess_credited").value);
-        var closing_balance_bank_statement = parseFloat(document.getElementById("int_closing_balance_bank_statement").value === "" ? 0 : document.getElementById("int_closing_balance_bank_statement").value);
+        var closing_balance_bank_statement = parseFloat(document.getElementById("int_balance_as_per_bank").value === "" ? 0 : document.getElementById("int_balance_as_per_bank").value);
 
         if (not_credited > 0) {
             document.getElementById("file_outstanding_entries").disabled = false;

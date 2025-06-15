@@ -1,7 +1,8 @@
 import calendar
 from dataclasses import asdict
 from datetime import date, datetime
-from math import fabs
+
+# from math import fabs
 
 import pandas as pd
 import sqlalchemy
@@ -24,7 +25,7 @@ from sqlalchemy.sql import exists, select
 from app.brs import brs_bp
 from app.brs.forms import (
     BankReconAccountDetailsAddForm,
-    BRS_entry,
+    BRSEntryForm,
     BRSForm,
     DashboardForm,
     EnableDeleteMonthForm,
@@ -35,13 +36,15 @@ from app.brs.models import (
     BankReconAccountDetails,
     BankReconExcessCredit,
     BankReconShortCredit,
-    BRS_month,
+    BRSMonth,
     DeleteEntries,
     Outstanding,
 )
 from set_view_permissions import admin_required
 
 from .brs_helper_functions import get_financial_year, upload_brs_file
+
+from extensions import db
 
 
 @brs_bp.route("/upload_previous_month/")
@@ -57,8 +60,6 @@ def brs_auto_upload_prev_month():
     Returns:
         string: "Success" is returned as response
     """
-
-    from extensions import db
 
     # current_month refers to month that just ended
     current_month = date.today() - relativedelta(months=1)
@@ -301,7 +302,6 @@ def bulk_upload_brs():
 @login_required
 def enable_month_deletion():
     form = EnableDeleteMonthForm()
-    from extensions import db
 
     if form.validate_on_submit():
         delete_entries = DeleteEntries(
@@ -320,7 +320,6 @@ def enable_month_deletion():
 @login_required
 def edit_month_deletion(month_id):
     form = EnableDeleteMonthForm()
-    from extensions import db
 
     delete_entries = DeleteEntries.query.get_or_404(month_id)
 
@@ -349,8 +348,6 @@ def list_month_deletions():
 @brs_bp.route("/upload_brs/<int:brs_key>", methods=["POST", "GET"])
 @login_required
 def upload_brs(brs_key):
-    from server import db
-
     # Fetch the BRS entry and list of months where deletion is enabled
     brs_entry = BRS.query.get_or_404(brs_key)
     deletable_months = (
@@ -380,7 +377,7 @@ def upload_brs(brs_key):
         # Process each deletion option and update the database
         for field, attr in delete_mapping.items():
             if form.data[field]:
-                brs_month = BRS_month.query.get_or_404(getattr(brs_entry, attr))
+                brs_month = BRSMonth.query.get_or_404(getattr(brs_entry, attr))
                 brs_month.status = "Deleted"
                 setattr(brs_entry, attr, None)
 
@@ -411,7 +408,7 @@ def view_consolidated_brs(brs_key):
     }
 
     brs_data = {
-        key: BRS_month.query.get_or_404(brs_id) if brs_id else None
+        key: BRSMonth.query.get_or_404(brs_id) if brs_id else None
         for key, brs_id in brs_ids.items()
     }
 
@@ -438,7 +435,7 @@ def view_consolidated_brs_pdf(brs_key):
     }
 
     brs_data = {
-        key: BRS_month.query.get_or_404(brs_id) if brs_id else None
+        key: BRSMonth.query.get_or_404(brs_id) if brs_id else None
         for key, brs_id in brs_ids.items()
     }
 
@@ -463,7 +460,7 @@ def download_format(requirement):
 @brs_bp.route("/view/<int:brs_key>")
 @login_required
 def view_brs(brs_key):
-    brs_entry = BRS_month.query.get_or_404(brs_key)
+    brs_entry = BRSMonth.query.get_or_404(brs_key)
 
     return render_template(
         "view_brs_entry.html",
@@ -476,7 +473,7 @@ def view_brs(brs_key):
 @brs_bp.route("/pdf/<int:brs_key>")
 @login_required
 def view_brs_pdf(brs_key):
-    brs_entry = BRS_month.query.get_or_404(brs_key)
+    brs_entry = BRSMonth.query.get_or_404(brs_key)
 
     html = render_template(
         "view_brs_entry.html",
@@ -517,7 +514,7 @@ def get_prev_month_amount(requirement: str, brs_id: int):
         elif requirement == "local_collection":
             brs_entry_id = prev_brs_entry.local_collection_brs_id
         if brs_entry_id:
-            prev_brs = BRS_month.query.get_or_404(brs_entry_id)
+            prev_brs = BRSMonth.query.get_or_404(brs_entry_id)
             return prev_brs.int_closing_balance, prev_brs.int_closing_on_hand
         else:
             return 0, 0
@@ -546,398 +543,359 @@ def prevent_duplicate_brs(brs_type: str, brs_id: int) -> bool:
     return brs_available
 
 
-def validate_outstanding_entries(
-    df_form_data_os_entries: pd.DataFrame,
-    requirement: str,
-    closing_balance: float,
-    brs_id: int,
-):
-    # for cash, instrument amount and date of collection is mandatory
-    # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
-    # negative values are not allowed to be entered
-    from extensions import db
+# def validate_outstanding_entries(
+#     df_form_data_os_entries: pd.DataFrame,
+#     requirement: str,
+#     closing_balance: float,
+#     brs_id: int,
+# ):
+#     # for cash, instrument amount and date of collection is mandatory
+#     # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
+#     # negative values are not allowed to be entered
 
-    # find month of BRS period to test if date_of_instrument and date_of_collection are within that time frame
-    brs = db.session.query(BRS).get_or_404(brs_id)
-    brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta(months=1, day=1)
+#     # find month of BRS period to test if date_of_instrument and date_of_collection are within that time frame
+#     brs = db.session.query(BRS).get_or_404(brs_id)
+#     brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta(months=1, day=1)
 
-    if requirement == "cash":
-        date_columns: list[str] = ["date_of_collection"]
-        try:
-            df_os_entries = pd.read_csv(
-                df_form_data_os_entries,
-                parse_dates=date_columns,
-                dtype={"instrument_amount": float},
-                dayfirst=True,
-            )
+#     if requirement == "cash":
+#         date_columns: list[str] = ["date_of_collection"]
+#         try:
+#             df_os_entries = pd.read_csv(
+#                 df_form_data_os_entries,
+#                 parse_dates=date_columns,
+#                 dtype={"instrument_amount": float},
+#                 dayfirst=True,
+#             )
 
-            # check for future dated collections
-            df_future_date_of_collection = df_os_entries[
-                df_os_entries["date_of_collection"] >= brs_month
-            ]
+#             # check for future dated collections
+#             df_future_date_of_collection = df_os_entries[
+#                 df_os_entries["date_of_collection"] >= brs_month
+#             ]
 
-            if len(df_future_date_of_collection) > 0:
-                return (7, pd.DataFrame, 0)
-        except ValueError as e:
-            return (6, pd.DataFrame, 0)
-        except TypeError as e:
-            return (11, pd.DataFrame, 0)
+#             if len(df_future_date_of_collection) > 0:
+#                 return (7, pd.DataFrame, 0)
+#         except ValueError as e:
+#             return (6, pd.DataFrame, 0)
+#         except TypeError as e:
+#             return (11, pd.DataFrame, 0)
+#     else:
+#         date_columns = ["date_of_instrument", "date_of_collection"]
+#         try:
+#             df_os_entries = pd.read_csv(
+#                 df_form_data_os_entries,
+#                 parse_dates=date_columns,
+#                 dtype={
+#                     "instrument_amount": float,
+#                     "instrument_number": str,
+#                 },
+#                 dayfirst=True,
+#             )
+
+#             # check for future dated instruments
+#             df_future_date_of_instrument = df_os_entries[
+#                 df_os_entries["date_of_instrument"] >= brs_month
+#             ]
+
+#             if len(df_future_date_of_instrument) > 0:
+#                 return (8, pd.DataFrame, 0)
+
+#             # check for future dated collections
+#             df_future_date_of_collection = df_os_entries[
+#                 df_os_entries["date_of_collection"] >= brs_month
+#             ]
+
+#             if len(df_future_date_of_collection) > 0:
+#                 return (7, pd.DataFrame, 0)
+
+#         except ValueError as e:
+#             return (6, pd.DataFrame, 0)
+#         except TypeError as e:
+#             return (12, pd.DataFrame, 0)
+
+#     try:
+#         sum_os_entries: float = df_os_entries["instrument_amount"].sum()
+#     except KeyError as e:
+#         # try/except to ensure instrument_amount column is entered in uploaded file
+#         return (9, pd.DataFrame, 0)
+
+#     if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
+#         return (5, pd.DataFrame, sum_os_entries)
+
+#     # checking for negative values
+#     df_negative_values = df_os_entries[df_os_entries["instrument_amount"].lt(0)]
+#     if len(df_negative_values) > 0:
+#         return (3, pd.DataFrame, sum_os_entries)
+
+#     df_na_date_of_collection = df_os_entries[
+#         df_os_entries["date_of_collection"].isnull()
+#     ]
+#     if len(df_na_date_of_collection) > 0:
+#         return (4, pd.DataFrame, sum_os_entries)
+
+#     if requirement != "cash":
+#         df_na_instrument_date = df_os_entries[
+#             df_os_entries["date_of_instrument"].isnull()
+#         ]
+
+#         # try/except to ensure instrument_number column is entered in uploaded file
+#         try:
+#             df_na_instrument_number = df_os_entries[
+#                 df_os_entries["instrument_number"].isnull()
+#             ]
+#         except KeyError as e:
+#             return (13, pd.DataFrame, 0)
+#         if len(df_na_instrument_date) > 0:
+#             return (1, pd.DataFrame, sum_os_entries)
+
+#         elif len(df_na_instrument_number) > 0:
+#             return (2, pd.DataFrame, sum_os_entries)
+
+#     return 10, df_os_entries, sum_os_entries
+
+
+# def update_brs_id(requirement: str, brs_entry: BRS, brs_id: int) -> None:
+#     """Update the BRS ID based on the requirement."""
+#     if requirement == "cash":
+#         brs_entry.cash_brs_id = brs_id
+#     elif requirement == "cheque":
+#         brs_entry.cheque_brs_id = brs_id
+#     elif requirement == "pg":
+#         brs_entry.pg_brs_id = brs_id
+#     elif requirement == "pos":
+#         brs_entry.pos_brs_id = brs_id
+#     elif requirement == "bbps":
+#         brs_entry.bbps_brs_id = brs_id
+#     elif requirement == "local_collection":
+#         brs_entry.local_collection_brs_id = brs_id
+
+
+def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
+    """Update the BRS ID on brs_entry based on requirement."""
+    field_map = {
+        "cash": "cash_brs_id",
+        "cheque": "cheque_brs_id",
+        "pg": "pg_brs_id",
+        "pos": "pos_brs_id",
+        "bbps": "bbps_brs_id",
+        "local_collection": "local_collection_brs_id",
+    }
+    field_name = field_map.get(brs_type)
+    if field_name:
+        setattr(brs_entry, field_name, brs_id)
+
+
+# # function to render error messages when outstanding entries/short_credit/excess_credit are uploaded
+# def render_error_message(
+#     amount_entered_in_form: float,
+#     nature_of_transaction: str,
+#     form_data,
+#     requirement: str,
+#     brs_id: int,
+# ) -> tuple[int, pd.DataFrame]:
+#     status_validate_os_entries, df, sum_of_instrument_amount = (
+#         validate_outstanding_entries(
+#             form_data,
+#             requirement,
+#             amount_entered_in_form,
+#             brs_id,
+#         )
+#     )
+
+#     display_error_messages: dict[int, str] = {
+#         1: "Date of instrument must be entered in dd/mm/yyyy format.",
+#         2: "Instrument number must be entered.",
+#         3: "Please do not enter negative amounts.",
+#         4: "Date of collection must be entered in dd/mm/yyyy format.",
+#         5: f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}.",
+#         6: "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format.",
+#         7: "Date of collection cannot be after BRS period.",
+#         8: "Date of instrument cannot be after BRS period.",
+#         9: "'instrument_amount' column is not entered in uploaded file.",
+#         10: "Successfully uploaded the BRS.",
+#         11: "Date of collection must be entered in dd/mm/yyyy format.",
+#         12: "Date of instrument/collection must be entered in dd/mm/yyyy format.",
+#         13: "'instrument_number' column is not entered in uploaded file.",
+#     }
+
+#     if status_validate_os_entries != 10:
+#         flash(
+#             display_error_messages.get(
+#                 status_validate_os_entries, "Error in processing the input."
+#             )
+#         )
+#     return status_validate_os_entries, df
+
+
+# def upload_df_entries(file, table_name, brs_id):
+#     file.stream.seek(0)
+#     df = pd.read_csv(
+#         file,
+#         usecols=[
+#             "instrument_number",
+#             "instrument_amount",
+#             "date_of_instrument",
+#             "date_of_collection",
+#             "remarks",
+#         ],
+#     )
+#     date_columns = ["date_of_instrument", "date_of_collection"]
+#     str_columns = ["instrument_number", "remarks"]
+#     # Convert date columns
+#     for date_col in date_columns:
+#         if date_col in df.columns:
+#             df[date_col] = pd.to_datetime(
+#                 df[date_col], errors="coerce", format="%d/%m/%Y"
+#             )
+
+#     # Convert string columns
+#     df[str_columns] = df[str_columns].astype(str)
+
+#     df["brs_month_id"] = brs_id
+
+
+#     #    df = df.loc[:, ~df.columns.str.match("Unnamed")]
+#     df.dropna(subset=["instrument_amount"]).to_sql(
+#         table_name, con=db.session.get_bind(), if_exists="append", index=False
+#     )
+def upload_df_entries(file, brs_type, table_name, brs_id):
+    # Reset file pointer
+    file.stream.seek(0)
+
+    if brs_type == "cash":
+        required_columns = ["instrument_amount", "date_of_collection"]
     else:
-        date_columns = ["date_of_instrument", "date_of_collection"]
-        try:
-            df_os_entries = pd.read_csv(
-                df_form_data_os_entries,
-                parse_dates=date_columns,
-                dtype={
-                    "instrument_amount": float,
-                    "instrument_number": str,
-                },
-                dayfirst=True,
-            )
-
-            # check for future dated instruments
-            df_future_date_of_instrument = df_os_entries[
-                df_os_entries["date_of_instrument"] >= brs_month
-            ]
-
-            if len(df_future_date_of_instrument) > 0:
-                return (8, pd.DataFrame, 0)
-
-            # check for future dated collections
-            df_future_date_of_collection = df_os_entries[
-                df_os_entries["date_of_collection"] >= brs_month
-            ]
-
-            if len(df_future_date_of_collection) > 0:
-                return (7, pd.DataFrame, 0)
-
-        except ValueError as e:
-            return (6, pd.DataFrame, 0)
-        except TypeError as e:
-            return (12, pd.DataFrame, 0)
-
-    try:
-        sum_os_entries: float = df_os_entries["instrument_amount"].sum()
-    except KeyError as e:
-        # try/except to ensure instrument_amount column is entered in uploaded file
-        return (9, pd.DataFrame, 0)
-
-    if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
-        return (5, pd.DataFrame, sum_os_entries)
-
-    # checking for negative values
-    df_negative_values = df_os_entries[df_os_entries["instrument_amount"].lt(0)]
-    if len(df_negative_values) > 0:
-        return (3, pd.DataFrame, sum_os_entries)
-
-    df_na_date_of_collection = df_os_entries[
-        df_os_entries["date_of_collection"].isnull()
-    ]
-    if len(df_na_date_of_collection) > 0:
-        return (4, pd.DataFrame, sum_os_entries)
-
-    if requirement != "cash":
-        df_na_instrument_date = df_os_entries[
-            df_os_entries["date_of_instrument"].isnull()
+        required_columns = [
+            "instrument_number",
+            "instrument_amount",
+            "date_of_instrument",
+            "date_of_collection",
         ]
 
-        # try/except to ensure instrument_number column is entered in uploaded file
-        try:
-            df_na_instrument_number = df_os_entries[
-                df_os_entries["instrument_number"].isnull()
-            ]
-        except KeyError as e:
-            return (13, pd.DataFrame, 0)
-        if len(df_na_instrument_date) > 0:
-            return (1, pd.DataFrame, sum_os_entries)
+    optional_columns = ["remarks"]
 
-        elif len(df_na_instrument_number) > 0:
-            return (2, pd.DataFrame, sum_os_entries)
-
-    return 10, df_os_entries, sum_os_entries
-
-
-def update_brs_id(requirement: str, brs_entry: BRS, brs_id: int) -> None:
-    """Update the BRS ID based on the requirement."""
-    if requirement == "cash":
-        brs_entry.cash_brs_id = brs_id
-    elif requirement == "cheque":
-        brs_entry.cheque_brs_id = brs_id
-    elif requirement == "pg":
-        brs_entry.pg_brs_id = brs_id
-    elif requirement == "pos":
-        brs_entry.pos_brs_id = brs_id
-    elif requirement == "bbps":
-        brs_entry.bbps_brs_id = brs_id
-    elif requirement == "local_collection":
-        brs_entry.local_collection_brs_id = brs_id
-
-
-# function to render error messages when outstanding entries/short_credit/excess_credit are uploaded
-def render_error_message(
-    amount_entered_in_form: float,
-    nature_of_transaction: str,
-    form_data,
-    requirement: str,
-    brs_id: int,
-) -> tuple[int, pd.DataFrame]:
-    status_validate_os_entries, df_outstanding_entries, sum_of_instrument_amount = (
-        validate_outstanding_entries(
-            form_data,
-            requirement,
-            amount_entered_in_form,
-            brs_id,
-        )
+    df = pd.read_csv(
+        file,
     )
+    # Add missing optional columns as empty
+    for col in optional_columns:
+        if col not in df.columns:
+            df[col] = ""
 
-    display_error_messages: dict[int, str] = {
-        1: "Date of instrument must be entered in dd/mm/yyyy format.",
-        2: "Instrument number must be entered.",
-        3: "Please do not enter negative amounts.",
-        4: "Date of collection must be entered in dd/mm/yyyy format.",
-        5: f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}.",
-        6: "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format.",
-        7: "Date of collection cannot be after BRS period.",
-        8: "Date of instrument cannot be after BRS period.",
-        9: "'instrument_amount' column is not entered in uploaded file.",
-        10: "Successfully uploaded the BRS.",
-        11: "Date of collection must be entered in dd/mm/yyyy format.",
-        12: "Date of instrument/collection must be entered in dd/mm/yyyy format.",
-        13: "'instrument_number' column is not entered in uploaded file.",
+    # Keep only required + optional columns in desired order
+    df = df[required_columns + optional_columns]
+
+    # Convert date columns
+    date_columns = ["date_of_instrument", "date_of_collection"]
+    for date_col in date_columns:
+        if date_col in df.columns:
+            df[date_col] = pd.to_datetime(
+                df[date_col], errors="coerce", format="%d/%m/%Y"
+            )
+
+    # Convert string columns
+    str_columns = ["instrument_number", "remarks"]
+    for str_col in str_columns:
+        if str_col in df.columns:
+            df[str_col] = df[str_col].astype(str)
+
+    # Drop invalid rows
+    df = df.dropna(subset=["instrument_amount"])
+
+    # Map table_name → ORM class
+    model_map = {
+        "outstanding": Outstanding,
+        "bank_recon_short_credit": BankReconShortCredit,
+        "bank_recon_excess_credit": BankReconExcessCredit,
     }
 
-    if status_validate_os_entries != 10:
-        flash(
-            display_error_messages.get(
-                status_validate_os_entries, "Error in processing the input."
-            )
+    ModelClass = model_map.get(table_name)
+    if not ModelClass:
+        raise ValueError(f"Unknown table name: {table_name}")
+
+    # Convert DataFrame to list of dicts
+    rows = df.to_dict(orient="records")
+
+    # Create ORM objects
+    objects = [
+        ModelClass(
+            instrument_number=row.get("instrument_number"),
+            instrument_amount=row.get("instrument_amount"),
+            date_of_instrument=row.get("date_of_instrument"),
+            date_of_collection=row.get("date_of_collection"),
+            remarks=row.get("remarks"),
+            brs_month_id=brs_id,
         )
-    return status_validate_os_entries, df_outstanding_entries
-
-
-def upload_df_entries_to_database(
-    df_outstanding_entries, engine, name_of_table, brs_id
-):
-    df_outstanding_entries["brs_month_id"] = brs_id
-
-    df_outstanding_entries = df_outstanding_entries.loc[
-        :, ~df_outstanding_entries.columns.str.match("Unnamed")
+        for row in rows
     ]
-    df_outstanding_entries.dropna(subset=["instrument_amount"]).to_sql(
-        name_of_table, engine, if_exists="append", index=False
-    )
+
+    # Bulk insert
+    db.session.add_all(objects)
 
 
 @brs_bp.route("/<int:brs_id>/<string:requirement>/add_brs", methods=["POST", "GET"])
 @login_required
 def enter_brs(requirement, brs_id):
     brs_entry = BRS.query.get_or_404(brs_id)
-    form = BRS_entry()
-    from wtforms.validators import DataRequired
 
-    from server import db
+    brs_month = datetime.strptime(brs_entry.month, "%B-%Y") + relativedelta(
+        months=1, day=1
+    )
 
-    if form.data["int_deposited_not_credited"]:
-        form.file_outstanding_entries.validators = [DataRequired()]
-    if form.data["int_short_credited"]:
-        form.file_short_credit_entries.validators = [DataRequired()]
-    if form.data["int_excess_credited"]:
-        form.file_excess_credit_entries.validators = [DataRequired()]
+    form = BRSEntryForm()
+    form.date_of_month.data = brs_month
+    form.brs_type.data = requirement
 
     if prevent_duplicate_brs(requirement, brs_id):
         flash("BRS has already been submitted.")
     elif form.validate_on_submit():
-        prepared_by = form.data["prepared_by"]
-        prepared_by_employee_number = form.data["prepared_by_employee_number"]
-        opening_balance = form.data["opening_balance"] or 0
-        opening_on_hand = form.data["opening_on_hand"] or 0
-        transactions = form.data["transactions"] or 0
-        cancellations = form.data["cancellations"] or 0
-        fund_transfer = form.data["fund_transfer"] or 0
-        bank_charges = form.data["bank_charges"] or 0
-        closing_on_hand = form.data["closing_on_hand"] or 0
-        closing_balance = (
-            opening_balance
-            + opening_on_hand
-            + transactions
-            - cancellations
-            - fund_transfer
-            - bank_charges
-            - closing_on_hand
-        )
-        deposited_not_credited = form.data["int_deposited_not_credited"] or 0
-        short_credited = form.data["int_short_credited"] or 0
-        excess_credited = form.data["int_excess_credited"] or 0
+        brs = BRSMonth(brs_id=brs_id)
+        form.populate_obj(brs)
 
-        # for local collection, we are collecting balance as per bank statement
-        # if requirement == "local_collection":
-        closing_balance_bank_statement = (
-            form.data["int_closing_balance_bank_statement"] or 0
-        )
-        bank_balance = (
-            closing_balance + excess_credited - deposited_not_credited - short_credited
-        )
+        db.session.add(brs)
+        db.session.flush()
 
-        closing_balance_breakup = (
-            deposited_not_credited
-            + short_credited
-            - excess_credited
-            + closing_balance_bank_statement
-        )
+        try:
+            # Upload related entries only if closing balance is non-zero
+            if brs.int_closing_balance != 0:
+                upload_map = [
+                    (
+                        "int_deposited_not_credited",
+                        "file_outstanding_entries",
+                        "outstanding",
+                    ),
+                    (
+                        "int_short_credited",
+                        "file_short_credit_entries",
+                        "bank_recon_short_credit",
+                    ),
+                    (
+                        "int_excess_credited",
+                        "file_excess_credit_entries",
+                        "bank_recon_excess_credit",
+                    ),
+                ]
+                for amount_field, file_field, table_name in upload_map:
+                    if getattr(brs, amount_field, 0) > 0:
+                        upload_df_entries(
+                            form.data.get(file_field), requirement, table_name, brs.id
+                        )
 
-        brs_remarks = form.data["remarks"] or None
-        if (fabs(float(closing_balance_breakup) - float(closing_balance))) > 0.001:
+            update_brs_id(requirement, brs_entry, brs.id)
+            db.session.commit()
+
+            return redirect(url_for("brs.upload_brs", brs_key=brs_id))
+
+        except sqlalchemy.exc.DataError:
+            db.session.rollback()
             flash(
-                f"Closing balance {closing_balance} must tally with closing balance breakup {closing_balance_breakup}."
+                "Please ensure dates are entered in dd/mm/yyyy format and amount in integer format."
             )
-        else:
-            brs = BRS_month(
-                brs_id=brs_id,
-                brs_type=requirement,
-                int_opening_balance=opening_balance,
-                int_opening_on_hand=opening_on_hand,
-                int_transactions=transactions,
-                int_cancellations=cancellations,
-                int_fund_transfer=fund_transfer,
-                int_bank_charges=bank_charges,
-                int_closing_on_hand=closing_on_hand,
-                int_closing_balance=closing_balance,
-                int_deposited_not_credited=deposited_not_credited,
-                int_excess_credited=excess_credited,
-                int_short_credited=short_credited,
-                int_balance_as_per_bank=bank_balance,
-                remarks=brs_remarks,
-                timestamp=datetime.now(),
-                prepared_by=prepared_by,
-                prepared_by_employee_number=prepared_by_employee_number,
-            )
-
-            if closing_balance != 0:
-                (
-                    status_validate_excess_credited,
-                    status_validate_short_credited,
-                    status_validate_os_entries,
-                ) = (10, 10, 10)
-
-                # if closing balance is not zero
-
-                # if not credited entries are there, tally with csv file
-                if deposited_not_credited > 0:
-                    if not form.data["file_outstanding_entries"]:
-                        flash(
-                            "Please upload details of entries which are deposited but not credited."
-                        )
-                    else:
-                        status_validate_os_entries, df_outstanding_entries = (
-                            render_error_message(
-                                deposited_not_credited,
-                                "Deposited but not credited entries",
-                                form.data["file_outstanding_entries"],
-                                requirement,
-                                brs_id,
-                            )
-                        )
-
-                if short_credited > 0:
-                    if not form.data["file_short_credit_entries"]:
-                        flash("Please upload details of short credited entries.")
-                    else:
-                        status_validate_short_credited, df_short_credit_entries = (
-                            render_error_message(
-                                short_credited,
-                                "Short credit amount",
-                                form.data["file_short_credit_entries"],
-                                requirement,
-                                brs_id,
-                            )
-                        )
-
-                if excess_credited > 0:
-                    if not form.data["file_excess_credit_entries"]:
-                        flash("Please upload details of excess credited entries.")
-                    else:
-                        (
-                            status_validate_excess_credited,
-                            df_excess_credit_entries,
-                        ) = render_error_message(
-                            excess_credited,
-                            "Excess credit amount",
-                            form.data["file_excess_credit_entries"],
-                            requirement,
-                            brs_id,
-                        )
-
-                if (
-                    status_validate_os_entries
-                    == status_validate_short_credited
-                    == status_validate_excess_credited
-                    == 10
-                ):
-                    db.session.add(brs)
-                    db.session.commit()
-                    update_brs_id(requirement, brs_entry, brs.id)
-                    engine = create_engine(
-                        current_app.config.get("SQLALCHEMY_DATABASE_URI")
-                    )
-
-                    try:
-                        # deposited not but credited entries
-                        if (
-                            deposited_not_credited > 0
-                            and form.data["file_outstanding_entries"]
-                        ):
-                            upload_df_entries_to_database(
-                                df_outstanding_entries, engine, "outstanding", brs.id
-                            )
-
-                        # short credit entries
-                        if (
-                            short_credited > 0
-                            and form.data["file_short_credit_entries"]
-                        ):
-                            upload_df_entries_to_database(
-                                df_short_credit_entries,
-                                engine,
-                                "bank_recon_short_credit",
-                                brs.id,
-                            )
-
-                        # excess credit entries
-                        if (
-                            excess_credited > 0
-                            and form.data["file_excess_credit_entries"]
-                        ):
-                            upload_df_entries_to_database(
-                                df_excess_credit_entries,
-                                engine,
-                                "bank_recon_excess_credit",
-                                brs.id,
-                            )
-
-                        db.session.commit()
-                        return redirect(url_for("brs.upload_brs", brs_key=brs_id))
-                    except sqlalchemy.exc.DataError as e:
-                        db.session.delete(brs)
-                        update_brs_id(requirement, brs_entry, None)
-                        db.session.commit()
-                        flash(
-                            "Please ensure dates are entered in dd/mm/yyyy format and amount in integer format."
-                        )
-
-            else:
-                db.session.add(brs)
-                db.session.commit()
-                update_brs_id(requirement, brs_entry, brs.id)
-
-                db.session.commit()
-
-                return redirect(url_for("brs.upload_brs", brs_key=brs_id))
 
     prev_month_opening_balance, prev_month_opening_on_hand = get_prev_month_amount(
         requirement, brs_id
     )
-    form.opening_balance.data = prev_month_opening_balance
-    form.opening_on_hand.data = prev_month_opening_on_hand
+    form.int_opening_balance.data = prev_month_opening_balance
+    form.int_opening_on_hand.data = prev_month_opening_on_hand
 
     return render_template(
         "add_brs_entry.html",
@@ -972,17 +930,17 @@ def list_brs_entries():
         month = form.data["month"]
         brs_type = form.data["brs_type"]
 
-        list_all_brs_entries = BRS_month.query.join(
-            BRS, BRS.id == BRS_month.brs_id
+        list_all_brs_entries = BRSMonth.query.join(
+            BRS, BRS.id == BRSMonth.brs_id
         ).filter(
-            (BRS_month.status.is_(None))
+            (BRSMonth.status.is_(None))
             & (BRS.month == month)
             # & (BRS_month.brs_type == brs_type)
         )
 
         if brs_type != "View all":
             list_all_brs_entries = list_all_brs_entries.filter(
-                BRS_month.brs_type == brs_type
+                BRSMonth.brs_type == brs_type
             )
         subquery = (
             Outstanding.query.with_entities(Outstanding.brs_month_id)
@@ -991,11 +949,11 @@ def list_brs_entries():
         )
 
         list_all_brs_entries = list_all_brs_entries.filter(
-            (BRS_month.int_closing_balance == 0)
+            (BRSMonth.int_closing_balance == 0)
             | (
-                (BRS_month.int_closing_balance > 0)
+                (BRSMonth.int_closing_balance > 0)
                 # & (Outstanding.brs_month_id == BRS_month.id)
-                & (BRS_month.id.in_(select(subquery)))
+                & (BRSMonth.id.in_(select(subquery)))
             )
         )
 
@@ -1026,9 +984,9 @@ def list_brs_entries_exceptions():
     #     Outstanding.query.with_entities(Outstanding.brs_month_id).distinct().subquery()
     # )
 
-    list_all_brs_entries = BRS_month.query.filter(
+    list_all_brs_entries = BRSMonth.query.filter(
         #   (BRS_month.status == "Deleted")
-        ~BRS_month.status.is_(None)
+        ~BRSMonth.status.is_(None)
         # | (
         #     BRS_month.status.is_(None)
         #     & (
@@ -1059,13 +1017,13 @@ def list_brs_entries_exceptions2():
         Outstanding.query.with_entities(Outstanding.brs_month_id).distinct().subquery()
     )
 
-    list_all_brs_entries = BRS_month.query.filter(
+    list_all_brs_entries = BRSMonth.query.filter(
         # (BRS_month.status == "Deletedbyquery")
         # | (
         #  BRS_month.status.is_(None)
         # &
-        (BRS_month.int_closing_balance > 0)
-        & (~BRS_month.id.in_(select(subquery)))
+        (BRSMonth.int_closing_balance > 0)
+        & (~BRSMonth.id.in_(select(subquery)))
     )
     # )
     # brs_id = list_all_brs_entries.with_entities(BRS_month.id)
@@ -1103,17 +1061,17 @@ def list_outstanding_entries():
         brs_type = form.data["brs_type"]
 
         outstanding_entries = (
-            Outstanding.query.join(BRS_month, BRS_month.id == Outstanding.brs_month_id)
-            .join(BRS, BRS_month.brs_id == BRS.id)
+            Outstanding.query.join(BRSMonth, BRSMonth.id == Outstanding.brs_month_id)
+            .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
-                BRS_month.status.is_(None)
+                BRSMonth.status.is_(None)
                 & (BRS.month == month)
                 # & (BRS_month.brs_type == brs_type)
             )
         )
         if brs_type != "View all":
             outstanding_entries = outstanding_entries.filter(
-                BRS_month.brs_type == brs_type
+                BRSMonth.brs_type == brs_type
             )
         if current_user.user_type == "ro_user":
             outstanding_entries = outstanding_entries.filter(
@@ -1150,18 +1108,18 @@ def list_short_credit_entries():
 
         short_credit_entries = (
             BankReconShortCredit.query.join(
-                BRS_month, BRS_month.id == BankReconShortCredit.brs_month_id
+                BRSMonth, BRSMonth.id == BankReconShortCredit.brs_month_id
             )
-            .join(BRS, BRS_month.brs_id == BRS.id)
+            .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
-                BRS_month.status.is_(None)
+                BRSMonth.status.is_(None)
                 & (BRS.month == month)
                 #   & (BRS_month.brs_type == brs_type)
             )
         )
         if brs_type != "View all":
             short_credit_entries = short_credit_entries.filter(
-                BRS_month.brs_type == brs_type
+                BRSMonth.brs_type == brs_type
             )
         if current_user.user_type == "ro_user":
             short_credit_entries = short_credit_entries.filter(
@@ -1198,18 +1156,18 @@ def list_excess_credit_entries():
 
         excess_credit_entries = (
             BankReconExcessCredit.query.join(
-                BRS_month, BRS_month.id == BankReconExcessCredit.brs_month_id
+                BRSMonth, BRSMonth.id == BankReconExcessCredit.brs_month_id
             )
-            .join(BRS, BRS_month.brs_id == BRS.id)
+            .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
-                BRS_month.status.is_(None)
+                BRSMonth.status.is_(None)
                 & (BRS.month == month)
                 # & (BRS_month.brs_type == brs_type)
             )
         )
         if brs_type != "View all":
             excess_credit_entries = excess_credit_entries.filter(
-                BRS_month.brs_type == brs_type
+                BRSMonth.brs_type == brs_type
             )
         if current_user.user_type == "ro_user":
             excess_credit_entries = excess_credit_entries.filter(
@@ -1291,7 +1249,7 @@ def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
             "ifsc_code": ifsc_code,
         }
         if brs_id:
-            brs_entry = BRS_month.query.get(brs_id)
+            brs_entry = BRSMonth.query.get(brs_id)
             details.update(
                 {
                     "closing_balance": (

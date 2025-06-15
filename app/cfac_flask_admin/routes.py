@@ -8,7 +8,7 @@ from app.brs.models import (
     BankReconAccountDetails,
     BankReconExcessCredit,
     BankReconShortCredit,
-    BRS_month,
+    BRSMonth,
     DeleteEntries,
     Outstanding,
 )
@@ -115,7 +115,7 @@ admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
 # BRS models
 admin.add_view(BRSView(BRS, db.session, endpoint="brs_", category="BRS"))
 admin.add_view(
-    DefaultModelView(BRS_month, db.session, endpoint="brs_month_", category="BRS")
+    DefaultModelView(BRSMonth, db.session, endpoint="brs_month_", category="BRS")
 )
 admin.add_view(
     ModelView(Outstanding, db.session, endpoint="outstanding_", category="BRS")

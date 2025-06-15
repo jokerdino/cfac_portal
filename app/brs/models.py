@@ -29,7 +29,7 @@ class BRS(db.Model):
     bbps_brs_id = db.Column(db.Integer)
     local_collection_brs_id = db.Column(db.Integer)
 
-    brs_month = db.relationship("BRS_month", backref="brs", lazy="dynamic")
+    brs_month = db.relationship("BRSMonth", backref="brs", lazy="dynamic")
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
 
@@ -45,28 +45,28 @@ class DeleteEntries(db.Model):
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
 
-class BRS_month(db.Model):
+class BRSMonth(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     brs_id = db.Column(db.Integer, db.ForeignKey("brs.id"))
     brs_type = db.Column(db.String)
 
-    int_opening_balance = db.Column(db.Numeric(15, 2))
-    int_opening_on_hand = db.Column(db.Numeric(15, 2))
-    int_transactions = db.Column(db.Numeric(15, 2))
-    int_cancellations = db.Column(db.Numeric(15, 2))
-    int_fund_transfer = db.Column(db.Numeric(15, 2))
-    int_bank_charges = db.Column(db.Numeric(15, 2))
-    int_closing_on_hand = db.Column(db.Numeric(15, 2))
-    int_closing_balance = db.Column(db.Numeric(15, 2))
+    int_opening_balance = db.Column(db.Numeric(15, 2), default=0)
+    int_opening_on_hand = db.Column(db.Numeric(15, 2), default=0)
+    int_transactions = db.Column(db.Numeric(15, 2), default=0)
+    int_cancellations = db.Column(db.Numeric(15, 2), default=0)
+    int_fund_transfer = db.Column(db.Numeric(15, 2), default=0)
+    int_bank_charges = db.Column(db.Numeric(15, 2), default=0)
+    int_closing_on_hand = db.Column(db.Numeric(15, 2), default=0)
+    int_closing_balance = db.Column(db.Numeric(15, 2), default=0)
 
-    int_deposited_not_credited = db.Column(db.Numeric(15, 2))
-    int_short_credited = db.Column(db.Numeric(15, 2))
-    int_excess_credited = db.Column(db.Numeric(15, 2))
+    int_deposited_not_credited = db.Column(db.Numeric(15, 2), default=0)
+    int_short_credited = db.Column(db.Numeric(15, 2), default=0)
+    int_excess_credited = db.Column(db.Numeric(15, 2), default=0)
 
-    int_balance_as_per_bank = db.Column(db.Numeric(15, 2))
+    int_balance_as_per_bank = db.Column(db.Numeric(15, 2), default=0)
 
     # file_outstanding_entries = db.Column(db.String)
-    timestamp = db.Column(db.DateTime)
+    timestamp = db.Column(db.DateTime, default=datetime.now)
     status = db.Column(db.String)
     brs_outstanding = db.relationship(
         "Outstanding", backref="brs_month", lazy="dynamic"

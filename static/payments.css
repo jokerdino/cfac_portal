@@ -50,3 +50,6 @@ summary {
     background-color: #fff;  /* On focus, change the background */
     border-color: #888;      /* Change the border color when focused */
 }
+body {
+    zoom: 80%;
+}
