@@ -21,7 +21,7 @@
     {% endif %}
     {% endwith %}
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
         <table class="table is-fullwidth is-narrow">
             {% for item in form if item.widget.input_type != 'hidden' %}

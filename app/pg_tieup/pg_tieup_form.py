@@ -5,7 +5,6 @@ from wtforms.validators import DataRequired, Optional
 
 
 class PaymentGatewayTieupAddForm(FlaskForm):
-
     name_of_head_office_department = StringField(
         "Name of head office department", validators=[DataRequired()]
     )
@@ -74,6 +73,9 @@ class PaymentGatewayTieupAddForm(FlaskForm):
     )
     date_of_bank_charges_jv_passed_to_nodal_office = DateField(
         "Date of bank charges JV passed to nodal office", validators=[Optional()]
+    )
+    bank_mandate_file_string = FileField(
+        "Upload bank mandate file", validators=[Optional()]
     )
 
 

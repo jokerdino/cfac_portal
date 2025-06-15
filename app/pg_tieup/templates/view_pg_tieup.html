@@ -3,7 +3,7 @@
 <div class="container">
 
     <table class="table is-bordered">
-        {% for col in pg_tieup.columns() if col not in ['id',
+        {% for col in pg_tieup.columns() if col not in ['bank_mandate_file', 'id',
         'created_by','updated_by','deleted_by','date_created_date','date_updated_date','date_deleted_date','current_status']
         %}
         <tr>
@@ -12,6 +12,15 @@
             <td>{{ pg_tieup[col] or "" }}</td>
         </tr>
         {% endfor %}
+        <tr>
+            <th>Bank mandate</th>
+            <td>{% if pg_tieup['bank_mandate_file'] %}
+                <a class="button is-link is-outlined is-small"
+                    href="{{ url_for('pg_tieup.download_bank_mandate', id=pg_tieup['id'] ) }}">Bank Mandate</a>
+                {% else %} Bank mandate not uploaded {% endif %}
+
+            </td>
+        </tr>
     </table>
     <div class="has-text-centered">
         <a class="button is-link" href="{{ url_for('pg_tieup.edit_pg_tieup', key=pg_tieup.id) }}">Edit</a>

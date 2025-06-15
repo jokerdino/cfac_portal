@@ -1,10 +1,12 @@
+from datetime import datetime
+from flask_login import current_user
+
 from sqlalchemy.orm import ColumnProperty, class_mapper
 
 from extensions import db
 
 
 class PaymentGatewayTieup(db.Model):
-
     id = db.Column(db.Integer, primary_key=True)
 
     name_of_head_office_department = db.Column(db.String)
@@ -38,18 +40,19 @@ class PaymentGatewayTieup(db.Model):
     nodal_office_spoc_email_address = db.Column(db.String)
     nodal_office_gst_address = db.Column(db.String)
     date_of_bank_charges_jv_passed_to_nodal_office = db.Column(db.Date)
+    bank_mandate_file = db.Column(db.String)
     #   WHETHER  ANYOTHER DEPT HAS SOUGHT FOR SIMILAR APPROVAL FOR SAME TIE UP PARTNER
 
     #  meta data
 
     current_status = db.Column(db.String)
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
+    date_created_date = db.Column(db.DateTime, default=datetime.now)
+    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
     date_deleted_date = db.Column(db.DateTime)
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
+    created_by = db.Column(db.String, default=lambda: current_user.username)
+    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
     def columns(self):

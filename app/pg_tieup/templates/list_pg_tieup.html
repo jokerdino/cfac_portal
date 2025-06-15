@@ -7,9 +7,9 @@
                 <th>View</th>
                 <th>Edit</th>
                 {% for column in column_names %}
-                <th>{{ column | upper }}</th>
-
+                <th>{{ column | upper | replace("_", " ") }}</th>
                 {% endfor %}
+                <th>Bank mandate</th>
 
             </tr>
         </thead>
@@ -18,16 +18,23 @@
                 {% for item in query %}
 
                 <td><a class="button is-link is-outlined is-small"
-                        href="{{ url_for('pg_tieup.view_pg_tieup', key=item['id'] )}}">View</a>
+                        href="{{ url_for('pg_tieup.view_pg_tieup', key=item['id'] ) }}">View</a>
                 </td>
                 <td><a class="button is-link is-outlined is-small"
-                        href="{{ url_for('pg_tieup.edit_pg_tieup', key=item['id'] )}}">Edit</a>
+                        href="{{ url_for('pg_tieup.edit_pg_tieup', key=item['id'] ) }}">Edit</a>
                 </td>
 
                 {% for column in column_names %}
 
                 <td>{{ item[column] or "" }}</td>
                 {% endfor %}
+
+                <td>{% if item['bank_mandate_file'] %}
+                    <a class="button is-link is-outlined is-small"
+                        href="{{ url_for('pg_tieup.download_bank_mandate', id=item['id'] ) }}">Bank Mandate</a>
+                    {% else %} Bank mandate not uploaded {% endif %}
+
+                </td>
             </tr>
             {% endfor %}
 
