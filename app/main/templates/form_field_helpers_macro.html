@@ -29,6 +29,37 @@
 {% endif %}
 {% endmacro %}
 
+{% macro render_field_table_lien(field) %}
+{% if field.widget.input_type != "hidden" %}
+<tr>
+    <th class="is-vcentered">{{ field.label }} </th>
+
+    <td>
+        {% if field.type == "TextAreaField" %}
+        {{ field(class="textarea",**kwargs) }}
+        {% elif field.type == "SelectField" %}
+        <div class="select is-fullwidth">{{ field(**kwargs) }}</div>
+        {% elif field.type in ["BooleanField", "RadioField"] %}
+        {{ field(**kwargs) }}
+        {% elif field.type in ["FileField"] %}
+        {{ field(class="file", **kwargs) }}
+        {% else %}
+        {{ field(class="input", **kwargs) }}
+        {% endif %}
+
+        {% if field.errors %}
+        <div class="notification is-danger is-light">
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </td>
+</tr>
+{% endif %}
+{% endmacro %}
+
 {% macro render_field_div(field) %}
 
 <div class="field">
