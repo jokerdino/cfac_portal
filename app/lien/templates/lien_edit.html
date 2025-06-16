@@ -1,6 +1,6 @@
 {% extends "lien_layout.html" %}
 {% block content %}
-{% from "form_field_helpers_macro.html" import render_field_table %}
+{% from "form_field_helpers_macro.html" import render_field_table_lien %}
 
 <div class="container is-centered">
     <h1 class="title">{{ title }}</h1>
@@ -11,14 +11,14 @@
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
-                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table(field) }} {% endif %} {% endfor
+                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table_lien(field) }} {% endif %} {% endfor
                         %}</table>
             </div>
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
                     {% if loop.index > (loop.length / 2) %}
-                    {{ render_field_table(field) }}
+                    {{ render_field_table_lien(field) }}
                     {% endif %}
                     {% endfor %}
                 </table>

@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
     <h1 class="title">Details of lien</h1>
-    <table class="table is-fullwidth">
+    <table class="table is-fullwidth is-narrow">
         <tr>
             <th>RO Code</th>
             <td>{{ lien.ro_code }}</td>
@@ -21,6 +21,10 @@
             <td>{{ lien.case_number }}</td>
         </tr>
         <tr>
+            <th>Case title</th>
+            <td>{{ lien.case_title }}</td>
+        </tr>
+        <tr>
             <th>Petitioner name</th>
             <td>{{ lien.petitioner_name }}</td>
         </tr>
@@ -28,9 +32,26 @@
             <th>Date of order</th>
             <td>{{ lien.date_of_order }}</td>
         </tr>
+
+        <tr>
+            <th>Bank remarks</th>
+            <td class="word-wrap">{{ lien.bank_remarks }}</td>
+        </tr>
+        <tr>
+            <th>Department</th>
+            <td>{{ lien.department }}</td>
+        </tr>
+        <tr>
+            <th>Lien date</th>
+            <td>{{ lien.lien_date }}</td>
+        </tr>
         <tr>
             <th>Lien amount</th>
             <td>{{ lien.lien_amount }}</td>
+        </tr>
+        <tr>
+            <th>DD date</th>
+            <td>{{ lien.dd_date }}</td>
         </tr>
         <tr>
             <th>DD amount</th>
@@ -41,6 +62,22 @@
             <td class="word-wrap">{{ lien.action_taken_by_banker }}</td>
         </tr>
         <tr>
+            <th>Lien status</th>
+            <td>{{ lien.lien_status }}</td>
+        </tr>
+        <tr>
+            <th>Claim number</th>
+            <td>{{ lien.claim_number }}</td>
+        </tr>
+        <tr>
+            <th>Date of claim</th>
+            <td>{{ lien.date_of_claim }}</td>
+        </tr>
+        <tr>
+            <th>Claim accounting voucher number</th>
+            <td>{{ claim_accounting_voucher_number }}</td>
+        </tr>
+        <tr>
             <th>Bank name</th>
             <td>{{ lien.bank_name }}</td>
         </tr>
@@ -48,13 +85,9 @@
             <th>Account number</th>
             <td>{{ lien.account_number }}</td>
         </tr>
-             <tr>
-                <th>Bank remarks</th>
-                <td class="word-wrap">{{ lien.bank_remarks }}</td>
-            </tr>
         <tr>
-            <th>Lien status</th>
-            <td>{{ lien.lien_status }}</td>
+            <th>RO remarks</th>
+            <td class="word-wrap">{{ lien.ro_remarks }}</td>
         </tr>
         <tr>
             <th>Court order - lien</th>
@@ -78,19 +111,19 @@
                     lien reversal order</a>
                 {% else %}Lien reversal order not uploaded{% endif %}</td>
         </tr>
-        <tr class="has-background-info-light">
-            <th>RO remarks</th>
-            <td class="word-wrap">{{ lien.ro_remarks }}</td>
+        <tr>
+            <th>Court order - DD reversal</th>
+            <td>{% if lien.court_order_dd_reversal %}<a class="button is-small is-outlined is-link"
+                    href="{{ url_for('lien.download_document', lien_id = lien.id, document_type='dd_reversal') }}">Download
+                    DD reversal order</a>
+                {% else %}DD reversal order not uploaded{% endif %}</td>
         </tr>
+
     </table>
     <div class="has-text-centered">
         <a class="button is-link" href="{{ url_for('lien.lien_list') }}">Go home</a>
-        {% if current_user.user_type == "admin" %}
         <a class="button is-link is-outlined" href="{{ url_for('lien.lien_edit', lien_id=lien.id) }}">Edit</a>
-        {% elif current_user.user_type == "ro_user" %}
-        <a class="button is-link is-outlined" href="{{ url_for('lien.lien_add_remarks', lien_id=lien.id) }}">Add
-            remarks</a>
-        {% endif %}
+
     </div>
 </div>
 
