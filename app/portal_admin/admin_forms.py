@@ -18,5 +18,14 @@ class UserAddForm(FlaskForm):
     oo_code = StringField()
     username = StringField()
     user_type = SelectField(
-        choices=["admin", "oo_user", "ro_user", "coinsurance_hub_user"],
+        choices=[
+            "admin",
+            "oo_user",
+            "ro_user",
+            "coinsurance_hub_user",
+            "ho_motor_tp",
+            "ri_tech",
+            "ri_accounts",
+            "ho_fire",
+        ],
     )
