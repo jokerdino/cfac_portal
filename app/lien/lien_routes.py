@@ -10,84 +10,85 @@ from flask import (
     send_from_directory,
 )
 from flask_login import login_required, current_user
-from sqlalchemy import create_engine
+
 from werkzeug.utils import secure_filename
 
 from extensions import db
-from set_view_permissions import admin_required, ro_user_only
+from set_view_permissions import admin_required
 
 from . import lien_bp
 from .lien_model import Lien
-from .lien_forms import LienForm, LienUploadForm, LienAddRemarks
+from .lien_forms import LienFormCFAC, LienFormRO, LienUploadForm
+
+
+def prepare_upload_document(lien, form) -> None:
+    file_field_dictionary: dict[str : tuple(str, str, str)] = {
+        "court_order_lien": ("court_order_lien_file", "lien_order", "lien_order"),
+        "court_order_dd": ("court_order_dd_file", "dd_order", "dd_copy"),
+        "lien_dd_reversal_order": (
+            "lien_dd_reversal_order_file",
+            "lien_dd_reversal",
+            "lien_dd_reversal",
+        ),
+        "appeal_copy": ("appeal_copy_file", "appeal_copy", "appeal_copy"),
+        "stay_order": ("stay_order_file", "stay_order", "stay_order"),
+        "court_order_lien_reversal": (
+            "court_order_lien_reversal_file",
+            "lien_reversal",
+            "lien_reversal",
+        ),
+        "court_order_dd_reversal": (
+            "court_order_dd_reversal_file",
+            "dd_reversal",
+            "dd_reversal",
+        ),
+        "claim_disbursement_voucher": (
+            "claim_disbursement_voucher_file",
+            "disbursement_voucher",
+            "disbursement_voucher",
+        ),
+    }
+    for model_attribute, (
+        field,
+        document_type,
+        folder_name,
+    ) in file_field_dictionary.items():
+        upload_document(lien, form, field, document_type, model_attribute, folder_name)
 
 
 @lien_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
 def lien_add():
-    form = LienForm()
+    form = LienFormCFAC()
     if form.validate_on_submit():
         lien = Lien()
         form.populate_obj(lien)
-        upload_document(
-            lien, form, "court_order_lien_file", "court_order_lien", "lien_order"
-        )
-        upload_document(
-            lien, form, "court_order_dd_file", "court_order_dd_file", "dd_copy"
-        )
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_reversal_file",
-            "court_order_lien_reversal",
-            "lien_reversal",
-        )
+        prepare_upload_document(lien, form)
         db.session.add(lien)
         db.session.commit()
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
     return render_template("lien_edit.html", form=form, title="Add new lien")
 
 
-@lien_bp.route("/remarks/<lien_id>/", methods=["GET", "POST"])
+@lien_bp.route("/view/<lien_id>/", methods=["GET", "POST"])
 @login_required
-@ro_user_only
-def lien_add_remarks(lien_id):
-    lien = db.get_or_404(Lien, lien_id)
-    form = LienAddRemarks(obj=lien)
-    if form.validate_on_submit():
-        form.populate_obj(lien)
-        db.session.commit()
-        return redirect(url_for("lien.lien_view", lien_id=lien.id))
-    return render_template("lien_add_remarks.html", form=form, lien=lien)
-
-
-@lien_bp.route("/view/<lien_id>", methods=["GET", "POST"])
-@login_required
-@ro_user_only
 def lien_view(lien_id):
     lien = db.get_or_404(Lien, lien_id)
     return render_template("lien_view.html", lien=lien)
 
 
-@lien_bp.route("/edit/<lien_id>", methods=["GET", "POST"])
+@lien_bp.route("/edit/<lien_id>/", methods=["GET", "POST"])
 @login_required
-@admin_required
 def lien_edit(lien_id):
     lien = db.get_or_404(Lien, lien_id)
-    form = LienForm(obj=lien)
+    if current_user.user_type == "admin":
+        form = LienFormCFAC(obj=lien)
+    elif current_user.user_type in ["ho_motor_tp", "ro_user"]:
+        form = LienFormRO(obj=lien)
     if form.validate_on_submit():
         form.populate_obj(lien)
-        upload_document(
-            lien, form, "court_order_lien_file", "court_order_lien", "lien_order"
-        )
-        upload_document(lien, form, "court_order_dd_file", "court_order_dd", "dd_copy")
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_reversal_file",
-            "court_order_lien_reversal",
-            "lien_reversal",
-        )
+        prepare_upload_document(lien, form)
         db.session.commit()
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
     return render_template("lien_edit.html", form=form, lien=lien, title="Edit lien")
@@ -95,23 +96,29 @@ def lien_edit(lien_id):
 
 @lien_bp.get("/download/<int:lien_id>/<string:document_type>/")
 @login_required
-@ro_user_only
 def download_document(document_type, lien_id):
-    lien = Lien.query.get_or_404(lien_id)
+    def get_document_path(lien, document_type):
+        document_map = {
+            "lien_order": lien.court_order_lien,
+            "dd_copy": lien.court_order_dd,
+            "lien_reversal": lien.court_order_lien_reversal,
+            "dd_reversal": lien.court_order_dd_reversal,
+            "appeal_copy": lien.appeal_copy,
+            "stay_order": lien.stay_order,
+            "lien_dd_reversal": lien.lien_dd_reversal_order,
+            "disbursement_voucher": lien.claim_disbursement_voucher,
+        }
+        return document_map.get(document_type)
 
-    if document_type == "lien_order":
-        file_extension = lien.court_order_lien.rsplit(".", 1)[1]
-        path = lien.court_order_lien
-    elif document_type == "dd_copy":
-        file_extension = lien.court_order_dd.rsplit(".", 1)[1]
-        path = lien.court_order_dd
-    elif document_type == "lien_reversal":
-        file_extension = lien.court_order_lien_reversal.rsplit(".", 1)[1]
-        path = lien.court_order_lien_reversal
-    else:
+    lien = db.get_or_404(Lien, lien_id)
+
+    path = get_document_path(lien, document_type)
+    if not path:
         abort(404)
 
-    filename = f"{lien.lien_amount}_{lien.date_of_order}.{file_extension}"
+    file_extension = path.rsplit(".", 1)[-1]
+
+    filename = f"{document_type}_{lien.bank_name}_{lien.lien_amount}.{file_extension}"
     return send_from_directory(
         directory=f"{current_app.config.get('UPLOAD_FOLDER')}lien/{document_type}/",
         path=path,
@@ -122,12 +129,11 @@ def download_document(document_type, lien_id):
 
 @lien_bp.route("/")
 @login_required
-@ro_user_only
 def lien_list():
     liens = db.session.scalars(
         db.select(Lien)
     )  # .where(Lien.lien_status == "Lien exists"))
-    column_names = [column.name for column in Lien.__table__.columns][1:14]
+    column_names = [column.name for column in Lien.__table__.columns][1:35]
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
 
 
@@ -145,7 +151,7 @@ def lien_bulk_upload():
 
         df_lien.to_sql(
             "lien",
-            create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI")),
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -154,7 +160,9 @@ def lien_bulk_upload():
     return render_template("lien_bulk_upload.html", form=form)
 
 
-def upload_document(model_object, form, field, document_type, folder_name):
+def upload_document(
+    model_object, form, field, document_type, model_attribute, folder_name
+):
     """
     Uploads a document to the folder specified by folder_name and saves the filename to the object.
 
@@ -162,6 +170,7 @@ def upload_document(model_object, form, field, document_type, folder_name):
     :param form: The form containing the file to upload
     :param field: The name of the field in the form containing the file to upload
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
+    :param model_attribute: The name of the attribute in the object to save the filename to
     :param folder_name: The folder to save the document in
     """
     folder_path = os.path.join(
@@ -177,4 +186,4 @@ def upload_document(model_object, form, field, document_type, folder_name):
 
         form.data[field].save(os.path.join(folder_path, document_filename))
 
-        setattr(model_object, document_type, document_filename)
+        setattr(model_object, model_attribute, document_filename)

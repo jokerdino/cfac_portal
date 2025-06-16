@@ -1,6 +1,6 @@
 {% extends "lien_layout.html" %}
 {% block content %}
-{% from "form_field_helpers_macro.html" import render_field_table %}
+{% from "form_field_helpers_macro.html" import render_field_table_lien %}
 
 <div class="container is-centered">
     <h1 class="title">{{ title }}</h1>
@@ -11,14 +11,14 @@
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
-                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table(field) }} {% endif %} {% endfor
+                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table_lien(field) }} {% endif %} {% endfor
                         %}</table>
             </div>
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
                     {% if loop.index > (loop.length / 2) %}
-                    {{ render_field_table(field) }}
+                    {{ render_field_table_lien(field) }}
                     {% endif %}
                     {% endfor %}
                 </table>
@@ -31,3 +31,62 @@
 </div>
 
 {% endblock content %}
+{% block scripts %}
+<script>
+    function toggleDisbursementFile() {
+        let radios = document.getElementsByName('claim_already_paid_by_hub_office');
+        let fileInput1 = document.getElementById('claim_disbursement_voucher_file');
+        let fileInput2 = document.getElementById('lien_dd_reversal_order_file');
+        let selected = Array.from(radios).find(r => r.checked);
+        if (selected && selected.value === 'Yes') {
+            fileInput1.disabled = false;
+            fileInput2.disabled = false;
+        } else {
+            fileInput1.disabled = true;
+            fileInput1.value = ''; // optionally clear file input
+            fileInput2.disabled = true;
+            fileInput2.value = ''; // optionally clear file input
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+        let radios = document.getElementsByName('claim_already_paid_by_hub_office');
+        radios.forEach(r => r.addEventListener('change', toggleDisbursementFile));
+        toggleDisbursementFile(); // initialize on page load
+    });
+    function toggleAppealFile() {
+        let radios = document.getElementsByName('appeal_given');
+        let fileInput = document.getElementById('appeal_copy_file');
+        let selected = Array.from(radios).find(r => r.checked);
+        if (selected && selected.value === 'Yes') {
+            fileInput.disabled = false;
+        } else {
+            fileInput.disabled = true;
+            fileInput.value = ''; // optionally clear file input
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+        let radios = document.getElementsByName('appeal_given');
+        radios.forEach(r => r.addEventListener('change', toggleAppealFile));
+        toggleAppealFile(); // initialize on page load
+    });
+    function toggleStayFile() {
+        let radios = document.getElementsByName('stay_obtained');
+        let fileInput = document.getElementById('stay_order_file');
+        let selected = Array.from(radios).find(r => r.checked);
+        if (selected && selected.value === 'Yes') {
+            fileInput.disabled = false;
+        } else {
+            fileInput.disabled = true;
+            fileInput.value = ''; // optionally clear file input
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function () {
+        let radios = document.getElementsByName('stay_obtained');
+        radios.forEach(r => r.addEventListener('change', toggleStayFile));
+        toggleStayFile(); // initialize on page load
+    });
+</script>
+{% endblock scripts %}

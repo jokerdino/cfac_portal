@@ -6,7 +6,16 @@ from wtforms.validators import Optional
 class UpdateUserForm(FlaskForm):
     user_type = SelectField(
         "Change user type",
-        choices=["admin", "oo_user", "ro_user", "coinsurance_hub_user"],
+        choices=[
+            "admin",
+            "oo_user",
+            "ro_user",
+            "coinsurance_hub_user",
+            "ho_motor_tp",
+            "ri_tech",
+            "ri_accounts",
+            "ho_technical",
+        ],
         validators=[Optional()],
     )
 
@@ -26,6 +35,6 @@ class UserAddForm(FlaskForm):
             "ho_motor_tp",
             "ri_tech",
             "ri_accounts",
-            "ho_fire",
+            "ho_technical",
         ],
     )

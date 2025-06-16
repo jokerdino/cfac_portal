@@ -48,6 +48,8 @@
   <div class="columns">
     <div class="column is-2">
       <aside class="menu mt-5 ml-5">
+
+        {% if current_user.user_type in ["coinsurance_hub_user","admin", "ro_user", "oo_user"] %}
         <p class="menu-label">General</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('coinsurance.home_page') }}">Coinsurance</a></li>
@@ -66,6 +68,19 @@
           <li><a href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO recon</a></li>
           {% endif %}
         </ul>
+        {% endif %}
+        {% if current_user.user_type in ["admin", "ro_user","ho_motor_tp"] %}
+        <p class="menu-label">Lien</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('lien.lien_list') }}">Lien</a></li>
+        </ul>
+        {% endif %}
+        {% if current_user.user_type in ["ri_tech", "ho_technical","ri_accounts", "coinsurance_hub_user"] %}
+        <p class="menu-label">Reinsurance</p>
+        <ul class="menu-list">
+          <li><a>Reinsurance</a></li>
+        </ul>
+        {% endif %}
         <p class="menu-label">Information</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>
@@ -77,7 +92,7 @@
         <ul class="menu-list">
           <li><a href="{{ url_for('main.pos_dashboard') }}">POS Dashboard</a></li>
         </ul>
-        {% if current_user.user_type != "coinsurance_hub_user" %}
+        {% if current_user.user_type in ["admin","oo_user","ro_user"] %}
         <p class="menu-label">Data collection</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('employee_leave_balance.update_pl') }}">Employee leave balance</a></li>
@@ -100,7 +115,6 @@
           <li><a href="{{ url_for('budget.view_budget_utilization') }}">Budget</a></li>
           {% endif %}
           <li><a href="{{ url_for('contracts.view_contracts', status='active') }}">Contracts</a></li>
-          <li><a href="{{ url_for('lien.lien_list') }}">Lien</a></li>
           <li><a href="{{ url_for('pg_tieup.list_pg_tieup') }}">PG tieup</a></li>
 
         </ul>

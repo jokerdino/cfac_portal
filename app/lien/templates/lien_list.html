@@ -1,4 +1,5 @@
 {% extends "lien_layout.html" %}
+{% from "macros.html" import download_td %}
 {% block content %}
 <div class="container table-container is-fluid">
     <h1 class="title">List of lien {{ title }} entries</h1>
@@ -6,29 +7,63 @@
     <table class="table is-fullwidth is-bordered" id="lien_table">
         <thead>
             <tr>
-                {% for i in column_names %}
-                <th class="has-text-centered is-vcentered">{{ i|upper|replace("_", " ") }}</th>
-                {% endfor %}
                 <th class="has-text-centered is-vcentered">VIEW</th>
                 <th class="has-text-centered is-vcentered">EDIT</th>
+
+                {% for col in column_names %}
+                <th class="has-text-centered is-vcentered">{{ col | replace("_"," ")| upper }}</th>
+
+                {% endfor %}
+
             </tr>
         </thead>
         <tbody>
             {% for item in lien_list %}
             <tr>
-                {% for i in column_names %}
-                <td>{{ item[i] or "" }}</td>
-                {% endfor %}
                 <td><a class="button is-link is-outlined is-small"
                         href="{{ url_for('lien.lien_view', lien_id=item['id']) }}">View</a></td>
-                <td>{% if current_user.user_type == "admin" %}
-                    <a class="button is-link is-outlined is-small"
+                <td> <a class="button is-link is-outlined is-small"
                         href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
-                    {% elif current_user.user_type == "ro_user" %}
-                    <a class="button is-link is-outlined is-small"
-                        href="{{ url_for('lien.lien_add_remarks', lien_id=item['id']) }}">Edit</a>
-                    {% endif %}
                 </td>
+                {% for col in column_names[:6] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+
+                {{ download_td(item["court_order_lien"], item.id,
+                "lien_order") }}
+
+                {% for col in column_names[7:9] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+                {{ download_td(item["court_order_dd"], item.id,
+                "dd_copy") }}
+
+                {% for col in column_names[10:21] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+                {{ download_td( item["claim_disbursement_voucher"], item.id,
+                "disbursement_voucher") }}
+                {{ download_td( item["lien_dd_reversal_order"], item.id,
+                "lien_dd_reversal") }}
+                {% for col in column_names[23:25] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+                {{ download_td( item["appeal_copy"], item.id,
+                "appeal_copy") }}
+                {% for col in column_names[26:27] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+                {{ download_td( item["stay_order"], item.id,
+                "stay_order") }}
+                {% for col in column_names[28:32] %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+                {{ download_td( item["court_order_lien_reversal"], item.id,
+                "lien_reversal") }}
+
+                {{ download_td(item["court_order_dd_reversal"], item.id,
+                "dd_reversal") }}
+
             </tr>
             {% endfor %}
         </tbody>
