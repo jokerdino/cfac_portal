@@ -10,7 +10,7 @@ from flask import (
     send_from_directory,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine
+
 from werkzeug.utils import secure_filename
 
 from app.pg_tieup import pg_tieup_bp
@@ -108,7 +108,7 @@ def bulk_upload_pg_tieup():
     form = UploadFileForm()
     if form.validate_on_submit():
         df_cash_call = pd.read_excel(form.data["file_upload"])
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_cash_call.columns = df_cash_call.columns.str.lower()
 
         df_cash_call["date_created_date"] = datetime.now()
@@ -116,7 +116,7 @@ def bulk_upload_pg_tieup():
 
         df_cash_call.to_sql(
             "payment_gateway_tieup",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
