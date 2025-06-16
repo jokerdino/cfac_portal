@@ -21,13 +21,8 @@
                 {% endfor %}
                 <td><a class="button is-link is-outlined is-small"
                         href="{{ url_for('lien.lien_view', lien_id=item['id']) }}">View</a></td>
-                <td>{% if current_user.user_type == "admin" %}
-                    <a class="button is-link is-outlined is-small"
+                <td> <a class="button is-link is-outlined is-small"
                         href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
-                    {% elif current_user.user_type == "ro_user" %}
-                    <a class="button is-link is-outlined is-small"
-                        href="{{ url_for('lien.lien_add_remarks', lien_id=item['id']) }}">Edit</a>
-                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

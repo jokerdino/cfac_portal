@@ -11,25 +11,34 @@ class Lien(db.Model):
 
     court_name = db.Column(db.String)
     case_number = db.Column(db.String)
+    case_title = db.Column(db.String)
     petitioner_name = db.Column(db.String)
     date_of_order = db.Column(db.Date)
+    bank_remarks = db.Column(db.Text)
 
+    department = db.Column(db.String)
+
+    lien_date = db.Column(db.Date)
     lien_amount = db.Column(db.Numeric(15, 2))
+    dd_date = db.Column(db.Date)
     dd_amount = db.Column(db.Numeric(15, 2))
 
     action_taken_by_banker = db.Column(db.Text)
 
+    lien_status = db.Column(db.String)
+    claim_number = db.Column(db.String)
+    date_of_claim = db.Column(db.Date)
+    claim_accounting_voucher_number = db.Column(db.String)
+
     bank_name = db.Column(db.String)
     account_number = db.Column(db.String)
 
-    bank_remarks = db.Column(db.Text)
     ro_remarks = db.Column(db.Text)
-
-    lien_status = db.Column(db.String)
 
     court_order_lien = db.Column(db.String)
     court_order_dd = db.Column(db.String)
     court_order_lien_reversal = db.Column(db.String)
+    court_order_dd_reversal = db.Column(db.String)
 
     created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)
