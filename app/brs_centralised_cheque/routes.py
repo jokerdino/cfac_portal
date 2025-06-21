@@ -539,6 +539,43 @@ def view_brs_cc_api(office_code, month):
     return response
 
 
+@brs_cc_bp.route("/api/v1/view_brs_cc_items/<string:ro_code>/<string:month>/")
+def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
+    response = {
+        "regional_office": ro_code,
+        "month": month,
+        "unencashed_cheques": [],
+        "stale_cheques": [],
+    }
+    brs_query = db.session.scalars(
+        db.select(CentralisedChequeDetails)
+        .join(CentralisedChequeSummary)
+        .where(
+            (CentralisedChequeDetails.brs_status.is_(None))
+            & (CentralisedChequeSummary.month == month)
+            & (CentralisedChequeSummary.regional_office_code == ro_code)
+        )
+    )
+    for brs in brs_query:
+        if brs is None:
+            continue
+
+        operating_office = brs.summary.operating_office_code
+
+        if brs.unencashed_cheques:
+            for cheque in brs.unencashed_cheques:
+                item = asdict(cheque)
+                item["operating_office"] = operating_office
+                response["unencashed_cheques"].append(item)
+
+        if brs.stale_cheques:
+            for cheque in brs.stale_cheques:
+                item = asdict(cheque)
+                item["operating_office"] = operating_office
+                response["stale_cheques"].append(item)
+    return response
+
+
 @brs_cc_bp.route("/enable_delete/add/", methods=["POST", "GET"])
 @login_required
 @admin_required
