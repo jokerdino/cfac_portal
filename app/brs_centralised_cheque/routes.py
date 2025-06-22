@@ -539,6 +539,17 @@ def view_brs_cc_api(office_code, month):
     return response
 
 
+# Custom dict factory
+def custom_dict_factory(items):
+    result = {}
+    for key, value in items:
+        if isinstance(value, (datetime, date)):
+            result[key] = value.strftime("%d/%m/%Y")
+        else:
+            result[key] = value
+    return result
+
+
 @brs_cc_bp.route("/api/v1/view_brs_cc_items/<string:ro_code>/<string:month>/")
 def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
     response = {
@@ -564,13 +575,13 @@ def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
 
         if brs.unencashed_cheques:
             for cheque in brs.unencashed_cheques:
-                item = asdict(cheque)
+                item = asdict(cheque, dict_factory=custom_dict_factory)
                 item["operating_office"] = operating_office
                 response["unencashed_cheques"].append(item)
 
         if brs.stale_cheques:
             for cheque in brs.stale_cheques:
-                item = asdict(cheque)
+                item = asdict(cheque, dict_factory=custom_dict_factory)
                 item["operating_office"] = operating_office
                 response["stale_cheques"].append(item)
     return response
