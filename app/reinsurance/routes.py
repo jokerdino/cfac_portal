@@ -4,6 +4,8 @@ from io import BytesIO
 import re
 import zipfile
 
+import requests
+
 import pandas as pd
 import pdfplumber
 from pypdf import PdfReader, PdfWriter
@@ -15,6 +17,7 @@ from flask import (
     url_for,
     current_app,
     send_from_directory,
+    request,
 )
 from flask_login import login_required
 from werkzeug.utils import secure_filename
@@ -24,9 +27,25 @@ from .forms import (
     UploadFileForm,
     IncomingReinsuranceConfirmationForm,
     OutgoingReinsuranceConfirmationForm,
+    FetchProposalNumberForm,
 )
 from .models import IncomingReinsuranceConfirmations, OutgoingReinsuranceConfirmations
 from extensions import db
+
+
+@reinsurance_bp.route("/proxy_fetch", methods=["POST"])
+def proxy_fetch():
+    proposal_number = request.json.get("proposal_number")
+
+    print(proposal_number)
+    # Make server-side request to external API
+    resp = requests.post(
+        "http://10.100.10.42:5000/proposal/", json={"proposal_number": proposal_number}
+    )
+
+    # Return data back to frontend (your browser is happy because it came from same origin)
+    print(resp.text)
+    return (resp.text, resp.status_code, {"Content-Type": "application/json"})
 
 
 def upload_document(
@@ -89,6 +108,7 @@ def download_document(id, document):
 @login_required
 def add_incoming():
     form = IncomingReinsuranceConfirmationForm()
+    form_proposal_number = FetchProposalNumberForm()
     if form.validate_on_submit():
         incoming = IncomingReinsuranceConfirmations()
         form.populate_obj(incoming)
@@ -114,7 +134,12 @@ def add_incoming():
         db.session.commit()
         return redirect(url_for(".list_incoming"))
 
-    return render_template("incoming_add.html", form=form, title="Add new incoming")
+    return render_template(
+        "incoming_add.html",
+        form=form,
+        form_proposal_number=form_proposal_number,
+        title="Add new incoming",
+    )
 
 
 @reinsurance_bp.route("/incoming/<int:key>/edit", methods=["POST", "GET"])
