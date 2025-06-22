@@ -1,4 +1,4 @@
-from flask_wtf import FlaskForm
+from flask_wtf import FlaskForm, Form
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import (
     RadioField,
@@ -89,3 +89,7 @@ class IncomingReinsuranceConfirmationForm(FlaskForm):
 
 
 class OutgoingReinsuranceConfirmationForm(FlaskForm): ...
+
+
+class FetchProposalNumberForm(Form):
+    proposal_number = StringField()

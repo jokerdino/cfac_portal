@@ -1,15 +1,22 @@
 {% extends "funds_layout.html" %}
 {% block content %}
-{% from "form_field_helpers_macro.html" import render_field_table %}
+{% from "form_field_helpers_macro.html" import render_field_table, render_field_div_horizontal %}
 <div class="container">
-
+    <div class="field is-grouped">
+        <div class="control">
+            {{ render_field_div_horizontal(form_proposal_number.proposal_number) }}
+        </div>
+        <div class="control">
+            <button type="button" class="button is-info" onclick="fetchProposal()">Fetch</button>
+        </div>
+    </div>
     <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
 
         <h1 class="title">{{ title }}</h1>
         <div class="box">
 
-            <table class="table is-fullwidth">
+            <table class="table is-fullwidth is-narrow">
                 <tbody>
                     {% for field in form if field.widget.input_type != "hidden" %}
                     {{ render_field_table(field) }}
@@ -34,3 +41,41 @@
     {% endwith %}
 </div>
 {% endblock content %}
+{% block scripts %}
+<script>
+    function formatToInputDate(gmtDateStr) {
+        const dateObj = new Date(gmtDateStr);
+        if (isNaN(dateObj)) return ''; // Invalid date fallback
+        const yyyy = dateObj.getFullYear();
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+    async function fetchProposal() {
+        //const proposalNumber = document.getElementById('proposal_number_fetch').value;
+        const proposalNumber = document.getElementById('proposal_number_fetch').value;
+        //	const response = await fetch('{{ url_for('.proxy_fetch') }}', {
+        const response = await fetch('http://10.100.10.42:5000/proposal/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ proposal_number: proposalNumber })
+        });
+
+        const result = await response.json();
+        console.log(result);
+        if (response.ok) {
+            const data = result.data[0];
+            console.log(result.txt_customer_name);
+
+            document.getElementById('name_of_insured').value = data.txt_customer_name;
+            document.getElementById('uiic_share_percentage').value = data.num_own_share;
+            document.getElementById('policy_number').value = data.txt_policy_no_char;
+            document.getElementById('policy_start_date').value = formatToInputDate(data.dat_policy_eff_from_date);
+        } else {
+            alert(result.message || 'Proposal not found');
+        }
+    }
+</script>
+{% endblock scripts %}
