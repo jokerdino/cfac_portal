@@ -26,6 +26,6 @@ class UserAddForm(FlaskForm):
             "ho_motor_tp",
             "ri_tech",
             "ri_accounts",
-            "ho_fire",
+            "ho_technical",
         ],
     )

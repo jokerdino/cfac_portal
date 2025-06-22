@@ -140,7 +140,9 @@
     <div class="container is-fluid mt-5">
 
         {% if current_user.is_authenticated %}
+        {% if current_user.user_type in ["coinsurance_hub_user","admin", "ro_user", "oo_user"] %}
         {% block content %}{% endblock content %}
+        {% endif %}
         {% endif %}
     </div>
     <script type="text/javascript" charset="utf8"
