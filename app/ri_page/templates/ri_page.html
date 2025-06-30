@@ -1,12 +1,20 @@
 {% extends "ri_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 <div class="container">
     <h1 class="title">Upload document</h1>
     <form action="" method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
-        {{ form.file_upload(class="file") }}
-        {{ form.file_process_option }}
-        {{ form.upload_document(class="button is-success") }}
+   <div class="box">
+            {% for field in form if field.widget.input_type not in [ "hidden","submit"] %}
+
+            {{ render_field_div_horizontal(field, is_narrow=true) }}
+
+            {% endfor %}
+            <div class="has-text-centered">
+           {{ form.upload_document(class="button is-success") }}
+            </div>
+        </div>
     </form>
 </div>
 {% endblock content %}

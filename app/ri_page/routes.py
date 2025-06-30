@@ -17,8 +17,9 @@ from .forms import UploadFileForm
 def ri_page():
     form = UploadFileForm()
     if form.validate_on_submit():
+        line_number = form.line_number.data
         if form.file_process_option.data == "export_excel":
-            excel_file = extract_tables_to_excel(form.file_upload.data)
+            excel_file = extract_tables_to_excel(form.file_upload.data, line_number)
             output = BytesIO()
             excel_file.to_excel(output, index=False)
 
@@ -29,7 +30,7 @@ def ri_page():
 
             return send_file(output, as_attachment=True, download_name=filename)
         elif form.file_process_option.data == "split":
-            zip_buffer = split_pdf_by_broker_name(form.file_upload.data)
+            zip_buffer = split_pdf_by_broker_name(form.file_upload.data, line_number)
             zip_buffer.seek(0)
             return send_file(
                 zip_buffer,
@@ -46,7 +47,7 @@ def sanitize_filename(filename):
     return re.sub(r'[\/:*?"<>|]', "_", filename)
 
 
-def extract_tables_to_excel(pdf_path):
+def extract_tables_to_excel(pdf_path, line_number):
     all_tables = []  # Store all tables from the PDF
 
     with pdfplumber.open(pdf_path) as pdf:
@@ -54,7 +55,7 @@ def extract_tables_to_excel(pdf_path):
             tables = page.extract_tables()  # Extract tables from the page
             text_lines = page.extract_text().split("\n") if page.extract_text() else []
             ninth_line = (
-                text_lines[5] if len(text_lines) >= 9 else "N/A"
+                text_lines[line_number] if len(text_lines) >= line_number else "N/A"
             )  # Get ninth line safely
 
             for table in tables:
@@ -74,7 +75,7 @@ def extract_tables_to_excel(pdf_path):
     return combined_df
 
 
-def split_pdf_by_broker_name(input_pdf_stream):
+def split_pdf_by_broker_name(input_pdf_stream, line_number):
     broker_writers = {}
 
     # Read uploaded PDF into memory
@@ -85,8 +86,8 @@ def split_pdf_by_broker_name(input_pdf_stream):
         text = page.extract_text()
         if text:
             lines = text.split("\n")
-            if len(lines) >= 9:
-                broker_line = sanitize_filename(lines[8].strip())
+            if len(lines) >= line_number:
+                broker_line = sanitize_filename(lines[line_number].strip())
             else:
                 broker_line = f"page_{i}"
         else:
