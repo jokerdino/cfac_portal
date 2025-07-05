@@ -338,6 +338,10 @@ class CoinsuranceTokenRequestId(db.Model):
     remarks = db.Column(db.Text)
     upload_document = db.Column(db.String)
 
+    jv_gl_code = db.Column(db.String)
+    jv_sl_code = db.Column(db.String)
+    jv_passed = db.Column(db.Boolean)
+
     created_by = db.Column(db.String, default=lambda: current_user.username)
     created_on = db.Column(db.DateTime, default=datetime.now)
 

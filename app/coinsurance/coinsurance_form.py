@@ -283,6 +283,12 @@ class CoinsuranceTokenRequestIdForm(FlaskForm):
     type_of_amount = SelectField(
         choices=["Receivable", "Payable"], validators=[DataRequired()]
     )
-    gl_code = StringField(validators=[DataRequired()])
+    gl_code = StringField("GL Code", validators=[DataRequired()])
+    jv_gl_code = StringField(
+        "Enter GL code for passing JV", validators=[DataRequired()]
+    )
+    jv_sl_code = StringField(
+        "Enter SL code for passing JV", validators=[DataRequired()]
+    )
     remarks = TextAreaField()
     upload_document_file = FileField(validators=[FileAllowed(["pdf"])])

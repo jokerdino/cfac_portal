@@ -43,10 +43,10 @@
 <script>
     new DataTable('#bank_mandate_table', {
         layout: {
-            top1Start: 'pageLength',
             topStart: 'buttons',
         },
         fixedHeader: true,
+        paging: false,
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },

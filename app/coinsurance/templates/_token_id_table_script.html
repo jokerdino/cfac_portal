@@ -1,0 +1,21 @@
+<script>
+    new DataTable('#{{ table_id }}', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        stateSave: true,
+        order: [[0, 'desc']],
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
+        pagingType: 'full_numbers',
+        pageLength: 25,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],
+        ]
+    });
+</script>

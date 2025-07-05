@@ -1,0 +1,52 @@
+<div class="{{ container_class }}">
+    <table class="table is-bordered" id="{{ table_id }}">
+        <thead>
+            <tr>
+                {% if show_checkbox %}
+                <th><input type="checkbox" id="select_all" onclick="toggleAll(this)" /></th>
+                {% endif %}
+                <th class="has-text-centered is-vcentered">Date of creation</th>
+                <th class="has-text-centered is-vcentered">Hub office code</th>
+                <th class="has-text-centered is-vcentered">Coinsurer name</th>
+                <th class="has-text-centered is-vcentered">Coinsurer office code</th>
+                <th class="has-text-centered is-vcentered">Name of insured</th>
+                <th class="has-text-centered is-vcentered">Request ID</th>
+                <th class="has-text-centered is-vcentered">Amount</th>
+                <th class="has-text-centered is-vcentered">Type of transaction</th>
+                <th class="has-text-centered is-vcentered">GL code</th>
+                <th class="has-text-centered is-vcentered">JV GL code</th>
+                <th class="has-text-centered is-vcentered">JV SL code</th>
+                <th class="has-text-centered is-vcentered">Remarks</th>
+                <th class="has-text-centered is-vcentered">Document</th>
+                <th class="has-text-centered is-vcentered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data %}
+            <tr>
+                {% if show_checkbox %}
+                <td><input type="checkbox" name="selected_ids" value="{{ entry['id'] }}" /></td>
+                {% endif %}
+                <td data-sort="{{ entry['created_on'] }}">{{ entry['created_on'].strftime("%d/%m/%Y") }}</td>
+                <td>{{ entry['hub_office_code'] }}</td>
+                <td>{{ entry['company_name'] }}</td>
+                <td>{{ entry['coinsurer_office_code'] }}</td>
+                <td>{{ entry['name_of_insured'] }}</td>
+                <td>{{ entry['request_id'] }}</td>
+                <td>{{ entry['amount'] }}</td>
+                <td>{{ entry['type_of_amount'] }}</td>
+                <td>{{ entry['gl_code'] }}</td>
+                <td>{{ entry['jv_gl_code'] }}</td>
+                <td>{{ entry['jv_sl_code'] }}</td>
+                <td>{{ entry['remarks'] }}</td>
+                <td>{% if entry['upload_document'] %}<a class="button is-small is-success is-outlined"
+                        href="{{ url_for('.download_token_id_document', key=entry['id']) }}">Download</a>
+                    {% endif %}</td>
+                <td><a class="button is-small is-link" href="{{ url_for('.token_id_edit', key=entry['id']) }}">Edit</a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

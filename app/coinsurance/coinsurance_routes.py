@@ -3,11 +3,12 @@ import re
 
 from datetime import datetime, timedelta
 from dataclasses import asdict
+from io import BytesIO
 
 import requests
 import pandas as pd
 
-from sqlalchemy import func, create_engine, case, String, cast
+from sqlalchemy import func, case, String, cast, or_, select, literal, union
 
 from flask import (
     current_app,
@@ -16,6 +17,7 @@ from flask import (
     render_template,
     request,
     send_from_directory,
+    send_file,
     url_for,
 )
 from flask_login import current_user, login_required
@@ -952,14 +954,14 @@ def bulk_upload_cash_call():
     form = UploadFileForm()
     if form.validate_on_submit():
         df_cash_call = pd.read_excel(form.data["file_upload"])
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_cash_call["created_on"] = datetime.now()
         df_cash_call["created_by"] = current_user.username
 
         df_cash_call.to_sql(
             "coinsurance_cash_call",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -978,14 +980,14 @@ def bulk_upload_settlements():
     form = UploadFileForm()
     if form.validate_on_submit():
         df_settlement = pd.read_excel(form.data["file_upload"])
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_settlement["created_on"] = datetime.now()
         df_settlement["created_by"] = current_user.username
 
         df_settlement.to_sql(
             "settlement",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -1150,7 +1152,95 @@ def token_id_edit(key):
 @admin_required
 def token_id_list():
     token_ids = db.session.scalars(db.select(CoinsuranceTokenRequestId))
-    return render_template("token_id_list.html", token_ids=token_ids)
+
+    pending_filter = or_(
+        CoinsuranceTokenRequestId.jv_passed == False,
+        CoinsuranceTokenRequestId.jv_passed.is_(None),
+    )
+    pending_token_ids = db.session.scalars(
+        db.select(CoinsuranceTokenRequestId).where(pending_filter)
+    )
+    pending_count = db.session.scalar(
+        db.select(func.count(CoinsuranceTokenRequestId.id)).where(pending_filter)
+    )
+
+    return render_template(
+        "token_id_list.html",
+        token_ids=token_ids,
+        pending_token_ids=pending_token_ids,
+        pending_count=pending_count,
+    )
+
+
+@coinsurance_bp.route("/token_id/download_jv/")
+@login_required
+@admin_required
+def token_id_download_jv():
+    case_ho_gl = case(
+        (
+            CoinsuranceTokenRequestId.type_of_amount == "Payable",
+            "CR",
+        ),
+        else_="DR",
+    ).label("DR/CR")
+    case_transfer_gl = case(
+        (
+            CoinsuranceTokenRequestId.type_of_amount == "Payable",
+            "DR",
+        ),
+        else_="CR",
+    ).label("DR/CR")
+    pending_filter = or_(
+        CoinsuranceTokenRequestId.jv_passed == False,
+        CoinsuranceTokenRequestId.jv_passed.is_(None),
+    )
+    ho_entries = select(
+        literal("000100").label("Office Location"),
+        CoinsuranceTokenRequestId.gl_code.label("GL Code"),
+        literal("9000100").label("SL Code"),
+        case_ho_gl,
+        CoinsuranceTokenRequestId.amount.label("Amount"),
+        CoinsuranceTokenRequestId.remarks.label("Remarks"),
+    ).where(pending_filter)
+    transfer_entries = select(
+        literal("000100").label("Office Location"),
+        CoinsuranceTokenRequestId.jv_gl_code.label("GL Code"),
+        CoinsuranceTokenRequestId.jv_sl_code.label("SL Code"),
+        case_transfer_gl,
+        CoinsuranceTokenRequestId.amount.label("Amount"),
+        CoinsuranceTokenRequestId.remarks.label("Remarks"),
+    ).where(pending_filter)
+
+    combined_stmt = union(ho_entries, transfer_entries)
+
+    df_token_jv = pd.read_sql_query(combined_stmt, db.engine)
+    output = BytesIO()
+
+    df_token_jv.to_excel(output, index=False)
+
+    # Set the buffer position to the beginning
+    output.seek(0)
+
+    filename = f"token_id_jv_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+
+    return send_file(output, as_attachment=True, download_name=filename)
+
+
+@coinsurance_bp.route("/token_id/mark_as_completed/", methods=["POST"])
+@login_required
+@admin_required
+def mark_token_ids_completed():
+    selected_ids = request.form.getlist("selected_ids")
+    if not selected_ids:
+        flash("No rows selected", "warning")
+        return redirect(url_for("coinsurance.token_id_list"))
+
+    db.session.query(CoinsuranceTokenRequestId).filter(
+        CoinsuranceTokenRequestId.id.in_(selected_ids)
+    ).update({CoinsuranceTokenRequestId.jv_passed: True}, synchronize_session=False)
+    db.session.commit()
+    flash(f"{len(selected_ids)} rows marked as completed", "success")
+    return redirect(url_for("coinsurance.token_id_list"))
 
 
 @coinsurance_bp.route("/token_id/download/<int:key>/")
