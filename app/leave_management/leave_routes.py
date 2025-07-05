@@ -669,7 +669,11 @@ def leaves_taken_list(status, employee_number):
         db.select(AttendanceRegister)
         .where(
             (AttendanceRegister.employee_number == employee_number)
-            & (AttendanceRegister.status_of_attendance == "On leave")
+            & (
+                AttendanceRegister.status_of_attendance.in_(
+                    ["On leave", "On leave-half day"]
+                )
+            )
         )
         .order_by(AttendanceRegister.date_of_attendance)
     )
