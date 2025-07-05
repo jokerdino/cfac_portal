@@ -1,5 +1,6 @@
 from io import BytesIO
 from datetime import datetime, timedelta
+import zipfile
 
 import pandas as pd
 
@@ -244,3 +245,149 @@ def fetch_settlements():
     db.session.commit()
 
     return "Success"
+
+
+@coinsurance_bp.route("/receipts/download_hub_jv/", methods=["POST", "GET"])
+@login_required
+@admin_required
+def download_receipts_jv_hubs():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        df = pd.read_csv(
+            form.file_upload.data,
+            usecols=["NUM_OFFICE_CD", "NUM_AMOUNT", "TXT_INSTRUMENT_NO"],
+            dtype={
+                "NUM_OFFICE_CD": str,
+                "NUM_AMOUNT": int,
+                "TXT_INSTRUMENT_NO": str,
+            },
+        )
+
+        reference_number = df["TXT_INSTRUMENT_NO"].tolist()
+        receipts_stmt = (
+            db.select(
+                CoinsuranceReceipts.transaction_code,
+                CoinsuranceReceipts.value_date,
+                CoinsuranceReceiptsJournalVoucher.company_name,
+                CoinsuranceReceiptsJournalVoucher.gl_code,
+                CoinsuranceReceipts.reference_no,
+            )
+            .join(
+                CoinsuranceReceiptsJournalVoucher,
+                CoinsuranceReceipts.description.like(
+                    "%" + CoinsuranceReceiptsJournalVoucher.pattern + "%"
+                ),
+            )
+            .where(CoinsuranceReceipts.reference_no.in_(reference_number))
+        )
+        df_hub_receipts_jv = pd.read_sql_query(receipts_stmt, db.engine)
+        df_hub_receipts_jv["value_date"] = pd.to_datetime(
+            df_hub_receipts_jv["value_date"], format="%Y-%m-%d"
+        ).dt.strftime("%d/%m/%y")
+        df_hub_receipts_jv["Remarks"] = (
+            df_hub_receipts_jv["transaction_code"]
+            .str.cat(
+                df_hub_receipts_jv[
+                    [
+                        "value_date",
+                        "company_name",
+                        "reference_no",
+                    ]
+                ],
+                sep=" ",
+            )
+            .str.strip()
+        )
+        df_ho = df.merge(
+            df_hub_receipts_jv[
+                [
+                    "reference_no",
+                    "Remarks",
+                    "gl_code",
+                ]
+            ],
+            left_on="TXT_INSTRUMENT_NO",
+            right_on="reference_no",
+            how="left",
+        )
+        df_ho["Office Location"] = "000100"
+        df_ho["Remarks"] = df_ho["Remarks"].fillna(df_ho["TXT_INSTRUMENT_NO"])
+        df_ho["GL Code"] = df_ho["gl_code"]
+        df_ho["SL Code"] = 0
+        df_ho["DR/CR"] = "DR"
+        df_ho["Amount"] = df_ho["NUM_AMOUNT"]
+        df_ho = df_ho[
+            [
+                "Office Location",
+                "GL Code",
+                "SL Code",
+                "DR/CR",
+                "Amount",
+                "Remarks",
+                "NUM_OFFICE_CD",
+            ]
+        ]
+        df_ho_cr = df_ho.copy()
+        df_ho_cr["DR/CR"] = "CR"
+        df_ho_cr["GL Code"] = 5121901000
+        df_ho_cr["SL Code"] = df_ho_cr["NUM_OFFICE_CD"].astype(int)
+        df_ho_final = pd.concat([df_ho, df_ho_cr])
+        df_ho_final = df_ho_final[
+            ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
+        ]
+
+        df_hub = df.merge(
+            df_hub_receipts_jv[["reference_no", "Remarks"]],
+            left_on="TXT_INSTRUMENT_NO",
+            right_on="reference_no",
+            how="left",
+        )
+        df_hub["Office Location"] = df_hub["NUM_OFFICE_CD"].str[1:]
+        df_hub["GL Code"] = 9111310000
+        df_hub["SL Code"] = 12402233
+        df_hub["DR/CR"] = "CR"
+        df_hub["Amount"] = df_hub["NUM_AMOUNT"]
+        df_hub["Remarks"] = df_hub["Remarks"].fillna(df_hub["TXT_INSTRUMENT_NO"])
+        df_hub = df_hub[
+            [
+                "Office Location",
+                "GL Code",
+                "SL Code",
+                "DR/CR",
+                "Amount",
+                "Remarks",
+            ]
+        ]
+        df_hub_dr = df_hub.copy()
+        df_hub_dr["DR/CR"] = "DR"
+        df_hub_dr["GL Code"] = 5121901000
+        df_hub_dr["SL Code"] = 0
+        df_hub_final = pd.concat([df_hub, df_hub_dr])
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+            ho_bytes = BytesIO()
+            with pd.ExcelWriter(ho_bytes, engine="xlsxwriter") as writer:
+                df_ho_final.to_excel(writer, index=False)
+            ho_bytes.seek(0)
+            zipf.writestr("HO.xlsx", ho_bytes.read())
+
+            # Write one Excel per Office Location
+            for office in df_hub_final["Office Location"].unique():
+                df_office = df_hub_final[df_hub_final["Office Location"] == office]
+                excel_bytes = BytesIO()
+                with pd.ExcelWriter(excel_bytes, engine="xlsxwriter") as writer:
+                    df_office.to_excel(writer, index=False)
+                excel_bytes.seek(0)
+                zipf.writestr(f"{office}.xlsx", excel_bytes.read())
+
+        zip_buffer.seek(0)
+        return send_file(
+            zip_buffer,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name="hub_receipts.zip",
+        )
+
+    return render_template(
+        "coinsurance_upload_file_template.html", form=form, title="Upload file"
+    )

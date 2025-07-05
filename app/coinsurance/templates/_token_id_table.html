@@ -36,8 +36,8 @@
                 <td>{{ entry['amount'] }}</td>
                 <td>{{ entry['type_of_amount'] }}</td>
                 <td>{{ entry['gl_code'] }}</td>
-                <td>{{ entry['jv_gl_code'] }}</td>
-                <td>{{ entry['jv_sl_code'] }}</td>
+                <td>{{ entry['jv_gl_code'] or "" }}</td>
+                <td>{{ entry['jv_sl_code'] or "" }}</td>
                 <td>{{ entry['remarks'] }}</td>
                 <td>{% if entry['upload_document'] %}<a class="button is-small is-success is-outlined"
                         href="{{ url_for('.download_token_id_document', key=entry['id']) }}">Download</a>
