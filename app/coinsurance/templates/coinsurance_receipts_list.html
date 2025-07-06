@@ -9,120 +9,28 @@
         </ul>
     </div>
     <div id="all_receipts" class="container is-fluid">
-        <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_table">
-            <thead>
-                <tr>
-                    <th class="has-text-centered is-vcentered">Value date</th>
-                    <th class="has-text-centered is-vcentered">Company name</th>
-                    <th class="has-text-centered is-vcentered">Credit</th>
-                    <th class="has-text-centered is-vcentered">Reference No</th>
-                    <th class="has-text-centered is-vcentered">Transaction Code</th>
-                    <th class="has-text-centered is-vcentered">Remarks</th>
-                    <th class="has-text-centered is-vcentered">Status</th>
-                    <th class="has-text-centered is-vcentered">Receipting office</th>
-                    <th class="has-text-centered is-vcentered">Date of receipt</th>
-                    <th class="has-text-centered is-vcentered">Edit</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in receipts %}
-                <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
-                    <td>{{ entry['value_date'] }}</td>
-                    <td>{{ entry['company_name'] }}</td>
-                    <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
-                    <td>{{ entry['reference_no'] }}</td>
-                    <td>{{ entry['transaction_code'] }}</td>
-                    <td>{{ entry['remarks'] or "" }}</td>
-                    <td>{{ entry['status'] or "" }}</td>
-                    <td>{{ entry['receipting_office'] or "" }}</td>
-                    <td>{{ entry['date_of_receipt'] or "" }}</td>
-                    <td><a class="button is-link is-small" target="_blank"
-                            href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
-
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% with container_class = "container is-fluid", table_id = "coinsurance_receipts_table", data = receipts %}
+        {% include "_coinsurance_receipt_table.html" with context %}
+        {% endwith %}
     </div>
     <div class="is-hidden container is-fluid" id="pending_receipts">
-        <table class="table is-fullwidth is-hoverable is-bordered" id="coinsurance_receipts_pending_table">
-            <thead>
-                <tr>
-                    <th class="has-text-centered is-vcentered">Value date</th>
-                    <th class="has-text-centered is-vcentered">Company name</th>
-                    <th class="has-text-centered is-vcentered">Credit</th>
-                    <th class="has-text-centered is-vcentered">Reference No</th>
-                    <th class="has-text-centered is-vcentered">Transaction Code</th>
-                    <th class="has-text-centered is-vcentered">Remarks</th>
-                    <th class="has-text-centered is-vcentered">Status</th>
-                    <th class="has-text-centered is-vcentered">Receipting office</th>
-                    <th class="has-text-centered is-vcentered">Date of receipt</th>
-                    <th class="has-text-centered is-vcentered">Edit</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry in pending_receipts %}
-                <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
-                    <td>{{ entry['value_date'] }}</td>
-                    <td>{{ entry['company_name'] }}</td>
-                    <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
-                    <td>{{ entry['reference_no'] }}</td>
-                    <td>{{ entry['transaction_code'] }}</td>
-                    <td>{{ entry['remarks'] or "" }}</td>
-                    <td>{{ entry['status'] or "" }}</td>
-                    <td>{{ entry['receipting_office'] or "" }}</td>
-                    <td>{{ entry['date_of_receipt'] or "" }}</td>
-                    <td><a class="button is-link is-small" target="_blank"
-                            href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
-
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% with container_class = "container is-fluid", table_id = "coinsurance_receipts_pending_table", data =
+        pending_receipts %}
+        {% include "_coinsurance_receipt_table.html" with context %}
+        {% endwith %}
     </div>
 </div>
+{% endblock content %}
 {% block scripts %}
+
+{% with table_id = "coinsurance_receipts_table" %}
+{% include "_token_id_table_script.html" %}
+{% endwith %}
+
+{% with table_id = "coinsurance_receipts_pending_table" %}
+{% include "_token_id_table_script.html" %}
+{% endwith %}
 <script>
-    new DataTable('#coinsurance_receipts_table', {
-
-        layout: {
-            top1start: 'pageLength',
-            topStart: 'buttons',
-        },
-        stateSave: true,
-        // fixedHeader: true,
-        order: [[0, 'desc']],
-        buttons: [
-            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-
-        pagingType: 'full_numbers',
-        pageLength: 25,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],]
-    });
-    new DataTable('#coinsurance_receipts_pending_table', {
-
-        layout: {
-            top1start: 'pageLength',
-            topStart: 'buttons',
-        },
-        stateSave: true,
-        // fixedHeader: true,
-        order: [[0, 'desc']],
-        buttons: [
-            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-
-        pagingType: 'full_numbers',
-        pageLength: 25,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],]
-    });
 
     function show_pending_receipts() {
         // remove active of summary
@@ -149,4 +57,3 @@
     }
 </script>
 {% endblock scripts %}
-{% endblock content %}

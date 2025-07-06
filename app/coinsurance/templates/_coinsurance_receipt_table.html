@@ -1,0 +1,34 @@
+<table class="table is-fullwidth is-hoverable is-bordered" id="{{ table_id }}">
+    <thead>
+        <tr>
+            <th class="has-text-centered is-vcentered">Value date</th>
+            <th class="has-text-centered is-vcentered">Company name</th>
+            <th class="has-text-centered is-vcentered">Credit</th>
+            <th class="has-text-centered is-vcentered">Reference No</th>
+            <th class="has-text-centered is-vcentered">Transaction Code</th>
+            <th class="has-text-centered is-vcentered">Remarks</th>
+            <th class="has-text-centered is-vcentered">Status</th>
+            <th class="has-text-centered is-vcentered">Receipting office</th>
+            <th class="has-text-centered is-vcentered">Date of receipt</th>
+            <th class="has-text-centered is-vcentered">Edit</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in data %}
+        <tr {% if entry['status']=="Pending" %} class="has-background-warning-light" {% endif %}>
+            <td>{{ entry['value_date'] }}</td>
+            <td>{{ entry['company_name'] }}</td>
+            <td class="has-text-right">{{ entry['credit'] | indian_number_format }}</td>
+            <td>{{ entry['reference_no'] }}</td>
+            <td>{{ entry['transaction_code'] }}</td>
+            <td>{{ entry['remarks'] or "" }}</td>
+            <td>{{ entry['status'] or "" }}</td>
+            <td>{{ entry['receipting_office'] or "" }}</td>
+            <td>{{ entry['date_of_receipt'] or "" }}</td>
+            <td><a class="button is-link is-small" target="_blank"
+                    href="{{ url_for('coinsurance.edit_coinsurance_receipts', id=entry['id']) }}">Edit</a></td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
