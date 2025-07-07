@@ -21,6 +21,36 @@ from .lien_model import Lien
 from .lien_forms import LienFormCFAC, LienFormRO, LienUploadForm
 
 
+def prepare_upload_document(lien, form) -> None:
+    file_field_dictionary: dict[str : tuple(str, str, str)] = {
+        "court_order_lien": ("court_order_lien_file", "lien_order", "lien_order"),
+        "court_order_dd": ("court_order_dd_file", "dd_order", "dd_copy"),
+        "lien_dd_reversal_order": (
+            "lien_dd_reversal_order_file",
+            "lien_dd_reversal",
+            "lien_dd_reversal",
+        ),
+        "appeal_copy": ("appeal_copy_file", "appeal_copy", "appeal_copy"),
+        "stay_order": ("stay_order_file", "stay_order", "stay_order"),
+        "court_order_lien_reversal": (
+            "court_order_lien_reversal_file",
+            "lien_reversal",
+            "lien_reversal",
+        ),
+        "court_order_dd_reversal": (
+            "court_order_dd_reversal_file",
+            "dd_reversal",
+            "dd_reversal",
+        ),
+    }
+    for model_attribute, (
+        field,
+        document_type,
+        folder_name,
+    ) in file_field_dictionary.items():
+        upload_document(lien, form, field, document_type, model_attribute, folder_name)
+
+
 @lien_bp.route("/add", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -29,49 +59,11 @@ def lien_add():
     if form.validate_on_submit():
         lien = Lien()
         form.populate_obj(lien)
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_file",
-            "lien_order",
-            "court_order_lien",
-            "lien_order",
-        )
-        upload_document(
-            lien, form, "court_order_dd_file", "dd", "court_order_dd", "dd_copy"
-        )
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_reversal_file",
-            "lien_reversal",
-            "court_order_lien_reversal",
-            "lien_reversal",
-        )
-        upload_document(
-            lien,
-            form,
-            "court_order_dd_reversal_file",
-            "dd_reversal",
-            "court_order_dd_reversal",
-            "dd_reversal",
-        )
+        prepare_upload_document(lien, form)
         db.session.add(lien)
         db.session.commit()
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
     return render_template("lien_edit.html", form=form, title="Add new lien")
-
-
-# @lien_bp.route("/remarks/<lien_id>/", methods=["GET", "POST"])
-# @login_required
-# def lien_add_remarks(lien_id):
-#     lien = db.get_or_404(Lien, lien_id)
-#     form = LienAddRemarks(obj=lien)
-#     if form.validate_on_submit():
-#         form.populate_obj(lien)
-#         db.session.commit()
-#         return redirect(url_for("lien.lien_view", lien_id=lien.id))
-#     return render_template("lien_add_remarks.html", form=form, lien=lien)
 
 
 @lien_bp.route("/view/<lien_id>/", methods=["GET", "POST"])
@@ -91,33 +83,7 @@ def lien_edit(lien_id):
         form = LienFormRO(obj=lien)
     if form.validate_on_submit():
         form.populate_obj(lien)
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_file",
-            "lien_order",
-            "court_order_lien",
-            "lien_order",
-        )
-        upload_document(
-            lien, form, "court_order_dd_file", "dd", "court_order_dd", "dd_copy"
-        )
-        upload_document(
-            lien,
-            form,
-            "court_order_lien_reversal_file",
-            "lien_reversal",
-            "court_order_lien_reversal",
-            "lien_reversal",
-        )
-        upload_document(
-            lien,
-            form,
-            "court_order_dd_reversal_file",
-            "dd_reversal",
-            "court_order_dd_reversal",
-            "dd_reversal",
-        )
+        prepare_upload_document(lien, form)
         db.session.commit()
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
     return render_template("lien_edit.html", form=form, lien=lien, title="Edit lien")
@@ -126,24 +92,27 @@ def lien_edit(lien_id):
 @lien_bp.get("/download/<int:lien_id>/<string:document_type>/")
 @login_required
 def download_document(document_type, lien_id):
-    lien = Lien.query.get_or_404(lien_id)
+    def get_document_path(lien, document_type):
+        document_map = {
+            "lien_order": lien.court_order_lien,
+            "dd_copy": lien.court_order_dd,
+            "lien_reversal": lien.court_order_lien_reversal,
+            "dd_reversal": lien.court_order_dd_reversal,
+            "appeal_copy": lien.appeal_copy,
+            "stay_order": lien.stay_order,
+            "lien_dd_reversal": lien.lien_dd_reversal_order,
+        }
+        return document_map.get(document_type)
 
-    if document_type == "lien_order":
-        file_extension = lien.court_order_lien.rsplit(".", 1)[1]
-        path = lien.court_order_lien
-    elif document_type == "dd_copy":
-        file_extension = lien.court_order_dd.rsplit(".", 1)[1]
-        path = lien.court_order_dd
-    elif document_type == "lien_reversal":
-        file_extension = lien.court_order_lien_reversal.rsplit(".", 1)[1]
-        path = lien.court_order_lien_reversal
-    elif document_type == "dd_reversal":
-        file_extension = lien.court_order_dd_reversal.rsplit(".", 1)[1]
-        path = lien.court_order_dd_reversal
-    else:
+    lien = db.get_or_404(Lien, lien_id)
+
+    path = get_document_path(lien, document_type)
+    if not path:
         abort(404)
 
-    filename = f"{lien.lien_amount}_{lien.date_of_order}.{file_extension}"
+    file_extension = path.rsplit(".", 1)[-1]
+
+    filename = f"{document_type}_{lien.bank_name}_{lien.lien_amount}.{file_extension}"
     return send_from_directory(
         directory=f"{current_app.config.get('UPLOAD_FOLDER')}lien/{document_type}/",
         path=path,

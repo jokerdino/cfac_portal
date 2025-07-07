@@ -1,0 +1,24 @@
+{# templates/macros.html #}
+{% macro render_row(label, value, is_html=False, word_wrap=False) %}
+<tr>
+    <th>{{ label }}</th>
+    <td {% if word_wrap %}class="word-wrap" {% endif %}>{% if is_html %} {{ value | safe }} {% else %} {{ value }}{%
+        endif %} </td>
+</tr>
+{% endmacro %}
+
+{% macro download_row(label, file_attr, lien_id, document_type) %}
+<tr>
+    <th>{{ label }}</th>
+    <td>
+        {% if file_attr %}
+        <a class="button is-small is-outlined is-link"
+            href="{{ url_for('lien.download_document', lien_id=lien_id, document_type=document_type) }}">
+            Download {{ label | lower }}
+        </a>
+        {% else %}
+        {{ label }} not uploaded
+        {% endif %}
+    </td>
+</tr>
+{% endmacro %}
