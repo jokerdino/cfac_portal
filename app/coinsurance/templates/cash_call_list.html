@@ -38,8 +38,8 @@
                 item['date_of_cash_call_raised'].strftime("%d/%m/%Y") }}</td>
             <td>{{ item['txt_current_status'] }}</td>
             <td>{{ item['txt_request_id'] }}</td>
-            <td><a href="{{ url_for('coinsurance.view_cash_call', cash_call_key=item['id'] )}}">View</a></td>
-            <td><a href="{{ url_for('coinsurance.edit_cash_call', cash_call_key=item['id'] )}}">Edit</a></td>
+            <td><a href="{{ url_for('coinsurance.view_cash_call', cash_call_key=item['id'] ) }}">View</a></td>
+            <td><a href="{{ url_for('coinsurance.edit_cash_call', cash_call_key=item['id'] ) }}">Edit</a></td>
 
         </tr>
         {% endfor %}

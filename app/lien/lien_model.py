@@ -27,6 +27,7 @@ class Lien(db.Model):
     case_number = db.Column(db.String)
     case_title = db.Column(db.String)
     petitioner_name = db.Column(db.String)
+
     date_of_lien_order = db.Column(db.Date)
     claim_already_paid_by_hub_office = db.Column(db.String)
     claim_number = db.Column(db.String)

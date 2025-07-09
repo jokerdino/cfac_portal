@@ -42,6 +42,11 @@ def prepare_upload_document(lien, form) -> None:
             "dd_reversal",
             "dd_reversal",
         ),
+        "claim_disbursement_voucher": (
+            "claim_disbursement_voucher_file",
+            "disbursement_voucher",
+            "disbursement_voucher",
+        ),
     }
     for model_attribute, (
         field,
@@ -101,6 +106,7 @@ def download_document(document_type, lien_id):
             "appeal_copy": lien.appeal_copy,
             "stay_order": lien.stay_order,
             "lien_dd_reversal": lien.lien_dd_reversal_order,
+            "disbursement_voucher": lien.claim_disbursement_voucher,
         }
         return document_map.get(document_type)
 
@@ -127,7 +133,7 @@ def lien_list():
     liens = db.session.scalars(
         db.select(Lien)
     )  # .where(Lien.lien_status == "Lien exists"))
-    column_names = [column.name for column in Lien.__table__.columns][1:14]
+    column_names = [column.name for column in Lien.__table__.columns][1:35]
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
 
 
