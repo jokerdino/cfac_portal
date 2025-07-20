@@ -1,0 +1,63 @@
+{% extends "em_layout.html" %}
+
+{% block content %}
+<div class="container table-container is-fluid">
+    <h1 class="title">Bank escalation matrix</h1>
+
+    <table class="table is-fullwidth is-bordered" id="lien_table">
+        <thead>
+            <tr>
+
+                {% if enable_edit %}
+                <th class="has-text-centered is-vcentered">EDIT</th>
+                {% endif %}
+
+                {% for col in column_names %}
+                <th class="has-text-centered is-vcentered">{{ col | replace("_"," ")| upper }}</th>
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in list %}
+            <tr>
+
+                {% if enable_edit %}
+                <td class="has-text-centered is-vcentered"> <a class="button is-link is-outlined is-small"
+                        href="{{ url_for('.edit_escalation_matrix', key=item['id']) }}">Edit</a>
+                </td>
+                {% endif %}
+                {% for col in column_names %}
+                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                {% endfor %}
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+</div>
+{% block scripts %}
+
+<script>
+    new DataTable('#lien_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+
+    })
+</script>
+{% endblock scripts %}
+{% endblock content %}

@@ -24,6 +24,7 @@ from app.pool_credits import pool_credits_bp
 from app.budget import budget_bp
 from app.pg_tieup import pg_tieup_bp
 from app.lien import lien_bp
+from app.escalation_matrix import em_bp
 
 from app.leave_management import leave_mgmt_bp
 from app.employee_leave_balance import leave_balance_bp
@@ -92,7 +93,7 @@ def create_app(config_class=Config):
     app.register_blueprint(leave_mgmt_bp, url_prefix="/leave")
     app.register_blueprint(leave_balance_bp, url_prefix="/leave_balance")
     app.register_blueprint(brs_cc_bp, url_prefix="/brs_cc")
-
+    app.register_blueprint(em_bp, url_prefix="/escalation_matrix")
     app.register_blueprint(ri_page_bp, url_prefix="/ri")
 
     app.register_blueprint(errors_bp, url_prefix="/error")

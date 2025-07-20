@@ -38,6 +38,7 @@ from app.coinsurance.coinsurance_model import (
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
+from app.escalation_matrix.models import EscalationMatrix
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
     FundBankAccountNumbers,
@@ -290,6 +291,8 @@ admin.add_view(ModelView(Contacts, db.session, endpoint="contacts_"))
 # contracts
 admin.add_view(ModelView(Contracts, db.session, endpoint="contracts_"))
 
+# escalation matrix
+admin.add_view(ModelView(EscalationMatrix, db.session, endpoint="em_"))
 # funds
 admin.add_view(
     DefaultModelView(
