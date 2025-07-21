@@ -45,18 +45,19 @@ class ExcelFileValidator:
             # Validate date columns
             max_date = pd.Timestamp(form.date_of_month.data)
             for date_col in self.date_columns:
-                if date_col in df.columns:
-                    df[date_col] = pd.to_datetime(
-                        df[date_col], errors="coerce", format="%d/%m/%Y"
+                if date_col not in df.columns:
+                    raise ValidationError(f"Missing required date column: '{date_col}'")
+                df[date_col] = pd.to_datetime(
+                    df[date_col], errors="coerce", format="%d/%m/%Y"
+                )
+                if df[date_col].isnull().any():
+                    raise ValidationError(
+                        f"Invalid dates found in '{date_col}'. Please enter dates in dd/mm/yyyy format."
                     )
-                    if df[date_col].isnull().any():
-                        raise ValidationError(
-                            f"Invalid dates found in '{date_col}'. Please enter dates in dd/mm/yyyy format."
-                        )
-                    if df[date_col].gt(max_date).any():
-                        raise ValidationError(
-                            f"Dates in '{date_col}' cannot be in the future."
-                        )
+                if df[date_col].gt(max_date).any():
+                    raise ValidationError(
+                        f"Dates in '{date_col}' cannot be in the future."
+                    )
             # Validate sum comparison
             if self.sum_column and self.compare_field:
                 sum_value = df[self.sum_column].sum()
