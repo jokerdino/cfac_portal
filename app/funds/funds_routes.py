@@ -23,6 +23,8 @@ from sqlalchemy import (
     func,
     text,
     union,
+    or_,
+    and_,
 )
 
 from app.funds import funds_bp
@@ -130,45 +132,45 @@ def fill_outflow(date, description=None):
     return outflow[0][0] or 0
 
 
-def return_prev_day_closing_balance(date: datetime, type: str):
-    """Obsolete function. Please use 'get_previous_day_closing_balance_refactored' instead"""
-    daily_summary = (
-        db.session.query(FundDailySheet)
-        .filter(FundDailySheet.date_current_date < date)
-        .order_by(FundDailySheet.date_current_date.desc())
-        .limit(1)
-    ).first()
+# def return_prev_day_closing_balance(date: datetime, type: str):
+#     """Obsolete function. Please use 'get_previous_day_closing_balance_refactored' instead"""
+#     daily_summary = (
+#         db.session.query(FundDailySheet)
+#         .filter(FundDailySheet.date_current_date < date)
+#         .order_by(FundDailySheet.date_current_date.desc())
+#         .limit(1)
+#     ).first()
 
-    if daily_summary:
-        if type == "Investment":
-            return daily_summary.float_amount_investment_closing_balance or 0
-        elif type == "HDFC":
-            return daily_summary.float_amount_hdfc_closing_balance or 0
-    else:
-        return 0
+#     if daily_summary:
+#         if type == "Investment":
+#             return daily_summary.float_amount_investment_closing_balance or 0
+#         elif type == "HDFC":
+#             return daily_summary.float_amount_hdfc_closing_balance or 0
+#     else:
+#         return 0
 
 
-def get_daily_summary(input_date, requirement):
-    """Obsolete function. Please use 'get_daily_summary_refactored' instead."""
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == input_date
-    ).first()
-    if not daily_sheet:
-        return 0
+# def get_daily_summary(input_date, requirement):
+#     """Obsolete function. Please use 'get_daily_summary_refactored' instead."""
+#     daily_sheet = FundDailySheet.query.filter(
+#         FundDailySheet.date_current_date == input_date
+#     ).first()
+#     if not daily_sheet:
+#         return 0
 
-    if requirement == "net_investment":
-        net_investment_amount = (daily_sheet.float_amount_given_to_investments or 0) - (
-            daily_sheet.float_amount_taken_from_investments or 0
-        )
-        return net_investment_amount or 0
-    elif requirement == "closing_balance":
-        return daily_sheet.float_amount_hdfc_closing_balance or 0
-    elif requirement == "investment_closing_balance":
-        return daily_sheet.float_amount_investment_closing_balance or 0
-    elif requirement == "investment_given":
-        return daily_sheet.float_amount_given_to_investments or 0
-    elif requirement == "investment_taken":
-        return daily_sheet.float_amount_taken_from_investments or 0
+#     if requirement == "net_investment":
+#         net_investment_amount = (daily_sheet.float_amount_given_to_investments or 0) - (
+#             daily_sheet.float_amount_taken_from_investments or 0
+#         )
+#         return net_investment_amount or 0
+#     elif requirement == "closing_balance":
+#         return daily_sheet.float_amount_hdfc_closing_balance or 0
+#     elif requirement == "investment_closing_balance":
+#         return daily_sheet.float_amount_investment_closing_balance or 0
+#     elif requirement == "investment_given":
+#         return daily_sheet.float_amount_given_to_investments or 0
+#     elif requirement == "investment_taken":
+#         return daily_sheet.float_amount_taken_from_investments or 0
 
 
 def get_previous_day_closing_balance_refactored(input_date, requirement):
@@ -176,7 +178,7 @@ def get_previous_day_closing_balance_refactored(input_date, requirement):
         db.session.query(FundDailySheet)
         .filter(FundDailySheet.date_current_date < input_date)
         .order_by(FundDailySheet.date_current_date.desc())
-        .limit(1)
+        # .limit(1)
     ).first()
 
     if not daily_sheet:
@@ -808,160 +810,303 @@ def edit_flag_entry(flag_id):
     return render_template("jv_pattern_add.html", form=form, title="Edit flag entry")
 
 
-@funds_bp.route("/outflow/edit/<string:date_string>", methods=["GET", "POST"])
+# @funds_bp.route("/outflow/edit/<string:date_string>", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def enter_outflow(date_string):
+#     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+#     flag_description = db.session.query(FundFlagSheet.flag_description)
+#     daily_sheet = FundDailySheet.query.filter(
+#         FundDailySheet.date_current_date == param_date
+#     ).first()
+
+#     investment_list = FundAmountGivenToInvestment.query.filter(
+#         (FundAmountGivenToInvestment.date_expected_date_of_return == param_date)
+#         | (
+#             (FundAmountGivenToInvestment.current_status == "Pending")
+#             & (FundAmountGivenToInvestment.date_expected_date_of_return < param_date)
+#         )
+#     )
+#     list_outgo = FundMajorOutgo.query.filter(
+#         (FundMajorOutgo.date_of_outgo == param_date)
+#         | (
+#             (FundMajorOutgo.current_status == "Pending")
+#             & (FundMajorOutgo.date_of_outgo < param_date)
+#         )
+#     )
+#     #    form = OutflowForm()
+#     DynamicOutflowForm = generate_outflow_form(outflow_labels)
+#     form = DynamicOutflowForm()
+#     if form.validate_on_submit():
+#         for key, amount in form.data.items():
+#             if ("amount" in key) and (amount is not None):
+#                 create_or_update_outflow(param_date, key, amount)
+
+#         expected_date_of_return = form.data["expected_date_of_return"] or None
+#         amount_given_to_investment = form.data["given_to_investment"] or 0
+
+#         if (amount_given_to_investment > 0) and expected_date_of_return:
+#             # finding if any entry is present for the day
+#             given_to_investment = (
+#                 FundAmountGivenToInvestment.query.filter(
+#                     FundAmountGivenToInvestment.date_given_to_investment == param_date
+#                 )
+#                 .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+#                 .first()
+#             )
+#             # summing up all the funds given to investment for the day
+#             # if the sum totals up, do not update the amount in given_to_investment table
+#             # otherwise, update the table
+
+#             sum_given_to_investment = (
+#                 FundAmountGivenToInvestment.query.with_entities(
+#                     func.sum(
+#                         FundAmountGivenToInvestment.float_amount_given_to_investment
+#                     )
+#                 )
+#                 .filter(
+#                     FundAmountGivenToInvestment.date_given_to_investment == param_date
+#                 )
+#                 .first()
+#             )
+
+#             if not given_to_investment:
+#                 # if entry for the date is not there, create new one
+
+#                 # else find the existing entry and update it
+#                 given_to_investment = FundAmountGivenToInvestment(
+#                     date_given_to_investment=param_date,
+#                     float_amount_given_to_investment=amount_given_to_investment,
+#                     text_remarks=f"From daily sheet {param_date.strftime('%d/%m/%Y')}",
+#                     date_expected_date_of_return=expected_date_of_return,
+#                     current_status="Pending",
+#                     created_by=current_user.username,
+#                     date_created_date=datetime.datetime.now(),
+#                 )
+#                 db.session.add(given_to_investment)
+
+#             # if the sum of all the funds given to investment for the day tallies with amount given in the form,
+#             # do not update the amount given to investment table
+#             # if the total does not tally, update the amount given to investment table
+
+#             elif sum_given_to_investment[0] != amount_given_to_investment:
+#                 given_to_investment.date_expected_date_of_return = (
+#                     expected_date_of_return
+#                 )
+#                 # difference amount of sum and entered value will be updated in the table
+#                 given_to_investment.float_amount_given_to_investment += (
+#                     amount_given_to_investment - sum_given_to_investment[0]
+#                 )
+#                 given_to_investment.updated_by = current_user.username
+#                 given_to_investment.date_updated_date = datetime.datetime.now()
+
+#         # db.session.commit()
+#         daily_sheet.float_amount_given_to_investments = amount_given_to_investment
+#         daily_sheet.float_amount_taken_from_investments = display_inflow(
+#             param_date, "Drawn from investment"
+#         )  # amount_drawn_from_investment
+
+#         daily_sheet.float_amount_investment_closing_balance = (
+#             get_previous_day_closing_balance_refactored(param_date, "Investment")
+#             + amount_given_to_investment
+#             - display_inflow(param_date, "Drawn from investment")
+#         )
+
+#         # yesterday closing balance + inflow - outflow + investment_inflow - investment_outflow
+#         daily_sheet.float_amount_hdfc_closing_balance = (
+#             get_previous_day_closing_balance_refactored(param_date, "HDFC")
+#             + display_inflow(param_date)
+#             - fill_outflow(param_date)
+#             - amount_given_to_investment
+#         )
+#         daily_sheet.updated_by = current_user.username
+#         daily_sheet.date_updated_date = datetime.datetime.now()
+#         db.session.commit()
+
+#         return redirect(
+#             url_for(
+#                 "funds.add_remarks",
+#                 date_string=date_string,
+#             )
+#         )
+
+#     for item in outflow_amounts:
+#         form[item].data = fill_outflow(param_date, item)
+
+#     form.given_to_investment.data = (
+#         (daily_sheet.float_amount_given_to_investments or 0) if daily_sheet else 0
+#     )
+
+#     # if entry for date is present, please insert it
+
+#     given_to_investment = (
+#         FundAmountGivenToInvestment.query.filter(
+#             FundAmountGivenToInvestment.date_given_to_investment == param_date
+#         )
+#         .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+#         .first()
+#     )
+#     if given_to_investment:
+#         form.expected_date_of_return.data = (
+#             given_to_investment.date_expected_date_of_return
+#         )
+
+#     return render_template(
+#         "enter_outflow.html",
+#         form=form,
+#         display_date=param_date,
+#         enable_update=enable_update,
+#         display_inflow=display_inflow,
+#         investment_list=investment_list,
+#         list_outgo=list_outgo,
+#         return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+#         get_inflow_total=get_inflow_total,
+#         flag_description=flag_description,
+#         daily_sheet=daily_sheet,
+#     )
+
+
+@funds_bp.route("/outflow/edit/<string:date_string>/", methods=["GET", "POST"])
 @login_required
 @fund_managers
 def enter_outflow(date_string):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    flag_description = db.session.query(FundFlagSheet.flag_description)
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == param_date
-    ).first()
+    daily_sheet, investment_list, list_outgo, flag_description = get_outflow_data(
+        param_date
+    )
 
-    investment_list = FundAmountGivenToInvestment.query.filter(
-        (FundAmountGivenToInvestment.date_expected_date_of_return == param_date)
-        | (
-            (FundAmountGivenToInvestment.current_status == "Pending")
-            & (FundAmountGivenToInvestment.date_expected_date_of_return < param_date)
-        )
-    )
-    list_outgo = FundMajorOutgo.query.filter(
-        (FundMajorOutgo.date_of_outgo == param_date)
-        | (
-            (FundMajorOutgo.current_status == "Pending")
-            & (FundMajorOutgo.date_of_outgo < param_date)
-        )
-    )
-    #    form = OutflowForm()
     DynamicOutflowForm = generate_outflow_form(outflow_labels)
     form = DynamicOutflowForm()
+
     if form.validate_on_submit():
-        for key, amount in form.data.items():
-            if ("amount" in key) and (amount is not None):
-                create_or_update_outflow(param_date, key, amount)
+        handle_outflow_form_submission(form, param_date, daily_sheet)
+        return redirect(url_for("funds.add_remarks", date_string=date_string))
 
-        expected_date_of_return = form.data["expected_date_of_return"] or None
-        amount_given_to_investment = form.data["given_to_investment"] or 0
-
-        if (amount_given_to_investment > 0) and expected_date_of_return:
-            # finding if any entry is present for the day
-            given_to_investment = (
-                FundAmountGivenToInvestment.query.filter(
-                    FundAmountGivenToInvestment.date_given_to_investment == param_date
-                )
-                .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-                .first()
-            )
-            # summing up all the funds given to investment for the day
-            # if the sum totals up, do not update the amount in given_to_investment table
-            # otherwise, update the table
-
-            sum_given_to_investment = (
-                FundAmountGivenToInvestment.query.with_entities(
-                    func.sum(
-                        FundAmountGivenToInvestment.float_amount_given_to_investment
-                    )
-                )
-                .filter(
-                    FundAmountGivenToInvestment.date_given_to_investment == param_date
-                )
-                .first()
-            )
-
-            if not given_to_investment:
-                # if entry for the date is not there, create new one
-
-                # else find the existing entry and update it
-                given_to_investment = FundAmountGivenToInvestment(
-                    date_given_to_investment=param_date,
-                    float_amount_given_to_investment=amount_given_to_investment,
-                    text_remarks=f"From daily sheet {param_date.strftime('%d/%m/%Y')}",
-                    date_expected_date_of_return=expected_date_of_return,
-                    current_status="Pending",
-                    created_by=current_user.username,
-                    date_created_date=datetime.datetime.now(),
-                )
-                db.session.add(given_to_investment)
-
-            # if the sum of all the funds given to investment for the day tallies with amount given in the form,
-            # do not update the amount given to investment table
-            # if the total does not tally, update the amount given to investment table
-
-            elif sum_given_to_investment[0] != amount_given_to_investment:
-                given_to_investment.date_expected_date_of_return = (
-                    expected_date_of_return
-                )
-                # difference amount of sum and entered value will be updated in the table
-                given_to_investment.float_amount_given_to_investment += (
-                    amount_given_to_investment - sum_given_to_investment[0]
-                )
-                given_to_investment.updated_by = current_user.username
-                given_to_investment.date_updated_date = datetime.datetime.now()
-
-        # db.session.commit()
-        daily_sheet.float_amount_given_to_investments = amount_given_to_investment
-        daily_sheet.float_amount_taken_from_investments = display_inflow(
-            param_date, "Drawn from investment"
-        )  # amount_drawn_from_investment
-
-        daily_sheet.float_amount_investment_closing_balance = (
-            get_previous_day_closing_balance_refactored(param_date, "Investment")
-            + amount_given_to_investment
-            - display_inflow(param_date, "Drawn from investment")
-        )
-
-        # yesterday closing balance + inflow - outflow + investment_inflow - investment_outflow
-        daily_sheet.float_amount_hdfc_closing_balance = (
-            get_previous_day_closing_balance_refactored(param_date, "HDFC")
-            + display_inflow(param_date)
-            - fill_outflow(param_date)
-            - amount_given_to_investment
-        )
-        daily_sheet.updated_by = current_user.username
-        daily_sheet.date_updated_date = datetime.datetime.now()
-        db.session.commit()
-
-        return redirect(
-            url_for(
-                "funds.add_remarks",
-                date_string=date_string,
-            )
-        )
-
-    for item in outflow_amounts:
-        form[item].data = fill_outflow(param_date, item)
-
-    form.given_to_investment.data = (
-        (daily_sheet.float_amount_given_to_investments or 0) if daily_sheet else 0
-    )
-
-    # if entry for date is present, please insert it
-
-    given_to_investment = (
-        FundAmountGivenToInvestment.query.filter(
-            FundAmountGivenToInvestment.date_given_to_investment == param_date
-        )
-        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-        .first()
-    )
-    if given_to_investment:
-        form.expected_date_of_return.data = (
-            given_to_investment.date_expected_date_of_return
-        )
+    populate_outflow_form_data(form, param_date, daily_sheet)
 
     return render_template(
         "enter_outflow.html",
         form=form,
         display_date=param_date,
-        enable_update=enable_update,
-        display_inflow=display_inflow,
+        # enable_update=enable_update,
+        #       display_inflow=display_inflow,
         investment_list=investment_list,
         list_outgo=list_outgo,
-        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
-        get_inflow_total=get_inflow_total,
+        #        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+        #        get_inflow_total=get_inflow_total,
         flag_description=flag_description,
         daily_sheet=daily_sheet,
     )
+
+
+def date_or_pending_filter(date_field, status_field, target_date):
+    return or_(
+        date_field == target_date,
+        and_(status_field == "Pending", date_field < target_date),
+    )
+
+
+def get_outflow_data(param_date):
+    daily_sheet = FundDailySheet.query.filter_by(date_current_date=param_date).first()
+
+    investment_list = FundAmountGivenToInvestment.query.filter(
+        date_or_pending_filter(
+            FundAmountGivenToInvestment.date_expected_date_of_return,
+            FundAmountGivenToInvestment.current_status,
+            param_date,
+        )
+    )
+
+    list_outgo = FundMajorOutgo.query.filter(
+        date_or_pending_filter(
+            FundMajorOutgo.date_of_outgo, FundMajorOutgo.current_status, param_date
+        )
+    )
+    flag_description = db.session.query(FundFlagSheet.flag_description)
+    return daily_sheet, investment_list, list_outgo, flag_description
+
+
+def handle_outflow_form_submission(form, param_date, daily_sheet):
+    for key, amount in form.data.items():
+        if ("amount" in key) and (amount is not None):
+            create_or_update_outflow(param_date, key, amount)
+
+    amount_given = form.data.get("given_to_investment", 0)
+    expected_date = form.data.get("expected_date_of_return")
+
+    if amount_given > 0 and expected_date:
+        update_given_to_investment_entry(param_date, amount_given, expected_date)
+
+    update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given)
+    db.session.commit()
+
+
+def update_given_to_investment_entry(param_date, amount, expected_date):
+    entry = (
+        FundAmountGivenToInvestment.query.filter_by(date_given_to_investment=param_date)
+        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+        .first()
+    )
+
+    total_investment = (
+        db.session.query(
+            func.sum(FundAmountGivenToInvestment.float_amount_given_to_investment)
+        )
+        .filter_by(date_given_to_investment=param_date)
+        .scalar()
+        or 0
+    )
+
+    if not entry:
+        new_entry = FundAmountGivenToInvestment(
+            date_given_to_investment=param_date,
+            float_amount_given_to_investment=amount,
+            text_remarks=f"From daily sheet {param_date.strftime('%d/%m/%Y')}",
+            date_expected_date_of_return=expected_date,
+            current_status="Pending",
+        )
+        db.session.add(new_entry)
+    elif total_investment != amount:
+        entry.date_expected_date_of_return = expected_date
+        entry.float_amount_given_to_investment += amount - total_investment
+
+
+def update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given):
+    daily_sheet.float_amount_given_to_investments = amount_given
+    drawn_amount = display_inflow(param_date, "Drawn from investment")
+    daily_sheet.float_amount_taken_from_investments = drawn_amount
+
+    daily_sheet.float_amount_investment_closing_balance = (
+        get_previous_day_closing_balance_refactored(param_date, "Investment")
+        + amount_given
+        - drawn_amount
+    )
+
+    daily_sheet.float_amount_hdfc_closing_balance = (
+        get_previous_day_closing_balance_refactored(param_date, "HDFC")
+        + display_inflow(param_date)
+        - fill_outflow(param_date)
+        - amount_given
+    )
+
+
+def populate_outflow_form_data(form, param_date, daily_sheet):
+    for item in outflow_amounts:
+        form[item].data = fill_outflow(param_date, item)
+
+    # form.given_to_investment.data = daily_sheet.float_amount_given_to_investments or 0
+    form.given_to_investment.data = (
+        getattr(daily_sheet, "float_amount_given_to_investments", 0) or 0
+    )
+
+    entry = (
+        FundAmountGivenToInvestment.query.filter_by(date_given_to_investment=param_date)
+        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
+        .first()
+    )
+
+    if entry:
+        form.expected_date_of_return.data = entry.date_expected_date_of_return
 
 
 def enable_update(date):
@@ -1013,14 +1158,14 @@ def add_remarks(date_string):
         "add_remarks.html",
         form=form,
         display_date=param_date,
-        enable_update=enable_update,
-        display_inflow=display_inflow,
-        display_outflow=fill_outflow,
+        #  enable_update=enable_update,
+        # display_inflow=display_inflow,
+        # display_outflow=fill_outflow,
         daily_sheet=daily_sheet,
-        get_daily_summary=get_daily_summary_refactored,
-        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+        # get_daily_summary=get_daily_summary_refactored,
+        # return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
         flag_description=flag_description,
-        get_inflow_total=get_inflow_total,
+        # get_inflow_total=get_inflow_total,
         outflow_items=zip(outflow_labels, outflow_amounts),
     )
 
@@ -1041,18 +1186,18 @@ def ibt(date_string, pdf="False"):
         display_date=param_date,
         datetime=datetime,
         daily_sheet=daily_sheet,
-        display_inflow=display_inflow,
+        # display_inflow=display_inflow,
         outflow_items=zip(outflow_labels, outflow_amounts),
         right_length=len(outflow_labels),
-        display_outflow=fill_outflow,
+        # display_outflow=fill_outflow,
         flag_description=flag_description,
-        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
-        get_inflow_total=get_inflow_total,
+        # return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+        # get_inflow_total=get_inflow_total,
         pdf=pdf,
-        timedelta=datetime.timedelta,
-        relativedelta=relativedelta,
-        get_daily_summary=get_daily_summary_refactored,
-        get_ibt_details=get_ibt_details,
+        #  timedelta=datetime.timedelta,
+        #   relativedelta=relativedelta,
+        #  get_daily_summary=get_daily_summary_refactored,
+        #   get_ibt_details=get_ibt_details,
     )
 
 
@@ -1071,17 +1216,17 @@ def daily_summary(date_string, pdf="False"):
         display_date=param_date,
         datetime=datetime,
         daily_sheet=daily_sheet,
-        display_inflow=display_inflow,
+        # display_inflow=display_inflow,
         outflow_items=zip(outflow_labels, outflow_amounts),
         right_length=len(outflow_labels),
-        display_outflow=fill_outflow,
+        # display_outflow=fill_outflow,
         flag_description=flag_description,
-        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
-        get_inflow_total=get_inflow_total,
+        # return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+        # get_inflow_total=get_inflow_total,
         pdf=pdf,
-        timedelta=datetime.timedelta,
-        relativedelta=relativedelta,
-        get_daily_summary=get_daily_summary_refactored,
+        # timedelta=datetime.timedelta,
+        # relativedelta=relativedelta,
+        # get_daily_summary=get_daily_summary_refactored,
     )
 
 
@@ -1327,6 +1472,11 @@ def funds_context():
     return dict(
         display_inflow=display_inflow,
         display_outflow=fill_outflow,
+        enable_update=enable_update,
         get_inflow_total=get_inflow_total,
         get_daily_summary=get_daily_summary_refactored,
+        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
+        get_ibt_details=get_ibt_details,
+        timedelta=datetime.timedelta,
+        relativedelta=relativedelta,
     )
