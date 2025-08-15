@@ -53,7 +53,8 @@
                 <td class="has-text-right">{{ get_daily_summary(date[0], "investment_closing_balance") |
                     indian_number_format }}
                 </td>
-                <td class="has-text-right">{{ get_daily_summary(date[0], "closing_balance") | indian_number_format }}
+                <td class="has-text-right">{{ get_daily_summary(date[0], "hdfc_closing_balance") | indian_number_format
+                    }}
                 </td>
             </tr>
             {% endfor %}

@@ -103,33 +103,64 @@ outflow_amounts = [
 # ]
 
 
-def display_inflow(input_date, inflow_description=None):
-    inflow = db.session.query(
+# def display_inflow(input_date, inflow_description=None):
+#     inflow = db.session.query(
+#         func.sum(FundBankStatement.credit),
+#         func.sum(FundBankStatement.debit),
+#         func.sum(FundBankStatement.ledger_balance),
+#     ).filter(FundBankStatement.date_uploaded_date == input_date)
+#     if inflow_description:
+#         inflow = inflow.filter(FundBankStatement.flag_description == inflow_description)
+#         # if inflow_description in ["HDFC OPENING BAL", "HDFC CLOSING BAL"]:
+#         #     # Opening balance and closing balances values are stored in ledger_balance column
+#         #     print(type(inflow[0][1]))
+#         #     return inflow[0][1]
+
+#     return inflow[0][0] or 0
+
+
+# def fill_outflow(date, description=None):
+#     outflow = db.session.query(func.sum(FundDailyOutflow.outflow_amount)).filter(
+#         FundDailyOutflow.outflow_date == date
+#     )
+#     if description:
+#         outflow = outflow.filter(
+#             FundDailyOutflow.outflow_description == description
+#         )  # .first()
+#         # return outflow[0] or 0
+
+#     return outflow[0][0] or 0
+
+
+def get_inflow(input_date, inflow_description=None):
+    query = db.session.query(
         func.sum(FundBankStatement.credit),
         func.sum(FundBankStatement.debit),
         func.sum(FundBankStatement.ledger_balance),
     ).filter(FundBankStatement.date_uploaded_date == input_date)
+
     if inflow_description:
-        inflow = inflow.filter(FundBankStatement.flag_description == inflow_description)
-        # if inflow_description in ["HDFC OPENING BAL", "HDFC CLOSING BAL"]:
-        #     # Opening balance and closing balances values are stored in ledger_balance column
-        #     print(type(inflow[0][1]))
-        #     return inflow[0][1]
+        query = query.filter(FundBankStatement.flag_description == inflow_description)
 
-    return inflow[0][0] or 0
+    total_credit, total_debit, total_ledger = query.first() or (0, 0, 0)
+
+    # Special handling for balances
+    if inflow_description in ("HDFC OPENING BAL", "HDFC CLOSING BAL"):
+        return total_ledger or 0
+
+    return total_credit or 0
 
 
-def fill_outflow(date, description=None):
-    outflow = db.session.query(func.sum(FundDailyOutflow.outflow_amount)).filter(
+def get_outflow(date, description=None):
+    query = db.session.query(func.sum(FundDailyOutflow.outflow_amount)).filter(
         FundDailyOutflow.outflow_date == date
     )
-    if description:
-        outflow = outflow.filter(
-            FundDailyOutflow.outflow_description == description
-        ).first()
-        return outflow[0] or 0
 
-    return outflow[0][0] or 0
+    if description:
+        query = query.filter(FundDailyOutflow.outflow_description == description)
+
+    total_outflow = query.first()[0]  # first() returns a tuple like (sum_value,)
+    return total_outflow or 0
 
 
 # def return_prev_day_closing_balance(date: datetime, type: str):
@@ -200,14 +231,14 @@ def get_daily_summary_refactored(input_date, requirement):
 def get_requirement(daily_sheet, requirement):
     requirement_dict = {
         "net_investment": daily_sheet.get_net_investment,
-        "HDFC": daily_sheet.float_amount_hdfc_closing_balance or 0,
-        "closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
         "hdfc_closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
-        "Investment": daily_sheet.float_amount_investment_closing_balance or 0,
         "investment_closing_balance": daily_sheet.float_amount_investment_closing_balance
         or 0,
         "investment_given": daily_sheet.float_amount_given_to_investments or 0,
         "investment_taken": daily_sheet.float_amount_taken_from_investments or 0,
+        #  "HDFC": daily_sheet.float_amount_hdfc_closing_balance or 0, # Use hdfc_closing_balance
+        # "closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0, # Use hdfc_closing_balance
+        #  "Investment": daily_sheet.float_amount_investment_closing_balance or 0, # Use investment_closing_balance
     }
 
     return requirement_dict.get(requirement, 0)
@@ -215,8 +246,11 @@ def get_requirement(daily_sheet, requirement):
 
 def get_inflow_total(date):
     inflow_total = (
-        (display_inflow(date) or 0)
-        + (get_previous_day_closing_balance_refactored(date, "HDFC") or 0)
+        (get_inflow(date) or 0)
+        + (
+            get_previous_day_closing_balance_refactored(date, "hdfc_closing_balance")
+            or 0
+        )
         - (get_daily_summary_refactored(date, "investment_taken"))
     )
 
@@ -538,7 +572,7 @@ def normalize_bank_statement(df: pd.DataFrame) -> pd.DataFrame:
 
 def verify_closing_balance(df: pd.DataFrame) -> bool:
     closing_balance_prev = get_previous_day_closing_balance_refactored(
-        datetime.date.today() + relativedelta(days=1), "HDFC"
+        datetime.date.today() + relativedelta(days=1), "hdfc_closing_balance"
     )
 
     sum_credits = df["credit"].sum()
@@ -1073,26 +1107,28 @@ def update_given_to_investment_entry(param_date, amount, expected_date):
 
 def update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given):
     daily_sheet.float_amount_given_to_investments = amount_given
-    drawn_amount = display_inflow(param_date, "Drawn from investment")
+    drawn_amount = get_inflow(param_date, "Drawn from investment")
     daily_sheet.float_amount_taken_from_investments = drawn_amount
 
     daily_sheet.float_amount_investment_closing_balance = (
-        get_previous_day_closing_balance_refactored(param_date, "Investment")
+        get_previous_day_closing_balance_refactored(
+            param_date, "investment_closing_balance"
+        )
         + amount_given
         - drawn_amount
     )
 
     daily_sheet.float_amount_hdfc_closing_balance = (
-        get_previous_day_closing_balance_refactored(param_date, "HDFC")
-        + display_inflow(param_date)
-        - fill_outflow(param_date)
+        get_previous_day_closing_balance_refactored(param_date, "hdfc_closing_balance")
+        + get_inflow(param_date)
+        - get_outflow(param_date)
         - amount_given
     )
 
 
 def populate_outflow_form_data(form, param_date, daily_sheet):
     for item in outflow_amounts:
-        form[item].data = fill_outflow(param_date, item)
+        form[item].data = get_outflow(param_date, item)
 
     # form.given_to_investment.data = daily_sheet.float_amount_given_to_investments or 0
     form.given_to_investment.data = (
@@ -1470,8 +1506,8 @@ def delete_date():
 @funds_bp.context_processor
 def funds_context():
     return dict(
-        display_inflow=display_inflow,
-        display_outflow=fill_outflow,
+        display_inflow=get_inflow,
+        display_outflow=get_outflow,
         enable_update=enable_update,
         get_inflow_total=get_inflow_total,
         get_daily_summary=get_daily_summary_refactored,

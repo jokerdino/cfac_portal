@@ -57,7 +57,7 @@
                     <tr>
                         <td>HDFC OPENING BAL</td>
                         <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
-                            "HDFC") | indian_number_format }}
+                            "hdfc_closing_balance") | indian_number_format }}
                         </td>
                     </tr>
 
@@ -159,7 +159,7 @@
         <tbody>
             <tr>
                 <td class="has-text-right"> {{ return_prev_day_closing_balance(display_date,
-                    "Investment") | indian_number_format }}</td>
+                    "investment_closing_balance") | indian_number_format }}</td>
                 <td class="has-text-right">
                     {{ get_daily_summary(display_date, "investment_taken") | indian_number_format }}</td>
                 <td class="has-text-right">
@@ -167,21 +167,21 @@
 
                 <td class="has-text-right">
                     {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                    "Investment") | indian_number_format }}
+                    "investment_closing_balance") | indian_number_format }}
                 </td>
             </tr>
             <tr>
                 <th class="has-text-centered">HDFC Closing balance</th>
                 <td class="has-text-right">
                     {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                    "HDFC") | indian_number_format }}</td>
+                    "hdfc_closing_balance") | indian_number_format }}</td>
                 <th class="has-text-centered">Investment closing balance <small>as on {{ (display_date -
                         relativedelta(years=1)).strftime("%d/%m/%Y") }}
                     </small></th>
                 <td class="has-text-right">{{ (return_prev_day_closing_balance((display_date
                     + relativedelta(days=1)
                     - relativedelta(years=1))
-                    , "Investment")) | indian_number_format }}</td>
+                    , "investment_closing_balance")) | indian_number_format }}</td>
 
             </tr>
         </tbody>

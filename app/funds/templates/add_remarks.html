@@ -65,7 +65,7 @@
         //trailingZeroDisplay: 'stripIfInteger'
     });
 
-    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') }}";
+    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'hdfc_closing_balance') }}";
 
     document.getElementById("inflow").innerText = formatter.format(amountInflow);
     amountOutflow = "{{ display_outflow(display_date) }}";

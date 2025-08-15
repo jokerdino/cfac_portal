@@ -70,7 +70,7 @@
                 <td></td>
                 <td></td>
                 <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
-                    "HDFC") | indian_number_format }}
+                    "hdfc_closing_balance") | indian_number_format }}
                 </td>
             </tr>
             <tr>
@@ -89,7 +89,7 @@
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
                     {{ (display_inflow(display_date) + return_prev_day_closing_balance(display_date,
-                    "HDFC")) | indian_number_format }}
+                    "hdfc_closing_balance")) | indian_number_format }}
                 </td>
             </tr>
 
@@ -168,7 +168,7 @@
                         <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
                         <td class="has-text-right has-text-weight-bold">
                             {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                            "HDFC") | indian_number_format }}</td>
+                            "hdfc_closing_balance") | indian_number_format }}</td>
                     </tr>
                 </tbody>
             </table>

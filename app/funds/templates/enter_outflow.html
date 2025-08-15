@@ -176,7 +176,7 @@
         //totalOutflow = totalOutflow - parseFloat(document.getElementById("drawn_from_investment").value);
         document.getElementById("outflow").innerText = formatter.format(totalOutflow);
 
-        inflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'HDFC') }}";
+        inflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'hdfc_closing_balance') }}";
         document.getElementById("inflow").innerText = formatter.format(inflow);
         document.getElementById("pending").innerText = formatter.format(inflow - totalOutflow);
 
