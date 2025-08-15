@@ -5,6 +5,7 @@ from flask_login import current_user
 
 from sqlalchemy import func
 from sqlalchemy.orm import column_property
+from utils import indian_number_format
 
 
 @dataclass
@@ -130,6 +131,14 @@ class Settlement(db.Model):
     deleted_on = db.Column(db.DateTime)
 
     month = column_property(func.to_char(date_of_settlement, "YYYY-MM"))
+
+    def __str__(self):
+        return (
+            f"{self.name_of_company}-{self.utr_number} "
+            f"Rs. {indian_number_format(self.settled_amount)} "
+            f"on {self.date_of_settlement.strftime('%d/%m/%Y')} "
+            f"({self.notes})"
+        )
 
 
 class Remarks(db.Model):
