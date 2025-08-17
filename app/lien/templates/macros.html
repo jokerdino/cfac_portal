@@ -22,8 +22,8 @@
     </td>
 </tr>
 {% endmacro %}
-{% macro download_td(file_attr, lien_id, document_type) %}
-<td class="has-text-centered is-vcentered">
+{% macro download_td(file_attr, lien_id, document_type,class_name=None) %}
+<td class="has-text-centered is-vcentered {{ class_name }}">
     {% if file_attr %}
     <a class="button is-small is-outlined is-link"
         href="{{ url_for('lien.download_document', lien_id=lien_id, document_type=document_type) }}">

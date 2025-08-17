@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="keywords" content="Accounts" />
     <meta name="description" content="Accounts" />
-    <title>CFAC Portal</title>
+    <title>CFAC Portal | {% block title %}Lien{% endblock title %}</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
@@ -20,7 +20,8 @@
                 <div class="navbar-start">
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('.lien_list') }}">Lien home</a>
+                    <a class="navbar-item" href="{{ url_for('.lien_dashboard') }}">Dashboard</a>
+                    <a class="navbar-item" href="{{ url_for('.lien_list') }}">Lien entries</a>
                     {% if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('.lien_add') }}">Add lien</a>
                     <a class="navbar-item" href="{{ url_for('.lien_bulk_upload') }}">Bulk upload lien
@@ -39,7 +40,7 @@
                         <div>
                             <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                             {% else %}
-                            <a class="button"> {{ current_user.username }} </a>
+                            <a class="button"> {{ current_user.username.upper() }} </a>
                             <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                             {% endif %}
                         </div>

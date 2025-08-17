@@ -1,0 +1,28 @@
+{% extends "lien_layout.html" %}
+
+{% block content %}
+{% if current_user.user_type == "admin" %}
+<div class="table-container">
+    <table class="table is-striped is-bordered" id="lien_version_table">
+        <thead>
+            <tr>
+                {% for i in column_names %}
+                <th>{{ i|upper }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in lien_log %}
+                {% for i in column_names %}
+                <td>{{ item[i] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+<a class="button is-info" href="{{ url_for('lien.lien_view', lien_id=lien_id) }}">View lien</a>
+
+{% endblock content %}

@@ -25,3 +25,4 @@ class TestConfig:
 
     FLASK_ADMIN_FLUID_LAYOUT = True
     FLASK_ADMIN_SWATCH = "united"
+    SQLALCHEMY_RECORD_QUERIES = True

@@ -26,19 +26,23 @@
                         href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
                 </td>
                 {% for col in column_names[:6] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
                 {% endfor %}
 
                 {{ download_td(item["court_order_lien"], item.id,
-                "lien_order") }}
+                "lien_order", "has-background-warning-light") }}
 
                 {% for col in column_names[7:9] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
                 {% endfor %}
                 {{ download_td(item["court_order_dd"], item.id,
-                "dd_copy") }}
+                "dd_copy", "has-background-warning-light") }}
 
-                {% for col in column_names[10:21] %}
+                {% for col in column_names[10:12] %}
+                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
+                {% endfor %}
+
+                {% for col in column_names[12:21] %}
                 <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
                 {% endfor %}
                 {{ download_td( item["claim_disbursement_voucher"], item.id,

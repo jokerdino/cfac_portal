@@ -1,10 +1,20 @@
 from datetime import datetime
 
+from sqlalchemy.orm import validates
+from sqlalchemy_continuum.plugins import FlaskPlugin
+from sqlalchemy_continuum import make_versioned
 from flask_login import current_user
+
+
 from extensions import db
+
+from .lien_forms import ALLOWED_RO_CODES
+
+make_versioned(plugins=[FlaskPlugin()])
 
 
 class Lien(db.Model):
+    __versioned__ = {}
     id = db.Column(db.Integer, primary_key=True)
 
     bank_name = db.Column(db.String)
@@ -55,3 +65,12 @@ class Lien(db.Model):
 
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+    @validates("ro_code")
+    def validate_ro_code(self, key, value):
+        if value not in ALLOWED_RO_CODES:
+            raise ValueError(f"Invalid RO code: {value}. Allowed: {ALLOWED_RO_CODES}")
+        return value
+
+
+db.configure_mappers()

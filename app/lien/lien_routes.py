@@ -1,15 +1,19 @@
 from datetime import datetime
 import os
+import re
 import pandas as pd
 from flask import (
     abort,
     current_app,
+    flash,
     redirect,
     render_template,
     url_for,
     send_from_directory,
 )
+from sqlalchemy import func, case
 from flask_login import login_required, current_user
+from sqlalchemy_continuum import version_class
 
 from werkzeug.utils import secure_filename
 
@@ -18,7 +22,13 @@ from set_view_permissions import admin_required
 
 from . import lien_bp
 from .lien_model import Lien
-from .lien_forms import LienFormCFAC, LienFormRO, LienUploadForm
+from .lien_forms import (
+    LienFormCFAC,
+    LienFormRO,
+    LienUploadForm,
+    LienFormHOTP,
+    ALLOWED_RO_CODES,
+)
 
 
 def prepare_upload_document(lien, form) -> None:
@@ -78,14 +88,38 @@ def lien_view(lien_id):
     return render_template("lien_view.html", lien=lien)
 
 
+@lien_bp.route("/log/<lien_id>/")
+@login_required
+def lien_log_view(lien_id):
+
+    LienVersion = version_class(Lien)
+    col_names = column_names = Lien.query.statement.columns.keys()
+    lien_log = (
+        db.session.query(LienVersion)
+        .filter_by(id=lien_id)
+        .order_by(LienVersion.transaction_id.asc())
+    )
+    return render_template(
+        "lien_log_view.html", lien_log=lien_log, column_names=col_names, lien_id=lien_id
+    )
+
+
 @lien_bp.route("/edit/<lien_id>/", methods=["GET", "POST"])
 @login_required
 def lien_edit(lien_id):
     lien = db.get_or_404(Lien, lien_id)
     if current_user.user_type == "admin":
         form = LienFormCFAC(obj=lien)
-    elif current_user.user_type in ["ho_motor_tp", "ro_user"]:
+    elif current_user.user_type in ["ro_motor_tp", "ro_user"]:
+        if current_user.ro_code != lien.ro_code:
+            return redirect(url_for("lien.lien_view", lien_id=lien.id))
         form = LienFormRO(obj=lien)
+
+    elif current_user.user_type in ["ho_motor_tp"]:
+        form = LienFormHOTP(obj=lien)
+    else:
+        flash("You are not authorized to edit this lien.", "danger")
+        return redirect(url_for("lien.lien_view", lien_id=lien.id))
     if form.validate_on_submit():
         form.populate_obj(lien)
         prepare_upload_document(lien, form)
@@ -130,9 +164,11 @@ def download_document(document_type, lien_id):
 @lien_bp.route("/")
 @login_required
 def lien_list():
-    liens = db.session.scalars(
-        db.select(Lien)
-    )  # .where(Lien.lien_status == "Lien exists"))
+    query = db.select(Lien)
+
+    if current_user.user_type in ["ro_motor_tp", "ro_user"]:
+        query = query.where(Lien.ro_code == current_user.ro_code)
+    liens = db.session.scalars(query)
     column_names = [column.name for column in Lien.__table__.columns][1:35]
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
 
@@ -144,20 +180,35 @@ def lien_bulk_upload():
     form = LienUploadForm()
     if form.validate_on_submit():
         lien_file = form.lien_file.data
-        df_lien = pd.read_excel(lien_file)
 
-        df_lien["created_on"] = datetime.now()
-        df_lien["created_by"] = current_user.username
+        try:
+            df = pd.read_excel(lien_file)
+            df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
+            ro_codes_in_file = set(df["ro_code"].dropna())
+            invalid_codes = ro_codes_in_file - ALLOWED_RO_CODES
 
-        df_lien.to_sql(
-            "lien",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+            if invalid_codes:
+                flash(
+                    f"Upload failed. Invalid RO codes found: {', '.join(invalid_codes)}",
+                    "danger",
+                )
+                return redirect(url_for("lien.lien_bulk_upload"))
 
-        return redirect(url_for("lien.lien_list"))
-    return render_template("lien_bulk_upload.html", form=form)
+            # Insert valid rows
+            for row in df.to_dict(orient="records"):
+                lien = Lien(**row)
+                db.session.add(lien)
+
+            db.session.commit()
+            flash(f"Successfully uploaded {len(df)} liens.", "success")
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Upload failed. Error: {str(e)}", "danger")
+
+        return redirect(url_for("lien.lien_bulk_upload"))
+
+    return render_template("lien_bulk_upload.html", title="Upload Liens", form=form)
 
 
 def upload_document(
@@ -187,3 +238,61 @@ def upload_document(
         form.data[field].save(os.path.join(folder_path, document_filename))
 
         setattr(model_object, model_attribute, document_filename)
+
+
+@lien_bp.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def lien_dashboard():
+
+    # 1. Get distinct statuses
+    lien_status_query = (
+        db.session.query(Lien.lien_status).distinct().order_by(Lien.lien_status)
+    )
+    lien_statuses = [item[0] for item in lien_status_query]
+
+    # 2. Build dynamic case statements
+    status_columns = []
+    status_labels = {}  # mapping from original -> sanitized
+    for status in lien_statuses:
+        safe_status = sanitize_status(status)
+        status_labels[status] = safe_status
+
+        col_count = func.count(case((Lien.lien_status == status, 1))).label(
+            f"count_{safe_status}"
+        )
+        col_sum = func.sum(
+            case((Lien.lien_status == status, Lien.lien_amount), else_=0)
+        ).label(f"sum_{safe_status}")
+        status_columns.extend([col_count, col_sum])
+
+    # 3. Build main query
+    query = (
+        db.select(
+            Lien.ro_code,
+            Lien.bank_name,
+            *status_columns,
+            func.count(Lien.id).label("total_count"),
+            func.sum(Lien.lien_amount).label("total_amount"),
+        )
+        .group_by(Lien.ro_code, Lien.bank_name)
+        .order_by(Lien.ro_code, Lien.bank_name)
+    )
+
+    # 4. Apply filter for RO users
+    if current_user.user_type in ["ro_motor_tp", "ro_user"]:
+        query = query.where(Lien.ro_code == current_user.ro_code)
+    lien_query = db.session.execute(query)
+    return render_template(
+        "lien_dashboard.html",
+        lien_data=lien_query,
+        lien_statuses=lien_statuses,
+        status_labels=status_labels,
+    )
+
+
+def sanitize_status(status: str) -> str:
+    """Make status safe for SQLAlchemy labels (replace spaces, special chars)."""
+    if status:
+        return re.sub(r"\W+", "_", status.strip())
+    else:
+        return ""
