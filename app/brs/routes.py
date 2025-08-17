@@ -21,6 +21,7 @@ from flask_login import current_user, login_required
 from flask_weasyprint import HTML, render_pdf
 from sqlalchemy import create_engine, func, insert
 from sqlalchemy.sql import exists, select
+from sqlalchemy.orm import joinedload
 
 from app.brs import brs_bp
 from app.brs.forms import (
@@ -1061,7 +1062,10 @@ def list_outstanding_entries():
         brs_type = form.data["brs_type"]
 
         outstanding_entries = (
-            Outstanding.query.join(BRSMonth, BRSMonth.id == Outstanding.brs_month_id)
+            Outstanding.query.options(
+                joinedload(Outstanding.brs_month).joinedload(BRSMonth.brs)
+            )
+            .join(BRSMonth, BRSMonth.id == Outstanding.brs_month_id)
             .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
                 BRSMonth.status.is_(None)
@@ -1107,9 +1111,10 @@ def list_short_credit_entries():
         brs_type = form.data["brs_type"]
 
         short_credit_entries = (
-            BankReconShortCredit.query.join(
-                BRSMonth, BRSMonth.id == BankReconShortCredit.brs_month_id
+            BankReconShortCredit.query.options(
+                joinedload(BankReconShortCredit.brs_month).joinedload(BRSMonth.brs)
             )
+            .join(BRSMonth, BRSMonth.id == BankReconShortCredit.brs_month_id)
             .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
                 BRSMonth.status.is_(None)
@@ -1155,9 +1160,10 @@ def list_excess_credit_entries():
         brs_type = form.data["brs_type"]
 
         excess_credit_entries = (
-            BankReconExcessCredit.query.join(
-                BRSMonth, BRSMonth.id == BankReconExcessCredit.brs_month_id
+            BankReconExcessCredit.query.options(
+                joinedload(BankReconExcessCredit.brs_month).joinedload(BRSMonth.brs)
             )
+            .join(BRSMonth, BRSMonth.id == BankReconExcessCredit.brs_month_id)
             .join(BRS, BRSMonth.brs_id == BRS.id)
             .filter(
                 BRSMonth.status.is_(None)

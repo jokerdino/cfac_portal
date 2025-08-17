@@ -26,8 +26,7 @@
             <td>{{ brs_entry.brs.financial_year }}</td>
             <td>{{ brs_entry.brs.month }}</td>
             <td>{{ brs_entry.brs_type.upper() }}</td>
-            <td>
-                {{ get_brs_bank (brs_entry.brs.id, brs_entry.brs_type) }}
+            <td>{{ brs_entry.brs.get_bank_for_type(brs_entry.brs_type) }}
             </td>
         </tr>
     </table>

@@ -32,6 +32,17 @@ class BRS(db.Model):
     brs_month = db.relationship("BRSMonth", backref="brs", lazy="dynamic")
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
+    def get_bank_for_type(self, brs_type: str) -> str:
+        mapping = {
+            "cash": self.cash_bank,
+            "cheque": self.cheque_bank,
+            "pos": self.pos_bank,
+            "pg": self.pg_bank,
+            "bbps": self.bbps_bank,
+            "local_collection": self.local_collection_bank,
+        }
+        return mapping.get(brs_type, "")
+
 
 class DeleteEntries(db.Model):
     id = db.Column(db.Integer, primary_key=True)
