@@ -1,9 +1,10 @@
 from flask import Flask, request
 
+
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
 from config import Config, TestConfig
-from extensions import admin, db, lm, migrate
+from extensions import admin, db, lm, migrate, toolbar
 
 from app.main import main_bp
 from app.users import user_bp
@@ -67,6 +68,7 @@ def create_app(config_class=Config):
 
     admin.init_app(app)
 
+    toolbar.init_app(app)
     # Register blueprints here
 
     app.register_blueprint(main_bp, url_prefix="/")
