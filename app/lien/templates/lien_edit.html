@@ -11,14 +11,14 @@
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
-                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table_lien(field) }} {% endif %} {% endfor
-                        %}</table>
+                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table_lien(field, lien) }} {% endif %} {%
+                        endfor %}</table>
             </div>
             <div class="column">
                 <table class="table is-fullwidth is-narrow">
                     {% for field in form if field.widget.input_type != "hidden" %}
                     {% if loop.index > (loop.length / 2) %}
-                    {{ render_field_table_lien(field) }}
+                    {{ render_field_table_lien(field, lien) }}
                     {% endif %}
                     {% endfor %}
                 </table>
@@ -49,11 +49,6 @@
         }
     }
 
-    window.addEventListener('DOMContentLoaded', function () {
-        let radios = document.getElementsByName('claim_already_paid_by_hub_office');
-        radios.forEach(r => r.addEventListener('change', toggleDisbursementFile));
-        toggleDisbursementFile(); // initialize on page load
-    });
     function toggleAppealFile() {
         let radios = document.getElementsByName('appeal_given');
         let fileInput = document.getElementById('appeal_copy_file');
@@ -65,11 +60,38 @@
             fileInput.value = ''; // optionally clear file input
         }
     }
+    function toggleAppealFile2() {
+        let radios = document.getElementsByName('appeal_given_2');
+        let fileInput = document.getElementById('appeal_copy_2_file');
+        let selected = Array.from(radios).find(r => r.checked);
+        if (selected && selected.value === 'Yes') {
+            fileInput.disabled = false;
+        } else {
+            fileInput.disabled = true;
+            fileInput.value = ''; // optionally clear file input
+        }
+    }
 
     window.addEventListener('DOMContentLoaded', function () {
-        let radios = document.getElementsByName('appeal_given');
-        radios.forEach(r => r.addEventListener('change', toggleAppealFile));
-        toggleAppealFile(); // initialize on page load
+        // first group for appeal
+        let radios1 = document.getElementsByName('appeal_given');
+        radios1.forEach(r => r.addEventListener('change', toggleAppealFile));
+        toggleAppealFile();
+
+        // second group for second appeal
+        let radios2 = document.getElementsByName('appeal_given_2');
+        radios2.forEach(r => r.addEventListener('change', toggleAppealFile2));
+        toggleAppealFile2();
+
+        // third group for stay order
+        let radios3 = document.getElementsByName('stay_obtained');
+        radios3.forEach(r => r.addEventListener('change', toggleStayFile));
+        toggleStayFile(); // initialize on page load
+
+        // fourth group for claim disbursement
+        let radios = document.getElementsByName('claim_already_paid_by_hub_office');
+        radios.forEach(r => r.addEventListener('change', toggleDisbursementFile));
+        toggleDisbursementFile(); // initialize on page load
     });
     function toggleStayFile() {
         let radios = document.getElementsByName('stay_obtained');
@@ -83,10 +105,5 @@
         }
     }
 
-    window.addEventListener('DOMContentLoaded', function () {
-        let radios = document.getElementsByName('stay_obtained');
-        radios.forEach(r => r.addEventListener('change', toggleStayFile));
-        toggleStayFile(); // initialize on page load
-    });
 </script>
 {% endblock scripts %}
