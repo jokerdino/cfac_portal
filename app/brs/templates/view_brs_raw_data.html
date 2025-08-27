@@ -42,7 +42,7 @@
                                 <td class="has-text-left" data-sort='{{ entry.brs.month|datetime_format("%B-%Y") }}'>{{
                                         entry.brs.month }}</td>
                                 <td>{{ entry.brs_type.replace("_", " ") | upper }}</td>
-                                <td>{{ get_brs_bank(entry.brs.id, entry.brs_type) }}</td>
+                                <td>{{ entry.brs.get_bank_for_type(entry.brs_type) }}</td>
                                 <td class="has-text-right">{{ entry.int_opening_balance }}</td>
                                 <td class="has-text-right">{{ entry.int_opening_on_hand }}</td>
                                 <td class="has-text-right">{{ entry.int_transactions }}</td>

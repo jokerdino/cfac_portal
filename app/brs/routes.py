@@ -929,14 +929,11 @@ def list_brs_entries():
         month = form.data["month"]
         brs_type = form.data["brs_type"]
 
-        list_all_brs_entries = BRSMonth.query.join(
-            BRS, BRS.id == BRSMonth.brs_id
-        ).filter(
-            (BRSMonth.status.is_(None))
-            & (BRS.month == month)
-            # & (BRS_month.brs_type == brs_type)
+        list_all_brs_entries = (
+            BRSMonth.query.options(joinedload(BRSMonth.brs))
+            .join(BRS, BRS.id == BRSMonth.brs_id)
+            .filter((BRSMonth.status.is_(None)) & (BRS.month == month))
         )
-
         if brs_type != "View all":
             list_all_brs_entries = list_all_brs_entries.filter(
                 BRSMonth.brs_type == brs_type
@@ -949,11 +946,7 @@ def list_brs_entries():
 
         list_all_brs_entries = list_all_brs_entries.filter(
             (BRSMonth.int_closing_balance == 0)
-            | (
-                (BRSMonth.int_closing_balance > 0)
-                # & (Outstanding.brs_month_id == BRS_month.id)
-                & (BRSMonth.id.in_(select(subquery)))
-            )
+            | ((BRSMonth.int_closing_balance > 0) & (BRSMonth.id.in_(select(subquery))))
         )
 
         if current_user.user_type == "ro_user":
@@ -964,7 +957,6 @@ def list_brs_entries():
         return render_template(
             "view_brs_raw_data.html",
             brs_entries=list_all_brs_entries,
-            get_brs_bank=get_brs_bank,
         )
     return render_template("brs_raw_data_form.html", form=form)
 
