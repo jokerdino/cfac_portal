@@ -10,3 +10,4 @@ python-packages/*
 *.txt
 *.sql
 download_data/*
+upload_formats/*
