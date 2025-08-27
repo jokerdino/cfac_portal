@@ -36,6 +36,7 @@ class Lien(db.Model):
     court_name = db.Column(db.String)
     case_number = db.Column(db.String)
     case_title = db.Column(db.String)
+    mact_number = db.Column(db.String)
     petitioner_name = db.Column(db.String)
 
     date_of_lien_order = db.Column(db.Date)
@@ -48,6 +49,8 @@ class Lien(db.Model):
     lien_status = db.Column(db.String)
     appeal_given = db.Column(db.String)
     appeal_copy = db.Column(db.String)
+    appeal_given_2 = db.Column(db.String)
+    appeal_copy_2 = db.Column(db.String)
     stay_obtained = db.Column(db.String)
     stay_order = db.Column(db.String)
     claim_accounting_voucher_number = db.Column(db.String)
@@ -65,6 +68,8 @@ class Lien(db.Model):
 
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+
+    is_duplicate = db.Column(db.Boolean, default=False)
 
     @validates("ro_code")
     def validate_ro_code(self, key, value):
