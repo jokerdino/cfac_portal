@@ -360,11 +360,20 @@ def funds_home_data():
 @login_required
 @fund_managers
 def funds_home_data_v2():
-    # Query for paginated records
-    subquery = (
+    # Step 1: aggregate outflows by date
+    outflow_agg = (
         db.session.query(
-            FundDailySheet.date_current_date.label("date_current_date"),
+            FundDailyOutflow.outflow_date.label("date"),
             func.sum(FundDailyOutflow.outflow_amount).label("outflow_amount"),
+        )
+        .group_by(FundDailyOutflow.outflow_date)
+        .subquery()
+    )
+
+    # Step 2: daily sheet with lag(prev_hdfc_balance)
+    daily_with_prev = (
+        db.session.query(
+            FundDailySheet.date_current_date.label("date"),
             FundDailySheet.float_amount_given_to_investments.label("investment_given"),
             FundDailySheet.float_amount_taken_from_investments.label(
                 "investment_taken"
@@ -379,78 +388,84 @@ def funds_home_data_v2():
             .over(order_by=FundDailySheet.date_current_date)
             .label("prev_hdfc_balance"),
         )
-        .join(
-            FundDailyOutflow,
-            FundDailySheet.date_current_date == FundDailyOutflow.outflow_date,
-        )
-        .group_by(
-            FundDailySheet.date_current_date,
-            FundDailySheet.float_amount_given_to_investments,
-            FundDailySheet.float_amount_taken_from_investments,
-            FundDailySheet.float_amount_investment_closing_balance,
-            FundDailySheet.float_amount_hdfc_closing_balance,
-        )
-        .subquery()  # Convert this to a subquery
-    )
+    ).subquery()
 
-    # Main query to join the subquery with FundBankStatement
+    # Step 3: main query anchored on FundBankStatement
     query = (
         db.session.query(
-            FundBankStatement.date_uploaded_date,
-            func.sum(FundBankStatement.credit)
-            + subquery.c.prev_hdfc_balance
-            - subquery.c.investment_taken,
-            subquery.c.outflow_amount,
-            func.sum(FundBankStatement.credit)
-            + subquery.c.prev_hdfc_balance
-            - subquery.c.investment_taken
-            - subquery.c.outflow_amount,
-            subquery.c.investment_given,
-            subquery.c.investment_taken,
-            subquery.c.investment_given - subquery.c.investment_taken,
-            subquery.c.investment_closing_balance,
-            subquery.c.hdfc_closing_balance,
+            FundBankStatement.date_uploaded_date.label("date_uploaded_date"),
+            (
+                func.sum(FundBankStatement.credit)
+                + func.coalesce(daily_with_prev.c.prev_hdfc_balance, 0)
+                - func.coalesce(daily_with_prev.c.investment_taken, 0)
+            ).label("credit"),
+            func.coalesce(outflow_agg.c.outflow_amount, 0).label("outflow"),
+            (
+                func.sum(FundBankStatement.credit)
+                + func.coalesce(daily_with_prev.c.prev_hdfc_balance, 0)
+                - func.coalesce(daily_with_prev.c.investment_taken, 0)
+                - func.coalesce(outflow_agg.c.outflow_amount, 0)
+            ).label("net_cashflow"),
+            func.coalesce(daily_with_prev.c.investment_given, 0).label(
+                "investment_given"
+            ),
+            func.coalesce(daily_with_prev.c.investment_taken, 0).label(
+                "investment_taken"
+            ),
+            (
+                func.coalesce(daily_with_prev.c.investment_given, 0)
+                - func.coalesce(daily_with_prev.c.investment_taken, 0)
+            ).label("net_investment"),
+            func.coalesce(daily_with_prev.c.investment_closing_balance, 0).label(
+                "investment_closing_balance"
+            ),
+            func.coalesce(daily_with_prev.c.hdfc_closing_balance, 0).label(
+                "hdfc_closing_balance"
+            ),
         )
         .outerjoin(
-            subquery,
-            FundBankStatement.date_uploaded_date == subquery.c.date_current_date,
+            daily_with_prev,
+            FundBankStatement.date_uploaded_date == daily_with_prev.c.date,
+        )
+        .outerjoin(
+            outflow_agg,
+            FundBankStatement.date_uploaded_date == outflow_agg.c.date,
         )
         .group_by(
             FundBankStatement.date_uploaded_date,
-            subquery.c.investment_given,
-            subquery.c.investment_taken,
-            subquery.c.investment_closing_balance,
-            subquery.c.hdfc_closing_balance,
-            subquery.c.outflow_amount,
-            subquery.c.prev_hdfc_balance,
+            daily_with_prev.c.prev_hdfc_balance,
+            daily_with_prev.c.investment_given,
+            daily_with_prev.c.investment_taken,
+            daily_with_prev.c.investment_closing_balance,
+            daily_with_prev.c.hdfc_closing_balance,
+            outflow_agg.c.outflow_amount,
         )
         .order_by(FundBankStatement.date_uploaded_date.desc())
     )
+
     total_records = query.count()
-    # Filtered record count (same as total here unless filters are applied)
     records_filtered = query.count()
+
     start = request.args.get("start", type=int)
     length = request.args.get("length", type=int)
 
     query = query.offset(start).limit(length)
 
-    # Format the data for DataTables
     data = [
         {
             "date_uploaded_date": row[0],
-            "credit": row[1],
-            "outflow": row[2],
-            "net_cashflow": row[3],
-            "investment_given": row[4],
-            "investment_taken": row[5],
-            "net_investment": row[6],
-            "investment_closing_balance": row[7],
-            "hdfc_closing_balance": row[8],
+            "credit": row[1] or 0,
+            "outflow": row[2] or 0,
+            "net_cashflow": row[3] or 0,
+            "investment_given": row[4] or 0,
+            "investment_taken": row[5] or 0,
+            "net_investment": row[6] or 0,
+            "investment_closing_balance": row[7] or 0,
+            "hdfc_closing_balance": row[8] or 0,
         }
         for row in query
     ]
 
-    # return response
     return {
         "draw": request.args.get("draw", type=int),
         "recordsTotal": total_records,
