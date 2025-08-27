@@ -23,6 +23,7 @@ class BRSView(DefaultModelView):
         "bbps_bank",
         "local_collection_bank",
     ]
+    form_excluded_columns = ("brs_month", "timestamp")
 
 
 class OSView(DefaultModelView):
