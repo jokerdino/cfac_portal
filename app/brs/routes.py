@@ -1277,30 +1277,8 @@ def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
 def get_percent_completion(regional_office_code):
     """for e-formats checklist of BRS completion
     returns percentage completion if regional office code is entered"""
-    query = (
-        BRS.query.with_entities(
-            func.count(BRS.cash_bank)
-            + func.count(BRS.cheque_bank)
-            + func.count(BRS.pg_bank)
-            + func.count(BRS.pos_bank)
-            + func.count(BRS.bbps_bank)
-            + func.count(BRS.local_collection_bank),
-            func.count(BRS.cash_brs_id)
-            + func.count(BRS.cheque_brs_id)
-            + func.count(BRS.pg_brs_id)
-            + func.count(BRS.pos_brs_id)
-            + func.count(BRS.bbps_brs_id)
-            + func.count(BRS.local_collection_brs_id),
-        )
-        .filter(BRS.uiic_regional_code == regional_office_code)
-        .group_by(BRS.uiic_regional_code)
-    )
-
-    # add filter to remove FY23-24 out of BRS percentage calculations
-    query = query.filter(BRS.financial_year != "23-24")
-
-    percent_complete = (query[0][1] / query[0][0]) * 100 if query else 0
-    return f"{percent_complete}"
+    percentages = get_percentages(regional_office_code)
+    return str(percentages[regional_office_code])
 
 
 @brs_bp.route("/percent_list/")
@@ -1345,11 +1323,57 @@ def get_percent_completion_list():
         "500500",
         "500700",
     ]
+    percentages = get_percentages(ro_list)
+
     return render_template(
         "brs_dashboard_percentage_list.html",
-        get_percentage_completion=get_percent_completion,
+        percentages=percentages,
         ro_list=ro_list,
     )
+
+
+def get_percentages(ro_codes):
+    """Return {regional_code: percent_complete} for one or many RO codes."""
+    if isinstance(ro_codes, str):
+        ro_codes = [ro_codes]  # normalize to list
+
+    query = (
+        BRS.query.with_entities(
+            BRS.uiic_regional_code,
+            (
+                func.count(BRS.cash_bank)
+                + func.count(BRS.cheque_bank)
+                + func.count(BRS.pg_bank)
+                + func.count(BRS.pos_bank)
+                + func.count(BRS.bbps_bank)
+                + func.count(BRS.local_collection_bank)
+            ).label("total"),
+            (
+                func.count(BRS.cash_brs_id)
+                + func.count(BRS.cheque_brs_id)
+                + func.count(BRS.pg_brs_id)
+                + func.count(BRS.pos_brs_id)
+                + func.count(BRS.bbps_brs_id)
+                + func.count(BRS.local_collection_brs_id)
+            ).label("completed"),
+        )
+        .filter(BRS.financial_year != "23-24")
+        .filter(BRS.uiic_regional_code.in_(ro_codes))
+        .group_by(BRS.uiic_regional_code)
+    )
+
+    percentages = {
+        row.uiic_regional_code: (
+            round((row.completed / row.total) * 100, 2) if row.total else 0
+        )
+        for row in query
+    }
+
+    # Ensure all requested codes appear, even if missing in DB
+    for ro in ro_codes:
+        percentages.setdefault(ro, 0)
+
+    return percentages
 
 
 @brs_bp.route("/bank_accounts/add", methods=["POST", "GET"])
@@ -1357,8 +1381,6 @@ def get_percent_completion_list():
 @admin_required
 def add_bank_account():
     """Add new bank account through model form"""
-    from extensions import db
-
     bank_account = BankReconAccountDetails()
 
     if request.method == "POST":

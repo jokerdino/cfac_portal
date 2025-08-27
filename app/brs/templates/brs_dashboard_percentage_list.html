@@ -3,18 +3,18 @@
 
 <div class="container mt-5 mb-5 column">
     <h1 class="title is-size-5">Consolidated BRS completion percentage</h1>
-    <table class=" table" id="brs_percent_table">
+    <table class="table is-bordered" id="brs_percent_table">
         <thead>
             <tr>
-                <th>RO Code</th>
-                <th>Consolidated percentage</th>
+                <th class="has-text-centered">RO Code</th>
+                <th class="has-text-centered">Consolidated percentage</th>
             </tr>
         </thead>
         <tbody>
             {% for ro_code in ro_list %}
             <tr>
-                <td>{{ ro_code }}</td>
-                <td class="has-text-right">{{ "%.2f"|format(get_percentage_completion(ro_code) | float) }}%</td>
+                <td class="has-text-centered">{{ ro_code }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(percentages[ro_code]) }}%</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -24,26 +24,16 @@
 {% block scripts %}
 <script>
     new DataTable('#brs_percent_table', {
-        //dom: 'lfBrtip',
         layout: {
-            //top1Start: 'pageLength',
             topStart: 'buttons',
         },
         fixedHeader: true,
         pageLength: 36,
-        //scrollY: true,
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
             { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        //order: [[0, 'asc']],
-        //pagingType: 'full_numbers',
-
-        // lengthMenu: [
-        //     [36, 72, 108, 144, -1],
-        //     [36, 72, 108, 144, 'All'],]
     });
-
 </script>
 
 {% endblock scripts %}
