@@ -353,11 +353,12 @@ def lien_dashboard():
         db.select(
             Lien.ro_code,
             Lien.bank_name,
+            Lien.account_number,
             *status_columns,
             func.count(Lien.id).label("total_count"),
             func.sum(Lien.lien_amount).label("total_amount"),
         )
-        .group_by(Lien.ro_code, Lien.bank_name)
+        .group_by(Lien.ro_code, Lien.bank_name, Lien.account_number)
         .order_by(Lien.ro_code, Lien.bank_name)
     )
 

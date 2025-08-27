@@ -5,11 +5,12 @@
 <div class="container is-fluid">
     <h1 class="title">Lien Dashboard</h1>
 
-    <table class="table is-bordered is-striped is-hoverable">
+    <table class="table is-bordered is-striped is-hoverable" id="lien_table">
         <thead>
             <tr>
                 <th class="is-vcentered has-text-centered">RO Code</th>
                 <th class="is-vcentered has-text-centered">Bank Name</th>
+                <th class="is-vcentered has-text-centered">Account number</th>
                 {% for status in lien_statuses %}
                 <th class="is-vcentered has-text-centered">Count {{ status }}</th>
                 <th class="is-vcentered has-text-centered">Sum {{ status }}</th>
@@ -23,6 +24,7 @@
             <tr>
                 <td>{{ row.ro_code }}</td>
                 <td>{{ row.bank_name }}</td>
+                <td>{{ row.account_number }}</td>
 
                 {% for status in lien_statuses %}
                 {% set safe_status = status_labels[status] %}
@@ -39,3 +41,26 @@
 
 </div>
 {% endblock content %}
+
+{% block scripts %}
+
+<script>
+    new DataTable('#lien_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[0, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+
+    })
+</script>
+{% endblock scripts %}
