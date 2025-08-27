@@ -1,17 +1,21 @@
 from datetime import datetime
 import os
 import re
+
 import pandas as pd
 from flask import (
     abort,
     current_app,
     flash,
     redirect,
+    request,
     render_template,
     url_for,
     send_from_directory,
 )
-from sqlalchemy import func, case
+from sqlalchemy import func, case, event
+from sqlalchemy.orm import Session
+
 from flask_login import login_required, current_user
 from sqlalchemy_continuum import version_class
 
@@ -169,8 +173,80 @@ def lien_list():
     if current_user.user_type in ["ro_motor_tp", "ro_user"]:
         query = query.where(Lien.ro_code == current_user.ro_code)
     liens = db.session.scalars(query)
-    column_names = [column.name for column in Lien.__table__.columns][1:35]
+    column_names = [column.name for column in Lien.__table__.columns][0:38]
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
+
+
+@event.listens_for(Session, "before_flush")
+def mark_duplicates(session, flush_context, instances):
+    # 1. Handle new objects
+    for obj in session.new:
+        if isinstance(obj, Lien):
+            existing_liens = (
+                session.query(Lien)
+                .filter(Lien.lien_amount == obj.lien_amount, Lien.id != obj.id)
+                .all()
+            )
+
+            if existing_liens:
+                obj.is_duplicate = True
+                for lien in existing_liens:
+                    lien.is_duplicate = True
+
+    # 2. Handle updated objects
+    for obj in session.dirty:
+        if isinstance(obj, Lien) and session.is_modified(
+            obj, include_collections=False
+        ):
+            existing_liens = (
+                session.query(Lien)
+                .filter(Lien.lien_amount == obj.lien_amount, Lien.id != obj.id)
+                .all()
+            )
+
+            if existing_liens:
+                obj.is_duplicate = True
+                for lien in existing_liens:
+                    lien.is_duplicate = True
+            else:
+                # If no duplicates anymore, reset flag
+                obj.is_duplicate = False
+
+
+@lien_bp.route("/duplicates", methods=["GET"])
+@login_required
+@admin_required
+def lien_duplicates():
+
+    query = db.select(Lien).where(Lien.is_duplicate == True)
+
+    liens = db.session.scalars(query)
+    column_names = [column.name for column in Lien.__table__.columns][0:38]
+
+    show_checkbox = True
+    return render_template(
+        "lien_list.html",
+        lien_list=liens,
+        column_names=column_names,
+        show_checkbox=show_checkbox,
+    )
+
+
+@lien_bp.route("/duplicates/mark_as_not_duplicate/", methods=["POST"])
+@login_required
+@admin_required
+def mark_lien_as_not_duplicates():
+    selected_ids = request.form.getlist("selected_ids")
+    if not selected_ids:
+        flash("No rows selected", "warning")
+        return redirect(url_for("lien.lien_duplicates"))
+
+    db.session.query(Lien).filter(Lien.id.in_(selected_ids)).update(
+        {Lien.is_duplicate: False}, synchronize_session=False
+    )
+    db.session.commit()
+    flash(f"{len(selected_ids)} rows marked as not duplicate", "success")
+    return redirect(url_for("lien.lien_duplicates"))
 
 
 @lien_bp.route("/upload", methods=["GET", "POST"])
@@ -296,3 +372,13 @@ def sanitize_status(status: str) -> str:
         return re.sub(r"\W+", "_", status.strip())
     else:
         return ""
+
+
+@lien_bp.context_processor
+def get_duplicate_count():
+
+    duplicate_count = db.session.scalar(
+        db.select(func.count(Lien.id)).where(Lien.is_duplicate == True)
+    )
+
+    return dict(duplicate_count=duplicate_count)

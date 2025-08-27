@@ -4,77 +4,100 @@
 <div class="container table-container is-fluid">
     <h1 class="title">List of lien {{ title }} entries</h1>
 
-    <table class="table is-fullwidth is-bordered" id="lien_table">
-        <thead>
-            <tr>
-                <th class="has-text-centered is-vcentered">VIEW</th>
-                <th class="has-text-centered is-vcentered">EDIT</th>
+    <form method="post" action="{{ url_for('.mark_lien_as_not_duplicates') }}">
+        {% if show_checkbox %}
+        <div class="has-text-left">
+            <button class="button is-success is-outlined">Mark as not duplicate</button>
+        </div>
+        {% endif %}
 
-                {% for col in column_names %}
-                <th class="has-text-centered is-vcentered">{{ col | replace("_"," ")| upper }}</th>
+        <table class="table is-fullwidth is-bordered" id="lien_table">
+            <thead>
+                <tr>
+                    {% if show_checkbox %}
+                    <th class="has-text-centered is-vcentered">
+                        <input type="checkbox" id="select_all" onclick="toggleAll(this)" />
+                    </th>
+                    {% endif %}
+                    <th class="has-text-centered is-vcentered">VIEW</th>
+                    <th class="has-text-centered is-vcentered">EDIT</th>
 
+                    {% for col in column_names %}
+                    <th class="has-text-centered is-vcentered">{{ col | replace("_"," ")| upper }}</th>
+
+                    {% endfor %}
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in lien_list %}
+                <tr>
+                    {% if show_checkbox %}
+                    <td class="has-text-centered"><input type="checkbox" name="selected_ids" value="{{ item['id'] }}" />
+                    </td>
+                    {% endif %}
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('lien.lien_view', lien_id=item['id']) }}">View</a></td>
+                    <td> <a class="button is-link is-outlined is-small"
+                            href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
+                    </td>
+                    {% for col in column_names[:7] %}
+                    <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
+                    {% endfor %}
+
+                    {{ download_td(item["court_order_lien"], item.id,
+                    "lien_order", "has-background-warning-light") }}
+
+                    {% for col in column_names[8:10] %}
+                    <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td(item["court_order_dd"], item.id,
+                    "dd_copy", "has-background-warning-light") }}
+
+                    {% for col in column_names[11:13] %}
+                    <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
+                    {% endfor %}
+
+                    {% for col in column_names[13:23] %}
+                    <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td( item["claim_disbursement_voucher"], item.id,
+                    "disbursement_voucher") }}
+                    {{ download_td( item["lien_dd_reversal_order"], item.id,
+                    "lien_dd_reversal") }}
+                    {% for col in column_names[25:27] %}
+                    <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td( item["appeal_copy"], item.id,
+                    "appeal_copy") }}
+                    {% for col in column_names[28:29] %}
+                    <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td( item["appeal_copy_2"], item.id,
+                    "appeal_copy_2") }}
+                    {% for col in column_names[30:31] %}
+                    <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td( item["stay_order"], item.id,
+                    "stay_order") }}
+                    {% for col in column_names[32:36] %}
+                    <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
+                    {% endfor %}
+                    {{ download_td( item["court_order_lien_reversal"], item.id,
+                    "lien_reversal") }}
+
+                    {{ download_td(item["court_order_dd_reversal"], item.id,
+                    "dd_reversal") }}
+
+                </tr>
                 {% endfor %}
+            </tbody>
 
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in lien_list %}
-            <tr>
-                <td><a class="button is-link is-outlined is-small"
-                        href="{{ url_for('lien.lien_view', lien_id=item['id']) }}">View</a></td>
-                <td> <a class="button is-link is-outlined is-small"
-                        href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
-                </td>
-                {% for col in column_names[:6] %}
-                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
-                {% endfor %}
+        </table>
 
-                {{ download_td(item["court_order_lien"], item.id,
-                "lien_order", "has-background-warning-light") }}
-
-                {% for col in column_names[7:9] %}
-                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
-                {% endfor %}
-                {{ download_td(item["court_order_dd"], item.id,
-                "dd_copy", "has-background-warning-light") }}
-
-                {% for col in column_names[10:12] %}
-                <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>
-                {% endfor %}
-
-                {% for col in column_names[12:21] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
-                {% endfor %}
-                {{ download_td( item["claim_disbursement_voucher"], item.id,
-                "disbursement_voucher") }}
-                {{ download_td( item["lien_dd_reversal_order"], item.id,
-                "lien_dd_reversal") }}
-                {% for col in column_names[23:25] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
-                {% endfor %}
-                {{ download_td( item["appeal_copy"], item.id,
-                "appeal_copy") }}
-                {% for col in column_names[26:27] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
-                {% endfor %}
-                {{ download_td( item["stay_order"], item.id,
-                "stay_order") }}
-                {% for col in column_names[28:32] %}
-                <td class="has-text-centered is-vcentered">{{ item[col] or "" }}</td>
-                {% endfor %}
-                {{ download_td( item["court_order_lien_reversal"], item.id,
-                "lien_reversal") }}
-
-                {{ download_td(item["court_order_dd_reversal"], item.id,
-                "dd_reversal") }}
-
-            </tr>
-            {% endfor %}
-        </tbody>
-
-    </table>
-
+    </form>
 </div>
+
 {% block scripts %}
 
 <script>
@@ -95,6 +118,14 @@
             [10, 25, 50, 100, 'All'],]
 
     })
+</script>
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="selected_ids"]');
+        for (const cb of checkboxes) {
+            cb.checked = source.checked;
+        }
+    }
 </script>
 {% endblock scripts %}
 {% endblock content %}

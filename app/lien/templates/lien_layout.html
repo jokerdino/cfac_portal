@@ -22,11 +22,16 @@
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <a class="navbar-item" href="{{ url_for('.lien_dashboard') }}">Dashboard</a>
                     <a class="navbar-item" href="{{ url_for('.lien_list') }}">Lien entries</a>
-                    {% if current_user.user_type == "admin" %}
+                    {%- if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('.lien_add') }}">Add lien</a>
                     <a class="navbar-item" href="{{ url_for('.lien_bulk_upload') }}">Bulk upload lien
                         entries</a>
-                    {% endif %}
+                    <a class="navbar-item" href="{{ url_for('.lien_duplicates') }}">Duplicate amounts <span
+                            class="tag is-danger is-rounded ml-2 has-text-white"> {{ duplicate_count }}
+                        </span>
+                    </a>
+
+                    {% endif -%}
 
                 </div>
 
