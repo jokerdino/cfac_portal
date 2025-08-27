@@ -1,0 +1,71 @@
+{% macro render_brs_table(title, amount, items, brs_type) %}
+{% if amount > 0 %}
+<h3 class="title is-size-6">{{ title }}</h3>
+<table class="table is-bordered">
+    <thead>
+        <tr>
+            <th>Date of collection</th>
+            {% if brs_type != "cash" %}
+            <th>Instrument number</th>
+            <th>Date of instrument</th>
+            {% endif %}
+            <th>Instrument amount</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td class="has-text-centered">
+                {{ item.date_of_collection.strftime("%d/%m/%Y") if item.date_of_collection else "No date of collection
+                available" }}
+            </td>
+            {% if brs_type != "cash" %}
+            <td class="has-text-centered">{{ item.instrument_number }}</td>
+            <td class="has-text-centered">
+                {{ item.date_of_instrument.strftime("%d/%m/%Y") if item.date_of_instrument else "No date of instrument
+                available" }}
+            </td>
+            {% endif %}
+            <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
+            <td>{{ item.remarks or "" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td class="has-text-right has-text-weight-bold" colspan="{{ 3 if brs_type != 'cash' else 1 }}">Total:</td>
+            <td class="has-text-right has-text-weight-bold">
+                {{ (items | sum(attribute="instrument_amount")) | indian_number_format }}
+            </td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+{% endif %}
+{% endmacro %}
+
+{% macro render_brs_details(brs_entry, requirement, is_fullwidth=False) %}
+<table class="table {% if is_fullwidth %}is-fullwidth{% endif %} is-bordered is-hoverable">
+    <thead>
+        <tr>
+            <th class="has-text-centered">Regional Office code</th>
+            <th class="has-text-centered">Operating Office Code</th>
+            <th class="has-text-centered">Financial year</th>
+            <th class="has-text-centered">Month</th>
+            <th class="has-text-centered">BRS type</th>
+            <th class="has-text-centered">BRS bank</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr class="has-text-centered">
+            <td>{{ brs_entry.uiic_regional_code }}</td>
+            <td>{{ brs_entry.uiic_office_code }}</td>
+            <td>{{ brs_entry.financial_year }}</td>
+            <td>{{ brs_entry.month }}</td>
+            <td>{{ requirement | upper() | replace("_", " ") }}</td>
+            <td>{{ brs_entry.get_bank_for_type(requirement) }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endmacro %}

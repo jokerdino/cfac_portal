@@ -4,32 +4,15 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
 {% endif %}
 {% block content %}
+{% from "brs_macro_templates.html" import render_brs_table, render_brs_details %}
 
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.brs.uiic_regional_code) or
 (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.brs.uiic_office_code) or
 (current_user.user_type == "admin") %}
 <div class="container">
     <h1 class="title">View {{ brs_entry.brs_type.upper() }} BRS</h1>
+    {{ render_brs_details(brs_entry.brs, brs_entry.brs_type) }}
 
-    <table class="table is-bordered is-hoverable">
-        <tr class="has-text-centered">
-            <th>Regional office code</th>
-            <th>Operating office code</th>
-            <th>Financial year</th>
-            <th>Month</th>
-            <th>BRS type</th>
-            <th>Bank</th>
-        </tr>
-        <tr>
-            <td>{{ brs_entry.brs.uiic_regional_code }}</td>
-            <td>{{ brs_entry.brs.uiic_office_code }}</td>
-            <td>{{ brs_entry.brs.financial_year }}</td>
-            <td>{{ brs_entry.brs.month }}</td>
-            <td>{{ brs_entry.brs_type.upper() }}</td>
-            <td>{{ brs_entry.brs.get_bank_for_type(brs_entry.brs_type) }}
-            </td>
-        </tr>
-    </table>
     <strong>Summary of General Ledger</strong>
     <table class="table is-bordered is-hoverable">
 
@@ -119,172 +102,13 @@
     {% if brs_entry.int_closing_balance != 0 %}
 
     <h3 class="title is-size-5">Details of closing balance:</h3>
-    {% if brs_entry.int_deposited_not_credited > 0 %}
-    <h3 class="title is-size-6">Deposited but not credited</h3>
-    <table class="table is-bordered">
-        <thead>
-            <tr>
-                <th>Date of collection</th>
-                {% if not brs_entry.brs_type == "cash" %}
-                <th>Instrument number</th>
-                <th>Date of instrument</th>
-                {% endif %}
-                <th>Instrument amount</th>
-                <th>Remarks</th>
+    {{ render_brs_table("Deposited but not credited", brs_entry.int_deposited_not_credited, brs_entry.brs_outstanding,
+    brs_entry.brs_type) }}
+    {{ render_brs_table("Short credited", brs_entry.int_short_credited, brs_entry.brs_short_credit, brs_entry.brs_type)
+    }}
+    {{ render_brs_table("Excess credited", brs_entry.int_excess_credited, brs_entry.brs_excess_credit,
+    brs_entry.brs_type) }}
 
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                {% for item in brs_entry.brs_outstanding %}
-                <td class="has-text-centered">
-                    {% if item.date_of_collection %}
-                    {{ item.date_of_collection.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of collection available
-                    {% endif %}
-                </td>
-
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-centered">{{ item.instrument_number }}</td>
-                <td class="has-text-centered">
-                    {% if item.date_of_instrument %}
-                    {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of instrument available
-                    {% endif %}
-                    {% endif %}
-                </td>
-                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
-                <td>{{ item.remarks or "" }}</td>
-            </tr>
-        </tbody>
-        {% endfor %}
-        <tfoot>
-            <tr>
-
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
-                {% else %}
-                <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
-                {% endif %}
-                <td class="has-text-right has-text-weight-bold">
-                    {{ (brs_entry.brs_outstanding | sum(attribute="instrument_amount")) | indian_number_format }}</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-    {% endif %}
-    {% if brs_entry.int_short_credited > 0 %}
-    <h3 class="title is-size-6">Short credited</h3>
-    <table class="table is-bordered">
-        <thead>
-            <tr>
-                <th>Date of collection</th>
-                {% if not brs_entry.brs_type == "cash" %}
-                <th>Instrument number</th>
-                <th>Date of instrument</th>
-                {% endif %}
-                <th>Instrument amount</th>
-                <th>Remarks</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                {% for item in brs_entry.brs_short_credit %}
-                <td class="has-text-centered">
-                    {% if item.date_of_collection %}
-                    {{ item.date_of_collection.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of collection available
-                    {% endif %}
-                </td>
-
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-centered">{{ item.instrument_number }}</td>
-                <td class="has-text-centered">
-                    {% if item.date_of_instrument %}
-                    {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of instrument available
-                    {% endif %}
-                    {% endif %}
-                </td>
-                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
-                <td>{{ item.remarks or "" }}</td>
-            </tr>
-        </tbody>
-        {% endfor %}
-        <tfoot>
-            <tr>
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
-                {% else %}
-                <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
-                {% endif %}
-                <td class="has-text-right has-text-weight-bold">
-                    {{ (brs_entry.brs_short_credit | sum(attribute="instrument_amount")) | indian_number_format }}</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-    {% endif %}
-    {% if brs_entry.int_excess_credited > 0 %}
-    <h3 class="title is-size-6"> Excess credited</h3>
-    <table class="table is-bordered">
-        <thead>
-            <tr>
-                <th>Date of collection</th>
-                {% if not brs_entry.brs_type == "cash" %}
-                <th>Instrument number</th>
-                <th>Date of instrument</th>
-                {% endif %}
-                <th>Instrument amount</th>
-                <th>Remarks</th>
-
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                {% for item in brs_entry.brs_excess_credit %}
-                <td class="has-text-centered">
-                    {% if item.date_of_collection %}
-                    {{ item.date_of_collection.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of collection available
-                    {% endif %}
-                </td>
-
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-centered">{{ item.instrument_number }}</td>
-                <td class="has-text-centered">
-                    {% if item.date_of_instrument %}
-                    {{ item.date_of_instrument.strftime("%d/%m/%Y") }}
-                    {% else %}
-                    No date of instrument available
-                    {% endif %}
-                    {% endif %}
-                </td>
-                <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
-                <td>{{ item.remarks or "" }}</td>
-            </tr>
-        </tbody>
-        {% endfor %}
-        <tfoot>
-            <tr>
-
-                {% if not brs_entry.brs_type == "cash" %}
-                <td class="has-text-right has-text-weight-bold" colspan="3">Total: </td>
-                {% else %}
-                <td class="has-text-right has-text-weight-bold" colspan="1">Total: </td>
-                {% endif %}
-                <td class="has-text-right has-text-weight-bold">
-                    {{ (brs_entry.brs_excess_credit | sum(attribute="instrument_amount")) | indian_number_format }}</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
-    {% endif %}
     {% endif %}
 
     <div class="pb-5">

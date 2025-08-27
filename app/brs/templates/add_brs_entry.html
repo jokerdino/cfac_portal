@@ -1,6 +1,7 @@
 {% extends "brs_layout.html" %}
 {% block body_attrs %} "onload=calculateSum(); onload=calculateClosingBalance();" {% endblock body_attrs %}
 {% block content %}
+{% from "brs_macro_templates.html" import render_brs_details %}
 {% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
 (current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
 (current_user.user_type == "admin") %}
@@ -9,28 +10,8 @@
     <form action="" method="post" enctype="multipart/form-data"
         onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
         {{ form.csrf_token }}
-        <table class="table is-fullwidth is-bordered is-hoverable">
-            <thead>
-                <tr>
-                    <th class="has-text-centered">Regional Office code</th>
-                    <th class="has-text-centered">Operating Office Code</th>
-                    <th class="has-text-centered">Financial year</th>
-                    <th class="has-text-centered">Month</th>
-                    <th class="has-text-centered">BRS type</th>
-                    <th class="has-text-centered">BRS bank</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="has-text-centered">
-                    <td>{{ brs_entry.uiic_regional_code }}</td>
-                    <td>{{ brs_entry.uiic_office_code }}</td>
-                    <td>{{ brs_entry.financial_year }}</td>
-                    <td>{{ brs_entry.month }}</td>
-                    <td>{{ requirement | upper() | replace("_", " ") }}</td>
-                    <td>{{ get_brs_bank(brs_entry.id, requirement) }}</td>
-                </tr>
-            </tbody>
-        </table>
+        {{ render_brs_details(brs_entry, requirement, is_fullwidth=True) }}
+
         {% for field in form %}
         {% if field.errors %}
         <div class="notification is-danger">
