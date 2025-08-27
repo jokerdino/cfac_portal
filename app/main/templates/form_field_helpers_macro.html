@@ -28,21 +28,28 @@
 </tr>
 {% endif %}
 {% endmacro %}
-
-{% macro render_field_table_lien(field) %}
+{% macro render_field_table_lien(field, lien=None) %}
 {% if field.widget.input_type != "hidden" %}
 <tr>
-    <th class="is-vcentered">{{ field.label }} </th>
-
+    <th class="is-vcentered">{{ field.label }}</th>
     <td>
         {% if field.type == "TextAreaField" %}
-        {{ field(class="textarea",**kwargs) }}
+        {{ field(class="textarea", **kwargs) }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field(**kwargs) }}</div>
         {% elif field.type in ["BooleanField", "RadioField"] %}
         {{ field(**kwargs) }}
-        {% elif field.type in ["FileField"] %}
+        {% elif field.type == "FileField" %}
         {{ field(class="file", **kwargs) }}
+
+        {% set db_field_name = field.name.replace('_file', '') %}
+        {%- if lien and (lien | attr(db_field_name)) %}
+        <a class="button is-small is-outlined is-link" href="{{ url_for('lien.download_document',
+                                    lien_id=lien.id,
+                                    document_type=db_field_name) }}">
+            Download existing file
+        </a>
+        {% endif -%}
         {% else %}
         {{ field(class="input", **kwargs) }}
         {% endif %}
@@ -54,7 +61,6 @@
             {% endfor %}
         </div>
         {% endif %}
-
     </td>
 </tr>
 {% endif %}
