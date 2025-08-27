@@ -37,29 +37,34 @@ from .lien_forms import (
 
 def prepare_upload_document(lien, form) -> None:
     file_field_dictionary: dict[str : tuple(str, str, str)] = {
-        "court_order_lien": ("court_order_lien_file", "lien_order", "lien_order"),
-        "court_order_dd": ("court_order_dd_file", "dd_order", "dd_copy"),
+        "court_order_lien": (
+            "court_order_lien_file",
+            "court_order_lien",
+            "court_order_lien",
+        ),
+        "court_order_dd": ("court_order_dd_file", "court_order_dd", "court_order_dd"),
         "lien_dd_reversal_order": (
             "lien_dd_reversal_order_file",
-            "lien_dd_reversal",
-            "lien_dd_reversal",
+            "lien_dd_reversal_order",
+            "lien_dd_reversal_order",
         ),
         "appeal_copy": ("appeal_copy_file", "appeal_copy", "appeal_copy"),
+        "appeal_copy_2": ("appeal_copy_2_file", "appeal_copy_2", "appeal_copy_2"),
         "stay_order": ("stay_order_file", "stay_order", "stay_order"),
         "court_order_lien_reversal": (
             "court_order_lien_reversal_file",
-            "lien_reversal",
-            "lien_reversal",
+            "court_order_lien_reversal",
+            "court_order_lien_reversal",
         ),
         "court_order_dd_reversal": (
             "court_order_dd_reversal_file",
-            "dd_reversal",
-            "dd_reversal",
+            "court_order_dd_reversal",
+            "court_order_dd_reversal",
         ),
         "claim_disbursement_voucher": (
             "claim_disbursement_voucher_file",
-            "disbursement_voucher",
-            "disbursement_voucher",
+            "claim_disbursement_voucher",
+            "claim_disbursement_voucher",
         ),
     }
     for model_attribute, (
@@ -124,6 +129,7 @@ def lien_edit(lien_id):
     else:
         flash("You are not authorized to edit this lien.", "danger")
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
+    form.model_obj = lien
     if form.validate_on_submit():
         form.populate_obj(lien)
         prepare_upload_document(lien, form)
@@ -137,14 +143,15 @@ def lien_edit(lien_id):
 def download_document(document_type, lien_id):
     def get_document_path(lien, document_type):
         document_map = {
-            "lien_order": lien.court_order_lien,
-            "dd_copy": lien.court_order_dd,
-            "lien_reversal": lien.court_order_lien_reversal,
-            "dd_reversal": lien.court_order_dd_reversal,
+            "court_order_lien": lien.court_order_lien,
+            "court_order_dd": lien.court_order_dd,
+            "court_order_lien_reversal": lien.court_order_lien_reversal,
+            "court_order_dd_reversal": lien.court_order_dd_reversal,
             "appeal_copy": lien.appeal_copy,
+            "appeal_copy_2": lien.appeal_copy_2,
             "stay_order": lien.stay_order,
-            "lien_dd_reversal": lien.lien_dd_reversal_order,
-            "disbursement_voucher": lien.claim_disbursement_voucher,
+            "lien_dd_reversal_order": lien.lien_dd_reversal_order,
+            "claim_disbursement_voucher": lien.claim_disbursement_voucher,
         }
         return document_map.get(document_type)
 
