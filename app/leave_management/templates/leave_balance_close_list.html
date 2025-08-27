@@ -48,7 +48,7 @@
                     <td>{{ item.current_casual_leave_balance }}</td>
                     <td>{{ item.current_sick_leave_balance }}</td>
                     <td>{{ item.current_rh_balance }}</td>
-                    <td>{{ to_mixed_fraction_11(calculate_earned_leave(item.employee_number)) }}</td>
+                    <td>{{ to_mixed_fraction_11(calculate_earned_leave(item.employee_number, today)) }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

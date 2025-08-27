@@ -561,7 +561,9 @@ def leave_balance_open_list():
             leave_balance_close(db.get_or_404(LeaveBalance, key))
         flash("Leave balance has been closed for selected employees.")
         return redirect(url_for(".leave_balance_open_list"))
-    return render_template("leave_balance_close_list.html", list=list, form=form)
+    return render_template(
+        "leave_balance_close_list.html", list=list, form=form, today=date.today()
+    )
 
 
 @leave_mgmt_bp.route("/holiday/", defaults={"year": None})
