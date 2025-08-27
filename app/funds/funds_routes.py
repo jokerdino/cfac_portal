@@ -362,7 +362,7 @@ def funds_home_data():
 def funds_home_data_v2():
     # Step 1: aggregate outflows by date
     outflow_agg = (
-        db.session.query(
+        db.select(
             FundDailyOutflow.outflow_date.label("date"),
             func.sum(FundDailyOutflow.outflow_amount).label("outflow_amount"),
         )
@@ -372,7 +372,7 @@ def funds_home_data_v2():
 
     # Step 2: daily sheet with lag(prev_hdfc_balance)
     daily_with_prev = (
-        db.session.query(
+        db.select(
             FundDailySheet.date_current_date.label("date"),
             FundDailySheet.float_amount_given_to_investments.label("investment_given"),
             FundDailySheet.float_amount_taken_from_investments.label(
@@ -392,7 +392,7 @@ def funds_home_data_v2():
 
     # Step 3: main query anchored on FundBankStatement
     query = (
-        db.session.query(
+        db.select(
             FundBankStatement.date_uploaded_date.label("date_uploaded_date"),
             (
                 func.sum(FundBankStatement.credit)
@@ -443,28 +443,16 @@ def funds_home_data_v2():
         .order_by(FundBankStatement.date_uploaded_date.desc())
     )
 
-    total_records = query.count()
-    records_filtered = query.count()
+    count_query = db.select(func.count()).select_from(query.subquery())
+    total_records = db.session.execute(count_query).scalar_one()
+    records_filtered = total_records
 
     start = request.args.get("start", type=int)
     length = request.args.get("length", type=int)
 
-    query = query.offset(start).limit(length)
-
-    data = [
-        {
-            "date_uploaded_date": row[0],
-            "credit": row[1] or 0,
-            "outflow": row[2] or 0,
-            "net_cashflow": row[3] or 0,
-            "investment_given": row[4] or 0,
-            "investment_taken": row[5] or 0,
-            "net_investment": row[6] or 0,
-            "investment_closing_balance": row[7] or 0,
-            "hdfc_closing_balance": row[8] or 0,
-        }
-        for row in query
-    ]
+    paginated_query = query.offset(start).limit(length)
+    rows = db.session.execute(paginated_query).mappings().all()
+    data = [dict(row) for row in rows]
 
     return {
         "draw": request.args.get("draw", type=int),
