@@ -10,11 +10,11 @@
         {{ macros.render_row("RO Code", lien.ro_code) }}
         {{ macros.render_row("Lien amount", lien.lien_amount) }}
         {{ macros.render_row("Lien date", lien.lien_date) }}
-        {{ macros.download_row("Court order - lien", lien.court_order_lien, lien.id, "lien_order") }}
+        {{ macros.download_row("Court order - lien", lien.court_order_lien, lien.id, "court_order_lien") }}
 
         {{ macros.render_row("DD date", lien.dd_date) }}
         {{ macros.render_row("DD amount", lien.dd_amount) }}
-        {{ macros.download_row("DD Copy", lien.court_order_dd, lien.id, "dd_copy") }}
+        {{ macros.download_row("DD Copy", lien.court_order_dd, lien.id, "court_order_dd") }}
         {{ macros.render_row("Bank remarks", lien.bank_remarks, word_wrap=True) }}
         {{ macros.render_row("Action taken by banker", lien.action_taken_by_banker, word_wrap=True) }}
 
@@ -22,6 +22,7 @@
         {{ macros.render_row("Court name", lien.court_name) }}
         {{ macros.render_row("Case number", lien.case_number) }}
         {{ macros.render_row("Case title", lien.case_title) }}
+        {{ macros.render_row("MACT number", lien.mact_number) }}
         {{ macros.render_row("Petitioner name", lien.petitioner_name) }}
 
         {{ macros.render_row("Date of lien order", lien.date_of_lien_order) }}
@@ -29,16 +30,19 @@
         {{ macros.render_row("Claim number", lien.claim_number) }}
         {{ macros.render_row("Date of claim registration", lien.date_of_claim_registration) }}
         {{ macros.download_row("Claim disbursement voucher", lien.claim_disbursement_voucher, lien.id,
-        "disbursement_voucher") }}
+        "claim_disbursement_voucher") }}
 
         {{ macros.download_row("Lien / DD reversal order", lien.lien_dd_reversal_order, lien.id,
-        "lien_dd_reversal") }}
+        "lien_dd_reversal_order") }}
 
         {{ macros.render_row("Lien status", lien.lien_status) }}
         {{ macros.render_row("Whether appeal was given", lien.appeal_given) }}
 
         {{ macros.download_row("Appeal copy", lien.appeal_copy, lien.id, "appeal_copy") }}
 
+        {{ macros.render_row("Whether further appeal was given", lien.appeal_given_2) }}
+
+        {{ macros.download_row("Further appeal copy", lien.appeal_copy_2, lien.id, "appeal_copy_2") }}
         {{ macros.render_row("Whether stay was obtained", lien.stay_obtained) }}
         {{ macros.download_row("Stay order", lien.stay_order, lien.id, "stay_order") }}
 
@@ -46,9 +50,11 @@
         {{ macros.render_row("Date of claim", lien.claim_accounting_voucher_date) }}
         {{ macros.render_row("RO remarks", lien.ro_remarks, word_wrap=True) }}
         {{ macros.render_row("HO TP remarks", lien.ho_tp_remarks, word_wrap=True) }}
-        {{ macros.download_row("Court order - lien reversal", lien.court_order_lien_reversal, lien.id, "lien_reversal")
+        {{ macros.download_row("Court order - lien reversal", lien.court_order_lien_reversal, lien.id,
+        "court_order_lien_reversal")
         }}
-        {{ macros.download_row("Court order - DD reversal", lien.court_order_dd_reversal, lien.id, "dd_reversal") }}
+        {{ macros.download_row("Court order - DD reversal", lien.court_order_dd_reversal, lien.id,
+        "court_order_dd_reversal") }}
     </table>
     <div class="has-text-centered">
         <a class="button is-link" href="{{ url_for('lien.lien_list') }}">Go home</a>
