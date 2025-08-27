@@ -1,7 +1,7 @@
 {% extends "lien_layout.html" %}
 
 {% block content %}
-{% if current_user.user_type == "admin" %}
+{% if current_user.user_type in ["admin","ho_motor_tp"] %}
 <div class="table-container">
     <table class="table is-striped is-bordered" id="lien_version_table">
         <thead>
