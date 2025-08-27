@@ -774,9 +774,7 @@ def upload_df_entries(file, brs_type, table_name, brs_id):
 
     optional_columns = ["remarks"]
 
-    df = pd.read_csv(
-        file,
-    )
+    df = pd.read_csv(file, dtype={"instrument_number": str})
     # Add missing optional columns as empty
     for col in optional_columns:
         if col not in df.columns:
