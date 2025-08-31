@@ -1,0 +1,28 @@
+<table class="{{ table.classes }}" id="{{ table.id }}">
+    <thead>
+        <tr>
+            {% for name, col in table.columns %}
+            <th class="text-center">
+                {{ col.header }}
+                {# <a href="{{ table.sort_url(name, 'asc') }}">↑</a>
+                <a href="{{ table.sort_url(name, 'desc') }}">↓</a> #}
+            </th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table.data %}
+        <tr>
+            {% for name, col in table.columns %}
+            <td class="text-center">
+                {% if col.is_html %}
+                {{ col.get_value(row) | safe }}
+                {% else %}
+                {{ col.get_value(row) }}
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

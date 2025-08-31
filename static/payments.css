@@ -53,3 +53,9 @@ summary {
 body {
     zoom: 80%;
 }
+.col-25 {
+        width: 25%;
+    }
+    .navbar-custom {
+    background-color:  #ca8cdf;   /* custom blue */
+  }

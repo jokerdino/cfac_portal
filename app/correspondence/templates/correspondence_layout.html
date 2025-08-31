@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | {% block title %}Correspondence{% endblock title %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+
+    <link
+        href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.3.3/b-3.2.4/b-html5-3.2.4/datatables.min.css"
+        rel="stylesheet" integrity="sha384-heFA86sYpskS2E72sKgdBbBb53+0ouh9OQ69t06pgvchgUycRm+5Yo/H0xGOBoTH"
+        crossorigin="anonymous" />
+
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom" data-bs-theme="light">
+            <div class="container-fluid">
+
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Circulars
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('.circular_list') }}">Circulars</a></li>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('.circular_add') }}">Add new circular</a>
+                            </li>
+
+                        </ul>
+                    </li>
+                    <a class="nav-link" href="{{ url_for('.circular_list') }}">Inwards</a>
+                    <a class="nav-link" href="{{ url_for('.circular_list') }}">Outwards</a>
+
+                </div>
+                {% if not current_user.is_authenticated %}
+
+                <div class="navbar-nav">
+                    <a class="nav-link" href="{{ url_for('users.login_page') }}">Login</a>
+                    {% else %}
+                    <a class="nav-link disabled" tabindex="-1" href="">{{ current_user.username }}</a>
+                    <a class="nav-link ms-3" href="{{ url_for('users.logout_page') }}">Log out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid mt-5">
+
+        {% if current_user.is_authenticated %}
+        {% block content %}{% endblock content %}
+        {% endif %}
+    </div>
+    <script
+        src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.3.3/b-3.2.4/b-html5-3.2.4/datatables.min.js"
+        integrity="sha384-O3te7vajwlaDx1i+riuEl0upRsNgDcmwhtvS1dQrjtM8u7wTspTEGMs1onlQToxN"
+        crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>
