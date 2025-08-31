@@ -1,4 +1,6 @@
 import math
+
+
 from sqlalchemy.inspection import inspect
 from flask import request, url_for, render_template
 from markupsafe import Markup
