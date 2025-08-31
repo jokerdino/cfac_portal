@@ -120,6 +120,12 @@
           <li><a href="{{ url_for('pg_tieup.list_pg_tieup') }}">PG tieup</a></li>
 
         </ul>
+        <p class="menu-label">CFAC Correspondence</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('correspondence.circular_list') }}">Circulars</a></li>
+          <li><a href="{{ url_for('correspondence.circular_list') }}">Inwards</a></li>
+          <li><a href="{{ url_for('correspondence.circular_list') }}">Outwards</a></li>
+        </ul>
         {% endif %}
         {% if current_user.user_type in ["admin","ro_user"] %}
         <p class="menu-label">Admin</p>

@@ -1,0 +1,61 @@
+{# macros.html #}
+{% macro render_field_bootstrap(field, label_class="form-label", input_class="form-control", show_errors=True) %}
+<div class="mb-3">
+    {{ field.label(class=label_class) }}
+
+    {# Handle field type (textarea, select, checkbox, etc.) #}
+    {% if field.type == "TextAreaField" %}
+    {{ field(class=input_class ~ " form-control") }}
+    {% elif field.type in ["SelectField", "SelectMultipleField"] %}
+    {{ field(class=input_class ~ " form-select") }}
+    {% elif field.type in ["BooleanField"] %}
+    <div class="form-check">
+        {{ field(class="form-check-input") }}
+        {{ field.label(class="form-check-label") }}
+    </div>
+    {% else %}
+    {{ field(class=input_class) }}
+    {% endif %}
+
+    {# Show validation errors #}
+    {% if show_errors and field.errors %}
+    <div class="invalid-feedback d-block">
+        {% for error in field.errors %}
+        <div>{{ error }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+{% macro render_field_horizontal(field, label_class="col-sm-3 col-form-label",
+input_class="form-control",
+div_class="col-sm-9",
+show_errors=True) %}
+<div class="row mb-3">
+    {{ field.label(class=label_class) }}
+
+    <div class="{{ div_class }}">
+        {% if field.type == "TextAreaField" %}
+        {{ field(class=input_class) }}
+        {% elif field.type in ["SelectField", "SelectMultipleField"] %}
+        {{ field(class="form-select") }}
+        {% elif field.type == "BooleanField" %}
+        <div class="form-check">
+            {{ field(class="form-check-input") }}
+            {{ field.label(class="form-check-label") }}
+        </div>
+        {% else %}
+        {{ field(class=input_class) }}
+        {% endif %}
+
+        {% if show_errors and field.errors %}
+        <div class="invalid-feedback d-block">
+            {% for error in field.errors %}
+            <div>{{ error }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}

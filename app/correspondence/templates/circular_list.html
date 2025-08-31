@@ -1,0 +1,30 @@
+{% extends "correspondence_layout.html" %}
+{% block title %}Circulars{% endblock title %}
+{% block content %}
+<div class="container-fluid">
+    <h1>{{ title }}</h1>
+    {{ table }}
+
+    {# {{ table.pagination|safe }} #}
+</div>
+{% endblock content %}
+
+{% block scripts %}
+
+<script>
+    new DataTable('#{{ table.id }}', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
+        order: [[1, 'desc']],
+        pageLength: 50,
+    });
+</script>
+
+{% endblock scripts %}

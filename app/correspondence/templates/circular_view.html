@@ -1,0 +1,63 @@
+{% extends "correspondence_layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Circular number: {{ circular.circular_number }}</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="col-25">Title</th>
+                        <td>{{ circular.circular_title }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date of Issue</th>
+                        <td>{{ circular.date_of_issue.strftime('%d-%m-%Y') if circular.date_of_issue else '' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Circular reference number</th>
+                        <td>{{ circular.circular_number if circular.circular_number else '' }}</td>
+                    </tr>
+                    <tr>
+                        <th>Issued by</th>
+                        <td>{{ circular.issued_by_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Designation</th>
+                        <td>{{ circular.issued_by_designation }}</td>
+                    </tr>
+                    <tr>
+                        <th>Recipients</th>
+                        <td>{{ circular.recipients }}</td>
+                    </tr>
+                    <tr>
+                        <th>Remarks</th>
+                        <td>{{ circular.remarks }}</td>
+                    </tr>
+                    <tr>
+                        <th>Uploaded Document</th>
+                        <td>
+                            {% if circular.upload_document %}
+                            <a href="{{ url_for('.download_document', document_type='circular', circular_id=circular.id) }}"
+                                target="_blank" class="btn btn-sm btn-outline-primary">
+                                View Document
+                            </a>
+                            {% else %}
+                            <span class="text-muted">No document uploaded</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{{ url_for('correspondence.circular_list') }}" class="btn btn-secondary">Back to list</a>
+            <a href="{{ url_for('correspondence.circular_edit', circular_id=circular.id) }}"
+                class="btn btn-warning">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}
