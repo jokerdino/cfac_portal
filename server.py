@@ -40,6 +40,7 @@ from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
 
 from utils import datetime_format, humanize_datetime, indian_number_format
+from reset_table_id import reset_id
 
 
 @lm.user_loader
@@ -69,6 +70,8 @@ def create_app(config_class=Config):
     admin.init_app(app)
 
     toolbar.init_app(app)
+
+    app.cli.add_command(reset_id)
     # Register blueprints here
 
     app.register_blueprint(main_bp, url_prefix="/")
