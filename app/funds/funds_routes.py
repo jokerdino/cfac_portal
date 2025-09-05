@@ -462,17 +462,17 @@ def funds_home_data_v2():
     }
 
 
+@funds_bp.route("/home_old")
+@login_required
+@fund_managers
+def funds_home_api_old():
+    return render_template("funds_home_api.html")
+
+
 @funds_bp.route("/home")
 @login_required
 @fund_managers
 def funds_home_api():
-    return render_template("funds_home_api.html")
-
-
-@funds_bp.route("/home2")
-@login_required
-@fund_managers
-def funds_home_api_2():
     return render_template("funds_home_api_v2.html")
 
 
