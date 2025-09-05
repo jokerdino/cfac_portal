@@ -48,12 +48,12 @@ class CentralisedChequeBankReconForm(FlaskForm):
     opening_balance_unencashed = DecimalField(
         "Opening balance: Unencashed cheques",
         validators=[InputRequired()],
-        render_kw={"class": "input is-small"},
+        render_kw={"class": "input is-small", "readonly": "readonly"},
     )
     opening_balance_stale = DecimalField(
         "Opening balance: Stale cheques",
         validators=[InputRequired()],
-        render_kw={"class": "input is-small"},
+        render_kw={"class": "input is-small", "readonly": "readonly"},
     )
     cheques_issued = DecimalField(
         "Add: Cheques issued",

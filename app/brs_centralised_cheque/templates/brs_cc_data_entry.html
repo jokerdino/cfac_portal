@@ -50,10 +50,10 @@
             {% for field, month, readonly in [
             (form.prepared_by_employee_name,"",false),
             (form.prepared_by_employee_number,"",false),
-            (form.opening_balance_unencashed, previous_month, false),
+            (form.opening_balance_unencashed, previous_month, true),
             (form.cheques_issued, brs.month, false),
             (form.cheques_reissued_unencashed, brs.month, false),
-            (form.opening_balance_stale, previous_month, false),
+            (form.opening_balance_stale, previous_month, true),
             (form.cheques_reissued_stale, brs.month, true),
             (form.cheques_cleared, brs.month, false),
             (form.cheques_cancelled, brs.month, false),
