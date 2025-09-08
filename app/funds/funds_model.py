@@ -1,10 +1,12 @@
 from datetime import datetime, date
 from dataclasses import dataclass
+import uuid
 
 from flask_login import current_user
 
 from sqlalchemy import func
 from sqlalchemy.orm import column_property
+from sqlalchemy.dialects.postgresql import UUID
 
 from extensions import db
 
@@ -27,6 +29,18 @@ class FundBankStatement(db.Model):
 
     text_remarks = db.Column(db.Text)
     current_status = db.Column(db.String)
+
+    flag_id = db.Column(
+        db.Integer,
+        db.ForeignKey("fund_journal_voucher_flag_sheet.id"),
+        index=True,
+    )
+
+    flag = db.relationship(
+        "FundJournalVoucherFlagSheet", back_populates="bank_statements"
+    )
+
+    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
 
     date_created_date = db.Column(db.DateTime, default=datetime.now)
     date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
@@ -188,3 +202,6 @@ class FundJournalVoucherFlagSheet(db.Model):
     created_by = db.Column(db.String, default=lambda: current_user.username)
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
+    bank_statements = db.relationship(
+        "FundBankStatement", back_populates="flag", lazy="dynamic"
+    )

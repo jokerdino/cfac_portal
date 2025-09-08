@@ -419,6 +419,94 @@ def daily_jv_entries():
     }
 
 
+@pool_credits_bp.route("/daily_jv2/")
+@pool_credits_bp.route("/identified2/")
+@login_required
+@ro_user_only
+def identified_entries_v2():
+    return render_template("daily_jv_entries_v2.html")
+
+
+@pool_credits_bp.route("/api/v2/data/daily_jv")
+@login_required
+@ro_user_only
+def daily_jv_entries_v2():
+    # query
+    START_DATE = datetime(2024, 10, 1)
+    base_filters = [
+        FundBankStatement.flag_description == "OTHER RECEIPTS",
+        FundBankStatement.value_date >= START_DATE,
+    ]
+    query = (
+        db.select(
+            func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label("book_date"),
+            FundBankStatement.description,
+            FundBankStatement.credit,
+            func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
+                "value_date"
+            ),
+            FundBankStatement.reference_no,
+            FundJournalVoucherFlagSheet.txt_description,
+            FundJournalVoucherFlagSheet.txt_flag,
+            FundJournalVoucherFlagSheet.txt_gl_code,
+            FundJournalVoucherFlagSheet.txt_sl_code,
+        )
+        .join(
+            FundBankStatement.flag,
+        )
+        .where(*base_filters)
+        .order_by(FundBankStatement.id.desc())
+    )
+
+    entries_count = db.session.scalar(
+        db.select(func.count(FundBankStatement.id))
+        .join(
+            FundBankStatement.flag,
+        )
+        .where(*base_filters)
+    )
+
+    # search
+    search = request.args.get("search[value]")
+    if search:
+        query = query.filter(
+            db.or_(
+                cast(FundBankStatement.book_date, String).like(f"%{search}%"),
+                FundBankStatement.description.ilike(f"%{search}%"),
+                cast(FundBankStatement.credit, String).like(f"%{search}%"),
+                cast(FundBankStatement.value_date, String).like(f"%{search}%"),
+                FundBankStatement.reference_no.ilike(f"%{search}%"),
+                FundJournalVoucherFlagSheet.txt_description.ilike(f"%{search}%"),
+                FundJournalVoucherFlagSheet.txt_flag.ilike(f"%{search}%"),
+                cast(FundJournalVoucherFlagSheet.txt_gl_code, String).like(
+                    f"%{search}%"
+                ),
+                cast(FundJournalVoucherFlagSheet.txt_sl_code, String).like(
+                    f"%{search}%"
+                ),
+            )
+        )
+
+    total_filtered = db.session.scalar(
+        db.select(func.count()).select_from(query.subquery())
+    )
+
+    # pagination
+    start = request.args.get("start", type=int)
+    length = request.args.get("length", type=int)
+    paginated_query = query.offset(start).limit(length)
+    rows = db.session.execute(paginated_query).mappings()
+    data = [dict(row) for row in rows]
+
+    # response
+    return {
+        "data": data,
+        "recordsFiltered": total_filtered,
+        "recordsTotal": entries_count,
+        "draw": request.args.get("draw", type=int),
+    }
+
+
 @pool_credits_bp.route("/download/", methods=["POST", "GET"])
 @login_required
 @ro_user_only

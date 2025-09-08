@@ -1,11 +1,14 @@
 from datetime import datetime
 from dataclasses import dataclass, field
-from extensions import db
+import uuid
 
 from flask_login import current_user
 
 from sqlalchemy import func
 from sqlalchemy.orm import column_property
+from sqlalchemy.dialects.postgresql import UUID
+
+from extensions import db
 
 
 @dataclass
@@ -35,6 +38,7 @@ class PoolCredits(db.Model):
     bool_jv_passed: bool = db.Column(db.Boolean, default=False)
 
     # meta data
+    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
     date_created_date = db.Column(db.DateTime, default=datetime.now)
     date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
     date_deleted_date = db.Column(db.DateTime)
@@ -58,6 +62,7 @@ class PoolCreditsPortal(db.Model):
     amount_credit: float = db.Column(db.Numeric(20, 2))
     txt_name_of_remitter: str = db.Column(db.String)
 
+    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
     date_created_date: datetime.time = db.Column(db.DateTime)
     date_updated_date = db.Column(db.DateTime)
     date_deleted_date = db.Column(db.DateTime)
