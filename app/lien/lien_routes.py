@@ -274,7 +274,6 @@ def lien_bulk_upload():
             # df['date_of_lien_order'] = df['date_of_lien_order'].dt.date
             df = df.where(pd.notnull(df), None)
             df = df.replace({pd.NaT: None, np.nan: None})
-            df["is_duplicate"] = df.duplicated(subset=["lien_amount"], keep=False)
             ro_codes_in_file = set(df["ro_code"].dropna())
             invalid_codes = ro_codes_in_file - ALLOWED_RO_CODES
 
@@ -285,6 +284,16 @@ def lien_bulk_upload():
                 )
                 return redirect(url_for("lien.lien_bulk_upload"))
 
+            # Check for duplicates
+
+            # mark duplicate within the file
+            df["is_duplicate"] = df.duplicated(subset=["lien_amount"], keep=False)
+
+            # mark duplicate in the database
+            upload_amounts = set(df["lien_amount"].dropna())
+            db.session.query(Lien).filter(Lien.lien_amount.in_(upload_amounts)).update(
+                {"is_duplicate": True}, synchronize_session=False
+            )
             # Insert valid rows
             for row in df.to_dict(orient="records"):
                 lien = Lien(**row)
