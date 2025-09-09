@@ -3,6 +3,7 @@ import os
 import re
 
 import pandas as pd
+import numpy as np
 from flask import (
     abort,
     current_app,
@@ -265,8 +266,15 @@ def lien_bulk_upload():
         lien_file = form.lien_file.data
 
         try:
-            df = pd.read_excel(lien_file)
+            df = pd.read_excel(lien_file, dtype={"ro_code": str, "case_number": str})
             df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
+            # df['lien_date'] = pd.to_datetime(df['lien_date'], errors="coerce")
+            # df['date_of_lien_order'] = pd.to_datetime(df['date_of_lien_order'], errors="coerce")
+            # df['lien_date'] = df['lien_date'].dt.date
+            # df['date_of_lien_order'] = df['date_of_lien_order'].dt.date
+            df = df.where(pd.notnull(df), None)
+            df = df.replace({pd.NaT: None, np.nan: None})
+            df["is_duplicate"] = df.duplicated(subset=["lien_amount"], keep=False)
             ro_codes_in_file = set(df["ro_code"].dropna())
             invalid_codes = ro_codes_in_file - ALLOWED_RO_CODES
 
@@ -281,6 +289,7 @@ def lien_bulk_upload():
             for row in df.to_dict(orient="records"):
                 lien = Lien(**row)
                 db.session.add(lien)
+                db.session.flush()
 
             db.session.commit()
             flash(f"Successfully uploaded {len(df)} liens.", "success")

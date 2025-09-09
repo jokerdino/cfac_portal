@@ -1,6 +1,10 @@
 from flask_admin_models import DefaultModelView
 
 
+class LienView(DefaultModelView):
+    can_export = True
+
+
 class UserView(DefaultModelView):
     column_exclude_list = [
         "password",

@@ -21,6 +21,7 @@ from app.cfac_flask_admin.model_views import (
     PoolCreditView,
     BudgetAllocationView,
     BudgetUtilizationView,
+    LienView,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -456,7 +457,7 @@ admin.add_view(
 
 # lien
 admin.add_view(
-    DefaultModelView(
+    LienView(
         Lien,
         db.session,
         endpoint="lien_",
