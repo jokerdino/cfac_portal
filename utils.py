@@ -17,6 +17,10 @@ def datetime_format(value, format="%H:%M %d-%m-%y", result="default"):
     return_value = datetime.strptime(value, format)
     if result == "default":
         return return_value
+    elif result == "current_month":
+        format = "%B-%Y"
+        return value
+
     elif result == "current":
         res = calendar.monthrange(return_value.year, return_value.month)
         date_string = f"{res[1]}/{return_value.month:02}/{return_value.year}"

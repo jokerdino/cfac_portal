@@ -34,250 +34,104 @@
             </tr>
         </tbody>
     </table>
+    {% set brs_types = [
+    ("cash", "Cash", cash_brs),
+    ("cheque", "Cheque", cheque_brs),
+    ("pg", "Payment Gateway", pg_brs),
+    ("pos", "POS", pos_brs),
+    ("bbps", "BBPS", bbps_brs),
+    ("dqr", "DQR", dqr_brs),
+    ("local_collection", "Local Collection", local_collection_brs)
+    ] %}
 
     <table class="table is-fullwidth is-bordered">
         <thead>
             <tr>
                 <th></th>
                 <th></th>
-                <th class="has-text-centered is-vcentered">{% if cash_brs %} Cash {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if cheque_brs %} Cheque {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if pg_brs %} Payment Gateway {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if pos_brs %} POS {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if bbps_brs %} BBPS {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if dqr_brs %} DQR {% endif %}</th>
-                <th class="has-text-centered is-vcentered">{% if local_collection_brs %} Local Collection {% endif %}
-                </th>
+                {% for key, label, brs in brs_types %}
+                <th class="has-text-centered is-vcentered">{% if brs %} {{ label }} {% endif %}</th>
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
-
             <tr>
                 <th class="is-vcentered">BRS bank</th>
                 <td></td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.cash_bank if cash_brs }} </td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.cheque_bank if cheque_brs }}</td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.pg_bank if pg_brs }}</td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.pos_bank if pos_brs }}</td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.bbps_bank if bbps_brs }}</td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.dqr_bank if dqr_brs }}</td>
-                <td class="has-text-centered is-vcentered">{{ brs_month.local_collection_bank if local_collection_brs }}
-                </td>
-            </tr>
-            <tr>
-                <td colspan="8" class="has-text-weight-bold">Summary of General Ledger</td>
-            </tr>
-
-            <tr class="has-text-weight-bold">
-                <th>Opening balance as per GL</th>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_opening_balance | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_opening_balance | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_opening_balance | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_opening_balance | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_opening_balance | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_opening_balance | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_opening_balance | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Add: Opening On hand</td>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "previous") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_opening_on_hand | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_opening_on_hand | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_opening_on_hand | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_opening_on_hand | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_opening_on_hand | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_opening_on_hand | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_opening_on_hand | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Add: Collections during the month</td>
-                <td>{{ brs_month.month }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_transactions | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_transactions | indian_number_format) if cheque_brs }}</td>
-                <td class="has-text-right">{{ (pg_brs.int_transactions | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_transactions | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_transactions | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_transactions | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_transactions | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Less: Cancellations / cheque dishonours during the month</td>
-                <td>{{ brs_month.month }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_cancellations | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_cancellations | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_cancellations | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_cancellations | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_cancellations | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_cancellations | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_cancellations | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr class="has-text-weight-bold">
-                <td>Balance before fund transfer</td>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ ((cash_brs.int_opening_balance +
-                    cash_brs.int_opening_on_hand + cash_brs.int_transactions - cash_brs.int_cancellations) |
-                    indian_number_format) if cash_brs
-                    }}</td>
-                <td class="has-text-right">{{ ((cheque_brs.int_opening_balance +
-                    cheque_brs.int_opening_on_hand + cheque_brs.int_transactions - cheque_brs.int_cancellations) |
-                    indian_number_format) if
-                    cheque_brs }}</td>
-                <td class="has-text-right">{{ ((pg_brs.int_opening_balance + pg_brs.int_opening_on_hand +
-                    pg_brs.int_transactions - pg_brs.int_cancellations) | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ ((pos_brs.int_opening_balance + pos_brs.int_opening_on_hand
-                    + pos_brs.int_transactions - pos_brs.int_cancellations) | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ ((bbps_brs.int_opening_balance +
-                    bbps_brs.int_opening_on_hand + bbps_brs.int_transactions - bbps_brs.int_cancellations) |
-                    indian_number_format) if bbps_brs
-                    }}</td>
-                <td class="has-text-right">{{ ((dqr_brs.int_opening_balance + dqr_brs.int_opening_on_hand +
-                    dqr_brs.int_transactions - dqr_brs.int_cancellations) | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ ((local_collection_brs.int_opening_balance +
-                    local_collection_brs.int_opening_on_hand + local_collection_brs.int_transactions -
-                    local_collection_brs.int_cancellations) | indian_number_format) if local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Less: Fund transfer</td>
-                <td>{{ brs_month.month }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_fund_transfer | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_fund_transfer | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_fund_transfer | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_fund_transfer | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_fund_transfer | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_fund_transfer | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_fund_transfer | indian_number_format) if
-                    local_collection_brs }}</td>
+                {% for key, label, brs in brs_types %}
+                <td class="has-text-centered is-vcentered">{{ brs_month[key ~ "_bank"] if brs }}</td>
+                {% endfor %}
             </tr>
 
             <tr>
-                <td>Less: Bank charges</td>
-                <td>{{ brs_month.month }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_bank_charges | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_bank_charges | indian_number_format) if cheque_brs }}</td>
-                <td class="has-text-right">{{ (pg_brs.int_bank_charges | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_bank_charges | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_bank_charges | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_bank_charges | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_bank_charges | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Less: Closing On hand</td>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_closing_on_hand | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_closing_on_hand | indian_number_format) if cheque_brs }}
+                <td colspan="{{ 2 + brs_types|length }}" class="has-text-weight-bold">
+                    Summary of General Ledger
                 </td>
-                <td class="has-text-right">{{ (pg_brs.int_closing_on_hand | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_closing_on_hand | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_closing_on_hand | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_closing_on_hand | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_closing_on_hand | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr class="has-text-weight-bold">
-                <th>Closing balance as per GL</th>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_closing_balance | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_closing_balance | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_closing_balance | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_closing_balance | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_closing_balance | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_closing_balance | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_closing_balance | indian_number_format) if
-                    local_collection_brs }}</td>
             </tr>
 
-            <tr>
-                <td colspan="8" class="has-text-weight-bold">Bank reconciliation statement</td>
+            {% set rows = [
+            ("Opening balance as per GL", "int_opening_balance", "previous", true),
+            ("Add: Opening On hand", "int_opening_on_hand", "previous", false),
+            ("Add: Collections during the month", "int_transactions", "current_month", false),
+            ("Less: Cancellations / cheque dishonours during the month", "int_cancellations", "current_month", false),
+            ("Balance before fund transfer", "balance_before_fund_transfer", "current", true),
+            ("Less: Fund transfer", "int_fund_transfer", "current_month", false),
+            ("Less: Bank charges", "int_bank_charges", "current_month", false),
+            ("Less: Closing On hand", "int_closing_on_hand", "current", false),
+            ("Closing balance as per GL", "int_closing_balance", "current", true),
+            ] %}
+
+            {% for label, field, date_mode, bold in rows %}
+            <tr class="{% if bold %}has-text-weight-bold{% endif %}">
+                <td>{{ label }}</td>
+                <td>{{ brs_month.month | datetime_format("%B-%Y", date_mode) }}</td>
+                {% for key, _, brs in brs_types %}
+                <td class="has-text-right">
+                    {% if brs %}
+                    {% if field == "balance_before_fund_transfer" %}
+                    {{ ((brs.int_opening_balance + brs.int_opening_on_hand +
+                    brs.int_transactions - brs.int_cancellations) | indian_number_format) }}
+                    {% else %}
+                    {{ brs[field] | indian_number_format }}
+
+                    {% endif %}
+                    {% endif %}
+                </td>
+                {% endfor %}
             </tr>
-            <tr class="has-text-weight-bold">
-                <th>Closing balance as per GL</th>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_closing_balance | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_closing_balance | indian_number_format) if cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_closing_balance | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_closing_balance | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_closing_balance | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_closing_balance | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
-            <tr>
-                <td>Less: Deposited but not credited</td>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_deposited_not_credited | indian_number_format) if cash_brs
-                    }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_deposited_not_credited | indian_number_format) if
-                    cheque_brs }}
-                </td>
-                <td class="has-text-right">{{ (pg_brs.int_deposited_not_credited | indian_number_format) if pg_brs }}
-                </td>
-                <td class="has-text-right">{{ (pos_brs.int_deposited_not_credited | indian_number_format) if pos_brs }}
-                </td>
-                <td class="has-text-right">{{ (bbps_brs.int_deposited_not_credited | indian_number_format) if bbps_brs
-                    }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_deposited_not_credited | indian_number_format) if dqr_brs }}
-                </td>
-                <td class="has-text-right">{{ (local_collection_brs.int_deposited_not_credited | indian_number_format)
-                    if
-                    local_collection_brs }}</td>
-            </tr>
+            {% endfor %}
 
             <tr>
-                <td>Less: Short credit entries</td>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_short_credited | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_short_credited | indian_number_format) if cheque_brs }}
+                <td colspan="{{ 2 + brs_types|length }}" class="has-text-weight-bold">
+                    Bank reconciliation statement
                 </td>
-                <td class="has-text-right">{{ (pg_brs.int_short_credited | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_short_credited | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_short_credited | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_short_credited | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_short_credited | indian_number_format) if
-                    local_collection_brs }}</td>
             </tr>
-            <tr>
-                <td>Add: Excess credit entries</td>
+
+            {% set brs_rows = [
+            ("Closing balance as per GL", "int_closing_balance"),
+            ("Less: Deposited but not credited", "int_deposited_not_credited"),
+            ("Less: Short credit entries", "int_short_credited"),
+            ("Add: Excess credit entries", "int_excess_credited"),
+            ("Closing balance as per bank statement", "int_balance_as_per_bank"),
+            ] %}
+
+            {% for label, field in brs_rows %}
+            <tr class="{% if 'Closing balance' in label %}has-text-weight-bold{% endif %}">
+                <td>{{ label }}</td>
                 <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_excess_credited | indian_number_format) if cash_brs }}</td>
-                <td class="has-text-right">{{ (cheque_brs.int_excess_credited | indian_number_format) if cheque_brs }}
+                {% for key, _, brs in brs_types %}
+                <td class="has-text-right">
+                    {% if brs %}
+                    {{ brs[field] | indian_number_format }}
+
+                    {% endif %}
                 </td>
-                <td class="has-text-right">{{ (pg_brs.int_excess_credited | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_excess_credited | indian_number_format) if pos_brs }}</td>
-                <td class="has-text-right">{{ (bbps_brs.int_excess_credited | indian_number_format) if bbps_brs }}</td>
-                <td class="has-text-right">{{ (dqr_brs.int_excess_credited | indian_number_format) if dqr_brs }}</td>
-                <td class="has-text-right">{{ (local_collection_brs.int_excess_credited | indian_number_format) if
-                    local_collection_brs }}</td>
+                {% endfor %}
             </tr>
-            <tr class="has-text-weight-bold">
-                <th>Closing balance as per bank statement</th>
-                <td>{{ brs_month.month | datetime_format("%B-%Y", "current") }}</td>
-                <td class="has-text-right">{{ (cash_brs.int_balance_as_per_bank | indian_number_format) if cash_brs }}
-                </td>
-                <td class="has-text-right">{{ (cheque_brs.int_balance_as_per_bank | indian_number_format) if cheque_brs
-                    }}</td>
-                <td class="has-text-right">{{ (pg_brs.int_balance_as_per_bank | indian_number_format) if pg_brs }}</td>
-                <td class="has-text-right">{{ (pos_brs.int_balance_as_per_bank | indian_number_format) if pos_brs }}
-                </td>
-                <td class="has-text-right">{{ (bbps_brs.int_balance_as_per_bank | indian_number_format) if bbps_brs }}
-                </td>
-                <td class="has-text-right">{{ (dqr_brs.int_balance_as_per_bank | indian_number_format) if dqr_brs }}
-                </td>
-                <td class="has-text-right">{{ (local_collection_brs.int_balance_as_per_bank | indian_number_format) if
-                    local_collection_brs }}</td>
-            </tr>
+            {% endfor %}
         </tbody>
     </table>
+
 </div>
 {% if pdf %}
 <table class="mt-5 table is-centered is-fullwidth is-bordered">
