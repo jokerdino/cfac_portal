@@ -25,6 +25,7 @@ class BRSView(DefaultModelView):
         "pos_bank",
         "pg_bank",
         "bbps_bank",
+        "dqr_bank",
         "local_collection_bank",
     ]
     form_excluded_columns = ("brs_month", "timestamp")

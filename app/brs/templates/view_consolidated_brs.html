@@ -45,6 +45,7 @@
                 <th class="has-text-centered is-vcentered">{% if pg_brs %} Payment Gateway {% endif %}</th>
                 <th class="has-text-centered is-vcentered">{% if pos_brs %} POS {% endif %}</th>
                 <th class="has-text-centered is-vcentered">{% if bbps_brs %} BBPS {% endif %}</th>
+                <th class="has-text-centered is-vcentered">{% if dqr_brs %} DQR {% endif %}</th>
                 <th class="has-text-centered is-vcentered">{% if local_collection_brs %} Local Collection {% endif %}
                 </th>
             </tr>
@@ -59,6 +60,7 @@
                 <td class="has-text-centered is-vcentered">{{ brs_month.pg_bank if pg_brs }}</td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.pos_bank if pos_brs }}</td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.bbps_bank if bbps_brs }}</td>
+                <td class="has-text-centered is-vcentered">{{ brs_month.dqr_bank if dqr_brs }}</td>
                 <td class="has-text-centered is-vcentered">{{ brs_month.local_collection_bank if local_collection_brs }}
                 </td>
             </tr>
@@ -75,6 +77,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_opening_balance | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_opening_balance | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_opening_balance | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_opening_balance | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_opening_balance | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -87,6 +90,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_opening_on_hand | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_opening_on_hand | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_opening_on_hand | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_opening_on_hand | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_opening_on_hand | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -98,6 +102,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_transactions | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_transactions | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_transactions | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_transactions | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_transactions | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -110,6 +115,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_cancellations | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_cancellations | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_cancellations | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_cancellations | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_cancellations | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -132,6 +138,8 @@
                     bbps_brs.int_opening_on_hand + bbps_brs.int_transactions - bbps_brs.int_cancellations) |
                     indian_number_format) if bbps_brs
                     }}</td>
+                <td class="has-text-right">{{ ((dqr_brs.int_opening_balance + dqr_brs.int_opening_on_hand +
+                    dqr_brs.int_transactions - dqr_brs.int_cancellations) | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ ((local_collection_brs.int_opening_balance +
                     local_collection_brs.int_opening_on_hand + local_collection_brs.int_transactions -
                     local_collection_brs.int_cancellations) | indian_number_format) if local_collection_brs }}</td>
@@ -145,6 +153,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_fund_transfer | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_fund_transfer | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_fund_transfer | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_fund_transfer | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_fund_transfer | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -157,6 +166,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_bank_charges | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_bank_charges | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_bank_charges | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_bank_charges | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_bank_charges | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -169,6 +179,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_closing_on_hand | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_closing_on_hand | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_closing_on_hand | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_closing_on_hand | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_closing_on_hand | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -181,6 +192,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_closing_balance | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_closing_balance | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_closing_balance | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_closing_balance | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_closing_balance | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -214,6 +226,8 @@
                 </td>
                 <td class="has-text-right">{{ (bbps_brs.int_deposited_not_credited | indian_number_format) if bbps_brs
                     }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_deposited_not_credited | indian_number_format) if dqr_brs }}
+                </td>
                 <td class="has-text-right">{{ (local_collection_brs.int_deposited_not_credited | indian_number_format)
                     if
                     local_collection_brs }}</td>
@@ -228,6 +242,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_short_credited | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_short_credited | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_short_credited | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_short_credited | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_short_credited | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -240,6 +255,7 @@
                 <td class="has-text-right">{{ (pg_brs.int_excess_credited | indian_number_format) if pg_brs }}</td>
                 <td class="has-text-right">{{ (pos_brs.int_excess_credited | indian_number_format) if pos_brs }}</td>
                 <td class="has-text-right">{{ (bbps_brs.int_excess_credited | indian_number_format) if bbps_brs }}</td>
+                <td class="has-text-right">{{ (dqr_brs.int_excess_credited | indian_number_format) if dqr_brs }}</td>
                 <td class="has-text-right">{{ (local_collection_brs.int_excess_credited | indian_number_format) if
                     local_collection_brs }}</td>
             </tr>
@@ -254,6 +270,8 @@
                 <td class="has-text-right">{{ (pos_brs.int_balance_as_per_bank | indian_number_format) if pos_brs }}
                 </td>
                 <td class="has-text-right">{{ (bbps_brs.int_balance_as_per_bank | indian_number_format) if bbps_brs }}
+                </td>
+                <td class="has-text-right">{{ (dqr_brs.int_balance_as_per_bank | indian_number_format) if dqr_brs }}
                 </td>
                 <td class="has-text-right">{{ (local_collection_brs.int_balance_as_per_bank | indian_number_format) if
                     local_collection_brs }}</td>

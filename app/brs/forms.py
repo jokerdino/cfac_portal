@@ -25,6 +25,7 @@ class BRSForm(FlaskForm):
     delete_pos_brs = BooleanField("Delete POS BRS")
     delete_pg_brs = BooleanField("Delete PG BRS")
     delete_bbps_brs = BooleanField("Delete BBPS BRS")
+    delete_dqr_brs = BooleanField("Delete DQR BRS")
     delete_local_collection_brs = BooleanField("Delete local collection BRS")
 
 
@@ -186,6 +187,7 @@ class RawDataForm(FlaskForm):
             ("pg", "PG"),
             ("pos", "POS"),
             ("bbps", "BBPS"),
+            ("dqr", "DQR"),
             ("local_collection", "Local collection"),
             ("View all", "View all"),
         ],

@@ -20,6 +20,7 @@ class BRS(db.Model):
     pos_bank: str = db.Column(db.String)
     pg_bank: str = db.Column(db.String)
     bbps_bank: str = db.Column(db.String)
+    dqr_bank: str = db.Column(db.String)
     local_collection_bank: str = db.Column(db.String)
 
     cash_brs_id = db.Column(db.Integer)
@@ -27,6 +28,7 @@ class BRS(db.Model):
     pos_brs_id = db.Column(db.Integer)
     pg_brs_id = db.Column(db.Integer)
     bbps_brs_id = db.Column(db.Integer)
+    dqr_brs_id = db.Column(db.Integer)
     local_collection_brs_id = db.Column(db.Integer)
 
     brs_month = db.relationship("BRSMonth", backref="brs", lazy="dynamic")
@@ -39,6 +41,7 @@ class BRS(db.Model):
             "pos": self.pos_bank,
             "pg": self.pg_bank,
             "bbps": self.bbps_bank,
+            "dqr": self.dqr_bank,
             "local_collection": self.local_collection_bank,
         }
         return mapping.get(brs_type, "")

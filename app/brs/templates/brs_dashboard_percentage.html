@@ -30,8 +30,8 @@
     </thead>
     <tbody>
         {% for entry in query %}
-        {% set total = entry[2] + entry[4] + entry[6] + entry[8] + entry[10] + entry[12] %}
-        {% set completed = entry[3] + entry[5] + entry[7] + entry[9] + entry[11] + entry[13] %}
+        {% set total = entry[2] + entry[4] + entry[6] + entry[8] + entry[10] + entry[12] + entry[14] %}
+        {% set completed = entry[3] + entry[5] + entry[7] + entry[9] + entry[11] + entry[13] + entry[15] %}
         <tr>
             <td>{{ entry[0] }}</td>
             <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }}</td>

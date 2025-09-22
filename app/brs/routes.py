@@ -159,6 +159,8 @@ def brs_percentage():
         func.count(BRS.pos_brs_id),
         func.count(BRS.bbps_bank),
         func.count(BRS.bbps_brs_id),
+        func.count(BRS.dqr_bank),
+        func.count(BRS.dqr_brs_id),
         func.count(BRS.local_collection_bank),
         func.count(BRS.local_collection_brs_id),
     ).group_by(BRS.uiic_regional_code, BRS.month)
@@ -196,6 +198,8 @@ def brs_dashboard():
         func.count(BRS.pos_brs_id),
         func.count(BRS.bbps_bank),
         func.count(BRS.bbps_brs_id),
+        func.count(BRS.dqr_bank),
+        func.count(BRS.dqr_brs_id),
         func.count(BRS.local_collection_bank),
         func.count(BRS.local_collection_brs_id),
     ).group_by(BRS.uiic_regional_code, BRS.month)
@@ -211,66 +215,112 @@ def brs_dashboard():
     return render_template("brs_dashboard.html", query=query, form=form)
 
 
+# def colour_check_old(brs_key):
+#     brs_entry = BRS.query.get_or_404(brs_key)
+
+#     bool_cash = bool(brs_entry.cash_brs_id) if brs_entry.cash_bank else True
+#     bool_cheque = bool(brs_entry.cheque_brs_id) if brs_entry.cheque_bank else True
+#     bool_pg = bool(brs_entry.pg_brs_id) if brs_entry.pg_bank else True
+#     bool_pos = bool(brs_entry.pos_brs_id) if brs_entry.pos_bank else True
+#     bool_bbps = bool(brs_entry.bbps_brs_id) if brs_entry.bbps_bank else True
+#     bool_dqr = bool(brs_entry.dqr_brs_id) if brs_entry.dqr_bank else True
+#     bool_local_collection = (
+#         bool(brs_entry.local_collection_brs_id)
+#         if brs_entry.local_collection_bank
+#         else True
+#     )
+
+#     colour_code = all(
+#         [
+#             bool_cash,
+#             bool_cheque,
+#             bool_pg,
+#             bool_pos,
+#             bool_bbps,
+#             bool_dqr,
+#             bool_local_collection,
+#         ]
+#     )
+#     return colour_code
+
+
 def colour_check(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
 
-    bool_cash = bool(brs_entry.cash_brs_id) if brs_entry.cash_bank else True
-    bool_cheque = bool(brs_entry.cheque_brs_id) if brs_entry.cheque_bank else True
-    bool_pg = bool(brs_entry.pg_brs_id) if brs_entry.pg_bank else True
-    bool_pos = bool(brs_entry.pos_brs_id) if brs_entry.pos_bank else True
-    bool_bbps = bool(brs_entry.bbps_brs_id) if brs_entry.bbps_bank else True
-    bool_local_collection = (
-        bool(brs_entry.local_collection_brs_id)
-        if brs_entry.local_collection_bank
-        else True
+    checks = [
+        ("cash_bank", "cash_brs_id"),
+        ("cheque_bank", "cheque_brs_id"),
+        ("pg_bank", "pg_brs_id"),
+        ("pos_bank", "pos_brs_id"),
+        ("bbps_bank", "bbps_brs_id"),
+        ("dqr_bank", "dqr_brs_id"),
+        ("local_collection_bank", "local_collection_brs_id"),
+    ]
+
+    return all(
+        bool(getattr(brs_entry, id_attr)) if getattr(brs_entry, bank_attr) else True
+        for bank_attr, id_attr in checks
     )
 
-    colour_code = all(
-        [bool_cash, bool_cheque, bool_pg, bool_pos, bool_bbps, bool_local_collection]
-    )
-    return colour_code
+
+# def percent_completed_old(brs_key):
+#     brs_entry = BRS.query.get_or_404(brs_key)
+
+#     denom = 0
+#     numerator = 0
+
+#     if brs_entry.cash_bank:
+#         denom += 1
+#         if brs_entry.cash_brs_id:
+#             numerator += 1
+
+#     if brs_entry.cheque_bank:
+#         denom += 1
+#         if brs_entry.cheque_brs_id:
+#             numerator += 1
+
+#     if brs_entry.pg_bank:
+#         denom += 1
+#         if brs_entry.pg_brs_id:
+#             numerator += 1
+
+#     if brs_entry.pos_bank:
+#         denom += 1
+#         if brs_entry.pos_brs_id:
+#             numerator += 1
+
+#     if brs_entry.bbps_bank:
+#         denom += 1
+#         if brs_entry.bbps_brs_id:
+#             numerator += 1
+#     if brs_entry.dqr_bank:
+#         denom += 1
+#         if brs_entry.dqr_brs_id:
+#             numerator += 1
+#     if brs_entry.local_collection_bank:
+#         denom += 1
+#         if brs_entry.local_collection_brs_id:
+#             numerator += 1
+
+#     try:
+#         return (numerator / denom) * 100
+#     except ZeroDivisionError:
+#         return 100
 
 
 def percent_completed(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
 
-    denom = 0
-    numerator = 0
+    fields = ["cash", "cheque", "pg", "pos", "bbps", "dqr", "local_collection"]
 
-    if brs_entry.cash_bank:
-        denom += 1
-        if brs_entry.cash_brs_id:
-            numerator += 1
+    denom = sum(1 for f in fields if getattr(brs_entry, f"{f}_bank"))
+    numerator = sum(
+        1
+        for f in fields
+        if getattr(brs_entry, f"{f}_bank") and getattr(brs_entry, f"{f}_brs_id")
+    )
 
-    if brs_entry.cheque_bank:
-        denom += 1
-        if brs_entry.cheque_brs_id:
-            numerator += 1
-
-    if brs_entry.pg_bank:
-        denom += 1
-        if brs_entry.pg_brs_id:
-            numerator += 1
-
-    if brs_entry.pos_bank:
-        denom += 1
-        if brs_entry.pos_brs_id:
-            numerator += 1
-
-    if brs_entry.bbps_bank:
-        denom += 1
-        if brs_entry.bbps_brs_id:
-            numerator += 1
-
-    if brs_entry.local_collection_bank:
-        denom += 1
-        if brs_entry.local_collection_brs_id:
-            numerator += 1
-
-    try:
-        return (numerator / denom) * 100
-    except ZeroDivisionError:
-        return 100
+    return (numerator / denom) * 100 if denom else 100
 
 
 @brs_bp.route("/bulk_upload", methods=["POST", "GET"])
@@ -281,8 +331,8 @@ def bulk_upload_brs():
         df_brs_upload = pd.read_csv(
             upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
         )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        upload_brs_file(df_brs_upload, engine, current_user.username)
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        upload_brs_file(df_brs_upload, db.engine, current_user.username)
         # df_brs_upload["timestamp"] = datetime.now()
 
         # df_month = df_brs_upload["month"].drop_duplicates().to_frame()
@@ -326,8 +376,8 @@ def edit_month_deletion(month_id):
 
     if form.validate_on_submit():
         delete_entries.bool_enable_delete = form.data["bool_enable_delete"]
-        delete_entries.updated_by = current_user.username
-        delete_entries.updated_on = datetime.now()
+        #    delete_entries.updated_by = current_user.username
+        #   delete_entries.updated_on = datetime.now()
         db.session.commit()
     form.txt_month.data = delete_entries.txt_month
     form.bool_enable_delete.data = delete_entries.bool_enable_delete
@@ -372,6 +422,7 @@ def upload_brs(brs_key):
             "delete_pos_brs": "pos_brs_id",
             "delete_pg_brs": "pg_brs_id",
             "delete_bbps_brs": "bbps_brs_id",
+            "delete_dqr_brs": "dqr_brs_id",
             "delete_local_collection_brs": "local_collection_brs_id",
         }
 
@@ -405,6 +456,7 @@ def view_consolidated_brs(brs_key):
         "pg_brs": brs_entry.pg_brs_id,
         "pos_brs": brs_entry.pos_brs_id,
         "bbps_brs": brs_entry.bbps_brs_id,
+        "dqr_brs": brs_entry.dqr_brs_id,
         "local_collection_brs": brs_entry.local_collection_brs_id,
     }
 
@@ -432,6 +484,7 @@ def view_consolidated_brs_pdf(brs_key):
         "pg_brs": brs_entry.pg_brs_id,
         "pos_brs": brs_entry.pos_brs_id,
         "bbps_brs": brs_entry.bbps_brs_id,
+        "dqr_brs": brs_entry.dqr_brs_id,
         "local_collection_brs": brs_entry.local_collection_brs_id,
     }
 
@@ -512,6 +565,8 @@ def get_prev_month_amount(requirement: str, brs_id: int):
             brs_entry_id = prev_brs_entry.pos_brs_id
         elif requirement == "bbps":
             brs_entry_id = prev_brs_entry.bbps_brs_id
+        elif requirement == "dqr":
+            brs_entry_id = prev_brs_entry.dqr_brs_id
         elif requirement == "local_collection":
             brs_entry_id = prev_brs_entry.local_collection_brs_id
         if brs_entry_id:
@@ -537,6 +592,8 @@ def prevent_duplicate_brs(brs_type: str, brs_id: int) -> bool:
     elif brs_type == "pos" and brs_entry.pos_brs_id:
         brs_available = True
     elif brs_type == "bbps" and brs_entry.bbps_brs_id:
+        brs_available = True
+    elif brs_type == "dqr" and brs_entry.dqr_brs_id:
         brs_available = True
     elif brs_type == "local_collection" and brs_entry.local_collection_brs_id:
         brs_available = True
@@ -678,6 +735,7 @@ def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
         "pg": "pg_brs_id",
         "pos": "pos_brs_id",
         "bbps": "bbps_brs_id",
+        "dqr": "dqr_brs_id",
         "local_collection": "local_collection_brs_id",
     }
     field_name = field_map.get(brs_type)
@@ -1187,6 +1245,7 @@ def get_brs_bank(brs_id, brs_type):
         "pos": brs_entry.pos_bank,
         "pg": brs_entry.pg_bank,
         "bbps": brs_entry.bbps_bank,
+        "dqr": brs_entry.dqr_bank,
         "local_collection": brs_entry.local_collection_bank,
     }
     return bank_mapping.get(brs_type)
@@ -1231,6 +1290,7 @@ def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
         "cheque": (filtered_brs.cheque_bank, filtered_brs.cheque_brs_id),
         "pg": (filtered_brs.pg_bank, filtered_brs.pg_brs_id),
         "bbps": (filtered_brs.bbps_bank, filtered_brs.bbps_brs_id),
+        "dqr": (filtered_brs.dqr_bank, filtered_brs.dqr_brs_id),
         "pos": (filtered_brs.pos_bank, filtered_brs.pos_brs_id),
     }
 
@@ -1338,6 +1398,7 @@ def get_percentages(ro_codes):
                 + func.count(BRS.pg_bank)
                 + func.count(BRS.pos_bank)
                 + func.count(BRS.bbps_bank)
+                + func.count(BRS.dqr_bank)
                 + func.count(BRS.local_collection_bank)
             ).label("total"),
             (
@@ -1346,6 +1407,7 @@ def get_percentages(ro_codes):
                 + func.count(BRS.pg_brs_id)
                 + func.count(BRS.pos_brs_id)
                 + func.count(BRS.bbps_brs_id)
+                + func.count(BRS.dqr_brs_id)
                 + func.count(BRS.local_collection_brs_id)
             ).label("completed"),
         )

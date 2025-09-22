@@ -40,10 +40,11 @@
             <th colspan="3" class="has-text-centered">PG</th>
             <th colspan="3" class="has-text-centered">POS</th>
             <th colspan="3" class="has-text-centered">BBPS</th>
+            <th colspan="3" class="has-text-centered">DQR</th>
             <th colspan="3" class="has-text-centered">Local collection</th>
         </tr>
         <tr class="has-text-centered">
-            {% for i in range(6) %}
+            {% for i in range(7) %}
             <th>Total</th>
             <th>Completed</th>
             <th>Pending</th>
@@ -54,6 +55,7 @@
         {% for entry in query %}
         {% set all_pending =
         (entry[2]-entry[3])+(entry[4]-entry[5])+(entry[6]-entry[7])+(entry[8]-entry[9])+(entry[10]-entry[11])+(entry[12]-entry[13])
+        + (entry[14]-entry[15])
         %}
         <tr>
             {% if all_pending == 0 %}
@@ -74,6 +76,7 @@
             {{ render_group(entry[8], entry[9]) }}
             {{ render_group(entry[10], entry[11]) }}
             {{ render_group(entry[12], entry[13]) }}
+            {{ render_group(entry[14], entry[15]) }}
         </tr>
         {% endfor %}
     </tbody>
