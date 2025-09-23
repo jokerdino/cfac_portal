@@ -574,3 +574,80 @@ def download_monthly():
         )
 
     return render_template("download_monthly.html", form=form)
+
+
+@pool_credits_bp.route("/download2/", methods=["POST", "GET"])
+@login_required
+@ro_user_only
+def download_monthly_v2():
+    START_DATE = datetime(2024, 10, 1)
+    base_filters = [
+        FundBankStatement.flag_description == "OTHER RECEIPTS",
+        FundBankStatement.value_date >= START_DATE,
+    ]
+    query = (
+        db.select(
+            func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label("book_date"),
+            FundBankStatement.description,
+            FundBankStatement.credit,
+            func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
+                "value_date"
+            ),
+            FundBankStatement.reference_no,
+            FundJournalVoucherFlagSheet.txt_description.label("pattern"),
+            FundJournalVoucherFlagSheet.txt_flag.label("flag"),
+            FundJournalVoucherFlagSheet.txt_gl_code.label("gl_code"),
+            FundJournalVoucherFlagSheet.txt_sl_code.label("sl_code"),
+        )
+        .join(
+            FundBankStatement.flag,
+        )
+        .where(*base_filters)
+        .order_by(FundBankStatement.id.desc())
+    )
+
+    period_query = (
+        db.select(
+            func.distinct(FundBankStatement.period),
+        )
+        .join(
+            FundBankStatement.flag,
+        )
+        .where(*base_filters)
+        .order_by(FundBankStatement.period.desc())
+    )
+
+    periods = db.session.execute(period_query)
+
+    form = FilterMonthForm()
+    list_period = [datetime.strptime(p[0], "%Y-%m") for p in periods]
+    form.month.choices = [month.strftime("%B-%y") for month in list_period]
+
+    if form.validate_on_submit():
+        filter_period = datetime.strptime(form.month.data, "%B-%y")
+        entries = query.where(
+            FundBankStatement.period == filter_period.strftime("%Y-%m")
+        )
+        with db.engine.connect() as conn:
+            df_funds = pd.read_sql(entries, conn)
+
+        output = BytesIO()
+        with pd.ExcelWriter(output) as writer:
+            df_funds.to_excel(writer, sheet_name="Inflow", index=False)
+            format_workbook = writer.book
+            format_currency = format_workbook.add_format({"num_format": "##,##,#0.00"})
+
+            format_worksheet = writer.sheets["Inflow"]
+            format_worksheet.set_column("C:C", 11, format_currency)
+
+            format_worksheet.autofit()
+            format_worksheet.autofilter("A1:I2")
+            format_worksheet.freeze_panes(1, 0)
+        output.seek(0)
+        return send_file(
+            output,
+            download_name=f"HDFC_Pool_credits_{filter_period.strftime('%B-%y')}.xlsx",
+            as_attachment=True,
+        )
+
+    return render_template("download_monthly.html", form=form)
