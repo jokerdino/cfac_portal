@@ -12,6 +12,7 @@ topic_list: list[str] = [
     "GST",
     "TDS",
     "POS",
+    "DQR",
     "BBPS",
     "Asset module",
     "Foreign Remittance",
