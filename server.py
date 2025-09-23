@@ -1,5 +1,5 @@
 from flask import Flask, request
-
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
@@ -51,6 +51,9 @@ def load_user(user_id):
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    # Trust the proxy headers from nginx
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
     app.jinja_env.filters["datetime_format"] = datetime_format
     app.jinja_env.filters["humanize_datetime"] = humanize_datetime
