@@ -3,6 +3,7 @@ from datetime import datetime, date, timedelta
 from math import floor
 import decimal
 from itertools import chain
+import io
 
 from flask import (
     abort,
@@ -12,6 +13,7 @@ from flask import (
     render_template,
     request,
     url_for,
+    Response,
 )
 from flask_login import current_user, login_required
 import pandas as pd
@@ -21,6 +23,7 @@ from sqlalchemy.exc import IntegrityError
 
 import calplot
 import matplotlib
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 
 matplotlib.use("agg")
@@ -48,6 +51,20 @@ from .leave_model import (
     LeaveSubmissionData,
     PublicHoliday,
 )
+
+HOLIDAY_TYPE_VALUES = {
+    "PUBLIC HOLIDAY": 1,
+    "ALL INDIA": 2,
+    "TAMIL NADU": 3,
+    "WEEKEND": 4,
+}
+
+HOLIDAY_COLORS = {
+    1: "red",
+    2: "blue",
+    3: "green",
+    4: "gray",
+}
 
 
 def num_of_days(start_date, end_date):
@@ -1097,35 +1114,60 @@ def get_all_weekends(year: str) -> pd.DataFrame:
     weekend_dates = generate_date_ranges(year, "W-SAT") + generate_date_ranges(
         year, "W-SUN"
     )
-
     weekend_df = pd.DataFrame(weekend_dates, columns=["date_of_holiday"])
-    weekend_df["value"] = 5
-
+    weekend_df["value"] = HOLIDAY_TYPE_VALUES["WEEKEND"]
     weekend_df["date_of_holiday"] = pd.to_datetime(
         weekend_df["date_of_holiday"], yearfirst=True
     )
     weekend_df.set_index("date_of_holiday", inplace=True)
-
     return weekend_df
+
+
+@leave_mgmt_bp.route("/holiday_plot/<year>/")
+def holiday_plot(year):
+    df_combined = generate_holiday_plot(year)
+    return draw_holiday_plot(df_combined, year)
 
 
 def draw_holiday_plot(dataframe: pd.DataFrame, year: str):
     try:
+        # Create colormap from your fixed colors
+        cmap = plt.matplotlib.colors.ListedColormap(
+            [HOLIDAY_COLORS[i] for i in sorted(HOLIDAY_COLORS.keys())]
+        )
+
         calplot.calplot(
             dataframe["value"],
-            cmap="tab20",
-            vmin=0,
-            vmax=20,
-            # figsize=(16, 20),
-            # suptitle=title,
+            cmap=cmap,
+            vmin=1,
+            vmax=len(HOLIDAY_COLORS),
             how="sum",
             colorbar=False,
-            # ax=legend
         )
-        file_name = f"holiday_plot_{year}.png"
-        #   plt.legend(legend)
-        plt.savefig("static/" + file_name)
+
+        # Build legend manually
+        legend_handles = [
+            mpatches.Patch(color=HOLIDAY_COLORS[val], label=label)
+            for label, val in HOLIDAY_TYPE_VALUES.items()
+        ]
+        plt.legend(
+            handles=legend_handles,
+            loc="center left",  # anchor point inside the legend box
+            bbox_to_anchor=(
+                1.10,
+                0.5,
+            ),  # x > 1 pushes it outside the axes, y=0.5 centers vertically
+            borderaxespad=0.0,
+            frameon=False,
+        )
+        # Write image to BytesIO
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png", bbox_inches="tight")
+        buf.seek(0)
         plt.close()
+
+        # Return as Flask response
+        return Response(buf.getvalue(), mimetype="image/png")
     except Exception as e:
         print(e)
 
@@ -1136,29 +1178,28 @@ def generate_holiday_plot(year: str):
 
     holiday_query = db.session.query(PublicHoliday.date_of_holiday).filter_by(year=year)
 
-    public_holidays = holiday_query.filter_by(type_of_list="PUBLIC HOLIDAY").all()
-    state_holidays = holiday_query.filter_by(type_of_list="TAMIL NADU").all()
-    all_india_holidays = holiday_query.filter_by(type_of_list="ALL INDIA").all()
+    public_holidays = holiday_query.filter_by(type_of_list="PUBLIC HOLIDAY")
+    state_holidays = holiday_query.filter_by(type_of_list="TAMIL NADU")
+    all_india_holidays = holiday_query.filter_by(type_of_list="ALL INDIA")
 
     df_public_holidays = generate_pandas_timeseries(public_holidays, 1)
-    df_state_holidays = generate_pandas_timeseries(state_holidays, 2)
-    df_all_india_holidays = generate_pandas_timeseries(all_india_holidays, 3)
+    df_all_india_holidays = generate_pandas_timeseries(all_india_holidays, 2)
+    df_state_holidays = generate_pandas_timeseries(state_holidays, 3)
 
     df_weekends = get_all_weekends(year)
 
     df_combined = pd.concat(
         [df_public_holidays, df_state_holidays, df_all_india_holidays, df_weekends]
     )
-    draw_holiday_plot(df_combined, year)
+
+    #    draw_holiday_plot(df_combined, year)
+    return df_combined
 
 
 def generate_pandas_timeseries(dates: list, value: int) -> pd.DataFrame:
     date_list = [date[0] for date in dates]
-
     df = pd.DataFrame(date_list, columns=["date_of_holiday"])
     df["value"] = value
-
     df["date_of_holiday"] = pd.to_datetime(df["date_of_holiday"], yearfirst=True)
     df.set_index("date_of_holiday", inplace=True)
-
     return df

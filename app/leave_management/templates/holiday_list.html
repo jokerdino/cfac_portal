@@ -27,7 +27,7 @@
         </tbody>
     </table>
     <div class="has-text-centered">
-        <img src="{{ url_for('static', filename=image) }}" alt="holiday" height=1000 width=1500 class="mt-5" />
+        <img src="{{ url_for('.holiday_plot', year=year) }}" alt="holiday" height=1000 width=1500 class="mt-5" />
     </div>
 </div>
 {% block scripts %}
