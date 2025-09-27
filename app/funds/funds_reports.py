@@ -9,17 +9,15 @@ from .funds_form import ReportsForm
 from .funds_model import FundBankStatement, FundDailyOutflow, FundDailySheet
 
 from set_view_permissions import admin_required
+from extensions import db
 
 
 @funds_bp.route("/reports", methods=["POST", "GET"])
 @login_required
 @admin_required
 def funds_reports():
-    from extensions import db
-
     form = ReportsForm()
     if form.validate_on_submit():
-
         # if no start date is provided, default to 01/04/2024
         start_date = form.data["start_date"] or date(2024, 4, 1)
         # if no end date is provided, default to today
@@ -149,7 +147,6 @@ def funds_reports():
 
             all_queries.append(major_receipts_query)
         if major_payments:
-
             case_major_payments = case(
                 (
                     FundDailySheet.text_major_payments.is_not(None),

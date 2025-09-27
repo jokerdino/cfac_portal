@@ -4,7 +4,6 @@ from io import BytesIO
 import pandas as pd
 
 from flask import (
-    current_app,
     render_template,
     send_file,
     flash,
@@ -14,7 +13,7 @@ from flask import (
 )
 
 from flask_login import login_required, current_user
-from sqlalchemy import func, case, union  # create_engine
+from sqlalchemy import func, case, union
 
 from . import funds_bp
 from .funds_form import FundsJVForm, UploadFileForm, JVFlagAddForm
@@ -142,9 +141,8 @@ def download_jv():
 
         query_set = union(*all_queries)
 
-        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        conn = db.engine.connect()
-        df_funds = pd.read_sql_query(query_set, conn)
+        with db.engine.connect() as conn:
+            df_funds = pd.read_sql(query_set, conn)
 
         df_funds["Office Location"] = "000100"
 
@@ -154,7 +152,6 @@ def download_jv():
         df_inflow = prepare_inflow_jv(df_funds, df_flags, flag_description)
         df_merged = pd.concat(
             [
-                # prepare_inflow_jv(df_funds, df_flags, flag_description),
                 df_inflow,
                 prepare_outflow_jv(df_funds, df_flags, flag_description),
                 prepare_investment_jv(df_funds),
@@ -186,8 +183,6 @@ def download_jv():
 
 
 def filter_unidentified_credits(df_inflow: pd.DataFrame) -> pd.DataFrame:
-    # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-
     flag_description: list[str] = prepare_jv_flag()[1]
 
     df_inflow_copy = df_inflow.copy()
@@ -352,7 +347,6 @@ def upload_jv_flags():
                 "txt_sl_code": str,
             },
         )
-        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_jv_flag_sheet["date_created_date"] = datetime.now()
         df_jv_flag_sheet["created_by"] = current_user.username
