@@ -27,6 +27,7 @@ coinsurer_list = [
     "Cigna TTK",
     "Edelweiss",
     "Future Generali",
+    "Galaxy Health",
     "Government Insurance Fund",
     "Go Digit",
     "HDFC Ergo",

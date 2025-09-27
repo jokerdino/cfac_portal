@@ -72,8 +72,8 @@ def coinsurance_receipts_jv_download_monthly():
         CoinsuranceReceipts, CoinsuranceReceiptsJournalVoucher
     ).join(
         CoinsuranceReceiptsJournalVoucher,
-        CoinsuranceReceipts.description.like(
-            "%" + CoinsuranceReceiptsJournalVoucher.pattern + "%"
+        CoinsuranceReceipts.description.contains(
+            CoinsuranceReceiptsJournalVoucher.pattern
         ),
     )
     filter_month = receipts_jvs.with_entities(CoinsuranceReceipts.period).distinct()
@@ -222,8 +222,8 @@ def fetch_settlements():
         )
         .join(
             CoinsuranceReceiptsJournalVoucher,
-            CoinsuranceReceipts.description.like(
-                "%" + CoinsuranceReceiptsJournalVoucher.pattern + "%"
+            CoinsuranceReceipts.description.contains(
+                CoinsuranceReceiptsJournalVoucher.pattern
             ),
         )
         .where(CoinsuranceReceipts.created_on > prev_time)
@@ -274,8 +274,8 @@ def download_receipts_jv_hubs():
             )
             .join(
                 CoinsuranceReceiptsJournalVoucher,
-                CoinsuranceReceipts.description.like(
-                    "%" + CoinsuranceReceiptsJournalVoucher.pattern + "%"
+                CoinsuranceReceipts.description.contains(
+                    CoinsuranceReceiptsJournalVoucher.pattern
                 ),
             )
             .where(CoinsuranceReceipts.reference_no.in_(reference_number))
