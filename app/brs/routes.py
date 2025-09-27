@@ -2,8 +2,6 @@ import calendar
 from dataclasses import asdict
 from datetime import date, datetime
 
-# from math import fabs
-
 import pandas as pd
 import sqlalchemy
 from dateutil.relativedelta import relativedelta
@@ -215,35 +213,6 @@ def brs_dashboard():
     return render_template("brs_dashboard.html", query=query, form=form)
 
 
-# def colour_check_old(brs_key):
-#     brs_entry = BRS.query.get_or_404(brs_key)
-
-#     bool_cash = bool(brs_entry.cash_brs_id) if brs_entry.cash_bank else True
-#     bool_cheque = bool(brs_entry.cheque_brs_id) if brs_entry.cheque_bank else True
-#     bool_pg = bool(brs_entry.pg_brs_id) if brs_entry.pg_bank else True
-#     bool_pos = bool(brs_entry.pos_brs_id) if brs_entry.pos_bank else True
-#     bool_bbps = bool(brs_entry.bbps_brs_id) if brs_entry.bbps_bank else True
-#     bool_dqr = bool(brs_entry.dqr_brs_id) if brs_entry.dqr_bank else True
-#     bool_local_collection = (
-#         bool(brs_entry.local_collection_brs_id)
-#         if brs_entry.local_collection_bank
-#         else True
-#     )
-
-#     colour_code = all(
-#         [
-#             bool_cash,
-#             bool_cheque,
-#             bool_pg,
-#             bool_pos,
-#             bool_bbps,
-#             bool_dqr,
-#             bool_local_collection,
-#         ]
-#     )
-#     return colour_code
-
-
 def colour_check(brs_key):
     brs_entry = BRS.query.get_or_404(brs_key)
 
@@ -261,51 +230,6 @@ def colour_check(brs_key):
         bool(getattr(brs_entry, id_attr)) if getattr(brs_entry, bank_attr) else True
         for bank_attr, id_attr in checks
     )
-
-
-# def percent_completed_old(brs_key):
-#     brs_entry = BRS.query.get_or_404(brs_key)
-
-#     denom = 0
-#     numerator = 0
-
-#     if brs_entry.cash_bank:
-#         denom += 1
-#         if brs_entry.cash_brs_id:
-#             numerator += 1
-
-#     if brs_entry.cheque_bank:
-#         denom += 1
-#         if brs_entry.cheque_brs_id:
-#             numerator += 1
-
-#     if brs_entry.pg_bank:
-#         denom += 1
-#         if brs_entry.pg_brs_id:
-#             numerator += 1
-
-#     if brs_entry.pos_bank:
-#         denom += 1
-#         if brs_entry.pos_brs_id:
-#             numerator += 1
-
-#     if brs_entry.bbps_bank:
-#         denom += 1
-#         if brs_entry.bbps_brs_id:
-#             numerator += 1
-#     if brs_entry.dqr_bank:
-#         denom += 1
-#         if brs_entry.dqr_brs_id:
-#             numerator += 1
-#     if brs_entry.local_collection_bank:
-#         denom += 1
-#         if brs_entry.local_collection_brs_id:
-#             numerator += 1
-
-#     try:
-#         return (numerator / denom) * 100
-#     except ZeroDivisionError:
-#         return 100
 
 
 def percent_completed(brs_key):
@@ -331,18 +255,7 @@ def bulk_upload_brs():
         df_brs_upload = pd.read_csv(
             upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
         )
-        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         upload_brs_file(df_brs_upload, db.engine, current_user.username)
-        # df_brs_upload["timestamp"] = datetime.now()
-
-        # df_month = df_brs_upload["month"].drop_duplicates().to_frame()
-        # df_month = df_month.rename(columns={"month": "txt_month"})
-        # df_month["bool_enable_delete"] = True
-        # df_month["created_by"] = current_user.username
-        # df_month["created_on"] = datetime.now()
-
-        # df_brs_upload.to_sql("brs", engine, if_exists="append", index=False)
-        # df_month.to_sql("delete_entries", engine, if_exists="append", index=False)
         flash("BRS records have been uploaded to database.")
 
     return render_template("bulk_brs_upload.html")
@@ -376,8 +289,6 @@ def edit_month_deletion(month_id):
 
     if form.validate_on_submit():
         delete_entries.bool_enable_delete = form.data["bool_enable_delete"]
-        #    delete_entries.updated_by = current_user.username
-        #   delete_entries.updated_on = datetime.now()
         db.session.commit()
     form.txt_month.data = delete_entries.txt_month
     form.bool_enable_delete.data = delete_entries.bool_enable_delete
@@ -601,132 +512,6 @@ def prevent_duplicate_brs(brs_type: str, brs_id: int) -> bool:
     return brs_available
 
 
-# def validate_outstanding_entries(
-#     df_form_data_os_entries: pd.DataFrame,
-#     requirement: str,
-#     closing_balance: float,
-#     brs_id: int,
-# ):
-#     # for cash, instrument amount and date of collection is mandatory
-#     # for other requirements, instrument amount, instrument date, date of collection and instrument number are mandatory
-#     # negative values are not allowed to be entered
-
-#     # find month of BRS period to test if date_of_instrument and date_of_collection are within that time frame
-#     brs = db.session.query(BRS).get_or_404(brs_id)
-#     brs_month = datetime.strptime(brs.month, "%B-%Y") + relativedelta(months=1, day=1)
-
-#     if requirement == "cash":
-#         date_columns: list[str] = ["date_of_collection"]
-#         try:
-#             df_os_entries = pd.read_csv(
-#                 df_form_data_os_entries,
-#                 parse_dates=date_columns,
-#                 dtype={"instrument_amount": float},
-#                 dayfirst=True,
-#             )
-
-#             # check for future dated collections
-#             df_future_date_of_collection = df_os_entries[
-#                 df_os_entries["date_of_collection"] >= brs_month
-#             ]
-
-#             if len(df_future_date_of_collection) > 0:
-#                 return (7, pd.DataFrame, 0)
-#         except ValueError as e:
-#             return (6, pd.DataFrame, 0)
-#         except TypeError as e:
-#             return (11, pd.DataFrame, 0)
-#     else:
-#         date_columns = ["date_of_instrument", "date_of_collection"]
-#         try:
-#             df_os_entries = pd.read_csv(
-#                 df_form_data_os_entries,
-#                 parse_dates=date_columns,
-#                 dtype={
-#                     "instrument_amount": float,
-#                     "instrument_number": str,
-#                 },
-#                 dayfirst=True,
-#             )
-
-#             # check for future dated instruments
-#             df_future_date_of_instrument = df_os_entries[
-#                 df_os_entries["date_of_instrument"] >= brs_month
-#             ]
-
-#             if len(df_future_date_of_instrument) > 0:
-#                 return (8, pd.DataFrame, 0)
-
-#             # check for future dated collections
-#             df_future_date_of_collection = df_os_entries[
-#                 df_os_entries["date_of_collection"] >= brs_month
-#             ]
-
-#             if len(df_future_date_of_collection) > 0:
-#                 return (7, pd.DataFrame, 0)
-
-#         except ValueError as e:
-#             return (6, pd.DataFrame, 0)
-#         except TypeError as e:
-#             return (12, pd.DataFrame, 0)
-
-#     try:
-#         sum_os_entries: float = df_os_entries["instrument_amount"].sum()
-#     except KeyError as e:
-#         # try/except to ensure instrument_amount column is entered in uploaded file
-#         return (9, pd.DataFrame, 0)
-
-#     if (fabs(float(sum_os_entries) - float(closing_balance))) > 0.001:
-#         return (5, pd.DataFrame, sum_os_entries)
-
-#     # checking for negative values
-#     df_negative_values = df_os_entries[df_os_entries["instrument_amount"].lt(0)]
-#     if len(df_negative_values) > 0:
-#         return (3, pd.DataFrame, sum_os_entries)
-
-#     df_na_date_of_collection = df_os_entries[
-#         df_os_entries["date_of_collection"].isnull()
-#     ]
-#     if len(df_na_date_of_collection) > 0:
-#         return (4, pd.DataFrame, sum_os_entries)
-
-#     if requirement != "cash":
-#         df_na_instrument_date = df_os_entries[
-#             df_os_entries["date_of_instrument"].isnull()
-#         ]
-
-#         # try/except to ensure instrument_number column is entered in uploaded file
-#         try:
-#             df_na_instrument_number = df_os_entries[
-#                 df_os_entries["instrument_number"].isnull()
-#             ]
-#         except KeyError as e:
-#             return (13, pd.DataFrame, 0)
-#         if len(df_na_instrument_date) > 0:
-#             return (1, pd.DataFrame, sum_os_entries)
-
-#         elif len(df_na_instrument_number) > 0:
-#             return (2, pd.DataFrame, sum_os_entries)
-
-#     return 10, df_os_entries, sum_os_entries
-
-
-# def update_brs_id(requirement: str, brs_entry: BRS, brs_id: int) -> None:
-#     """Update the BRS ID based on the requirement."""
-#     if requirement == "cash":
-#         brs_entry.cash_brs_id = brs_id
-#     elif requirement == "cheque":
-#         brs_entry.cheque_brs_id = brs_id
-#     elif requirement == "pg":
-#         brs_entry.pg_brs_id = brs_id
-#     elif requirement == "pos":
-#         brs_entry.pos_brs_id = brs_id
-#     elif requirement == "bbps":
-#         brs_entry.bbps_brs_id = brs_id
-#     elif requirement == "local_collection":
-#         brs_entry.local_collection_brs_id = brs_id
-
-
 def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
     """Update the BRS ID on brs_entry based on requirement."""
     field_map = {
@@ -743,79 +528,6 @@ def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
         setattr(brs_entry, field_name, brs_id)
 
 
-# # function to render error messages when outstanding entries/short_credit/excess_credit are uploaded
-# def render_error_message(
-#     amount_entered_in_form: float,
-#     nature_of_transaction: str,
-#     form_data,
-#     requirement: str,
-#     brs_id: int,
-# ) -> tuple[int, pd.DataFrame]:
-#     status_validate_os_entries, df, sum_of_instrument_amount = (
-#         validate_outstanding_entries(
-#             form_data,
-#             requirement,
-#             amount_entered_in_form,
-#             brs_id,
-#         )
-#     )
-
-#     display_error_messages: dict[int, str] = {
-#         1: "Date of instrument must be entered in dd/mm/yyyy format.",
-#         2: "Instrument number must be entered.",
-#         3: "Please do not enter negative amounts.",
-#         4: "Date of collection must be entered in dd/mm/yyyy format.",
-#         5: f"{nature_of_transaction} {amount_entered_in_form} is not matching with sum of the uploaded entries {sum_of_instrument_amount}.",
-#         6: "Please upload in prescribed format: Dates in dd/mm/yyyy format and instrument_amount in integer format.",
-#         7: "Date of collection cannot be after BRS period.",
-#         8: "Date of instrument cannot be after BRS period.",
-#         9: "'instrument_amount' column is not entered in uploaded file.",
-#         10: "Successfully uploaded the BRS.",
-#         11: "Date of collection must be entered in dd/mm/yyyy format.",
-#         12: "Date of instrument/collection must be entered in dd/mm/yyyy format.",
-#         13: "'instrument_number' column is not entered in uploaded file.",
-#     }
-
-#     if status_validate_os_entries != 10:
-#         flash(
-#             display_error_messages.get(
-#                 status_validate_os_entries, "Error in processing the input."
-#             )
-#         )
-#     return status_validate_os_entries, df
-
-
-# def upload_df_entries(file, table_name, brs_id):
-#     file.stream.seek(0)
-#     df = pd.read_csv(
-#         file,
-#         usecols=[
-#             "instrument_number",
-#             "instrument_amount",
-#             "date_of_instrument",
-#             "date_of_collection",
-#             "remarks",
-#         ],
-#     )
-#     date_columns = ["date_of_instrument", "date_of_collection"]
-#     str_columns = ["instrument_number", "remarks"]
-#     # Convert date columns
-#     for date_col in date_columns:
-#         if date_col in df.columns:
-#             df[date_col] = pd.to_datetime(
-#                 df[date_col], errors="coerce", format="%d/%m/%Y"
-#             )
-
-#     # Convert string columns
-#     df[str_columns] = df[str_columns].astype(str)
-
-#     df["brs_month_id"] = brs_id
-
-
-#     #    df = df.loc[:, ~df.columns.str.match("Unnamed")]
-#     df.dropna(subset=["instrument_amount"]).to_sql(
-#         table_name, con=db.session.get_bind(), if_exists="append", index=False
-#     )
 def upload_df_entries(file, brs_type, table_name, brs_id):
     # Reset file pointer
     file.stream.seek(0)
