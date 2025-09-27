@@ -266,97 +266,6 @@ def get_ibt_details(outflow_description):
     return outflow
 
 
-@funds_bp.route("/api/v1/data/funds", methods=["GET"])
-@login_required
-@fund_managers
-def funds_home_data():
-    # Query for paginated records
-    subquery = (
-        db.session.query(
-            FundDailySheet.date_current_date.label("date_current_date"),
-            func.sum(FundDailyOutflow.outflow_amount).label("outflow_amount"),
-            FundDailySheet.float_amount_given_to_investments.label("investment_given"),
-            FundDailySheet.float_amount_taken_from_investments.label(
-                "investment_taken"
-            ),
-            FundDailySheet.float_amount_investment_closing_balance.label(
-                "investment_closing_balance"
-            ),
-            FundDailySheet.float_amount_hdfc_closing_balance.label(
-                "hdfc_closing_balance"
-            ),
-        )
-        .join(
-            FundDailyOutflow,
-            FundDailySheet.date_current_date == FundDailyOutflow.outflow_date,
-        )
-        .group_by(
-            FundDailySheet.date_current_date,
-            FundDailySheet.float_amount_given_to_investments,
-            FundDailySheet.float_amount_taken_from_investments,
-            FundDailySheet.float_amount_investment_closing_balance,
-            FundDailySheet.float_amount_hdfc_closing_balance,
-        )
-        .subquery()  # Convert this to a subquery
-    )
-
-    # Main query to join the subquery with FundBankStatement
-    query = (
-        db.session.query(
-            FundBankStatement.date_uploaded_date,
-            subquery.c.investment_given,
-            subquery.c.investment_taken,
-            subquery.c.investment_closing_balance,
-            subquery.c.hdfc_closing_balance,
-            subquery.c.outflow_amount,
-        )
-        .outerjoin(
-            subquery,
-            FundBankStatement.date_uploaded_date == subquery.c.date_current_date,
-        )
-        .group_by(
-            FundBankStatement.date_uploaded_date,
-            subquery.c.investment_given,
-            subquery.c.investment_taken,
-            subquery.c.investment_closing_balance,
-            subquery.c.hdfc_closing_balance,
-            subquery.c.outflow_amount,
-        )
-        .order_by(FundBankStatement.date_uploaded_date.desc())
-    )
-    total_records = query.count()
-    # Filtered record count (same as total here unless filters are applied)
-    records_filtered = query.count()
-    start = request.args.get("start", type=int)
-    length = request.args.get("length", type=int)
-
-    query = query.offset(start).limit(length)
-
-    # Format the data for DataTables
-    data = [
-        {
-            "date_uploaded_date": row[0],
-            "credit": get_inflow_total(row[0]),
-            "outflow": row[5] or 0,
-            "net_cashflow": (get_inflow_total(row[0])) - (row[5] or 0),
-            "investment_given": row[1] or 0,
-            "investment_taken": row[2] or 0,
-            "net_investment": (row[1] or 0) - (row[2] or 0),
-            "investment_closing_balance": row[3] or 0,
-            "hdfc_closing_balance": row[4] or 0,
-        }
-        for row in query
-    ]
-
-    # return response
-    return {
-        "draw": request.args.get("draw", type=int),
-        "recordsTotal": total_records,
-        "recordsFiltered": records_filtered,
-        "data": data,
-    }
-
-
 @funds_bp.route("/api/v2/data/funds", methods=["GET"])
 @login_required
 @fund_managers
@@ -463,36 +372,11 @@ def funds_home_data_v2():
     }
 
 
-@funds_bp.route("/home_old")
-@login_required
-@fund_managers
-def funds_home_api_old():
-    return render_template("funds_home_api.html")
-
-
 @funds_bp.route("/home")
 @login_required
 @fund_managers
 def funds_home_api():
     return render_template("funds_home_api_v2.html")
-
-
-@funds_bp.route("/", methods=["GET"])
-@login_required
-@fund_managers
-def funds_home():
-    query = db.session.query(distinct(FundBankStatement.date_uploaded_date)).order_by(
-        FundBankStatement.date_uploaded_date.desc()
-    )
-
-    return render_template(
-        "funds_home.html",
-        query=query,
-        # display_inflow=display_inflow,
-        # display_outflow=fill_outflow,
-        # get_inflow_total=get_inflow_total,
-        # get_daily_summary=get_daily_summary_refactored,
-    )
 
 
 @funds_bp.route("/bank_statement/upload/", methods=["GET", "POST"])
