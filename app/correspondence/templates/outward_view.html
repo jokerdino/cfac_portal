@@ -1,0 +1,71 @@
+{% extends "correspondence_layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Outward number: {{ outward.reference_number }}</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="col-25">Date of dispatch</th>
+                        <td>{{ outward.date_of_dispatch }}</td>
+                    </tr>
+                    <tr>
+                        <th>Time of dispatch</th>
+                        <td>{{ outward.time_of_dispatch }}</td>
+                    </tr>
+                    <tr>
+                        <th>Recipient name</th>
+                        <td>{{ outward.recipient_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Recipient address</th>
+                        <td>{{ outward.recipient_address }}</td>
+                    </tr>
+                    <tr>
+                        <th>Mode of dispatch</th>
+                        <td>{{ outward.mode_of_dispatch }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{ outward.description_of_item }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sender name</th>
+                        <td>{{ outward.sender_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Dispatched by</th>
+                        <td>{{ outward.dispatched_by }}</td>
+                    </tr>
+                    <tr>
+                        <th>Remarks</th>
+                        <td>{{ outward.remarks }}</td>
+                    </tr>
+                    <tr>
+                        <th>Uploaded Document</th>
+                        <td>
+                            {% if outward.upload_document %}
+                            <a href="{{ url_for('.download_document', document_type='outward', document_id=outward.id) }}"
+                                target="_blank" class="btn btn-sm btn-outline-primary">
+                                View Document
+                            </a>
+                            {% else %}
+                            <span class="text-muted">No document uploaded</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{{ url_for('correspondence.outward_list') }}" class="btn btn-secondary">Back to list</a>
+            <a href="{{ url_for('correspondence.outward_edit', outward_id=outward.id) }}"
+                class="btn btn-warning">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

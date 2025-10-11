@@ -40,3 +40,20 @@ class InwardForm(FlaskForm):
 
     remarks = TextAreaField()
     upload_document_file = FileField(validators=[FileAllowed(["pdf"])])
+
+
+class OutwardForm(FlaskForm):
+    date_of_dispatch = DateField("Date of dispatch", validators=[DataRequired()])
+    time_of_dispatch = TimeField("Time of dispatch", validators=[DataRequired()])
+    recipient_name = StringField("Recipient name", validators=[DataRequired()])
+    recipient_address = StringField("Recipient address", validators=[DataRequired()])
+    mode_of_dispatch = StringField("Mode of dispatch", validators=[DataRequired()])
+
+    description_of_item = TextAreaField(
+        "Description of item", validators=[DataRequired()]
+    )
+    sender_name = StringField("Sender name", validators=[DataRequired()])
+    dispatched_by = StringField("Dispatched by", validators=[DataRequired()])
+
+    remarks = TextAreaField()
+    upload_document_file = FileField(validators=[FileAllowed(["pdf"])])

@@ -12,7 +12,7 @@ from markupsafe import Markup
 
 from . import correspondence_bp
 from .models import Circular, InwardDocument, OutwardDocument
-from .forms import CircularForm, InwardForm
+from .forms import CircularForm, InwardForm, OutwardForm
 from .utils import get_last_number, upload_document_to_folder
 from extensions import db
 from set_view_permissions import admin_required
@@ -180,7 +180,7 @@ def inward_add():
         number = last_doc_number + 1 if last_doc_number else 1
         inward.number = number
 
-        inward.reference_number = f"Inward:{year}/{month:02d}/{number:03d}"
+        inward.reference_number = f"HO:CFAC:Inward:{year}/{month:02d}/{number:03d}"
         upload_document_to_folder(
             inward,
             form,
@@ -211,6 +211,7 @@ def inward_list():
             "time_of_receipt",
             "sender_name",
             "letter_reference_number",
+            "description_of_item",
             "recipient_name",
             "received_by",
             "remarks",
@@ -268,3 +269,113 @@ def inward_edit(inward_id):
         db.session.commit()
         return redirect(url_for("correspondence.inward_view", inward_id=inward.id))
     return render_template("correspondence_edit.html", form=form, title="Edit inward")
+
+
+@correspondence_bp.route("/outward/add", methods=["GET", "POST"])
+@login_required
+@admin_required
+def outward_add():
+    form = OutwardForm()
+    if form.validate_on_submit():
+        outward = OutwardDocument()
+        date_of_dispatch = form.date_of_dispatch.data
+        year = date_of_dispatch.year
+        month = date_of_dispatch.month
+        last_doc_number = get_last_number(OutwardDocument, year, month)
+
+        form.populate_obj(outward)
+        db.session.add(outward)
+        outward.year = outward.date_of_dispatch.year
+        outward.month = outward.date_of_dispatch.month
+
+        number = last_doc_number + 1 if last_doc_number else 1
+        outward.number = number
+
+        outward.reference_number = f"HO:CFAC:Outward:{year}/{month:02d}/{number:03d}"
+        upload_document_to_folder(
+            outward,
+            form,
+            "upload_document_file",
+            "outward",
+            "upload_document",
+            "outward",
+        )
+        db.session.commit()
+        return redirect(url_for("correspondence.outward_view", outward_id=outward.id))
+    return render_template(
+        "correspondence_edit.html", form=form, title="Add new outward document"
+    )
+
+
+@correspondence_bp.route("/outward/", methods=["GET", "POST"])
+@login_required
+@admin_required
+def outward_list():
+    table = Table(
+        OutwardDocument,
+        classes="table table-striped table-bordered",
+        id="inward_table",
+        paginate=False,
+        only=[
+            "reference_number",
+            "date_of_dispatch",
+            "time_of_dispatch",
+            "description_of_item",
+            "recipient_name",
+            "sender_name",
+            "dispatched_by",
+            "remarks",
+        ],
+        extra_columns=[
+            (
+                "view",
+                Column(
+                    "View",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.outward_view', outward_id=u.id)}'>View</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+            (
+                "edit",
+                Column(
+                    "Edit",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.outward_edit', outward_id=u.id)}'>Edit</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+        ],
+    )
+    return render_template("correspondence_list.html", table=table, title="Outwards")
+
+
+@correspondence_bp.route("/outward/<int:outward_id>/", methods=["GET"])
+@login_required
+@admin_required
+def outward_view(outward_id):
+    outward = db.get_or_404(OutwardDocument, outward_id)
+    return render_template("outward_view.html", outward=outward)
+
+
+@correspondence_bp.route("/outward/<int:outward_id>/edit", methods=["GET", "POST"])
+@login_required
+@admin_required
+def outward_edit(outward_id):
+    outward = db.get_or_404(OutwardDocument, outward_id)
+    form = OutwardForm(obj=outward)
+    if form.validate_on_submit():
+        form.populate_obj(outward)
+        upload_document_to_folder(
+            outward,
+            form,
+            "upload_document_file",
+            "outward",
+            "upload_document",
+            "outward",
+        )
+        db.session.commit()
+        return redirect(url_for("correspondence.outward_view", outward_id=outward.id))
+    return render_template("correspondence_edit.html", form=form, title="Edit outward")

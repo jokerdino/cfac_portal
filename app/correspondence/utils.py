@@ -2,6 +2,7 @@ import os
 
 from datetime import datetime
 from flask import current_app
+from flask_wtf import FlaskForm
 from werkzeug.utils import secure_filename
 
 from extensions import db
@@ -34,12 +35,17 @@ def get_last_number(
 
 
 def upload_document_to_folder(
-    model_object, form, field, document_type, model_attribute, folder_name
-):
+    model_object: object,
+    form: FlaskForm,
+    field: str,
+    document_type: str,
+    model_attribute: str,
+    folder_name: str,
+) -> None:
     """
     Uploads a document to the folder specified by folder_name and saves the filename to the object.
 
-    :param object: The object to save the filename to
+    :param model_object: The object to save the filename to
     :param form: The form containing the file to upload
     :param field: The name of the field in the form containing the file to upload
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")

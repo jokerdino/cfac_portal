@@ -123,8 +123,8 @@
         <p class="menu-label">CFAC Correspondence</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('correspondence.circular_list') }}">Circulars</a></li>
-          <li><a href="{{ url_for('correspondence.circular_list') }}">Inwards</a></li>
-          <li><a href="{{ url_for('correspondence.circular_list') }}">Outwards</a></li>
+          <li><a href="{{ url_for('correspondence.inward_list') }}">Inwards</a></li>
+          <li><a href="{{ url_for('correspondence.outward_list') }}">Outwards</a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type in ["admin","ro_user"] %}
