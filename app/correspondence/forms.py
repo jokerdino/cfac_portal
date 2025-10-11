@@ -21,3 +21,22 @@ class CircularForm(FlaskForm):
     recipients = TextAreaField()
     remarks = TextAreaField()
     upload_document_file = FileField(validators=[FileAllowed(["pdf"])])
+
+
+class InwardForm(FlaskForm):
+    date_of_receipt = DateField("Date of receipt", validators=[DataRequired()])
+    time_of_receipt = TimeField("Time of receipt", validators=[DataRequired()])
+    sender_name = StringField("Sender name", validators=[DataRequired()])
+    sender_address = StringField("Sender address", validators=[DataRequired()])
+    mode_of_receipt = StringField("Mode of receipt", validators=[DataRequired()])
+    letter_reference_number = StringField(
+        "Letter reference number", validators=[DataRequired()]
+    )
+    description_of_item = TextAreaField(
+        "Description of item", validators=[DataRequired()]
+    )
+    recipient_name = StringField("Recipient name", validators=[DataRequired()])
+    received_by = StringField("Received by", validators=[DataRequired()])
+
+    remarks = TextAreaField()
+    upload_document_file = FileField(validators=[FileAllowed(["pdf"])])

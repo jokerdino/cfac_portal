@@ -1,0 +1,74 @@
+{% extends "correspondence_layout.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow rounded-3">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Inward number: {{ inward.reference_number }}</h4>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="col-25">Date of receipt</th>
+                        <td>{{ inward.date_of_receipt }}</td>
+                    </tr>
+                    <tr>
+                        <th>Time of receipt</th>
+                        <td>{{ inward.time_of_receipt }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sender name</th>
+                        <td>{{ inward.sender_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Sender address</th>
+                        <td>{{ inward.sender_address }}</td>
+                    </tr>
+                    <tr>
+                        <th>Mode of receipt</th>
+                        <td>{{ inward.mode_of_receipt }}</td>
+                    </tr>
+                    <tr>
+                        <th>Reference number</th>
+                        <td>{{ inward.letter_reference_number }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{ inward.description_of_item }}</td>
+                    </tr>
+                    <tr>
+                        <th>Recipient name</th>
+                        <td>{{ inward.recipient_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Received by</th>
+                        <td>{{ inward.received_by }}</td>
+                    </tr>
+                    <tr>
+                        <th>Remarks</th>
+                        <td>{{ inward.remarks }}</td>
+                    </tr>
+                    <tr>
+                        <th>Uploaded Document</th>
+                        <td>
+                            {% if inward.upload_document %}
+                            <a href="{{ url_for('.download_document', document_type='inward', document_id=inward.id) }}"
+                                target="_blank" class="btn btn-sm btn-outline-primary">
+                                View Document
+                            </a>
+                            {% else %}
+                            <span class="text-muted">No document uploaded</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{{ url_for('correspondence.inward_list') }}" class="btn btn-secondary">Back to list</a>
+            <a href="{{ url_for('correspondence.inward_edit', inward_id=inward.id) }}" class="btn btn-warning">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock content %}

@@ -39,8 +39,39 @@
 
                         </ul>
                     </li>
-                    <a class="nav-link" href="{{ url_for('.circular_list') }}">Inwards</a>
-                    <a class="nav-link" href="{{ url_for('.circular_list') }}">Outwards</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Inward documents
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('.inward_list') }}">Inward documents</a></li>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('.inward_add') }}">Add new inward document</a>
+                            </li>
+
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Outward documents
+                        </a>
+
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('.inward_list') }}">Outward documents</a></li>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('.inward_add') }}">Add new outward
+                                    document</a>
+                            </li>
+
+                        </ul>
+                    </li>
 
                 </div>
                 {% if not current_user.is_authenticated %}

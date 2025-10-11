@@ -4,7 +4,7 @@
 <div class="container mt-4">
     <div class="card shadow rounded-3">
         <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Circular number: {{ circular.circular_number }}</h4>
+            <h4 class="mb-0">Circular number: {{ circular.reference_number }}</h4>
         </div>
         <div class="card-body">
             <table class="table table-bordered table-striped">
@@ -19,7 +19,7 @@
                     </tr>
                     <tr>
                         <th>Circular reference number</th>
-                        <td>{{ circular.circular_number if circular.circular_number else '' }}</td>
+                        <td>{{ circular.reference_number if circular.reference_number else '' }}</td>
                     </tr>
                     <tr>
                         <th>Issued by</th>
@@ -41,7 +41,7 @@
                         <th>Uploaded Document</th>
                         <td>
                             {% if circular.upload_document %}
-                            <a href="{{ url_for('.download_document', document_type='circular', circular_id=circular.id) }}"
+                            <a href="{{ url_for('.download_document', document_type='circular', document_id=circular.id) }}"
                                 target="_blank" class="btn btn-sm btn-outline-primary">
                                 View Document
                             </a>

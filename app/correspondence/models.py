@@ -7,11 +7,13 @@ from extensions import db
 
 class Circular(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     year = db.Column(db.Integer)
     month = db.Column(db.Integer)
     number = db.Column(db.Integer)
+    reference_number = db.Column(db.String)
+
     date_of_issue = db.Column(db.Date)
-    circular_number = db.Column(db.String)
     circular_title = db.Column(db.String)
     issued_by_name = db.Column(db.String)
     issued_by_designation = db.Column(db.String)
@@ -31,12 +33,17 @@ class Circular(db.Model):
 class OutwardDocument(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    year = db.Column(db.Integer)
+    month = db.Column(db.Integer)
+    number = db.Column(db.Integer)
+    reference_number = db.Column(db.String)
+
     date_of_dispatch = db.Column(db.Date)
     time_of_dispatch = db.Column(db.Time)
     recipient_name = db.Column(db.String)
     recipient_address = db.Column(db.Text)
     mode_of_dispatch = db.Column(db.String)
-    reference_number = db.Column(db.String)
+
     description_of_item = db.Column(db.Text)
     sender_name = db.Column(db.String)
     dispatched_by = db.Column(db.String)
@@ -52,12 +59,18 @@ class OutwardDocument(db.Model):
 class InwardDocument(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
+    year = db.Column(db.Integer)
+    month = db.Column(db.Integer)
+    number = db.Column(db.Integer)
+    reference_number = db.Column(db.String)
+
     date_of_receipt = db.Column(db.Date)
     time_of_receipt = db.Column(db.Time)
     sender_name = db.Column(db.String)
     sender_address = db.Column(db.Text)
     mode_of_receipt = db.Column(db.String)
-    reference_number = db.Column(db.String)
+    letter_reference_number = db.Column(db.String)
+
     description_of_item = db.Column(db.Text)
 
     recipient_name = db.Column(db.String)
