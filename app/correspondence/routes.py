@@ -16,7 +16,7 @@ from .forms import CircularForm
 from .utils import get_last_number, upload_document_to_folder
 from extensions import db
 from set_view_permissions import admin_required
-from .table_helper import Table, Column
+from app.main.table_helper import Table, Column
 
 
 @correspondence_bp.route("/circular/add", methods=["GET", "POST"])
