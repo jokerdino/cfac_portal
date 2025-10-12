@@ -1,4 +1,9 @@
-from flask import Flask, request
+# import logging
+from logging.config import dictConfig
+
+
+from flask import Flask, request, current_app
+from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.portal_admin.admin_routes import admin_check
@@ -43,6 +48,27 @@ from utils import datetime_format, humanize_datetime, indian_number_format
 from reset_table_id import reset_id
 
 
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+        "loggers": {"werkzeug": {"level": "WARNING", "propagate": False}},
+    }
+)
+
+
 @lm.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -54,6 +80,101 @@ def create_app(config_class=Config):
 
     # Trust the proxy headers from nginx
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
+    @app.before_request
+    def log_request_metadata_only():
+        log = current_app.logger
+        # Safe username retrieval
+        if current_user.is_authenticated:
+            user = current_user.username  # or current_user.get_id()
+        else:
+            user = "anonymous"
+        if request.files:
+            files_info = []
+            for field, storage in request.files.items():
+                # Try to get size from stream
+                try:
+                    # Move cursor to end to find size
+                    pos = storage.stream.tell()
+                    storage.stream.seek(0, 2)  # Go to end of file
+                    size = storage.stream.tell()
+                    storage.stream.seek(pos)  # Reset the cursor
+                except Exception:
+                    size = None
+
+                files_info.append(
+                    {
+                        "field": field,
+                        "filename": storage.filename,
+                        "size": size,
+                        "mimetype": storage.mimetype,
+                    }
+                )
+
+            log.info(
+                f"File upload detected | "
+                f"IP: {request.remote_addr} | "
+                f"User: {user} | "
+                f"Method: {request.method} | "
+                f"Path: {request.path} | "
+                f"Files: {files_info}"
+            )
+
+        else:
+            log.info(
+                f"Request | "
+                f"IP: {request.remote_addr} | "
+                f"User: {user} | "
+                f"Method: {request.method} | "
+                f"Path: {request.path} | "
+                f"Args: {request.args.to_dict()}"
+            )
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        log = current_app.logger
+
+        # Safe username retrieval
+        if current_user.is_authenticated:
+            user = current_user.username  # or current_user.get_id()
+        else:
+            user = "anonymous"
+
+        # Collect file metadata if any
+        files_info = []
+        if request.files:
+            for field, storage in request.files.items():
+                try:
+                    # Measure size from stream
+                    pos = storage.stream.tell()
+                    storage.stream.seek(0, 2)  # move to end
+                    size_bytes = storage.stream.tell()
+                    storage.stream.seek(pos)  # reset cursor
+                except Exception:
+                    size_bytes = None
+
+                files_info.append(
+                    {
+                        "field": field,
+                        "filename": storage.filename,
+                        "size": size_bytes,  # size in bytes
+                        "mimetype": storage.mimetype,
+                    }
+                )
+
+        # Structured log
+        log.exception(
+            f"Unhandled Exception | "
+            f"IP: {request.remote_addr} | "
+            f"User: {user} | "
+            f"Method: {request.method} | "
+            f"Path: {request.path} | "
+            f"Args: {request.args.to_dict()} | "
+            f"Files: {files_info} | "
+            f"Error: {e}"
+        )
+
+        return "An internal error occurred", 500
 
     app.jinja_env.filters["datetime_format"] = datetime_format
     app.jinja_env.filters["humanize_datetime"] = humanize_datetime

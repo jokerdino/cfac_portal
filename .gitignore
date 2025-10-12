@@ -2,6 +2,7 @@
 *~
 *.swp
 .cfac_portal/*
+.testing_venv/*
 .vscode/*
 .idea/*
 migrations/*
