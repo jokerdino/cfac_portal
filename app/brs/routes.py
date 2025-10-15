@@ -17,7 +17,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 from flask_weasyprint import HTML, render_pdf
-from sqlalchemy import create_engine, func, insert
+from sqlalchemy import create_engine, func, insert, union_all
 from sqlalchemy.sql import exists, select
 from sqlalchemy.orm import joinedload
 
@@ -682,12 +682,13 @@ def list_brs_entries():
     """Function to return genuine BRS entries to be considered for passing JV
     a. Entries which are not deleted AND
     b. Entries which have no closing balance AND
-    c. Entries which have closing balance and corresponding outstanding entries."""
+    c. Entries which have closing balance and corresponding outstanding/short_credit/excess_credit entries.
+    """
     form = RawDataForm()
 
-    month_choices = BRS.query.with_entities(BRS.month).distinct()
+    month_choices = db.session.scalars(db.select(BRS.month).distinct())
 
-    list_period = [datetime.strptime(item[0], "%B-%Y") for item in month_choices]
+    list_period = [datetime.strptime(item, "%B-%Y") for item in month_choices]
 
     # sorting the items of list_period in reverse order
     # newer months will be above
@@ -699,34 +700,36 @@ def list_brs_entries():
         month = form.data["month"]
         brs_type = form.data["brs_type"]
 
-        list_all_brs_entries = (
-            BRSMonth.query.options(joinedload(BRSMonth.brs))
+        stmt = (
+            db.select(BRSMonth)
+            .options(joinedload(BRSMonth.brs))
             .join(BRS, BRS.id == BRSMonth.brs_id)
-            .filter((BRSMonth.status.is_(None)) & (BRS.month == month))
-        )
-        if brs_type != "View all":
-            list_all_brs_entries = list_all_brs_entries.filter(
-                BRSMonth.brs_type == brs_type
-            )
-        subquery = (
-            Outstanding.query.with_entities(Outstanding.brs_month_id)
-            .distinct()
-            .subquery()
+            .where((BRSMonth.status.is_(None)), (BRS.month == month))
         )
 
-        list_all_brs_entries = list_all_brs_entries.filter(
+        if brs_type != "View all":
+            stmt = stmt.where(BRSMonth.brs_type == brs_type)
+
+        subquery_os = db.select(Outstanding.brs_month_id).distinct()
+        subquery_excess = db.select(BankReconExcessCredit.brs_month_id).distinct()
+        subquery_short = db.select(BankReconShortCredit.brs_month_id).distinct()
+
+        unioned_ids = union_all(subquery_os, subquery_excess, subquery_short).subquery()
+
+        stmt = stmt.where(
             (BRSMonth.int_closing_balance == 0)
-            | ((BRSMonth.int_closing_balance > 0) & (BRSMonth.id.in_(select(subquery))))
+            | (
+                (BRSMonth.int_closing_balance != 0)
+                & BRSMonth.id.in_(select(unioned_ids.c.brs_month_id))
+            )
         )
 
         if current_user.user_type == "ro_user":
-            list_all_brs_entries = list_all_brs_entries.filter(
-                BRS.uiic_regional_code == current_user.ro_code
-            )
-
+            stmt = stmt.where(BRS.uiic_regional_code == current_user.ro_code)
+        results = db.session.execute(stmt).scalars()
         return render_template(
             "view_brs_raw_data.html",
-            brs_entries=list_all_brs_entries,
+            brs_entries=results,
         )
     return render_template("brs_raw_data_form.html", form=form)
 
