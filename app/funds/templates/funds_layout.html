@@ -65,6 +65,8 @@
                             <a class="navbar-item" href="{{ url_for('funds.add_jv_flag') }}">Add new JV Flag</a>
                             <hr class="navbar-divider" />
                             <a class="navbar-item" href="{{ url_for('funds.download_jv') }}">Download JV</a>
+                            <a class="navbar-item" href="{{ url_for('funds.download_jv2') }}">Download JV<div
+                                    class="tag is-danger">Testing</div></a>
 
                         </div>
 
@@ -85,7 +87,7 @@
                         <div>
                             <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                             {% else %}
-                            <a class="button"> {{ current_user.username }} </a>
+                            <a class="button"> {{ current_user.username.upper() }} </a>
                             <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
                             {% endif %}
                         </div>

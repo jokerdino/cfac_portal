@@ -89,6 +89,12 @@ class FundDailyOutflow(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     deleted_by = db.Column(db.String)
 
+    normalized_description = column_property(
+        func.replace(
+            func.replace(func.upper(outflow_description), "AMOUNT_", ""), "_", " "
+        )
+    )
+
 
 class FundDailySheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
