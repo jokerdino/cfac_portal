@@ -7,14 +7,13 @@ from set_view_permissions import admin_required
 from app.announcements import announcements_bp
 from app.announcements.announcements_model import Announcements
 from app.announcements.announcements_form import AnnouncementsForm
+from extensions import db
 
 
 @announcements_bp.route("/add/", methods=["GET", "POST"])
 @login_required
 @admin_required
 def add_announcement():
-    from extensions import db
-
     form = AnnouncementsForm()
 
     if form.validate_on_submit():
@@ -30,8 +29,6 @@ def add_announcement():
 @announcements_bp.route("/")
 @login_required
 def view_announcements():
-    from extensions import db
-
     list = db.session.scalars(
         db.select(Announcements).order_by(Announcements.created_on.desc())
     )
