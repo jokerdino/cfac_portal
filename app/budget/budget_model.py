@@ -1,45 +1,48 @@
+from datetime import datetime
+from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column
 from extensions import db
 
 
 class BudgetAllocation(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    str_financial_year = db.Column(db.String)
-    str_type = db.Column(db.String)  # original, revised
-    str_ro_code = db.Column(db.String)
+    str_financial_year: Mapped[str]
+    str_type: Mapped[str]  # original, revised
+    str_ro_code: Mapped[str]
 
-    str_expense_head = db.Column(db.String)
-    int_budget_allocated = db.Column(db.Numeric(15, 2))
+    str_expense_head: Mapped[str]
+    int_budget_allocated: Mapped[float] = mapped_column(db.Numeric(15, 2))
 
     # meta data
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[datetime]
+    date_updated_date: Mapped[Optional[datetime]]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[str]
+    updated_by: Mapped[Optional[str]]
+    deleted_by: Mapped[Optional[str]]
 
 
 class BudgetUtilization(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    str_financial_year = db.Column(db.String)
-    str_quarter = db.Column(db.String)  # first, second, third, fourth
-    str_ro_code = db.Column(db.String)
+    str_financial_year: Mapped[str]
+    str_quarter: Mapped[str]  # first, second, third, fourth
+    str_ro_code: Mapped[str]
 
-    str_expense_head = db.Column(db.String)
-    int_budget_utilized = db.Column(db.Numeric(15, 2))
+    str_expense_head: Mapped[str]
+    int_budget_utilized: Mapped[float] = mapped_column(db.Numeric(15, 2))
 
     # meta data
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[datetime]
+    date_updated_date: Mapped[Optional[datetime]]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[str]
+    updated_by: Mapped[Optional[str]]
+    deleted_by: Mapped[Optional[str]]

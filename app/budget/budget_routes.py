@@ -25,6 +25,7 @@ from app.budget.budget_form import (
     BudgetUtilizationForm,
     BudgetQueryForm,
 )
+from extensions import db
 
 
 @budget_bp.route("/upload_allocation/", methods=["POST", "GET"])
@@ -52,9 +53,9 @@ def upload_allocation():
         df_budget_allocation["created_by"] = current_user.username
         df_budget_allocation["date_created_date"] = datetime.now()
 
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_budget_allocation.to_sql(
-            "budget_allocation", engine, if_exists="append", index=False
+            "budget_allocation", db.engine, if_exists="append", index=False
         )
         flash("Budget allocation has been successfully uploaded.")
 
@@ -86,9 +87,9 @@ def upload_utilization():
         df_budget_utilization["created_by"] = current_user.username
         df_budget_utilization["date_created_date"] = datetime.now()
 
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         df_budget_utilization.to_sql(
-            "budget_utilization", engine, if_exists="append", index=False
+            "budget_utilization", db.engine, if_exists="append", index=False
         )
         flash("Budget allocation has been successfully uploaded.")
 
@@ -100,12 +101,13 @@ def upload_utilization():
 @admin_required
 def view_budget_utilization():
     form = BudgetQueryForm()
-    from extensions import db
 
-    ro_list = db.session.query(BudgetAllocation.str_ro_code).distinct()
-    expense_list = db.session.query(BudgetAllocation.str_expense_head).distinct()
-    form.str_ro_code.choices = sorted([ro_code[0] for ro_code in ro_list])
-    form.str_expense_head.choices = sorted([expense[0] for expense in expense_list])
+    ro_list = db.session.scalars(db.select(BudgetAllocation.str_ro_code).distinct())
+    expense_list = db.session.scalars(
+        db.select(BudgetAllocation.str_expense_head).distinct()
+    )
+    form.str_ro_code.choices = sorted([ro_code for ro_code in ro_list])
+    form.str_expense_head.choices = sorted([expense for expense in expense_list])
     if form.validate_on_submit():
         case_original = case(
             (
@@ -150,23 +152,20 @@ def view_budget_utilization():
             else_=None,
         )
         budget_allocation = (
-            db.session.query(BudgetAllocation)
-            .with_entities(
+            db.select(
                 BudgetAllocation.str_financial_year.label("str_financial_year"),
                 BudgetAllocation.str_ro_code.label("str_ro_code"),
                 BudgetAllocation.str_expense_head.label("str_expense_head"),
                 func.sum(case_original).label("case_original"),
                 func.sum(case_revised).label("case_revised"),
-            )
-            .group_by(
+            ).group_by(
                 BudgetAllocation.str_financial_year,
                 BudgetAllocation.str_ro_code,
                 BudgetAllocation.str_expense_head,
             )
         ).subquery("budget_allocation")
         budget_utilization = (
-            db.session.query(BudgetUtilization)
-            .with_entities(
+            db.select(
                 BudgetUtilization.str_financial_year.label("str_financial_year"),
                 BudgetUtilization.str_ro_code.label("str_ro_code"),
                 BudgetUtilization.str_expense_head.label("str_expense_head"),
@@ -174,16 +173,14 @@ def view_budget_utilization():
                 func.sum(case_second_quarter).label("case_second_quarter"),
                 func.sum(case_third_quarter).label("case_third_quarter"),
                 func.sum(case_fourth_quarter).label("case_fourth_quarter"),
-            )
-            .group_by(
+            ).group_by(
                 BudgetUtilization.str_financial_year,
                 BudgetUtilization.str_ro_code,
                 BudgetUtilization.str_expense_head,
             )
         ).subquery("budget_utilization")
         budget = (
-            db.session.query(budget_allocation)
-            .with_entities(
+            db.select(
                 budget_allocation.c.str_financial_year,
                 budget_allocation.c.str_ro_code,
                 budget_allocation.c.str_expense_head,
@@ -220,52 +217,21 @@ def view_budget_utilization():
             )
         )
 
-        # budget = (
-        #     db.session.query(BudgetAllocation, BudgetUtilization)
-        #     .with_entities(
-        #         BudgetAllocation.str_financial_year,
-        #         BudgetAllocation.str_ro_code,
-        #         BudgetAllocation.str_expense_head,
-        #         func.sum(case_original),
-        #         func.sum(case_revised),
-        #         func.sum(case_first_quarter),
-        #         func.sum(case_second_quarter),
-        #         func.sum(case_third_quarter),
-        #         func.sum(case_fourth_quarter),
-        #     )
-        #     .outerjoin(
-        #         BudgetUtilization,
-        #         and_(
-        #             BudgetAllocation.str_financial_year
-        #             == BudgetUtilization.str_financial_year,
-        #             BudgetAllocation.str_ro_code == BudgetUtilization.str_ro_code,
-        #             BudgetAllocation.str_expense_head
-        #             == BudgetUtilization.str_expense_head,
-        #         ),
-        #     )
-        #     .group_by(
-        #         BudgetAllocation.str_financial_year,
-        #         BudgetAllocation.str_ro_code,
-        #         BudgetAllocation.str_expense_head,
-        #     )
-        #     .order_by(BudgetAllocation.str_ro_code, BudgetAllocation.str_expense_head)
-        # )
-
         str_financial_year = form.data["str_financial_year"]
-        budget = budget.filter(
+        budget = budget.where(
             budget_allocation.c.str_financial_year == str_financial_year
         )
         if form.data["str_expense_head"]:
             expense_list = form.data["str_expense_head"]
-            budget = budget.filter(
+            budget = budget.where(
                 budget_allocation.c.str_expense_head.in_(expense_list)
             )
         if form.data["str_ro_code"]:
             ro_code_list = form.data["str_ro_code"]
-            budget = budget.filter(budget_allocation.c.str_ro_code.in_(ro_code_list))
-
+            budget = budget.where(budget_allocation.c.str_ro_code.in_(ro_code_list))
+        results = db.session.execute(budget).all()
         return render_template(
             "view_budget_utilization.html",
-            budget=budget,
+            budget=results,
         )
     return render_template("query_budget_utilization.html", form=form)
