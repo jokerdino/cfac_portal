@@ -90,7 +90,7 @@ def update_pl(oo_code):
 def update_sl(oo_code):
     oo_code = get_oo_code(oo_code)
     case_designation = order_by_designation(SickLeaveBalance)
-    pl_data = db.session.scalars(
+    sl_data = db.session.scalars(
         db.select(SickLeaveBalance)
         .where(SickLeaveBalance.employee_oo_code == oo_code)
         .order_by(
@@ -98,12 +98,12 @@ def update_sl(oo_code):
             SickLeaveBalance.employee_number.asc(),
         )
     )
-    form_data = {"sick_leave": pl_data}
+    form_data = {"sick_leave": sl_data}
     form = SickLeaveBulkUpdateForm(data=form_data)
     if form.validate_on_submit():
-        for pl_form in form.sick_leave.entries:  # Use .entries instead of .data
-            person = db.get_or_404(SickLeaveBalance, pl_form.data["id"])
-            pl_form.form.populate_obj(person)  # Use form instance to populate object
+        for sl_form in form.sick_leave.entries:  # Use .entries instead of .data
+            person = db.get_or_404(SickLeaveBalance, sl_form.data["id"])
+            sl_form.form.populate_obj(person)  # Use form instance to populate object
         db.session.commit()
         flash("Employee leave balance has been updated successfully.")
         return redirect(url_for(".update_sl", oo_code=oo_code))
@@ -119,8 +119,8 @@ def update_sl(oo_code):
 @ro_user_only
 def view_ro_dashboard(ro_code):
     ro_code = get_oo_code(ro_code)
-    query = (
-        db.session.query(
+    stmt = (
+        db.select(
             PrivilegeLeaveBalance.employee_ro_code,
             PrivilegeLeaveBalance.employee_oo_code,
             func.count(PrivilegeLeaveBalance.id).label("employee_count"),
@@ -137,7 +137,7 @@ def view_ro_dashboard(ro_code):
             SickLeaveBalance,
             SickLeaveBalance.employee_number == PrivilegeLeaveBalance.employee_number,
         )
-        .filter(PrivilegeLeaveBalance.employee_ro_code == ro_code)
+        .where(PrivilegeLeaveBalance.employee_ro_code == ro_code)
         .group_by(
             PrivilegeLeaveBalance.employee_ro_code,
             PrivilegeLeaveBalance.employee_oo_code,
@@ -147,7 +147,7 @@ def view_ro_dashboard(ro_code):
             PrivilegeLeaveBalance.employee_oo_code,
         )
     )
-
+    query = db.session.execute(stmt)
     return render_template("view_ro_dashboard.html", query=query)
 
 
@@ -155,8 +155,8 @@ def view_ro_dashboard(ro_code):
 @login_required
 @admin_required
 def view_ho_dashboard():
-    query = (
-        db.session.query(
+    stmt = (
+        db.select(
             PrivilegeLeaveBalance.employee_ro_code,
             func.count(PrivilegeLeaveBalance.id).label("employee_count"),
             (
@@ -179,6 +179,7 @@ def view_ho_dashboard():
             PrivilegeLeaveBalance.employee_ro_code,
         )
     )
+    query = db.session.execute(stmt)
 
     return render_template("view_ho_dashboard.html", query=query)
 
@@ -187,7 +188,7 @@ def view_ho_dashboard():
 @login_required
 @admin_required
 def download_data():
-    pl_query = db.session.query(
+    pl_query = db.select(
         PrivilegeLeaveBalance.calendar_year,
         PrivilegeLeaveBalance.employee_ro_code,
         PrivilegeLeaveBalance.employee_oo_code,
@@ -206,7 +207,7 @@ def download_data():
         PrivilegeLeaveBalance.employee_oo_code,
         PrivilegeLeaveBalance.employee_designation,
     )
-    sl_query = db.session.query(
+    sl_query = db.select(
         SickLeaveBalance.calendar_year,
         SickLeaveBalance.employee_ro_code,
         SickLeaveBalance.employee_oo_code,
@@ -224,8 +225,9 @@ def download_data():
         SickLeaveBalance.employee_oo_code,
         SickLeaveBalance.employee_designation,
     )
-    df_pl = pd.read_sql_query(pl_query.statement, db.engine)
-    df_sl = pd.read_sql_query(sl_query.statement, db.engine)
+    with db.engine.connect() as conn:
+        df_pl = pd.read_sql(pl_query, conn)
+        df_sl = pd.read_sql(sl_query, conn)
 
     output = BytesIO()
     with pd.ExcelWriter(output) as writer:

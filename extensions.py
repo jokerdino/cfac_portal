@@ -1,16 +1,31 @@
+from datetime import datetime
+from typing import Optional
+from typing_extensions import Annotated
+
 from flask_admin import Admin
 from flask_admin.theme import Bootstrap4Theme
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import DeclarativeBase, mapped_column
 from flask_debugtoolbar import DebugToolbarExtension
+
 
 from flask_admin_models import MyAdminIndexView
 
 migrate = Migrate(compare_type=True)
 lm = LoginManager()
+
+
+IntPK = Annotated[int, mapped_column(primary_key=True)]
+CreatedBy = Annotated[str, mapped_column(default=lambda: current_user.username)]
+CreatedOn = Annotated[datetime, mapped_column(default=datetime.now)]
+UpdatedBy = Annotated[
+    Optional[str],
+    mapped_column(onupdate=lambda: current_user.username),
+]
+UpdatedOn = Annotated[Optional[datetime], mapped_column(onupdate=datetime.now)]
 
 
 class Base(DeclarativeBase):

@@ -1,41 +1,42 @@
-from datetime import datetime
+from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Numeric
 
-from flask_login import current_user
 
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class TimestampMixin:
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class EmployeeData:
-    calendar_year = db.Column(db.Integer)
-    employee_name = db.Column(db.String)
-    employee_number = db.Column(db.Integer)
-    employee_designation = db.Column(db.String)
-    employee_ro_code = db.Column(db.String)
-    employee_oo_code = db.Column(db.String)
+    calendar_year: Mapped[int]
+    employee_name: Mapped[str]
+    employee_number: Mapped[int]
+    employee_designation: Mapped[str]
+    employee_ro_code: Mapped[str]
+    employee_oo_code: Mapped[str]
 
 
 class PrivilegeLeaveBalance(TimestampMixin, EmployeeData, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    opening_balance = db.Column(db.Numeric(10, 2))
-    leave_accrued = db.Column(db.Numeric(10, 2))
-    leave_availed = db.Column(db.Numeric(10, 2))
-    leave_encashed = db.Column(db.Numeric(10, 2))
-    leave_lapsed = db.Column(db.Numeric(10, 2))
-    closing_balance = db.Column(db.Numeric(10, 2))
+    id: Mapped[IntPK]
+    opening_balance: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_accrued: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_availed: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_encashed: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_lapsed: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    closing_balance: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
 
 
 class SickLeaveBalance(TimestampMixin, EmployeeData, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    opening_balance = db.Column(db.Numeric(10, 2))
-    leave_accrued = db.Column(db.Numeric(10, 2))
-    leave_availed = db.Column(db.Numeric(10, 2))
-    leave_lapsed = db.Column(db.Numeric(10, 2))
-    closing_balance = db.Column(db.Numeric(10, 2))
+    id: Mapped[IntPK]
+    opening_balance: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_accrued: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_availed: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    leave_lapsed: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
+    closing_balance: Mapped[Optional[float]] = mapped_column(Numeric(10, 2))
