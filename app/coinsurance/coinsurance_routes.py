@@ -207,33 +207,39 @@ def fetch_receipts():
 
 @coinsurance_bp.route("/api/data/funds/", methods=["GET"])
 def get_coinsurance_receipts():
-    # from extensions import db
+    def apply_filters(stmt, created_after=None, search=None):
+        stmt = stmt.where(FundBankStatement.flag_description == "COINSURANCE")
+        if created_after:
+            stmt = stmt.where(FundBankStatement.date_created_date > created_after)
 
-    entries = (
-        db.session.query(FundBankStatement)
-        .filter(FundBankStatement.flag_description == "COINSURANCE")
-        .order_by(FundBankStatement.id.desc())
-    )
+        if search:
+            search_terms = search.strip().split()  # split by spaces
+            for term in search_terms:
+                stmt = stmt.where(
+                    or_(
+                        cast(FundBankStatement.book_date, String).like(f"%{term}%"),
+                        FundBankStatement.description.ilike(f"%{term}%"),
+                        cast(FundBankStatement.credit, String).like(f"%{term}%"),
+                        FundBankStatement.reference_no.ilike(f"%{term}%"),
+                    )
+                )
+        return stmt
 
     created_after = request.args.get("created_after")
-    if created_after:
-        entries = entries.filter(FundBankStatement.date_created_date > created_after)
 
-    entries_count = entries.count()
+    entries_count = db.session.scalar(
+        apply_filters(db.select(func.count(FundBankStatement.id)), created_after, None)
+    )
 
     # search filter
     search = request.args.get("search[value]")
-    if search:
-        entries = entries.filter(
-            db.or_(
-                cast(FundBankStatement.book_date, String).like(f"%{search}%"),
-                FundBankStatement.description.ilike(f"%{search}%"),
-                cast(FundBankStatement.credit, String).like(f"%{search}%"),
-                FundBankStatement.reference_no.ilike(f"%{search}%"),
-            )
-        )
 
-    total_filtered = entries.count()
+    stmt = apply_filters(db.select(FundBankStatement), created_after, search)
+    total_filtered = db.session.scalar(
+        apply_filters(
+            db.select(func.count(FundBankStatement.id)), created_after, search
+        )
+    )
 
     # sorting
     # order = []
@@ -255,11 +261,12 @@ def get_coinsurance_receipts():
     # pagination
     start = request.args.get("start", type=int)
     length = request.args.get("length", type=int)
-    entries = entries.offset(start).limit(length)
+    entries = stmt.offset(start).limit(length)
 
+    result = db.session.scalars(entries)
     # response
     return {
-        "data": [asdict(entry) for entry in entries],
+        "data": [asdict(entry) for entry in result],
         "recordsFiltered": total_filtered,
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
