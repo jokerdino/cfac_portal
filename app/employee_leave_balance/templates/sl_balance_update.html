@@ -25,7 +25,7 @@
 
         {{ form.csrf_token }}
 
-        <table class="table is-fullwidth is-hoverable is-striped is-narrow">
+        <table class="table is-bordered is-fullwidth is-hoverable is-striped is-narrow">
             <thead>
                 <tr>
                     <th class="has-text-centered">RO Code</th>
@@ -42,18 +42,19 @@
                 </tr>
             </thead>
             <tbody>
-                {% for employee in form.sick_leave %}
+                {% for row in form.sick_leave %}
                 <tr>
-                    {% for field in employee %}
-                    <td> {% if field.type != "SelectField" %}
-                        {{ field }}
-                        {% elif field.type == "SelectField" %}
-                        <div class="select">{{ field }}</div>
-                        {% endif %}
-                    </td>
+                    <td>{{ row.employee_ro_code.data }}</td>
+                    <td>{{ row.employee_oo_code.data }}</td>
+                    <td>{{ row.employee_name.data }}</td>
+                    <td>{{ row.employee_number.data }}</td>
+                    <td>{{ row.employee_designation.data }}</td>
 
-                    {% endfor %}
-
+                    <td>{{ row.opening_balance }}</td>
+                    <td>{{ row.leave_accrued }}</td>
+                    <td>{{ row.leave_availed }}</td>
+                    <td>{{ row.leave_lapsed }}</td>
+                    <td>{{ row.closing_balance }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
