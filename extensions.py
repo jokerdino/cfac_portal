@@ -19,8 +19,10 @@ lm = LoginManager()
 
 
 IntPK = Annotated[int, mapped_column(primary_key=True)]
-CreatedBy = Annotated[str, mapped_column(default=lambda: current_user.username)]
-CreatedOn = Annotated[datetime, mapped_column(default=datetime.now)]
+CreatedBy = Annotated[
+    Optional[str], mapped_column(default=lambda: current_user.username)
+]
+CreatedOn = Annotated[Optional[datetime], mapped_column(default=datetime.now)]
 UpdatedBy = Annotated[
     Optional[str],
     mapped_column(onupdate=lambda: current_user.username),
