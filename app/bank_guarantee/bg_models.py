@@ -1,18 +1,23 @@
-from extensions import db
+from typing import Optional
+from datetime import date
+
+from sqlalchemy import Numeric, Text
+from sqlalchemy.orm import Mapped, mapped_column
+from extensions import db, IntPK
 
 
 class BankGuarantee(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    ro_code = db.Column(db.String)
-    oo_code = db.Column(db.String)
+    ro_code: Mapped[str]
+    oo_code: Mapped[str]
 
-    customer_name = db.Column(db.String)
-    customer_id = db.Column(db.String)
-    debit_amount = db.Column(db.Numeric(15, 2))
-    credit_amount = db.Column(db.Numeric(15, 2))
-    payment_id = db.Column(db.String)
+    customer_name: Mapped[str]
+    customer_id: Mapped[str]
+    debit_amount: Mapped[Optional[float]] = mapped_column(Numeric(15, 2))
+    credit_amount: Mapped[Optional[float]] = mapped_column(Numeric(15, 2))
+    payment_id: Mapped[str]
 
-    date_of_payment = db.Column(db.Date)
-    reason = db.Column(db.Text)
-    course_of_action = db.Column(db.Text)
+    date_of_payment: Mapped[date]
+    reason: Mapped[str] = mapped_column(Text)
+    course_of_action: Mapped[Optional[str]] = mapped_column(Text)

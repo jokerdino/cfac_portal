@@ -1,32 +1,26 @@
 from flask_wtf import FlaskForm
 from wtforms import (
-    BooleanField,
-    FileField,
     DateField,
     DecimalField,
-    IntegerField,
     TextAreaField,
-    SelectField,
     StringField,
 )
-from wtforms.validators import DataRequired, Optional, NumberRange
+from wtforms.validators import DataRequired, Optional
 
 
 class BGForm(FlaskForm):
-    regional_code = StringField("Enter Regional Office Code", validators=[Optional()])
-    office_code = StringField("Enter Operating Office Code", validators=[Optional()])
+    ro_code = StringField("Regional Office Code", validators=[Optional()])
+    oo_code = StringField("Operating Office Code", validators=[Optional()])
 
-    customer_name = StringField("Enter customer name", validators=[DataRequired()])
-    customer_id = StringField(
-        "Enter Customer ID / SL Code", validators=[DataRequired()]
-    )
-    debit_amount = DecimalField("Enter debit amount", validators=[Optional()])
-    credit_amount = DecimalField("Enter credit amount", validators=[Optional()])
-    payment_id = StringField("Enter Payment ID", validators=[DataRequired()])
+    customer_name = StringField(validators=[DataRequired()])
+    customer_id = StringField("Customer ID / SL Code", validators=[DataRequired()])
+    debit_amount = DecimalField(validators=[Optional()])
+    credit_amount = DecimalField(validators=[Optional()])
+    payment_id = StringField(validators=[DataRequired()])
 
-    date_of_payment = DateField("Enter date of payment ID", validators=[DataRequired()])
-    reason = TextAreaField("Enter reasons for BG balance", validators=[DataRequired()])
+    date_of_payment = DateField(validators=[DataRequired()])
+    reason = TextAreaField("Reasons for BG balance", validators=[DataRequired()])
     course_of_action = TextAreaField(
-        "Enter course of action for rectification of credit balance",
+        "Course of action for rectification of credit balance",
         validators=[Optional()],
     )

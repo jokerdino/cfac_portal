@@ -1,7 +1,7 @@
 {% extends "bg_layout.html" %}
 {% block content %}
 <h1 class="title">Bank guarantee entries</h1>
-{% if bg_query.count() > 0 %}
+{% if bg_query | length > 0 %}
 <table class="table is-bordered is-fullwidth" id="bg_table">
     <thead>
         <tr>
