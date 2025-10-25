@@ -234,7 +234,18 @@ def get_coinsurance_receipts():
     # search filter
     search = request.args.get("search[value]")
 
-    stmt = apply_filters(db.select(FundBankStatement), created_after, search)
+    stmt = apply_filters(
+        db.select(
+            func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
+                "value_date"
+            ),
+            FundBankStatement.description,
+            FundBankStatement.credit,
+            FundBankStatement.reference_no,
+        ).order_by(FundBankStatement.id.desc()),
+        created_after,
+        search,
+    )
     total_filtered = db.session.scalar(
         apply_filters(
             db.select(func.count(FundBankStatement.id)), created_after, search
@@ -263,10 +274,10 @@ def get_coinsurance_receipts():
     length = request.args.get("length", type=int)
     entries = stmt.offset(start).limit(length)
 
-    result = db.session.scalars(entries)
+    result = db.session.execute(entries).mappings()
     # response
     return {
-        "data": [asdict(entry) for entry in result],
+        "data": [dict(entry) for entry in result],
         "recordsFiltered": total_filtered,
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
