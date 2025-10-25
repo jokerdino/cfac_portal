@@ -13,7 +13,6 @@
             <th class="has-text-centered is-vcentered">Status</th>
             <th class="has-text-centered is-vcentered">Notice</th>
             <th class="has-text-centered is-vcentered">Renewal terms</th>
-
             <th class="has-text-centered is-vcentered">Contract file</th>
             <th class="has-text-centered is-vcentered">View</th>
             <th class="has-text-centered is-vcentered">Edit</th>
@@ -23,40 +22,34 @@
     <tbody>
         {% for entry in query %}
 
-        {% if entry['end_date'] < today %} <!-- djlint:off -->
-            <tr class="has-text-danger">
-                <!-- djlint:on -->
+        <tr {% if entry.end_date < today %}class="has-background-danger" {% endif %}>
+
+            <td>{{ entry.vendor }}</td>
+            <td>{{ entry.purpose }}</td>
+            <td class="has-text-centered" data-sort="{{ entry.start_date }}">{{
+                entry.start_date.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-centered" data-sort="{{ entry.end_date }}">{{
+                entry.end_date.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-right">{{ entry.emd or "" }}</td>
+            <td>
+                {{ entry.compare_end_date }}
+            </td>
+            <td>{{ entry.notice_period }}</td>
+            <td>{{ entry.renewal }}</td>
+
+            <td>
+                {% if entry.contract_file %}
+                <a class="button is-link is-small is-outlined"
+                    href="{{ url_for('.download_contract_document', contract_id=entry.id) }}">Download</a>
                 {% else %}
-            <tr>
+                No documents uploaded
                 {% endif %}
+            </td>
+            <td><a class="button is-small" href="{{ url_for('.view_contract', contract_id = entry.id) }}">View</a></td>
+            <td><a class="button is-small" href="{{ url_for('.edit_contract', contract_id= entry.id ) }}">Edit</a></td>
 
-                <td>{{ entry['vendor'] }}</td>
-                <td>{{ entry['purpose'] }}</td>
-                <td class="has-text-centered" data-sort="{{ entry['start_date'] }}">{{
-                    entry['start_date'].strftime("%d/%m/%Y") }}</td>
-                <td class="has-text-centered" data-sort="{{ entry['end_date'] }}">{{
-                    entry['end_date'].strftime("%d/%m/%Y") }}</td>
-                <td class="has-text-right">{{ entry['emd'] }}</td>
-                <td>
-                    {% if entry['end_date'] %}
-                    {{ compare_end_date(entry['end_date']) }}
-                    {% endif %}
-                </td>
-                <td>{{ entry['notice_period'] }}</td>
-                <td>{{ entry['renewal'] }}</td>
-
-                <td>
-                    {% if entry['contract_file'] %}
-                    <a href="{{ url_for('contracts.download_contract_document', contract_id=entry.id) }}">Download</a>
-                    {% else %}
-                    No documents uploaded
-                    {% endif %}
-                </td>
-                <td><a href="{{ url_for('contracts.view_contract', contract_id = entry.id) }}">View</a></td>
-                <td><a href="{{ url_for('contracts.edit_contract', contract_id= entry.id ) }}">Edit</a></td>
-
-            </tr>
-            {% endfor %}
+        </tr>
+        {% endfor %}
     </tbody>
 </table>
 

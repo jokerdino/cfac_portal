@@ -1,71 +1,37 @@
 {% extends "contracts_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container">
+    <h1 class="title">{{ title }}</h1>
+    <form action="" method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
 
-<h1 class="title">{{ title }}</h1>
-<form action="" method="post" enctype="multipart/form-data">
-    {{ form.csrf_token }}
+        {{ render_field_div_horizontal(field, is_narrow=False) }}
 
-    <table class="table is-fullwidth is-hoverable">
+        {% endfor %}
 
-        <tr>
-            <th>{{ form.vendor_name.label }}</th>
-            <td>{{ form.vendor_name(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.purpose.label }}</th>
-            <td> {{ form.purpose(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.start_date.label }}</th>
-            <td> {{ form.start_date(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.end_date.label }}</th>
-            <td> {{ form.end_date(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.emd.label }}</th>
-            <td> {{ form.emd(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.notice_period.label }}</th>
-            <td>{{ form.notice_period(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.renewal.label }}</th>
-            <td> {{ form.renewal(class="input") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.remarks.label }}</th>
-            <td> {{ form.remarks(class="textarea") }}</td>
-        </tr>
-        <tr>
-            <th>{{ form.upload_contract_file.label }}</th>
-            <td> {{ form.upload_contract_file }}</td>
-        </tr>
-    </table>
-    <div class="field is-grouped">
+        <div class="has-text-centered">
 
-        <button class="button is-primary is-big">Save</button>
+            <button class="button is-primary is-big">Submit</button>
 
+        </div>
+
+    </form>
+    {% for field, errors in form.errors.items() %}
+    <div class="notification is-danger">
+        {{ field }} {{ ', '.join(errors) }}
     </div>
+    {% endfor %}
 
-</form>
-{% for field, errors in form.errors.items() %}
-<div class="notification is-danger">
-    {{ field }} {{ ', '.join(errors) }}
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="notification is-danger">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
 </div>
-{% endfor %}
-</div>
-</div>
-
-{% with messages = get_flashed_messages() %}
-{% if messages %}
-{% for message in messages %}
-<div class="notification is-danger">
-    <p>{{ message }}</p>
-</div>
-{% endfor %}
-{% endif %}
-{% endwith %}
 {% endblock content %}
