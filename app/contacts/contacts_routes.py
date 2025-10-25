@@ -1,7 +1,7 @@
 import pandas as pd
-from flask import abort, current_app, flash, redirect, render_template, request, url_for
+from flask import abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine
+
 
 from extensions import db
 from set_view_permissions import admin_required, ro_user_only
@@ -15,7 +15,6 @@ from .contacts_model import Contacts
 @login_required
 @admin_required
 def add_contact():
-
     form = ContactsForm()
 
     if form.validate_on_submit():
@@ -28,7 +27,7 @@ def add_contact():
     return render_template("add_contact.html", form=form, title="Add new contact")
 
 
-@contacts_bp.route("/view/<int:contact_id>")
+@contacts_bp.route("/view/<int:contact_id>/")
 @login_required
 @ro_user_only
 def view_contact(contact_id):
@@ -37,7 +36,7 @@ def view_contact(contact_id):
     return render_template("view_contact.html", contact=contact)
 
 
-@contacts_bp.route("/edit/<int:contact_id>", methods=["POST", "GET"])
+@contacts_bp.route("/edit/<int:contact_id>/", methods=["POST", "GET"])
 @login_required
 @ro_user_only
 def edit_contact(contact_id):
@@ -88,16 +87,13 @@ def bulk_upload():
             },
         )
 
-        from server import db
-
-        db.session.query(Contacts).delete()
-        db.session.commit()
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # db.session.query(Contacts).delete()
+        # db.session.commit()
 
         # try:
         df_contact_upload.to_sql(
             "contacts",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )

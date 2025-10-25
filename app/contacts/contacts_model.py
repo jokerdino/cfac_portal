@@ -1,24 +1,22 @@
-from datetime import datetime
-
-from flask_login import current_user
-
-from extensions import db
+from typing import Optional
+from sqlalchemy.orm import Mapped
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class Contacts(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    office_code = db.Column(db.String)
-    office_name = db.Column(db.String)
-    name = db.Column(db.String)
-    employee_number = db.Column(db.Integer)
-    email_address = db.Column(db.String)
-    mobile_number = db.Column(db.String)
-    zone = db.Column(db.String)
-    designation = db.Column(db.String)
-    role = db.Column(db.String)
+    id: Mapped[IntPK]
+    office_code: Mapped[str]
+    office_name: Mapped[str]
+    name: Mapped[str]
+    employee_number: Mapped[int]
+    email_address: Mapped[Optional[str]]
+    mobile_number: Mapped[Optional[str]]
+    zone: Mapped[str]
+    designation: Mapped[Optional[str]]
+    role: Mapped[str]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
