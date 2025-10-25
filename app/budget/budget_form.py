@@ -23,8 +23,12 @@ class BudgetAllocationForm(FlaskForm):
     str_budget_allocation = FileField(
         "Upload budget allocation file (excel)",
         validators=[FileRequired(), FileAllowed(["xlsx"])],
+        render_kw={
+            "class": "file",
+            "accept": ".xlsx",
+        },
     )
-    submit = SubmitField("Submit")
+    submit = SubmitField("Submit", render_kw={"class": "button is-success"})
 
 
 class BudgetUtilizationForm(FlaskForm):
@@ -37,8 +41,13 @@ class BudgetUtilizationForm(FlaskForm):
     str_budget_utilization = FileField(
         "Upload budget utilization file (excel)",
         validators=[FileRequired(), FileAllowed(["xlsx"])],
+        render_kw={
+            "class": "file",
+            "accept": ".xlsx",
+        },
     )
-    submit = SubmitField("Submit")
+
+    submit = SubmitField("Submit", render_kw={"class": "button is-success"})
 
 
 class MultiCheckboxField(SelectMultipleField):

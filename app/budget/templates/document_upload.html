@@ -1,0 +1,32 @@
+{% extends "budget_layout.html" %}
+
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container box">
+    <h1 class="title">{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
+        {{ render_field_div_horizontal(field) }}
+        {% endfor %}
+        <div class="has-text-centered">
+            {{ form.submit }}
+        </div>
+    </form>
+    {% for field in form %}
+    {% if field.errors %}
+    <div class="notification is-danger">
+        {{ field.label }} field is to be completed.
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+    <div class="notification is-success">
+        <p>{{ message }}</p>
+    </div>
+    {% endfor %}
+    {% endwith %}
+</div>
+{% endblock content %}

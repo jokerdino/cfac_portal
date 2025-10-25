@@ -1,20 +1,14 @@
 from datetime import datetime
 import pandas as pd
 
-# from functools import wraps
 from flask import (
     render_template,
-    abort,
-    url_for,
-    request,
-    redirect,
     flash,
-    current_app,
 )
 
 from flask_login import current_user, login_required
 
-from sqlalchemy import create_engine, case, func, and_
+from sqlalchemy import case, func, and_
 
 from set_view_permissions import admin_required
 from app.budget import budget_bp
@@ -59,7 +53,9 @@ def upload_allocation():
         )
         flash("Budget allocation has been successfully uploaded.")
 
-    return render_template("allocation_upload.html", form=form)
+    return render_template(
+        "document_upload.html", form=form, title="Upload budget allocation"
+    )
 
 
 @budget_bp.route("/upload_utilization/", methods=["POST", "GET"])
@@ -93,7 +89,9 @@ def upload_utilization():
         )
         flash("Budget allocation has been successfully uploaded.")
 
-    return render_template("utilization_upload.html", form=form)
+    return render_template(
+        "document_upload.html", form=form, title="Upload budget utilization"
+    )
 
 
 @budget_bp.route("/budget_utilization/", methods=["POST", "GET"])
