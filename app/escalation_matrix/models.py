@@ -1,14 +1,10 @@
-from datetime import datetime
-from typing import Optional
+from sqlalchemy.orm import Mapped
 
-from sqlalchemy.orm import Mapped, mapped_column
-from flask_login import current_user
-
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class EscalationMatrix(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[IntPK]
 
     service_type: Mapped[str]
     nature_of_entity: Mapped[str]
@@ -19,10 +15,8 @@ class EscalationMatrix(db.Model):
     email_address: Mapped[str]
     contact_number: Mapped[str]
 
-    created_by: Mapped[str] = mapped_column(default=lambda: current_user.username)
-    created_on: Mapped[datetime] = mapped_column(default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by: Mapped[Optional[str]] = mapped_column(
-        onupdate=lambda: current_user.username
-    )
-    updated_on: Mapped[Optional[datetime]] = mapped_column(onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
