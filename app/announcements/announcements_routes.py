@@ -1,13 +1,12 @@
 from flask import redirect, render_template, url_for
-
 from flask_login import login_required
 
-from set_view_permissions import admin_required
-
-from app.announcements import announcements_bp
-from app.announcements.announcements_model import Announcements
-from app.announcements.announcements_form import AnnouncementsForm
+from . import announcements_bp
+from .announcements_model import Announcements
+from .announcements_form import AnnouncementsForm
 from extensions import db
+
+from set_view_permissions import admin_required
 
 
 @announcements_bp.route("/add/", methods=["GET", "POST"])

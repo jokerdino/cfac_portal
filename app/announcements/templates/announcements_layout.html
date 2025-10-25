@@ -32,21 +32,7 @@
                 </div>
             </div>
 
-            <div class="navbar-end">
-                <div class="navbar-item">
-                    <div class="buttons">
-                        {% if not current_user.is_authenticated %}
-
-                        <div>
-                            <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
-                            {% else %}
-                            <a class="button"> {{ current_user.username.upper() }} </a>
-                            <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {% include "partials/navbar_user_details.html" %}
         </nav>
     </header>
 

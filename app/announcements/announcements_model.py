@@ -1,16 +1,14 @@
-from datetime import datetime
-
-from flask_login import current_user
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Text
 
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn
 
 
 class Announcements(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[IntPK]
 
-    created_by: Mapped[str] = mapped_column(default=lambda: current_user.username)
-    created_on: Mapped[datetime] = mapped_column(default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    txt_title: Mapped[str] = mapped_column(db.Text)
-    txt_message: Mapped[str] = mapped_column(db.Text)
+    txt_title: Mapped[str] = mapped_column(Text)
+    txt_message: Mapped[str] = mapped_column(Text)
