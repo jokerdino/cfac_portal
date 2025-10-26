@@ -209,7 +209,9 @@ class CoinsuranceCashCallForm(FlaskForm):
 
 
 class UploadFileForm(FlaskForm):
-    file_upload = FileField("Upload document", validators=[DataRequired()])
+    file_upload = FileField(
+        "Upload document", validators=[DataRequired()], render_kw={"class": "file"}
+    )
     upload_document = SubmitField("Upload")
 
 

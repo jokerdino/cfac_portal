@@ -967,24 +967,20 @@ def bulk_upload_cash_call():
 @login_required
 def bulk_upload_settlements():
     form = UploadFileForm()
+    form.file_upload.render_kw.update({"accept": ".csv"})
     if form.validate_on_submit():
-        df_settlement = pd.read_excel(form.data["file_upload"])
-        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-
-        df_settlement["created_on"] = datetime.now()
-        df_settlement["created_by"] = current_user.username
-
-        df_settlement.to_sql(
-            "settlement",
-            db.engine,
-            if_exists="append",
-            index=False,
+        df_settlement = pd.read_csv(form.data["file_upload"])
+        df_settlement.columns = df_settlement.columns.str.lower()
+        db.session.execute(
+            db.insert(Settlement), df_settlement.to_dict(orient="records")
         )
+        db.session.commit()
+
         flash("Settlement details have been uploaded successfully.")
     return render_template(
         "coinsurance_upload_file_template.html",
         form=form,
-        title="Bulk upload settlement details",
+        title="Bulk upload settlement details (CSV)",
     )
 
 
