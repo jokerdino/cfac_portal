@@ -49,9 +49,6 @@ class FundsJVForm(FlaskForm):
     def validate_end_date(self, field):
         if field.data < self.start_date.data:
             raise ValidationError("End date should not be earlier than start date.")
-        # if (num_of_days(self.start_date.data, field.data) + 1) > 7:
-        #    raise ValidationError("Maximum date range allowed is 7 days.")
-
         if verify_months(self.start_date.data, field.data) > 0:
             raise ValidationError("Start date and end date must be in same month.")
 
@@ -63,53 +60,18 @@ class UploadFileForm(FlaskForm):
     upload_document = SubmitField("Upload")
 
 
-# class OutflowForm(FlaskForm):
-#    # drawn_from_investment = DecimalField(
-#    #     "Drawn from investment", validators=[Optional()]
-#    # )
-#    # investment = FieldList(FormField(GivenToInvestment), min_entries=1)
-#    given_to_investment = DecimalField("Given to Investment", validators=[Optional()])
-#    expected_date_of_return = DateField(
-#        "Enter expected date of return", validators=[Optional()]
-#    )
-#    amount_citi_health = DecimalField("CITI Health", validators=[Optional()])
-#    amount_mro1_health = DecimalField("MRO1 Health", validators=[Optional()])
-#
-#    amount_axis_neft = DecimalField("AXIS NEFT", validators=[Optional()])
-#    amount_citi_neft = DecimalField("CITI NEFT", validators=[Optional()])
-#    amount_tncmchis = DecimalField("TNCMCHIS", validators=[Optional()])
-#    amount_axis_centralised_cheque = DecimalField(
-#        "AXIS Centralised Cheque", validators=[Optional()]
-#    )
-#    amount_axis_centralised_cheque_521 = DecimalField(
-#        "AXIS Centralised Cheque 521", validators=[Optional()]
-#    )
-#    amount_axis_tds_gst = DecimalField("AXIS TDS RO", validators=[Optional()])
-#    amount_pension = DecimalField("Pension", validators=[Optional()])
-#    amount_gratuity = DecimalField("Gratuity", validators=[Optional()])
-#    amount_axis_gst = DecimalField("AXIS GST", validators=[Optional()])
-#    amount_ro_nagpur_crop = DecimalField("RO Nagpur Crop", validators=[Optional()])
-#    amount_citi_omp = DecimalField("CITI OMP", validators=[Optional()])
-#    amount_hdfc_lien = DecimalField(
-#        "Amount held by HDFC under Lien", validators=[Optional()]
-#    )
-#    amount_other_payments = DecimalField("Other payments", validators=[Optional()])
-#
-#
-##    amount_boa_tpa = DecimalField("BOA TPA", validators=[Optional()])
-#
-
-
 class FlagForm(FlaskForm):
     flag_description = StringField(
         "Description",
         validators=[DataRequired()],
         description="Name for the flag pattern",
+        filters=[lambda x: x.strip() if x else None],
     )
     flag_reg_exp = StringField(
         "Flag pattern",
         validators=[DataRequired()],
         description="Pattern to match in the bank statement",
+        filters=[lambda x: x.strip() if x else None],
     )
 
 
@@ -187,6 +149,24 @@ JVFlagAddForm = model_form(
         "txt_gl_code",
         "txt_sl_code",
     ],
+    field_args={
+        "txt_description": {
+            "filters": [lambda x: x.strip().upper() if x else None],
+            "validators": [DataRequired()],
+        },
+        "txt_flag": {
+            "filters": [lambda x: x.strip() if x else None],
+            "validators": [DataRequired()],
+        },
+        "txt_gl_code": {
+            "filters": [lambda x: x.strip() if x else None],
+            "validators": [DataRequired()],
+        },
+        "txt_sl_code": {
+            "filters": [lambda x: x.strip() if x else None],
+            "validators": [DataRequired()],
+        },
+    },
 )
 
 

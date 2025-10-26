@@ -55,8 +55,8 @@ ro_choices = sorted(ALLOWED_RO_CODES)
 
 class BaseLienForm(FlaskForm):
 
-    bank_name = StringField()
-    account_number = StringField()
+    bank_name = StringField(filters=[lambda x: x.strip().upper() if x else None])
+    account_number = StringField(filters=[lambda x: x.strip() if x else None])
 
     ro_name = StringField("RO Name")
     ro_code = SelectField("RO Code", choices=ro_choices)
