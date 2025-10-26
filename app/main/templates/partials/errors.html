@@ -1,7 +1,7 @@
 {% if form %}
 {% for field, errors in form.errors.items() %}
 <div class="notification is-danger">
-    {{ field }} {{ ', '.join(errors) }}
+    {{ form[field].label.text }}: {{ ', '.join(errors) }}
 </div>
 {% endfor %}
 

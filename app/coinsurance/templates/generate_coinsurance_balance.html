@@ -1,26 +1,20 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
 
-<div class="container">
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+<div class="container box">
 
-    <h1 class="title">Upload CSV files and flag sheet</h1>
+    <h1 class="title">Upload CSV files</h1>
     <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
 
-        <table class="table is-fullwidth">
-            <tr>
-                <th>{{ form.period.label }}</th>
-                <td>{{ form.period(class="input", placeholder=form.period.description) }}
-                </td>
-            </tr>
-            <tr>
-                <th>{{ form.csv_files_upload.label }}</th>
-                <td>{{ form.csv_files_upload(class="file", accept=".csv") }}</td>
-            </tr>
+        {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
+        {{ render_field_div_horizontal(field, is_narrow=False) }}
+        {% endfor %}
 
-        </table>
-        <div class="has-text-centered"> {{ form.upload_document(class="button is-success") }}
+        <div class="has-text-centered"> {{ form.upload_document }}
         </div>
     </form>
+
 </div>
 {% endblock content %}

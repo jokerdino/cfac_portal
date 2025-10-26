@@ -10,7 +10,7 @@
         <div class="select is-fullwidth">{{ field }}</div>
         {% elif field.type in ["BooleanField", "RadioField"] %}
         {{ field }}
-        {% elif field.type in ["FileField"] %}
+        {% elif field.type in ["FileField", "MultipleFileField"] %}
         {{ field(class="file", disabled=disabled) }}
         {% else %}
         {{ field(class="input", disabled=disabled) }}
@@ -39,7 +39,7 @@
         <div class="select is-fullwidth">{{ field(**kwargs) }}</div>
         {% elif field.type in ["BooleanField", "RadioField"] %}
         {{ field(**kwargs) }}
-        {% elif field.type == "FileField" %}
+        {% elif field.type in ["FileField", "MultipleFileField"] %}
         {{ field(class="file", **kwargs) }}
 
         {% set db_field_name = field.name.replace('_file', '') %}
@@ -78,6 +78,8 @@
         <div class="select is-fullwidth">{{ field }}</div>
         {% elif field.type in ["RadioField", "BooleanField"] %}
         {{ field }}
+        {% elif field.type in ["FileField", "MultipleFileField"] %}
+        {{ field(class="file") }}
         {% else %}
         {{ field(class="input", placeholder=field.description) }}
         {% endif %}
@@ -111,7 +113,7 @@
             <div class="select is-fullwidth">{{ field }}</div>
             {% elif field.type in ["RadioField", "BooleanField"] %}
             {{ field }}
-            {% elif field.type in ["FileField"] %}
+            {% elif field.type in ["FileField", "MultipleFileField"] %}
             {{ field(class="file") }}
             {% else %}
             {{ field(class="input", placeholder=field.description) }}

@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, MultipleFileField, FileAllowed, FileRequired
 from wtforms import (
@@ -217,17 +220,23 @@ class UploadFileForm(FlaskForm):
 
 class CoinsuranceBalanceForm(FlaskForm):
     period = StringField(
-        description="Enter in mmm-yy format (example: 'Aug-24')",
+        description="Enter in mmm-yy format (example: Aug-25)",
         validators=[DataRequired()],
+        filters=[lambda x: x.strip() if x else None],
     )
     csv_files_upload = MultipleFileField(
-        "Upload CSV files", validators=[FileRequired(), FileAllowed(["csv"])]
+        "Upload CSV files",
+        validators=[FileRequired(), FileAllowed(["csv"])],
+        render_kw=({"class": "file", "accept": ".csv"}),
     )
 
-    # flag_sheet_file = FileField(
-    #     "Upload Flag sheet", validators=[FileRequired(), FileAllowed(["xlsx"])]
-    # )
-    upload_document = SubmitField("Upload")
+    upload_document = SubmitField("Upload", render_kw={"class": "button is-success"})
+
+    def validate_period(self, field):
+        try:
+            datetime.strptime(field.data, "%b-%y")
+        except ValueError:
+            raise ValidationError("Enter in mmm-yy format.")
 
 
 class CoinsuranceBankMandateForm(FlaskForm):
