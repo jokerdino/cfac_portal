@@ -44,13 +44,15 @@ from set_view_permissions import ro_user_only, admin_required
 def pool_credits_list_identified_api(status):
     if request.method == "POST":
         list_pool_keys = request.form.getlist("pool_keys")
-        #  updated_time = datetime.now()
-        for key in list_pool_keys:
-            pool_credit_entry = PoolCredits.query.get_or_404(key)
-            pool_credit_entry.bool_jv_passed = True
-            #            pool_credit_entry.jv_passed_by = current_user.username
-            #           pool_credit_entry.jv_passed_on = updated_time
+        if list_pool_keys:
+            update_stmt = (
+                db.update(PoolCredits)
+                .where(PoolCredits.id.in_(list_pool_keys))
+                .values(bool_jv_passed=True)
+            )
+            result = db.session.execute(update_stmt)
             db.session.commit()
+            flash(f"{result.rowcount} rows updated.")
 
     return render_template("pool_credits_list_ajax.html", status=status)
 
