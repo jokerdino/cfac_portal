@@ -199,17 +199,21 @@ def get_data(status):
     # search filter
     search = request.args.get("search[value]")
     if search:
-        entries = entries.filter(
-            db.or_(
-                cast(PoolCredits.book_date, String).like(f"%{search}%"),
-                PoolCredits.description.ilike(f"%{search}%"),
-                cast(PoolCredits.credit, String).like(f"%{search}%"),
-                cast(PoolCredits.debit, String).like(f"%{search}%"),
-                cast(PoolCredits.value_date, String).like(f"%{search}%"),
-                PoolCredits.reference_no.ilike(f"%{search}%"),
-                cast(PoolCredits.str_regional_office_code, String).ilike(f"%{search}%"),
+        search_terms = search.strip().split()  # split by spaces
+        for term in search_terms:
+            stmt = stmt.filter(
+                db.or_(
+                    db.cast(PoolCredits.book_date, db.String).like(f"%{term}%"),
+                    PoolCredits.description.ilike(f"%{term}%"),
+                    db.cast(PoolCredits.credit, db.String).like(f"%{term}%"),
+                    db.cast(PoolCredits.debit, db.String).like(f"%{term}%"),
+                    db.cast(PoolCredits.value_date, db.String).like(f"%{term}%"),
+                    PoolCredits.reference_no.ilike(f"%{term}%"),
+                    db.cast(PoolCredits.str_regional_office_code, db.String).ilike(
+                        f"%{term}%"
+                    ),
+                )
             )
-        )
 
     total_filtered = entries.count()
 
@@ -383,23 +387,25 @@ def daily_jv_entries_v2():
     # search
     search = request.args.get("search[value]")
     if search:
-        query = query.filter(
-            db.or_(
-                cast(FundBankStatement.book_date, String).like(f"%{search}%"),
-                FundBankStatement.description.ilike(f"%{search}%"),
-                cast(FundBankStatement.credit, String).like(f"%{search}%"),
-                cast(FundBankStatement.value_date, String).like(f"%{search}%"),
-                FundBankStatement.reference_no.ilike(f"%{search}%"),
-                FundJournalVoucherFlagSheet.txt_description.ilike(f"%{search}%"),
-                FundJournalVoucherFlagSheet.txt_flag.ilike(f"%{search}%"),
-                cast(FundJournalVoucherFlagSheet.txt_gl_code, String).like(
-                    f"%{search}%"
-                ),
-                cast(FundJournalVoucherFlagSheet.txt_sl_code, String).like(
-                    f"%{search}%"
-                ),
+        search_terms = search.strip().split()  # split by spaces
+        for term in search_terms:
+            query = query.filter(
+                db.or_(
+                    db.cast(FundBankStatement.book_date, db.String).like(f"%{term}%"),
+                    FundBankStatement.description.ilike(f"%{term}%"),
+                    db.cast(FundBankStatement.credit, db.String).like(f"%{term}%"),
+                    db.cast(FundBankStatement.value_date, db.String).like(f"%{term}%"),
+                    FundBankStatement.reference_no.ilike(f"%{term}%"),
+                    FundJournalVoucherFlagSheet.txt_description.ilike(f"%{term}%"),
+                    FundJournalVoucherFlagSheet.txt_flag.ilike(f"%{term}%"),
+                    db.cast(FundJournalVoucherFlagSheet.txt_gl_code, db.String).like(
+                        f"%{term}%"
+                    ),
+                    db.cast(FundJournalVoucherFlagSheet.txt_sl_code, db.String).like(
+                        f"%{term}%"
+                    ),
+                )
             )
-        )
 
     total_filtered = db.session.scalar(
         db.select(func.count()).select_from(query.subquery())
