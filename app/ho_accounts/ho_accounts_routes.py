@@ -1,4 +1,4 @@
-from dataclasses import asdict
+# from dataclasses import asdict
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
@@ -16,11 +16,9 @@ from flask import (
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
-from sqlalchemy import create_engine, func, distinct, text, case, union, cast, String
 
-
-from app.ho_accounts import ho_accounts_bp
-from app.ho_accounts.ho_accounts_form import (
+from . import ho_accounts_bp
+from .ho_accounts_form import (
     BRSTrackerForm,
     AccountsTrackerForm,
     BulkUploadFileForm,
@@ -28,18 +26,19 @@ from app.ho_accounts.ho_accounts_form import (
     BRSAddForm,
     WorkAddForm,
 )
-from app.ho_accounts.ho_accounts_model import (
+from .ho_accounts_model import (
     HeadOfficeBankReconTracker,
     HeadOfficeAccountsTracker,
 )
 
 from app.users.user_model import User
 from extensions import db
+from set_view_permissions import admin_required
 
 
 @ho_accounts_bp.route("/upload_previous_month/")
 def upload_previous_month():
-    """View function to upload previous quarter HO checklist itemes after scheduled quarterly cron job"""
+    """View function to upload previous quarter HO checklist items after scheduled quarterly cron job"""
 
     # current_month refers to month that just ended
     current_month = date.today() - relativedelta(months=1)
@@ -47,47 +46,69 @@ def upload_previous_month():
     # prev_month is the 3 months before current_month
     prev_month = current_month - relativedelta(months=3)
 
-    fresh_entries = []
-    recon_entries = db.session.scalars(
-        db.select(HeadOfficeBankReconTracker).where(
-            HeadOfficeBankReconTracker.str_period == prev_month.strftime("%b-%y")
-        )
+    current_month_string = current_month.strftime("%b-%y")
+    prev_month_string = prev_month.strftime("%b-%y")
+
+    brs_stmt = db.select(
+        db.literal("AUTOUPLOAD").label("created_by"),
+        db.literal(current_month_string).label("str_period"),
+        HeadOfficeBankReconTracker.str_name_of_bank,
+        HeadOfficeBankReconTracker.str_bank_address,
+        HeadOfficeBankReconTracker.str_purpose,
+        HeadOfficeBankReconTracker.str_person,
+        HeadOfficeBankReconTracker.str_gl_code,
+        HeadOfficeBankReconTracker.str_sl_code,
+        HeadOfficeBankReconTracker.str_bank_account_number,
+        HeadOfficeBankReconTracker.str_customer_id,
+    ).where(HeadOfficeBankReconTracker.str_period == prev_month_string)
+
+    insert_brs_stmt = db.insert(HeadOfficeBankReconTracker).from_select(
+        [
+            HeadOfficeBankReconTracker.created_by,
+            HeadOfficeBankReconTracker.str_period,
+            HeadOfficeBankReconTracker.str_name_of_bank,
+            HeadOfficeBankReconTracker.str_bank_address,
+            HeadOfficeBankReconTracker.str_purpose,
+            HeadOfficeBankReconTracker.str_person,
+            HeadOfficeBankReconTracker.str_gl_code,
+            HeadOfficeBankReconTracker.str_sl_code,
+            HeadOfficeBankReconTracker.str_bank_account_number,
+            HeadOfficeBankReconTracker.str_customer_id,
+        ],
+        brs_stmt,
     )
-    for entry in recon_entries:
-        new_entry = HeadOfficeBankReconTracker(
-            **asdict(entry),
-            str_period=current_month.strftime("%b-%y"),
-            created_by="AUTOUPLOAD",
-        )
+    db.session.execute(insert_brs_stmt)
 
-        fresh_entries.append(new_entry)
+    checklist_stmt = db.select(
+        db.literal("AUTOUPLOAD").label("created_by"),
+        db.literal(current_month_string).label("str_period"),
+        HeadOfficeAccountsTracker.str_work,
+        HeadOfficeAccountsTracker.str_person,
+    ).where(HeadOfficeAccountsTracker.str_period == prev_month_string)
 
-    accounts_entries = db.session.scalars(
-        db.select(HeadOfficeAccountsTracker).where(
-            HeadOfficeAccountsTracker.str_period == prev_month.strftime("%b-%y")
-        )
+    insert_checklist_stmt = db.insert(HeadOfficeAccountsTracker).from_select(
+        [
+            HeadOfficeAccountsTracker.created_by,
+            HeadOfficeAccountsTracker.str_period,
+            HeadOfficeAccountsTracker.str_work,
+            HeadOfficeAccountsTracker.str_person,
+        ],
+        checklist_stmt,
     )
-    for entry in accounts_entries:
-        new_entry = HeadOfficeAccountsTracker(
-            **asdict(entry),
-            str_period=current_month.strftime("%b-%y"),
-            created_by="AUTOUPLOAD",
-        )
+    db.session.execute(insert_checklist_stmt)
 
-        fresh_entries.append(new_entry)
-
-    db.session.add_all(fresh_entries)
     db.session.commit()
     return "Success"
 
 
 @ho_accounts_bp.route("/bulk_upload_trackers", methods=["POST", "GET"])
 @login_required
+@admin_required
 def bulk_upload_trackers():
     form = BulkUploadFileForm()
 
     if form.validate_on_submit():
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
         if form.data["mis_tracker_file_upload"]:
             mis_tracker = form.data["mis_tracker_file_upload"]
 
@@ -102,7 +123,7 @@ def bulk_upload_trackers():
             # try:
             df_mis_tracker.to_sql(
                 "head_office_bank_recon_tracker",  # "head_office_accounts_tracker",
-                engine,
+                db.engine,
                 if_exists="append",
                 index=False,
             )
@@ -118,7 +139,7 @@ def bulk_upload_trackers():
             # try:
             df_accounts_tracker.to_sql(
                 "head_office_accounts_tracker",
-                engine,
+                db.engine,
                 if_exists="append",
                 index=False,
             )
@@ -136,18 +157,16 @@ def mask_account_number(account_number: str) -> str:
 
 @ho_accounts_bp.route("/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def ho_accounts_tracker_home():
     form = FilterPeriodForm()
 
-    period_list_query_brs = HeadOfficeBankReconTracker.query.with_entities(
-        HeadOfficeBankReconTracker.str_period
-    ).distinct()
-    period_list_query_work = HeadOfficeAccountsTracker.query.with_entities(
-        HeadOfficeAccountsTracker.str_period
-    ).distinct()
+    period_list_query_brs = db.select(HeadOfficeBankReconTracker.str_period).distinct()
+    period_list_query_work = db.select(HeadOfficeAccountsTracker.str_period).distinct()
     period_list_query = period_list_query_work.union(period_list_query_brs)
+    period_list_items = db.session.scalars(period_list_query)
     # converting the period from string to datetime object
-    list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
+    list_period = [datetime.strptime(item, "%b-%y") for item in period_list_items]
 
     # sorting the items of list_period in reverse order
     # newer months will be above
@@ -160,12 +179,20 @@ def ho_accounts_tracker_home():
 
     if form.validate_on_submit():
         period = form.data["period"]
-    mis_tracker = HeadOfficeBankReconTracker.query.filter(
-        HeadOfficeBankReconTracker.str_period == period
-    ).order_by(HeadOfficeBankReconTracker.id.asc())
-    accounts_work_tracker = HeadOfficeAccountsTracker.query.filter(
-        HeadOfficeAccountsTracker.str_period == period
-    ).order_by(HeadOfficeAccountsTracker.id.asc())
+
+    mis_stmt = (
+        db.select(HeadOfficeBankReconTracker)
+        .where(HeadOfficeBankReconTracker.str_period == period)
+        .order_by(HeadOfficeBankReconTracker.id.asc())
+    )
+    accounts_stmt = (
+        db.select(HeadOfficeAccountsTracker)
+        .where(HeadOfficeAccountsTracker.str_period == period)
+        .order_by(HeadOfficeAccountsTracker.id.asc())
+    )
+
+    mis_tracker = db.session.scalars(mis_stmt)
+    accounts_work_tracker = db.session.scalars(accounts_stmt)
 
     return render_template(
         "ho_accounts_home.html",
@@ -179,65 +206,62 @@ def ho_accounts_tracker_home():
 
 @ho_accounts_bp.route("/view_work/<int:id>/")
 @login_required
+@admin_required
 def view_accounts_work(id):
-    work = HeadOfficeAccountsTracker.query.get_or_404(id)
+    work = db.get_or_404(HeadOfficeAccountsTracker, id)
     return render_template("accounts_work_view.html", work=work)
 
 
 @ho_accounts_bp.route("/view_mis/<int:id>/")
 @login_required
+@admin_required
 def view_mis(id):
-    mis = HeadOfficeBankReconTracker.query.get_or_404(id)
+    mis = db.get_or_404(HeadOfficeBankReconTracker, id)
     return render_template("mis_status_view.html", mis=mis)
 
 
 @ho_accounts_bp.route("/edit_work/<int:id>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_accounts_work(id):
-    work = HeadOfficeAccountsTracker.query.get_or_404(id)
-    form = AccountsTrackerForm()
-    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-    form.str_assigned_to.choices = [
-        person.username.upper() for person in ho_staff if "admin" not in person.username
+    work = db.get_or_404(HeadOfficeAccountsTracker, id)
+    form = AccountsTrackerForm(obj=work)
+    stmt = (
+        db.select(User.username)
+        .where(User.user_type == "admin")
+        .order_by(User.username)
+    )
+    ho_staff = db.session.scalars(stmt)
+    form.str_person.choices = [
+        username.upper() for username in ho_staff if "admin" not in username
     ]
     if form.validate_on_submit():
-        work.str_work = form.str_work.data if form.str_work.data else work.str_work
-        work.str_person = (
-            form.str_assigned_to.data if form.str_assigned_to.data else work.str_person
-        )
-        work.bool_current_status = form.bool_current_status.data
-        work.text_remarks = form.text_remarks.data
-        work.updated_by = current_user.username
-        work.date_updated_date = datetime.now()
+        form.populate_obj(work)
         db.session.commit()
         return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
-    form.bool_current_status.data = work.bool_current_status
-    form.text_remarks.data = work.text_remarks
-    form.str_assigned_to.data = work.str_person
-    form.str_work.data = work.str_work
+
     return render_template("accounts_work_edit.html", form=form, work=work)
 
 
 @ho_accounts_bp.route("/add_work", methods=["POST", "GET"])
 @login_required
+@admin_required
 def add_work():
     form = WorkAddForm()
 
-    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-    form.str_assigned_to.choices = [
-        person.username.upper() for person in ho_staff if "admin" not in person.username
+    stmt = (
+        db.select(User.username)
+        .where(User.user_type == "admin")
+        .order_by(User.username)
+    )
+    ho_staff = db.session.scalars(stmt)
+    form.str_person.choices = [
+        username.upper() for username in ho_staff if "admin" not in username
     ]
     if form.validate_on_submit():
-        str_period = f"{form.str_month.data}-{form.str_year.data}"
-        str_work = form.str_work.data
-        str_person = form.str_assigned_to.data
-        work = HeadOfficeAccountsTracker(
-            str_period=str_period,
-            str_work=str_work,
-            str_person=str_person,
-            created_by=current_user.username,
-            date_created_date=datetime.now(),
-        )
+        work = HeadOfficeAccountsTracker()
+        form.populate_obj(work)
+
         db.session.add(work)
         db.session.commit()
 
@@ -245,39 +269,23 @@ def add_work():
     return render_template("accounts_work_add.html", form=form)
 
 
-@ho_accounts_bp.route("/add_mis", methods=["POST", "GET"])
+@ho_accounts_bp.route("/add_bank_account", methods=["POST", "GET"])
 @login_required
-def add_mis():
+@admin_required
+def add_bank_account():
     form = BRSAddForm()
-    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-    form.str_assigned_to.choices = [
-        person.username.upper() for person in ho_staff if "admin" not in person.username
+    stmt = (
+        db.select(User.username)
+        .where(User.user_type == "admin")
+        .order_by(User.username)
+    )
+    ho_staff = db.session.scalars(stmt)
+    form.str_person.choices = [
+        username.upper() for username in ho_staff if "admin" not in username
     ]
     if form.validate_on_submit():
-        str_period = f"{form.str_month.data}-{form.str_year.data}"
-        str_name_of_bank = form.str_name_of_bank.data
-        str_purpose = form.str_purpose.data
-        str_person = form.str_assigned_to.data
-        str_bank_address = form.str_bank_address.data
-        str_gl_code = form.str_gl_code.data
-        str_sl_code = form.str_sl_code.data
-
-        str_bank_account_number = form.str_bank_account_number.data
-        str_customer_id = form.str_customer_id.data
-
-        mis = HeadOfficeBankReconTracker(
-            str_period=str_period,
-            str_name_of_bank=str_name_of_bank,
-            str_purpose=str_purpose,
-            str_person=str_person,
-            str_bank_address=str_bank_address,
-            str_gl_code=str_gl_code,
-            str_sl_code=str_sl_code,
-            str_bank_account_number=str_bank_account_number,
-            str_customer_id=str_customer_id,
-            date_created_date=datetime.now(),
-            created_by=current_user.username,
-        )
+        mis = HeadOfficeBankReconTracker()
+        form.populate_obj(mis)
         db.session.add(mis)
         db.session.commit()
         return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
@@ -286,83 +294,58 @@ def add_mis():
 
 @ho_accounts_bp.route("/edit_mis/<int:id>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_mis(id):
-    mis = HeadOfficeBankReconTracker.query.get_or_404(id)
-    form = BRSTrackerForm()
-    ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-    form.str_assigned_to.choices = [
-        person.username.upper() for person in ho_staff if "admin" not in person.username
+    mis = db.get_or_404(HeadOfficeBankReconTracker, id)
+    form = BRSTrackerForm(obj=mis)
+    stmt = (
+        db.select(User.username)
+        .where(User.user_type == "admin")
+        .order_by(User.username)
+    )
+    ho_staff = db.session.scalars(stmt)
+    form.str_person.choices = [
+        username.upper() for username in ho_staff if "admin" not in username
     ]
     if form.validate_on_submit():
-        mis.str_purpose = (
-            form.str_purpose.data if form.str_purpose.data else mis.str_purpose
-        )
-        mis.str_name_of_bank = (
-            form.str_name_of_bank.data
-            if form.str_name_of_bank.data
-            else mis.str_name_of_bank
-        )
-        mis.boolean_mis_shared = form.boolean_mis_shared.data
-        mis.boolean_jv_passed = form.boolean_jv_passed.data
-        mis.text_remarks = form.text_remarks.data
-        mis.str_person = (
-            form.str_assigned_to.data if form.str_assigned_to.data else mis.str_person
+        form.populate_obj(mis)
+        upload_mis_documents(form, "str_brs_file", mis, "str_brs_file_upload", "brs")
+        upload_mis_documents(
+            form,
+            "str_bank_confirmation_file",
+            mis,
+            "str_bank_confirmation_file_upload",
+            "bank_confirmation",
         )
 
-        if form.data["str_brs_file_upload"]:
-            brs_filename_data = secure_filename(
-                form.data["str_brs_file_upload"].filename
-            )
-            brs_file_extension = brs_filename_data.rsplit(".", 1)[1]
-            brs_filename = (
-                "brs"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + brs_file_extension
-            )
-            form.str_brs_file_upload.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/brs/"
-                + brs_filename
-            )
-            mis.str_brs_file_upload = brs_filename
-
-        if form.data["str_bank_confirmation_file_upload"]:
-            bank_confirmation_filename_data = secure_filename(
-                form.data["str_bank_confirmation_file_upload"].filename
-            )
-            bank_confirmation_file_extension = bank_confirmation_filename_data.rsplit(
-                ".", 1
-            )[1]
-            bank_confirmation_filename = (
-                "bank_confirmation"
-                + datetime.now().strftime("%d%m%Y %H%M%S")
-                + "."
-                + bank_confirmation_file_extension
-            )
-            form.str_bank_confirmation_file_upload.data.save(
-                f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/bank_confirmation/"
-                + bank_confirmation_filename
-            )
-            mis.str_bank_confirmation_file_upload = bank_confirmation_filename
-
-        mis.updated_by = current_user.username
-        mis.date_updated_date = datetime.now()
         db.session.commit()
         return redirect(url_for("ho_accounts.ho_accounts_tracker_home"))
-    form.boolean_mis_shared.data = mis.boolean_mis_shared
-    form.boolean_jv_passed.data = mis.boolean_jv_passed
-    form.text_remarks.data = mis.text_remarks
-    form.str_assigned_to.data = mis.str_person
-    form.str_purpose.data = mis.str_purpose
-    form.str_name_of_bank.data = mis.str_name_of_bank
 
     return render_template("mis_status_edit.html", form=form, mis=mis)
 
 
+def upload_mis_documents(form, field_name, model_obj, model_field, folder_name):
+    if form.data[field_name]:
+        brs_filename_data = secure_filename(form.data[field_name].filename)
+        brs_file_extension = brs_filename_data.rsplit(".", 1)[1]
+        brs_filename = (
+            folder_name
+            + datetime.now().strftime("%d%m%Y %H%M%S")
+            + "."
+            + brs_file_extension
+        )
+        form.data[field_name].save(
+            f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/{folder_name}/"
+            + brs_filename
+        )
+        setattr(model_obj, model_field, brs_filename)
+
+
 @ho_accounts_bp.route("/download_mis_document/<string:requirement>/<int:id>")
 @login_required
+@admin_required
 def download_mis_documents(requirement, id):
-    mis = HeadOfficeBankReconTracker.query.get_or_404(id)
+    mis = db.get_or_404(HeadOfficeBankReconTracker, id)
     if requirement == "bank_confirmation":
         file_extension = mis.str_bank_confirmation_file_upload.rsplit(".", 1)[1]
         path = mis.str_bank_confirmation_file_upload
