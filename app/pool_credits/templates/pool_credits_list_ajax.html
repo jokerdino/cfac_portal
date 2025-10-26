@@ -3,11 +3,12 @@
 {% block content %}
 
 <div class="container is-fluid mt-5 pb-5">
-    <h1 class="title is-size-4">HDFC Pool account - List of {{ status | replace("jv_", "JV ")}} entries</h1>
+    <h1 class="title is-size-4">HDFC Pool account - List of {{ status | replace("jv_", "JV ") }} entries</h1>
+    {% include "partials/messages.html" %}
+    {% include "partials/errors.html" %}
     <form method="post">
         {% if status == "confirmed" and current_user.user_type == "admin" %}
         <div class="has-text-right">
-
             <button class="button is-success is-outlined">Mark selected entries as JV passed</button>
         </div>
         {% endif %}
@@ -32,48 +33,69 @@
         </table>
     </form>
 </div>
+<div id="datatable-config" data-ajax-url="{{ url_for('pool_credits.get_data', status=status) }}"
+    data-show-checkbox="{{ 'true' if status == 'confirmed' and current_user.user_type == 'admin' else 'false' }}"
+    data-edit-url="{{ url_for('pool_credits.update_pool_credit', id=0) }}">
+</div>
+
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-        new DataTable('#pool_credits_table', {
-            ajax: "{{ url_for('pool_credits.get_data', status=status) }}",
+    document.addEventListener("DOMContentLoaded", function () {
+        const tableEl = document.getElementById("pool_credits_table");
+
+        // Prevent reinitialization
+        if ($.fn.dataTable.isDataTable(tableEl)) {
+            return;
+        }
+
+        const configEl = document.getElementById("datatable-config");
+        const ajaxUrl = configEl.dataset.ajaxUrl;
+        const showCheckbox = configEl.dataset.showCheckbox === "true";
+
+        // Create a URL pattern with a placeholder
+        const editUrlTemplate = configEl.dataset.editUrl; // e.g. "/pool_credits/edit/0/"
+
+        const columns = [];
+
+        if (showCheckbox) {
+            columns.push({
+                data: "id",
+                className: "dt-body-center",
+                sortable: false,
+                render: (data) => `<input type="checkbox" name="pool_keys" value="${data}">`,
+            });
+        }
+
+        columns.push(
+            { data: "book_date", className: "dt-body-center" },
+            { data: "description" },
+            { data: "credit", className: "dt-body-right" },
+            { data: "value_date", className: "dt-body-center" },
+            { data: "reference_no" },
+            { data: "str_regional_office_code" },
+            {
+                data: "id",
+                render: (data) =>
+                    `<a class="button is-small is-link is-outlined" href="${editUrlTemplate.replace('0', data)}">Edit</a>`,
+            },
+        );
+
+        new DataTable(tableEl, {
+            ajax: ajaxUrl,
             serverSide: true,
-            // stateSave: true,
             processing: true,
             layout: {
-                topStart: 'pageLength',
+                topStart: "pageLength",
                 top2Start: {
                     buttons: [
-                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-                }
+                        { extend: "copyHtml5", className: "has-background-danger-light is-rounded", title: "" },
+                        { extend: "csvHtml5", className: "has-background-info-light is-rounded", title: "" },
+                        { extend: "excelHtml5", className: "has-background-primary-light is-rounded", title: "" },
+                    ],
+                },
             },
-            columns: [
-                {% if status == "confirmed" and current_user.user_type == "admin" %}
-                {
-                data: 'id',
-                className: 'dt-body-center',
-                sortable: false,
-                render: function (data, type, row, meta) {
-                    return "<input type='checkbox' name='pool_keys' value=" + data + ">";
-                }
-            },
-            {% endif %}
-                { data: 'book_date', className: 'dt-body-center', },
-        { data: 'description' },
-        { data: 'credit', className: 'dt-body-right', },
-        { data: 'value_date', className: 'dt-body-center', },
-        { data: 'reference_no' },
-        { data: 'str_regional_office_code' },
-        {
-            data: 'id',
-            render: function (data, type, row, meta) {
-                return "<a class='button is-small is-link is-outlined' href=/pool_credits/edit/" + data + "/>Edit</a>";
-            }
-        }
-            ],
-        order: [[7, 'desc']]
+            columns,
+            order: [[showCheckbox ? 7 : 6, "desc"]],
         });
     });
 </script>
