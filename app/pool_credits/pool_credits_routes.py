@@ -2,14 +2,14 @@ from datetime import datetime
 from dataclasses import asdict
 from io import BytesIO
 
-from sqlalchemy import (
-    and_,
-    func,
-    case,
-    cast,
-    String,
-    #   create_engine,
-)
+# from sqlalchemy import (
+#     and_,
+#     func,
+#     case,
+#     cast,
+#     String,
+#     #   create_engine,
+# )
 
 
 from flask import (
@@ -169,18 +169,29 @@ def dynamic_query_column(entries, column_name, params):
 @login_required
 @ro_user_only
 def get_data(status):
+    START_DATE = datetime(2024, 10, 1)
+    base_filter = [PoolCredits.value_date >= START_DATE]
+
+    stmt = db.select(
+        PoolCredits.id,
+        PoolCredits.str_regional_office_code,
+        db.func.to_char(PoolCredits.book_date, "YYYY-MM-DD").label("book_date"),
+        db.func.to_char(PoolCredits.value_date, "YYYY-MM-DD").label("value_date"),
+        PoolCredits.credit,
+        PoolCredits.value_date,
+        PoolCredits.description,
+        PoolCredits.reference_no,
+    ).where(*base_filter)
     if status == "unidentified":
-        entries = db.session.query(PoolCredits).filter(
-            PoolCredits.str_regional_office_code.is_(None)
-        )
+        stmt = stmt.where(PoolCredits.str_regional_office_code.is_(None))
 
     elif status == "confirmed":
-        entries = db.session.query(PoolCredits).filter(
+        stmt = stmt.where(
             (PoolCredits.str_regional_office_code.is_not(None))
             & (PoolCredits.bool_jv_passed.is_(False))
         )
     elif status == "jv_passed":
-        entries = db.session.query(PoolCredits).filter(
+        stmt = stmt.where(
             (PoolCredits.str_regional_office_code.is_not(None))
             & (PoolCredits.bool_jv_passed.is_(True))
         )
@@ -191,10 +202,10 @@ def get_data(status):
     # )
 
     # filter only entries uploaded after Oct-2024
-    START_DATE = datetime(2024, 10, 1)
-    entries = entries.filter(PoolCredits.value_date >= START_DATE)
 
-    entries_count = entries.count()
+    entries_count = db.session.scalar(
+        db.select(db.func.count()).select_from(stmt.subquery())
+    )
 
     # search filter
     search = request.args.get("search[value]")
@@ -215,7 +226,9 @@ def get_data(status):
                 )
             )
 
-    total_filtered = entries.count()
+    total_filtered = db.session.scalar(
+        db.select(db.func.count()).select_from(stmt.subquery())
+    )
 
     # sorting
     order = []
@@ -232,16 +245,16 @@ def get_data(status):
         order.append(col)
         i += 1
     if order:
-        entries = entries.order_by(*order)
+        stmt = stmt.order_by(*order)
 
     # pagination
     start = request.args.get("start", type=int)
     length = request.args.get("length", type=int)
-    entries = entries.offset(start).limit(length)
-
+    stmt = stmt.offset(start).limit(length)
+    entries = db.session.execute(stmt).mappings()
     # response
     return {
-        "data": [asdict(entry) for entry in entries],
+        "data": [dict(entry) for entry in entries],
         "recordsFiltered": total_filtered,
         "recordsTotal": entries_count,
         "draw": request.args.get("draw", type=int),
@@ -252,22 +265,16 @@ def get_data(status):
 @login_required
 @ro_user_only
 def update_pool_credit(id):
-    entry = db.session.query(PoolCredits).get_or_404(id)
+    entry = db.get_or_404(PoolCredits, id)
     form = UpdatePoolCreditsForm(obj=entry)
     if current_user.user_type != "admin":
         form.str_regional_office_code.choices = [current_user.ro_code]
     elif current_user.user_type == "admin":
-        ro_choices_list = (
-            db.session.query(PoolCreditsJournalVoucher.str_regional_office_code)
-            .order_by(PoolCreditsJournalVoucher.str_regional_office_code)
-            .distinct()
-            .all()
-        )
-        ro_choices = [
-            (choice.str_regional_office_code, choice.str_regional_office_code)
-            for choice in ro_choices_list
-        ]
-        form.str_regional_office_code.choices = ro_choices
+        ro_choices_list = db.select(
+            db.func.distinct(PoolCreditsJournalVoucher.str_regional_office_code)
+        ).order_by(PoolCreditsJournalVoucher.str_regional_office_code)
+        ro_choices = db.session.scalars(ro_choices_list)
+        form.str_regional_office_code.choices = [choice for choice in ro_choices]
     if entry.bool_jv_passed:
         flash("JV has already been passed.")
     elif form.validate_on_submit():
@@ -282,7 +289,7 @@ def update_pool_credit(id):
 @login_required
 @ro_user_only
 def view_pool_credit(id):
-    entry = db.session.query(PoolCredits).get_or_404(id)
+    entry = db.get_or_404(PoolCredits, id)
 
     return render_template("pool_credits_view.html", entry=entry)
 
@@ -291,49 +298,49 @@ def view_pool_credit(id):
 @login_required
 @admin_required
 def view_pool_credit_summary():
-    case_unidentified = case(
-        (
-            PoolCredits.str_regional_office_code.is_(None),
-            PoolCredits.credit,
-        ),
-        else_=0,
+    case_unidentified = db.func.sum(
+        db.case(
+            (
+                PoolCredits.str_regional_office_code.is_(None),
+                PoolCredits.credit,
+            ),
+            else_=0,
+        )
     ).label("Unidentified")
 
-    case_identified = case(
-        (
-            (PoolCredits.str_regional_office_code.is_not(None))
-            & (PoolCredits.bool_jv_passed.is_(False)),
-            PoolCredits.credit,
-        ),
-        else_=0,
+    case_identified = db.func.sum(
+        db.case(
+            (
+                (PoolCredits.str_regional_office_code.is_not(None))
+                & (PoolCredits.bool_jv_passed.is_(False)),
+                PoolCredits.credit,
+            ),
+            else_=0,
+        )
     ).label("Identified")
 
-    case_jv_passed = case(
-        (
-            PoolCredits.bool_jv_passed.is_(True),
-            PoolCredits.credit,
-        ),
-        else_=0,
+    case_jv_passed = db.func.sum(
+        db.case(
+            (
+                PoolCredits.bool_jv_passed.is_(True),
+                PoolCredits.credit,
+            ),
+            else_=0,
+        )
     ).label("JV passed")
 
     START_DATE = datetime(2024, 10, 1)
-    summary_query = (
-        db.session.query(PoolCredits)
-        .with_entities(
-            PoolCredits.month,
-            func.sum(case_unidentified),
-            func.sum(case_identified),
-            func.sum(case_jv_passed),
-        )
+    stmt = (
+        db.select(PoolCredits.month, case_unidentified, case_identified, case_jv_passed)
         .group_by(
             PoolCredits.month,
         )
         .order_by(
             PoolCredits.month.desc(),
         )
-        .filter(PoolCredits.value_date >= START_DATE)
+        .where(PoolCredits.value_date >= START_DATE)
     )
-
+    summary_query = db.session.execute(stmt)
     return render_template("summary_view.html", query=summary_query)
 
 
@@ -357,10 +364,12 @@ def daily_jv_entries_v2():
     ]
     query = (
         db.select(
-            func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label("book_date"),
+            db.func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label(
+                "book_date"
+            ),
             FundBankStatement.description,
             FundBankStatement.credit,
-            func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
+            db.func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
                 "value_date"
             ),
             FundBankStatement.reference_no,
@@ -377,7 +386,7 @@ def daily_jv_entries_v2():
     )
 
     entries_count = db.session.scalar(
-        db.select(func.count(FundBankStatement.id))
+        db.select(db.func.count(FundBankStatement.id))
         .join(
             FundBankStatement.flag,
         )
@@ -408,7 +417,7 @@ def daily_jv_entries_v2():
             )
 
     total_filtered = db.session.scalar(
-        db.select(func.count()).select_from(query.subquery())
+        db.select(db.func.count()).select_from(query.subquery())
     )
 
     # pagination
@@ -438,10 +447,12 @@ def download_monthly():
     ]
     query = (
         db.select(
-            func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label("book_date"),
+            db.func.to_char(FundBankStatement.book_date, "YYYY-MM-DD").label(
+                "book_date"
+            ),
             FundBankStatement.description,
             FundBankStatement.credit,
-            func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
+            db.func.to_char(FundBankStatement.value_date, "YYYY-MM-DD").label(
                 "value_date"
             ),
             FundBankStatement.reference_no,
@@ -459,7 +470,7 @@ def download_monthly():
 
     period_query = (
         db.select(
-            func.distinct(FundBankStatement.period),
+            db.func.distinct(FundBankStatement.period),
         )
         .join(
             FundBankStatement.flag,
@@ -468,10 +479,10 @@ def download_monthly():
         .order_by(FundBankStatement.period.desc())
     )
 
-    periods = db.session.execute(period_query)
+    periods = db.session.scalars(period_query)
 
     form = FilterMonthForm()
-    list_period = [datetime.strptime(p[0], "%Y-%m") for p in periods]
+    list_period = [datetime.strptime(p, "%Y-%m") for p in periods]
     form.month.choices = [month.strftime("%B-%y") for month in list_period]
 
     if form.validate_on_submit():
