@@ -44,34 +44,17 @@
                         { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
                 }
             },
-
             columns: [
-
-                {
-                    data: 'book_date',
-                    className: 'dt-body-center',
-                    //render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
-                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
-
-                },
+                { data: 'book_date', className: 'dt-body-center', },
                 { data: 'description' },
                 { data: 'credit', className: 'dt-body-right', },
-
-                {
-                    data: 'value_date',
-                    className: 'dt-body-center',
-                    // render: $.fn.dataTable.render.datetime('yyyy-MM-DD')
-                    //render: $.fn.dataTable.render.datetime('DD/MM/yyyy')
-                },
+                { data: 'value_date', className: 'dt-body-center', },
                 { data: 'reference_no' },
-
                 { data: 'txt_description' },
                 { data: 'txt_flag' },
                 { data: 'txt_gl_code' },
                 { data: 'txt_sl_code' },
-
             ],
-
             order: [[1, 'asc']]
         });
     });
