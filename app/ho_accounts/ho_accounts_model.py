@@ -1,61 +1,62 @@
-from dataclasses import dataclass
 from datetime import datetime
-from extensions import db
+from typing import Optional
 
-from flask_login import current_user
+from sqlalchemy import Text
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-@dataclass
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
+
+
 class HeadOfficeAccountsTracker(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    str_work: str = db.Column(db.String)
-    str_period = db.Column(db.String)
-    str_person: str = db.Column(db.String)
+    id: Mapped[IntPK]
+    str_work: Mapped[str]
+    str_period: Mapped[str]
+    str_person: Mapped[Optional[str]]
 
     # user inputs
-    bool_current_status = db.Column(db.Boolean)
-    text_remarks = db.Column(db.Text)
+    bool_current_status: Mapped[Optional[bool]]
+    text_remarks: Mapped[Optional[str]] = mapped_column(Text)
 
     # meta data
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
-@dataclass
 class HeadOfficeBankReconTracker(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    str_period = db.Column(db.String)
+    str_period: Mapped[str]
 
-    str_name_of_bank: str = db.Column(db.String)
-    str_bank_address: str = db.Column(db.String)
+    str_name_of_bank: Mapped[Optional[str]]
+    str_bank_address: Mapped[Optional[str]]
 
-    str_purpose: str = db.Column(db.String)
-    str_person: str = db.Column(db.String)
+    str_purpose: Mapped[Optional[str]]
+    str_person: Mapped[Optional[str]]
 
-    str_gl_code: str = db.Column(db.String)
-    str_sl_code: str = db.Column(db.String)
+    str_gl_code: Mapped[Optional[str]]
+    str_sl_code: Mapped[Optional[str]]
 
-    str_bank_account_number: str = db.Column(db.String)
-    str_customer_id: str = db.Column(db.String)
+    str_bank_account_number: Mapped[Optional[str]]
+    str_customer_id: Mapped[Optional[str]]
 
     # user inputs
-    boolean_mis_shared = db.Column(db.Boolean)
-    str_brs_file_upload = db.Column(db.String)
-    boolean_jv_passed = db.Column(db.Boolean)
-    str_bank_confirmation_file_upload = db.Column(db.String)
-    text_remarks = db.Column(db.Text)
+    boolean_mis_shared: Mapped[Optional[bool]]
+    str_brs_file_upload: Mapped[Optional[str]]
+    boolean_jv_passed: Mapped[Optional[bool]]
+    str_bank_confirmation_file_upload: Mapped[Optional[str]]
+    text_remarks: Mapped[Optional[str]] = mapped_column(Text)
 
     # meta data
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
