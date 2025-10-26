@@ -14,9 +14,21 @@ class FilterMonthForm(FlaskForm):
 
 
 class PoolCreditsJVForm(FlaskForm):
-    str_regional_office_code = StringField("Confirmed by", validators=[DataRequired()])
-    gl_code = StringField("GL code", validators=[DataRequired()])
-    sl_code = StringField("SL code", validators=[DataRequired()])
+    str_regional_office_code = StringField(
+        "Confirmed by",
+        validators=[DataRequired()],
+        filters=[lambda x: x.strip() if x else None],
+    )
+    gl_code = StringField(
+        "GL code",
+        validators=[DataRequired()],
+        filters=[lambda x: x.strip() if x else None],
+    )
+    sl_code = StringField(
+        "SL code",
+        validators=[DataRequired()],
+        filters=[lambda x: x.strip() if x else None],
+    )
 
 
 class JVUploadForm(FlaskForm):
