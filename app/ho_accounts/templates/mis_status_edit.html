@@ -32,7 +32,7 @@
             {% if current_user.role and "chief_manager" in current_user.role %}
             {{ render_field_table(form.str_name_of_bank) }}
             {{ render_field_table(form.str_purpose) }}
-            {{ render_field_table(form.str_assigned_to) }}
+            {{ render_field_table(form.str_person) }}
 
             {% else %}
             <tr>
@@ -72,8 +72,8 @@
 
             {{ render_field_table(form.boolean_mis_shared) }}
             <tr>
-                <th>{{ form.str_brs_file_upload.label }}</th>
-                <td>{{ form.str_brs_file_upload }}
+                <th>{{ form.str_brs_file.label }}</th>
+                <td>{{ form.str_brs_file }}
                     {% if mis.str_brs_file_upload %}
                     <a class="button is-link is-small is-outlined"
                         href="{{ url_for('ho_accounts.download_mis_documents', requirement='brs', id=mis.id) }}">Download
@@ -85,8 +85,8 @@
 
             {{ render_field_table(form.boolean_jv_passed) }}
             <tr>
-                <th>{{ form.str_bank_confirmation_file_upload.label }}</th>
-                <td>{{ form.str_bank_confirmation_file_upload }}
+                <th>{{ form.str_bank_confirmation_file.label }}</th>
+                <td>{{ form.str_bank_confirmation_file }}
                     {% if mis.str_bank_confirmation_file_upload %}
                     <a class="button is-link is-small is-outlined"
                         href="{{ url_for('ho_accounts.download_mis_documents', requirement='bank_confirmation', id=mis.id) }}">Download

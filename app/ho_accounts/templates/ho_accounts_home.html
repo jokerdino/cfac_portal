@@ -46,13 +46,7 @@
             <tbody>
                 {% for item in mis_tracker %}
 
-                {% if item['str_person'] == current_user.username.upper() %}
-                <!-- djlint:off -->
-                <tr class="has-background-info">
-                    {% else %}
-                    <!-- djlint:on -->
-                <tr>
-                    {% endif %}
+                <tr {% if item['str_person']==current_user.username.upper() %} class="has-background-info" {% endif %}>
 
                     <td>{{ item['str_period'] }}</td>
                     <td>{{ item['str_name_of_bank'] }}</td>
@@ -79,9 +73,9 @@
                         {% endif %}
                     </td>
                     <td><a class="button is-link is-outlined is-small"
-                            href="{{ url_for('ho_accounts.view_mis', id=item['id'] )}}">View</a></td>
+                            href="{{ url_for('ho_accounts.view_mis', id=item['id'] ) }}">View</a></td>
                     <td><a class="button is-link is-outlined is-small"
-                            href="{{ url_for('ho_accounts.edit_mis', id=item['id'] )}}">Edit</a></td>
+                            href="{{ url_for('ho_accounts.edit_mis', id=item['id'] ) }}">Edit</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -102,23 +96,17 @@
             </thead>
             <tbody>
                 {% for item in accounts_work_tracker %}
-                {% if item['str_person'] == current_user.username.upper() %}
 
-                <!-- djlint:off -->
-                <tr class="has-background-info">
-                    {% else %}
-                    <!-- djlint:on -->
+                <tr {% if item['str_person']==current_user.username.upper() %} class="has-background-info" {% endif %}>
 
-                <tr>
-                    {% endif %}
                     <td>{{ item['str_period'] }}</td>
                     <td>{{ item['str_work'] }}</td>
                     <td>{{ item['str_person'] or "" }}</td>
                     <td class="has-text-centered">{{ "✅" if item['bool_current_status'] else "❌" }}</td>
                     <td class="has-text-centered"><a class="button is-link is-outlined is-small"
-                            href="{{ url_for('ho_accounts.view_accounts_work', id=item['id'] )}}">View</a></td>
+                            href="{{ url_for('ho_accounts.view_accounts_work', id=item['id'] ) }}">View</a></td>
                     <td class="has-text-centered"><a class="button is-link is-outlined is-small"
-                            href="{{ url_for('ho_accounts.edit_accounts_work', id=item['id'] )}}">Edit</a></td>
+                            href="{{ url_for('ho_accounts.edit_accounts_work', id=item['id'] ) }}">Edit</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
