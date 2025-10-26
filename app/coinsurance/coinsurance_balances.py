@@ -179,6 +179,7 @@ def generate_coinsurance_balance():
         )
         pivot_companywise.reset_index(inplace=True)
         output = BytesIO()
+        upload_coinsurance_balance_refactored(pivot_df_merged_office)
         # Write the pivot tables and summary to an Excel file
         with pd.ExcelWriter(output) as writer:
             pivot_df_merged_office.to_excel(
@@ -321,10 +322,25 @@ def prepare_pivot(df_merged, df_zones, index_list, period):
     return pivot_df_merged_office
 
 
+def upload_coinsurance_balance_refactored(df):
+    df.columns = df.columns.str.lower().str.replace(" ", "_")
+    df = df.rename(
+        columns={
+            "net": "net_amount",
+            "regional_code": "str_regional_office_code",
+            "zone": "str_zone",
+        },
+    )
+
+    db.session.execute(db.insert(CoinsuranceBalances), df.to_dict(orient="records"))
+    db.session.commit()
+
+
 @coinsurance_bp.route("/coinsurance_balance/upload", methods=["POST", "GET"])
 @login_required
 @admin_required
 def upload_coinsurance_balance():
+    """Obsolete function: Replaced by upload_coinsurance_balance_refactored"""
     if request.method == "POST":
         file_upload_coinsurance_balance = request.files.get("file")
         df_coinsurance_balance = pd.read_excel(

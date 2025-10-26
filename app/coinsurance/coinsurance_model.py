@@ -1,10 +1,10 @@
 from datetime import datetime
 from dataclasses import dataclass
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 from flask_login import current_user
 
 from sqlalchemy import func
-from sqlalchemy.orm import column_property
+from sqlalchemy.orm import column_property, Mapped, mapped_column
 from utils import indian_number_format
 
 
@@ -185,29 +185,26 @@ class CoinsuranceLog(db.Model):
 
 
 class CoinsuranceBalances(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    str_zone = db.Column(db.String)
-    str_regional_office_code = db.Column(db.String)
+    id: Mapped[IntPK]
+    str_zone: Mapped[str]
+    str_regional_office_code: Mapped[str]
 
-    office_code = db.Column(db.String)
-    company_name = db.Column(db.String)
-    period = db.Column(db.String)
-    hub_due_to_claims = db.Column(db.Float)
-    hub_due_to_premium = db.Column(db.Float)
-    hub_due_from_claims = db.Column(db.Float)
-    hub_due_from_premium = db.Column(db.Float)
-    oo_due_to = db.Column(db.Float)
-    oo_due_from = db.Column(db.Float)
-    net_amount = db.Column(db.Float)
+    office_code: Mapped[str]
+    company_name: Mapped[str]
+    period: Mapped[str]
+    hub_due_to_claims: Mapped[float]
+    hub_due_to_premium: Mapped[float]
+    hub_due_from_claims: Mapped[float]
+    hub_due_from_premium: Mapped[float]
+    oo_due_to: Mapped[float]
+    oo_due_from: Mapped[float]
+    net_amount: Mapped[float]
 
-    created_by = db.Column(db.String)
-    created_on = db.Column(db.DateTime)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String)
-    updated_on = db.Column(db.DateTime)
-
-    deleted_by = db.Column(db.String)
-    deleted_on = db.Column(db.DateTime)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CoinsuranceBalanceGeneralLedgerCodeFlagSheet(db.Model):

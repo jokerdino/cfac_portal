@@ -34,8 +34,9 @@
                                 href="{{ url_for('coinsurance.query_view_coinsurance_balance') }}">View
                                 coinsurance balances</a>
                             {% if current_user.user_type == "admin" %}
-                            <a class="navbar-item" href="{{ url_for('coinsurance.upload_coinsurance_balance') }}">Upload
-                                coinsurance balance</a>
+                            {# <a class="navbar-item"
+                                href="{{ url_for('coinsurance.upload_coinsurance_balance') }}">Upload
+                                coinsurance balance</a>#}
                             <a class="navbar-item"
                                 href="{{ url_for('coinsurance.generate_coinsurance_balance') }}">Generate
                                 coinsurance balance</a>
