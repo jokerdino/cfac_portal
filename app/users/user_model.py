@@ -1,19 +1,41 @@
-from flask_login import UserMixin
+from datetime import datetime
+from typing import Optional, Literal
 
-from extensions import db
+from flask_login import UserMixin
+from sqlalchemy.orm import Mapped, mapped_column
+
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
+
+
+UserTypes = Literal[
+    "admin",
+    "oo_user",
+    "ro_user",
+    "coinsurance_hub_user",
+    "ho_motor_tp",
+    "ro_motor_tp",
+    "ri_tech",
+    "ri_accounts",
+    "ho_technical",
+]
 
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    ro_code = db.Column(db.String)
-    oo_code = db.Column(db.String)
-    username = db.Column(db.String, unique=True)
-    password = db.Column(db.String)
-    user_type = db.Column(db.String)
-    reset_password = db.Column(db.Boolean)
-    time_last_login = db.Column(db.DateTime)
+    id: Mapped[IntPK]
+    ro_code: Mapped[str]
+    oo_code: Mapped[str]
+    username: Mapped[str] = mapped_column(unique=True)
+    password: Mapped[str]
+    user_type: Mapped[UserTypes]
+    reset_password: Mapped[bool]
+    time_last_login: Mapped[Optional[datetime]]
 
-    role = db.Column(db.ARRAY(db.String))
+    role: Mapped[Optional[list[str]]] = mapped_column(db.ARRAY(db.String))
+
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
     @property
     def is_active(self):
@@ -24,8 +46,8 @@ class User(UserMixin, db.Model):
 
 
 class LogUser(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String)
+    id: Mapped[IntPK]
+    user_id: Mapped[str]
 
-    type_of_action = db.Column(db.String)
-    time_of_action = db.Column(db.DateTime)
+    type_of_action: Mapped[str]
+    time_of_action: Mapped[datetime]
