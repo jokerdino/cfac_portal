@@ -23,11 +23,11 @@ class UpdateUserForm(FlaskForm):
         validators=[Optional()],
     )
 
-    reset_password = BooleanField("Reset password")
+    reset_password = BooleanField()
 
 
 class UserAddForm(FlaskForm):
-    ro_code = StringField()
-    oo_code = StringField()
-    username = StringField()
+    ro_code = StringField(filters=[lambda x: x.strip() if x else None])
+    oo_code = StringField(filters=[lambda x: x.strip() if x else None])
+    username = StringField(filters=[lambda x: x.strip().lower() if x else None])
     user_type = SelectField(choices=user_types)
