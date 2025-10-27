@@ -4,17 +4,19 @@ from wtforms.validators import DataRequired, EqualTo, NumberRange
 
 
 class SignupForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    emp_number = IntegerField(
-        "Employee number",
+    username = StringField(validators=[DataRequired()])
+    password = PasswordField(validators=[DataRequired()])
+    employee_number = IntegerField(
         validators=[NumberRange(min=10000, max=99999), DataRequired()],
     )
 
 
 class LoginForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
+    username = StringField(
+        validators=[DataRequired()],
+        filters=[lambda x: x.strip().lower() if x else None],
+    )
+    password = PasswordField(validators=[DataRequired()])
 
 
 class UpdateUserForm(FlaskForm):
@@ -23,8 +25,5 @@ class UpdateUserForm(FlaskForm):
 
 
 class ResetPasswordForm(FlaskForm):
-    #  username = StringField("Enter username:", validators=[DataRequired()])
-    # emp_number = IntegerField("Enter employee number: ", validators=[DataRequired()])
-    #  reset_code = IntegerField("Enter reset code received from admin: ", validators=[DataRequired()])
     password = PasswordField("Enter new password: ", validators=[DataRequired()])
     confirm = PasswordField(validators=[EqualTo("password", "Password mismatch")])
