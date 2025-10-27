@@ -64,6 +64,7 @@ from set_view_permissions import admin_required, fund_managers
 
 outflow_labels = [
     "CITI HEALTH",
+    "AXIS HEALTH",
     "MRO1 HEALTH",
     "AXIS NEFT",
     "CITI NEFT",
