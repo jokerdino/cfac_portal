@@ -2,9 +2,10 @@
 {% block content %}
 {% if ticket %}
 <div class="container mt-5">
-    <table class="table is-fullwidth">
+    <h1 class="title">Ticket details</h1>
+    <table class="table is-bordered is-fullwidth">
         <tr>
-            <th>Regional Office Code</th>
+            <th width="30%">Regional Office Code</th>
             <td>{{ ticket.regional_office_code }}</td>
         </tr>
         <tr>
@@ -42,8 +43,8 @@
                 <table class="table is-bordered">
                     <thead>
                         <tr>
-                            <th>Time of remark</th>
-                            <th>User</th>
+                            <th width="25%">Time of remark</th>
+                            <th width="15%">User</th>
                             <th>Remarks</th>
                         </tr>
                     </thead>

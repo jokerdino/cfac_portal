@@ -7,23 +7,22 @@
         {{ form.csrf_token }}
         <table class="table is-fullwidth">
             <tr>
-                <th class="is-vcentered">{{ form.regional_office_code.label }}</th>
+                <th class="is-vcentered" width="30%">{{ form.regional_office_code.label }}</th>
                 <td>
-                    {% if current_user.user_type in ["ro_user", "oo_user"] %}
-                    {{ current_user.ro_code }}
-                    {% elif current_user.user_type == "coinsurance_hub_user" %}
-                    {{ current_user.oo_code }}
-                    {% else %}
+                    {% if current_user.user_type in ["ro_user", "oo_user", "coinsurance_hub_user"] %}
+                    {{ form.regional_office_code.data }}
+                    {% elif current_user.user_type == "admin" %}
                     {{ form.regional_office_code(class="input") }}
                     {% endif %}
                 </td>
+
             </tr>
             <tr>
                 <th class="is-vcentered">{{ form.office_code.label }}</th>
                 <td>
                     {% if current_user.user_type in ["oo_user","coinsurance_hub_user"] %}
-                    {{ current_user.oo_code }}
-                    {% else %}
+                    {{ form.office_code.data }}
+                    {% elif current_user.user_type in ["ro_user","admin"] %}
                     {{ form.office_code(class="input") }}
                     {% endif %}
                 </td>
@@ -36,14 +35,14 @@
             {{ render_field_table(form.status) }}
 
             <tr>
-                <th>{{ form.initial_remarks.label }}</th>
+                <th class="is-vcentered">{{ form.initial_remarks.label }}</th>
                 <td>
                     {% if ticket and ticket.remarks %}
                     <table class="table is-bordered">
                         <thead>
                             <tr>
-                                <th>Time of remark</th>
-                                <th>User</th>
+                                <th width="25%">Time of remark</th>
+                                <th width="15%">User</th>
                                 <th>Remarks</th>
                             </tr>
                         </thead>

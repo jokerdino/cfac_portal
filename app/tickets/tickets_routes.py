@@ -1,79 +1,64 @@
-from flask import flash, redirect, render_template, url_for, send_file
+from flask import redirect, render_template, url_for, send_file
 from flask_login import current_user, login_required
 
 from sqlalchemy import case, func
 
-from app.tickets import tickets_bp
-from app.tickets.tickets_model import Tickets, TicketRemarks
-from app.tickets.tickets_form import TicketsForm, TicketFilterForm, TicketDashboardForm
+from . import tickets_bp
+from .tickets_model import Tickets, TicketRemarks
+from .tickets_form import TicketsForm, TicketFilterForm, TicketDashboardForm
 
 from set_view_permissions import admin_required
+from extensions import db
 
 
 @tickets_bp.route("/add", methods=["POST", "GET"])
 @login_required
 def add_ticket():
-    from server import db
-
     form = TicketsForm()
+
+    if current_user.user_type == "oo_user":
+        form.regional_office_code.data = current_user.ro_code
+        form.office_code.data = current_user.oo_code
+    elif current_user.user_type == "ro_user":
+        form.regional_office_code.data = current_user.ro_code
+    elif current_user.user_type == "coinsurance_hub_user":
+        form.regional_office_code.data = current_user.oo_code
+        form.office_code.data = current_user.oo_code
+
     if form.validate_on_submit():
-        if current_user.user_type == "oo_user":
-            regional_office_code = current_user.ro_code
-            office_code = current_user.oo_code
-        elif current_user.user_type == "ro_user":
-            regional_office_code = current_user.ro_code
-            office_code = form.data["office_code"]
-        elif current_user.user_type == "coinsurance_hub_user":
-            regional_office_code = current_user.oo_code
-            office_code = current_user.oo_code
-        elif current_user.user_type == "admin":
-            regional_office_code = form.data["regional_office_code"]
-            office_code = form.data["office_code"]
         ticket = Tickets()
         form.populate_obj(ticket)
-        ticket.regional_office_code = regional_office_code
-        ticket.office_code = office_code
+
+        if form.data["initial_remarks"]:
+            ticket.remarks.append(
+                TicketRemarks(
+                    remarks=form.data["initial_remarks"],
+                )
+            )
+
         db.session.add(ticket)
         db.session.commit()
-
-        if form.data["remarks"]:
-            remarks = TicketRemarks(
-                ticket_id=ticket.id,
-                remarks=form.data["remarks"],
-            )
-            db.session.add(remarks)
-            db.session.commit()
 
         return redirect(url_for("tickets.view_ticket", ticket_id=ticket.id))
 
     return render_template("add_ticket.html", form=form, title="Enter ticket details")
 
 
-@tickets_bp.route("/view/<int:ticket_id>")
+@tickets_bp.route("/view/<int:ticket_id>/")
 @login_required
 def view_ticket(ticket_id):
-    from extensions import db
-
     ticket = db.get_or_404(Tickets, ticket_id)
 
-    remarks = TicketRemarks.query.filter(TicketRemarks.ticket_id == ticket_id)
     return render_template(
         "view_ticket.html",
         ticket=ticket,
-        remarks=remarks,
     )
 
 
-@tickets_bp.route("/edit/<int:ticket_id>", methods=["POST", "GET"])
+@tickets_bp.route("/edit/<int:ticket_id>/", methods=["POST", "GET"])
 @login_required
 def edit_ticket(ticket_id):
-
-    from extensions import db
-
     ticket = db.get_or_404(Tickets, ticket_id)
-
-    remarks = TicketRemarks.query.filter(TicketRemarks.ticket_id == ticket_id)
-    from server import db
 
     form = TicketsForm(obj=ticket)
 
@@ -81,25 +66,14 @@ def edit_ticket(ticket_id):
         form.regional_incharge_approval.data = "True"
     if form.validate_on_submit():
         form.populate_obj(ticket)
-        if current_user.user_type == "admin":
-            ticket.regional_office_code = form.data["regional_office_code"]
-            ticket.office_code = form.data["office_code"]
-        elif current_user.user_type == "ro_user":
-            ticket.regional_office_code = current_user.ro_code
-            ticket.office_code = form.data["office_code"]
-        elif current_user.user_type == "oo_user":
-            ticket.regional_office_code = current_user.ro_code
-            ticket.office_code = current_user.oo_code
-        elif current_user.user_type == "coinsurance_hub_user":
-            ticket.regional_office_code = current_user.oo_code
-            ticket.office_code = current_user.oo_code
 
-        if form.data["remarks"]:
-            remark = TicketRemarks(
-                ticket_id=ticket.id,
-                remarks=form.data["remarks"],
+        if form.data["initial_remarks"]:
+            ticket.remarks.append(
+                TicketRemarks(
+                    remarks=form.data["initial_remarks"],
+                )
             )
-            db.session.add(remark)
+
         db.session.commit()
         return redirect(url_for("tickets.view_ticket", ticket_id=ticket.id))
 
@@ -107,73 +81,47 @@ def edit_ticket(ticket_id):
         "add_ticket.html",
         form=form,
         title="Edit ticket details",
-        remarks=remarks,
+        ticket=ticket,
     )
 
 
-@tickets_bp.route("/status/all/<string:department>/", methods=["POST", "GET"])
+@tickets_bp.route("/status/<string:status>/", methods=["GET", "POST"])
 @login_required
-def tickets_homepage(department):
+def filter_by_status(status):
     form = TicketFilterForm()
 
-    tickets = Tickets.query.order_by(Tickets.department)
+    tickets = db.select(Tickets)
+    if status != "all":
+        tickets = tickets.where(Tickets.status == status)
 
     if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
-        tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
+        tickets = tickets.where(Tickets.office_code == current_user.oo_code)
     elif current_user.user_type == "ro_user":
-        tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
+        tickets = tickets.where(Tickets.regional_office_code == current_user.ro_code)
 
     select_department(tickets, form)
-    if department != "View all":
-        tickets = tickets.filter(Tickets.department == department)
 
     if form.validate_on_submit():
         department = form.data["department"]
-        return redirect(url_for("tickets.tickets_homepage", department=department))
+        if department != "View all":
+            tickets = tickets.where(Tickets.department == department)
 
-    form.department.data = department
+    result = db.session.scalars(tickets)
     return render_template(
         "tickets_homepage.html",
-        tickets=tickets,
+        tickets=result,
         form=form,
     )
 
 
-@tickets_bp.route(
-    "/status/<string:status>/<string:department>", methods=["GET", "POST"]
-)
-@login_required
-def filter_by_status(status, department):
-    form = TicketFilterForm()
+def select_department(stmt, form):
+    department_list = db.session.scalars(
+        db.select(db.distinct(Tickets.department))
+        .select_from(stmt)
+        .order_by(Tickets.department)
+    ).all()
 
-    tickets = Tickets.query.filter(Tickets.status == status)
-
-    if current_user.user_type in ["oo_user", "coinsurance_hub_user"]:
-        tickets = tickets.filter(Tickets.office_code == current_user.oo_code)
-    elif current_user.user_type == "ro_user":
-        tickets = tickets.filter(Tickets.regional_office_code == current_user.ro_code)
-
-    select_department(tickets, form)
-    if department != "View all":
-        tickets = tickets.filter(Tickets.department == department)
-
-    if form.validate_on_submit():
-        department = form.data["department"]
-        return redirect(
-            url_for("tickets.filter_by_status", status=status, department=department)
-        )
-
-    form.department.data = department
-    return render_template(
-        "tickets_homepage.html",
-        tickets=tickets,
-        form=form,
-    )
-
-
-def select_department(query, form):
-    department = query.distinct(Tickets.department)
-    form.department.choices = ["View all"] + [x.department for x in department]
+    form.department.choices = ["View all"] + department_list
 
 
 @tickets_bp.route("/download_jv_format/<string:requirement>")
@@ -191,41 +139,37 @@ def download_jv_format(requirement):
 @login_required
 @admin_required
 def tickets_dashboard():
-    from extensions import db
-
     form = TicketDashboardForm()
 
-    tickets_department_query = (
-        db.session.query(Tickets.department).distinct().order_by(Tickets.department)
-    )
-
-    tickets_department = [item[0] for item in tickets_department_query]
+    tickets_department = db.session.scalars(
+        db.select(Tickets.department).distinct().order_by(Tickets.department)
+    ).all()
 
     case_department = {
-        k: case((Tickets.department == v, Tickets.department))
-        for (k, v) in zip(tickets_department, tickets_department)
+        k: case((Tickets.department == k, Tickets.department))
+        for k in tickets_department
     }
 
     entities_list = [func.count(case_department[i]) for i in tickets_department]
 
     status = "Pending for CFAC approval"
-    tickets = (
-        db.session.query(Tickets)
-        .with_entities(
+    stmt = (
+        db.select(
             Tickets.regional_office_code, *entities_list, func.count(Tickets.department)
         )
         .group_by(Tickets.regional_office_code)
         .order_by(Tickets.regional_office_code)
     )
-    tickets_total = db.session.query(Tickets).with_entities(
-        *entities_list, func.count(Tickets.department)
-    )
-    if form.validate_on_submit():
+    stmt_total = db.select(*entities_list, func.count(Tickets.department))
 
+    if form.validate_on_submit():
         status = form.status.data
     if status != "View all":
-        tickets = tickets.filter(Tickets.status == status)
-        tickets_total = tickets_total.filter(Tickets.status == status)
+        stmt = stmt.where(Tickets.status == status)
+        stmt_total = stmt_total.where(Tickets.status == status)
+
+    tickets = db.session.execute(stmt)
+    tickets_total = db.session.execute(stmt_total)
 
     return render_template(
         "tickets_dashboard.html",

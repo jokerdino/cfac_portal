@@ -20,27 +20,24 @@
                 <div class="navbar-start">
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <div class="navbar-item has-dropdown is-hoverable">
-                        <a class="navbar-link" href="{{ url_for('tickets.tickets_homepage',  department='View all')
-                            }}">Tickets home</a>
+                        <a class="navbar-link" href="{{ url_for('.filter_by_status', status='all') }}">Tickets
+                            home</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval',
-                            department='View all') }}">Pending for CFAC approval</a>
-                            <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Clarification to be provided by RO or OO',
-                                department='View all') }}">Needs
-                                clarification</a>
+                            <a class="navbar-item" href="{{ url_for('.filter_by_status', status='Pending for CFAC approval',
+                            ) }}">Pending for CFAC approval</a>
+                            <a class="navbar-item" href="{{ url_for('.filter_by_status', status='Clarification to be provided by RO or OO'
+                                ) }}">Needs clarification</a>
                             <a class="navbar-item"
-                                href="{{ url_for('tickets.filter_by_status', status='Approval provided by CFAC', department='View all') }}">Approved</a>
-                            <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='Resolved', department='View all')
+                                href="{{ url_for('.filter_by_status', status='Approval provided by CFAC' ) }}">Approved</a>
+                            <a class="navbar-item" href="{{ url_for('.filter_by_status', status='Resolved' )
                                 }}">Resolved</a>
-                            <a class="navbar-item" href="{{ url_for('tickets.filter_by_status', status='No longer relevant',
-                                department='View all') }}">No longer
-                                relevant</a>
-
+                            <a class="navbar-item" href="{{ url_for('.filter_by_status', status='No longer relevant'
+                                ) }}">No longer relevant</a>
                         </div>
                     </div>
-                    <a class="navbar-item" href="{{ url_for('tickets.add_ticket') }}">Add ticket details</a>
+                    <a class="navbar-item" href="{{ url_for('.add_ticket') }}">Add ticket details</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('tickets.tickets_dashboard') }}">Tickets dashboard</a>
+                    <a class="navbar-item" href="{{ url_for('.tickets_dashboard') }}">Tickets dashboard</a>
                     {% endif %}
                 </div>
             </div>
@@ -50,12 +47,10 @@
 
     <div class="container is-fluid">
 
-        {% if current_user.is_authenticated %}
-
         {% block content %}
 
         {% endblock content %}
-        {% endif %}
+
     </div>
     <script type="text/javascript" charset="utf8"
         src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>

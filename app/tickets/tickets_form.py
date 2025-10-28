@@ -1,13 +1,11 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, BooleanField, EmailField, StringField, TextAreaField
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired
 
 
 class TicketsForm(FlaskForm):
-    regional_office_code = StringField(
-        "Enter Regional Office Code", validators=[Optional()]
-    )
-    office_code = StringField("Enter Office Code", validators=[Optional()])
+    regional_office_code = StringField(validators=[DataRequired()])
+    office_code = StringField(validators=[DataRequired()])
     ticket_number = StringField("Enter HPSM Ticket number", validators=[DataRequired()])
     contact_person = StringField("Contact person name", validators=[DataRequired()])
     contact_mobile_number = StringField(
@@ -45,9 +43,11 @@ class TicketsForm(FlaskForm):
             "No longer relevant",
         ],
     )
-    initial_remarks = TextAreaField("Enter remarks")
+    initial_remarks = TextAreaField("Remarks")
     regional_incharge_approval = BooleanField(
-        "Regional Incharge approval is available", validators=[DataRequired()]
+        "Regional Incharge approval is available",
+        validators=[DataRequired()],
+        render_kw={"class": "is-large-checkbox"},
     )
 
 

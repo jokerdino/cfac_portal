@@ -59,3 +59,8 @@ body {
     .navbar-custom {
     background-color:  #ca8cdf;   /* custom blue */
   }
+
+.is-large-checkbox {
+        transform: scale(1.5); /* Example scale */
+        margin: 8px; /* Example margin */
+    }

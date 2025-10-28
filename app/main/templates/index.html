@@ -47,8 +47,7 @@
           <li><a href="{{ url_for('brs_cc.brs_cc_dashboard') }}">BRS - Centralised cheque</a></li>
           {% endif %}
           {% endif %}
-          <li><a
-              href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval', department='View all') }}">Tickets</a>
+          <li><a href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval') }}">Tickets</a>
           </li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
           <li><a href="{{ url_for('pool_credits.identified_entries') }}">HDFC Pool
