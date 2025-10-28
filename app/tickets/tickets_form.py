@@ -45,7 +45,7 @@ class TicketsForm(FlaskForm):
             "No longer relevant",
         ],
     )
-    remarks = TextAreaField("Enter remarks")
+    initial_remarks = TextAreaField("Enter remarks")
     regional_incharge_approval = BooleanField(
         "Regional Incharge approval is available", validators=[DataRequired()]
     )

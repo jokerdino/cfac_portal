@@ -36,9 +36,9 @@
             {{ render_field_table(form.status) }}
 
             <tr>
-                <th>{{ form.remarks.label }}</th>
+                <th>{{ form.initial_remarks.label }}</th>
                 <td>
-                    {% if remarks %}
+                    {% if ticket and ticket.remarks %}
                     <table class="table is-bordered">
                         <thead>
                             <tr>
@@ -48,7 +48,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in remarks %}
+                            {% for item in ticket.remarks %}
                             <tr>
 
                                 <td title="{{ item.time_of_remark }}">{{ item.time_of_remark | humanize_datetime }}</td>
@@ -62,7 +62,7 @@
                     </table>
                     {% endif %}
 
-                    {{ form.remarks(class="textarea") }}
+                    {{ form.initial_remarks(class="textarea") }}
                 </td>
             </tr>
             {{ render_field_table(form.regional_incharge_approval) }}

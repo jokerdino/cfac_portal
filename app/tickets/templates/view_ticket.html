@@ -35,7 +35,7 @@
             <th>Current status</th>
             <td>{{ ticket.status }}</td>
         </tr>
-        {% if remarks %}
+        {% if ticket.remarks %}
         <tr>
             <th>Remarks</th>
             <td>
@@ -48,7 +48,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in remarks %}
+                        {% for item in ticket.remarks %}
                         <tr>
 
                             <td title="{{ item.time_of_remark }}">{{ item.time_of_remark | humanize_datetime }}</td>

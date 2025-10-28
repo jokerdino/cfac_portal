@@ -1,33 +1,42 @@
-from datetime import datetime
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from flask_login import current_user
-
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class Tickets(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    regional_office_code = db.Column(db.String)
-    office_code = db.Column(db.String)
-    ticket_number = db.Column(db.String)
-    contact_person = db.Column(db.String)
-    contact_mobile_number = db.Column(db.String)
-    contact_email_address = db.Column(db.String)
-    #  remarks = db.Column(db.String)
-    status = db.Column(db.String)
-    department = db.Column(db.String)
+    id: Mapped[IntPK]
+    regional_office_code: Mapped[str]
+    office_code: Mapped[str]
+    ticket_number: Mapped[str]
+    contact_person: Mapped[str]
+    contact_mobile_number: Mapped[str]
+    contact_email_address: Mapped[str]
 
-    date_of_creation = db.Column(db.DateTime, default=datetime.now)
-    created_by = db.Column(db.String, default=lambda: current_user.username)
+    status: Mapped[str]
+    department: Mapped[str]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    date_of_creation: Mapped[CreatedOn]
+    created_by: Mapped[CreatedBy]
+
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
+
+    # ✅ ORM relationship to remarks
+    remarks: Mapped[list["TicketRemarks"]] = relationship(
+        back_populates="ticket",
+        cascade="all, delete-orphan",
+        order_by="TicketRemarks.time_of_remark.asc()",
+        # lazy="selectin",
+    )
 
 
 class TicketRemarks(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    ticket_id = db.Column(db.Integer)
-    remarks = db.Column(db.Text)
+    id: Mapped[IntPK]
+    ticket_id: Mapped[int] = mapped_column(db.ForeignKey("tickets.id"))
+    remarks: Mapped[str] = mapped_column(db.Text)
 
-    user = db.Column(db.String, default=lambda: current_user.username)
-    time_of_remark = db.Column(db.DateTime, default=datetime.now)
+    user: Mapped[CreatedBy]
+    time_of_remark: Mapped[CreatedOn]
+
+    # ✅ Back-reference
+    ticket: Mapped["Tickets"] = relationship(back_populates="remarks")
