@@ -1,46 +1,56 @@
-from extensions import db
+from datetime import date
+from typing import Optional
+
+from flask import abort
+from sqlalchemy.orm import Mapped, mapped_column
+
+from extensions import db, IntPK, CreatedOn
 
 
 class OutstandingExpenses(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    str_regional_office_code = db.Column(db.String)
-    str_operating_office_code = db.Column(db.String)
+    str_regional_office_code: Mapped[str]
+    str_operating_office_code: Mapped[str]
 
-    str_party_type = db.Column(db.String)
-    str_party_id = db.Column(db.String)
-    str_party_name = db.Column(db.String)
-    float_gross_amount = db.Column(db.Numeric(15, 2))
+    str_party_type: Mapped[str]
+    str_party_id: Mapped[str]
+    str_party_name: Mapped[str]
+    float_gross_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
 
-    bool_tds_involved = db.Column(db.Boolean)
-    float_tds_amount = db.Column(db.Numeric(15, 2))
-    float_net_amount = db.Column(db.Numeric(15, 2))
+    bool_tds_involved: Mapped[Optional[bool]]
+    float_tds_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    float_net_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
 
-    str_section = db.Column(db.String)
-    str_pan_number = db.Column(db.String)
+    str_section: Mapped[Optional[str]]
+    str_pan_number: Mapped[Optional[str]]
 
-    str_nature_of_payment = db.Column(db.String)
-    str_narration = db.Column(db.Text)
+    str_nature_of_payment: Mapped[str]
+    str_narration: Mapped[str] = mapped_column(db.Text)
 
-    date_payment_date = db.Column(db.Date)
-    current_status = db.Column(db.String)
+    date_payment_date: Mapped[Optional[date]]
+    current_status: Mapped[Optional[str]]
 
-    date_date_of_creation = db.Column(db.DateTime)
+    date_date_of_creation: Mapped[CreatedOn]
 
-    # os_jv = db.relationship(
-    #     "OutstandingExpensesJournalVoucher", backref="os_exp", lazy="dynamic"
-    # )
+    def has_access(self, user) -> bool:
+        # Disallow deleted items
+        if self.current_status == "Deleted":
+            return False
 
+        role = user.user_type
 
-# class OutstandingExpensesJournalVoucher(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     os_exp_id = db.Column(db.Integer, db.ForeignKey("outstanding_expenses.id"))
-#     #  os_entries = db.relationship("Outstanding_entries", backref="os", lazy="dynamic")
-#
-#     str_office_location = db.Column(db.String)
-#     str_gl_code = db.Column(db.String)
-#     str_sl_code = db.Column(db.String)
-#     str_dr_cr = db.Column(db.String)
-#
-#     float_amount = db.Column(db.Numeric(15, 2))
-#     txt_remarks = db.Column(db.Text)
+        if role == "admin":
+            return True
+
+        if role == "ro_user":
+            return user.ro_code == self.str_regional_office_code
+
+        if role == "oo_user":
+            return user.oo_code == self.str_operating_office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)

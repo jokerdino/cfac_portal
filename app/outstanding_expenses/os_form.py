@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import date
 
 from flask_wtf import FlaskForm
 from wtforms import (
@@ -9,34 +9,46 @@ from wtforms import (
     SelectField,
     StringField,
     SubmitField,
+    HiddenField,
 )
-from wtforms.validators import DataRequired, Optional, Length, ValidationError
+from wtforms.validators import (
+    DataRequired,
+    Optional,
+    ValidationError,
+    Regexp,
+)
 
 
 class OutstandingExpensesForm(FlaskForm):
-    regional_office_code = StringField(
+    str_regional_office_code = StringField(
         "Enter Regional Office",
-        validators=[Optional()],  # , NumberRange(min=100, max=700000)],
+        validators=[DataRequired()],
     )
-    operating_office_code = StringField(
+    str_operating_office_code = StringField(
         "Enter Operating Office",
-        validators=[Optional()],  # , NumberRange(min=100, max=700000)],
+        validators=[DataRequired()],
     )
 
-    party_type = SelectField(
+    str_party_type = SelectField(
         "Select Party type",
         choices=["Landlord", "Vendor", "Contractor", "Employee", "Others"],
         validators=[DataRequired()],
     )
-    party_name = StringField("Enter Party name", validators=[DataRequired()])
-    party_id = StringField("Enter Party ID", validators=[DataRequired()])
+    str_party_name = StringField("Enter Party name", validators=[DataRequired()])
+    str_party_id = StringField("Enter Party ID", validators=[DataRequired()])
 
-    gross_amount = DecimalField(
-        "Enter gross outstanding amount", validators=[DataRequired()]
+    float_gross_amount = DecimalField(
+        "Enter gross outstanding amount",
+        validators=[DataRequired()],
+        render_kw={"onkeyup": "calculateSum()"},
     )
 
-    bool_tds_involved = BooleanField("Whether TDS is involved", validators=[Optional()])
-    section = SelectField(
+    bool_tds_involved = BooleanField(
+        "Whether TDS is involved",
+        validators=[Optional()],
+        render_kw={"class": "is-large-checkbox"},
+    )
+    str_section = SelectField(
         "Select section",
         choices=[
             "Salaries u/s 192",
@@ -49,17 +61,34 @@ class OutstandingExpensesForm(FlaskForm):
             "Purchase of goods u/s 194Q",
         ],
         validators=[Optional()],
+        render_kw={
+            "disabled": "disabled",
+        },
     )
-    tds_amount = DecimalField("Enter TDS amount", validators=[Optional()])
-    pan_number = StringField(
+    float_tds_amount = DecimalField(
+        "Enter TDS amount",
+        validators=[Optional()],
+        render_kw={
+            "onkeyup": "calculateSum()",
+            "disabled": "disabled",
+        },
+    )
+    str_pan_number = StringField(
         "Enter PAN number",
         validators=[
             Optional(),
-            Length(max=10, min=10),
+            Regexp(
+                "^[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}$",
+                message="Not a valid PAN number.",
+            ),
         ],
+        filters=[lambda x: x.upper() if x else None],
+        render_kw={
+            "disabled": "disabled",
+        },
     )
 
-    nature_of_payment = SelectField(
+    str_nature_of_payment = SelectField(
         "Select nature of payment",
         choices=[
             "ADVERTISEMENT & PUBLICITY",
@@ -123,26 +152,53 @@ class OutstandingExpensesForm(FlaskForm):
         ],
         validators=[DataRequired()],
     )
-    narration = TextAreaField(
-        "Enter narration for outstanding expenses", validators=[DataRequired()]
+    str_narration = TextAreaField(
+        "Enter narration for outstanding expenses",
+        validators=[DataRequired()],
     )
 
-    payment_date = DateField(
-        "Enter date of payment (if already paid)", validators=[Optional()]
+    date_payment_date = DateField(
+        "Enter date of payment (if already paid)",
+        validators=[Optional()],
+        render_kw={"min": "2024-04-01"},
     )
+    float_net_amount = HiddenField()
 
-    def validate_gross_amount(self, field):
-        if self.tds_amount.data:
-            if field.data <= self.tds_amount.data:
+    def validate_float_gross_amount(self, field):
+        if self.float_tds_amount.data:
+            if field.data <= self.float_tds_amount.data:
                 raise ValidationError(
                     "Outstanding amount must be higher than TDS amount."
                 )
 
-    def validate_payment_date(self, field):
+    def validate_date_payment_date(self, field):
         if field.data < date(2024, 4, 1):
             raise ValidationError("Payment date cannot be earlier than 01/04/2024.")
         if field.data > date.today():
             raise ValidationError("Payment date cannot be future date.")
+
+    def validate_bool_tds_involved(form, field):
+        if field.data:
+            if not form.str_section.data:
+                raise ValidationError("Please enter section details.")
+            if not form.str_pan_number.data:
+                raise ValidationError("Please enter PAN number.")
+            if not form.float_tds_amount.data:
+                raise ValidationError("Please enter TDS amount.")
+
+    def validate(self, extra_validators=None):
+        """Override default validate() to compute str_period automatically"""
+        # Run the default validations first
+        if not super().validate(extra_validators=extra_validators):
+            return False
+
+        # Compute the hidden field value
+
+        self.float_net_amount.data = (self.float_gross_amount.data or 0) - (
+            self.float_tds_amount.data or 0
+        )
+        return True
+
 
 class DeleteOSForm(FlaskForm):
     delete_button = SubmitField("Delete")

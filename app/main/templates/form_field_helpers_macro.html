@@ -5,15 +5,15 @@
 
     <td>
         {% if field.type == "TextAreaField" %}
-        {{ field(class="textarea") }}
+        {{ field(class="textarea", **kwargs) }}
         {% elif field.type == "SelectField" %}
         <div class="select is-fullwidth">{{ field }}</div>
         {% elif field.type in ["BooleanField", "RadioField"] %}
-        {{ field }}
+        {{ field(**kwargs) }}
         {% elif field.type in ["FileField", "MultipleFileField"] %}
-        {{ field(class="file", disabled=disabled) }}
+        {{ field(class="file", disabled=disabled, **kwargs) }}
         {% else %}
-        {{ field(class="input", disabled=disabled) }}
+        {{ field(class="input", disabled=disabled, **kwargs) }}
         {% endif %}
 
         {% if field.errors %}

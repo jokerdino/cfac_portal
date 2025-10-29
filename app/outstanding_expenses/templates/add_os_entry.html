@@ -1,29 +1,21 @@
 {% extends "os_layout.html" %}
-{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
 {% block content %}
 
-<div class="container box">
+<div class="container is-fluid box">
   <h1 class="title">{{ title }}</h1>
   {% for field in form %}
   {% if field.errors %}
   <div class="notification is-danger">
     <button class="delete"></button>
-    {{ field.label }}: {{ field.errors[0] }}
+    {{ field.errors[0] }}
   </div>
   {% endif %}
   {% endfor %}
 
-  {% with messages = get_flashed_messages() %}
-  {% if messages %}
-  {% for message in messages %}
-  <div class="notification is-danger">
-    <p>{{ message }}</p>
-  </div>
-  {% endfor %}
-  {% endif %}
-  {% endwith %}
+  {% include "partials/messages.html" %}
 
-  <form action="" method="post" enctype="multipart/form-data">
+  {% from "form_field_helpers_macro.html" import render_field_table %}
+  <form action="" method="post">
     {{ form.csrf_token }}
 
     <div class="columns is-centered">
@@ -32,103 +24,55 @@
         <table class="table">
 
           <tr>
-            <th>{{ form.regional_office_code.label }}</th>
+            <th>{{ form.str_regional_office_code.label }}</th>
             <td>
               {% if current_user.user_type in ["ro_user", "oo_user"] %}
-              {{ current_user.ro_code }}
-              {% elif current_user.user_type == "coinsurance_hub_user" %}
-              {{ current_user.oo_code }}
+              {{ form.str_regional_office_code.data }}
+
               {% else %}
-              {{ form.regional_office_code(class="input") }}
+              {{ form.str_regional_office_code(class="input") }}
               {% endif %}
             </td>
           </tr>
           <tr>
-            <th>{{ form.operating_office_code.label }}</th>
+            <th>{{ form.str_operating_office_code.label }}</th>
             <td>
               {% if current_user.user_type in ["oo_user","coinsurance_hub_user"] %}
-              {{ current_user.oo_code }}
+              {{ form.str_operating_office_code.data }}
               {% else %}
-              {{ form.operating_office_code(class="input") }}
+              {{ form.str_operating_office_code(class="input") }}
               {% endif %}
             </td>
           </tr>
 
-          <tr>
-            <th>{{ form.party_type.label }}</th>
-            <td>{{ form.party_type(class="select") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.party_name.label }}</th>
-            <td>{{ form.party_name(class="input") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.party_id.label }}</th>
-            <td>{{ form.party_id(class="input") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.nature_of_payment.label }}</th>
-            <td>{{ form.nature_of_payment(class="select") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.narration.label }}</th>
-            <td>{{ form.narration(class="textarea") }}</td>
-          </tr>
+          {{ render_field_table(form.str_party_type) }}
+          {{ render_field_table(form.str_party_name) }}
+          {{ render_field_table(form.str_party_id) }}
+          {{ render_field_table(form.str_nature_of_payment) }}
+          {{ render_field_table(form.str_narration) }}
 
         </table>
       </div>
       <div class="column is-half">
         <table class="table">
-          <tr>
-            <th>{{ form.gross_amount.label }}</th>
-            <td onkeyup="calculateSum()">{{ form.gross_amount(class="input") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.bool_tds_involved.label }}</th>
-            <td>{{ form.bool_tds_involved }}</td>
-          </tr>
-          {% if form.bool_tds_involved.data %}
-          <tr>
-            <th>{{ form.section.label }}</th>
-            <td>{{ form.section(class="select") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.tds_amount.label }}</th>
-            <td onkeyup="calculateSum()">{{ form.tds_amount(class="input") }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.pan_number.label }}</th>
-            <td>{{ form.pan_number(class="input") }}</td>
-          </tr>
-          {% else %}
-          <tr>
-            <th>{{ form.section.label }}</th>
-            <td>{{ form.section(class="select", disabled=disabled) }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.tds_amount.label }}</th>
-            <td onkeyup="calculateSum()">{{ form.tds_amount(class="input", disabled=disabled) }}</td>
-          </tr>
-          <tr>
-            <th>{{ form.pan_number.label }}</th>
-            <td>{{ form.pan_number(class="input", disabled=disabled) }}</td>
-          </tr>
-          {% endif %}
+          {{ render_field_table(form.float_gross_amount) }}
+          {{ render_field_table(form.bool_tds_involved) }}
+
+          {{ render_field_table(form.str_section, disabled="disabled") }}
+          {{ render_field_table(form.float_tds_amount, disabled="disabled") }}
+          {{ render_field_table(form.str_pan_number, disabled="disabled") }}
 
           <tr>
             <th>Net amount</th>
             <td><label id="net_amount"></label></td>
           </tr>
-          <tr>
-            <th class="is-vcentered">{{ form.payment_date.label }}</th>
-            <td>{{ form.payment_date(class="input", min="2024-04-01") }}</td>
-          </tr>
+          {{ render_field_table(form.date_payment_date) }}
         </table>
       </div>
     </div>
 
     <div class="has-text-centered">
-      <button class="button is-success" disabled>Submit</button>
+      <button class="button is-success" disabled="disabled">Submit</button>
     </div>
   </form>
 </div>
@@ -140,20 +84,22 @@
   });
 
   function calculateSum() {
-    var gross_amount = parseInt(document.getElementById("gross_amount").value === "" ? 0 : document.getElementById("gross_amount").value);
-    var tds_amount = parseInt(document.getElementById("tds_amount").value === "" ? 0 : document.getElementById("tds_amount").value);
+    var gross_amount = parseInt(document.getElementById("float_gross_amount").value === "" ? 0 : document.getElementById("float_gross_amount").value);
+    var tds_amount = parseInt(document.getElementById("float_tds_amount").value === "" ? 0 : document.getElementById("float_tds_amount").value);
 
     var net_amount = gross_amount - tds_amount;
 
     document.getElementById("net_amount").innerText = net_amount;
   };
 
+
   // enable or disable TDS related fields
   document.getElementById('bool_tds_involved').onchange = function () {
-    document.getElementById('section').disabled = !this.checked;
-    document.getElementById('tds_amount').disabled = !this.checked;
-    document.getElementById('pan_number').disabled = !this.checked;
+    document.getElementById('str_section').disabled = !this.checked;
+    document.getElementById('float_tds_amount').disabled = !this.checked;
+    document.getElementById('str_pan_number').disabled = !this.checked;
   };
+
   document.addEventListener('DOMContentLoaded', () => {
     (document.querySelectorAll('.notification .delete') || []).forEach(($delete) => {
       const $notification = $delete.parentNode;

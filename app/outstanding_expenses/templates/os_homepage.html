@@ -2,7 +2,6 @@
 
 {% block content %}
 
-{% if list_os_entries.count() > 0 %}
 <table class="table is-bordered" id="os_table">
     <thead>
         <tr>
@@ -52,7 +51,7 @@
 
     </tbody>
 </table>
-{% endif %}
+
 {% block scripts %}
 <script>
     new DataTable('#os_table', {
