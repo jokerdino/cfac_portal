@@ -1,6 +1,6 @@
 {% extends "kb_layout.html" %}
 {% block content %}
-{% if current_user.user_type == "admin" %}
+
 {% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
     <h1 class="title">{{ title }}</h1>
@@ -15,7 +15,7 @@
             <tr>
                 <th>{{ form.knowledge_base_document.label }}</th>
                 <td>
-                    {% if not edit %}
+                    {% if not kb %}
                     {{ form.knowledge_base_document(class="file") }}
                     {% else %}
                     <a href="{{ url_for('knowledge_base.download_kb_document', kb_id = key) }}">Download document</a>
@@ -36,5 +36,5 @@
     </div>
     {% endfor %}
 </div>
-{% endif %}
+
 {% endblock content %}

@@ -40,8 +40,8 @@ topic_list.sort()
 
 
 class KnowledgeBaseForm(FlaskForm):
-    topic = SelectField("Topic", choices=topic_list, validators=[DataRequired()])
-    title = StringField("Title", validators=[DataRequired()])
+    topic = SelectField(choices=topic_list, validators=[DataRequired()])
+    title = StringField(validators=[DataRequired()])
     knowledge_base_document = FileField("Upload document", validators=[DataRequired()])
     is_visible = RadioField(
         "To be accessed by",

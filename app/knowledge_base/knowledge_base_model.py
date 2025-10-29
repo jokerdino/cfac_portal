@@ -1,21 +1,47 @@
-from datetime import datetime
+from flask import abort
+from sqlalchemy.orm import Mapped
 
-from flask_login import current_user
-
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class KnowledgeBase(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    topic = db.Column(db.String)
-    title = db.Column(db.String)
-    knowledge_base_document = db.Column(db.String)
+    id: Mapped[IntPK]
+    topic: Mapped[str]
+    title: Mapped[str]
+    knowledge_base_document: Mapped[str]
 
-    is_visible = db.Column(db.Boolean)
-    status = db.Column(db.Boolean)
+    is_visible: Mapped[bool]
+    status: Mapped[bool]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
+
+    def has_access(self, user) -> bool:
+        """
+        Checks if the given user has access to the knowledge base entry.
+
+        If the knowledge base entry is visible, non-admin users will have access.
+        If the knowledge base entry is not visible, only admin users will have access.
+
+        Args:
+            user: The user to check access for.
+
+        Returns:
+            bool: True if the user has access, False otherwise.
+        """
+        if self.status:
+            role = user.user_type
+
+            if role != "admin":
+                return self.is_visible
+
+            return True
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
