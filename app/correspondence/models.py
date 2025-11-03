@@ -1,85 +1,87 @@
-from datetime import datetime
+from datetime import date, time
 
-from flask_login import current_user
 
-from extensions import db
+from typing import Optional
+from sqlalchemy.orm import Mapped, mapped_column
+
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class Circular(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    year = db.Column(db.Integer)
-    month = db.Column(db.Integer)
-    number = db.Column(db.Integer)
-    reference_number = db.Column(db.String)
+    year: Mapped[Optional[int]]
+    month: Mapped[Optional[int]]
+    number: Mapped[Optional[int]]
+    reference_number: Mapped[Optional[str]]
 
-    date_of_issue = db.Column(db.Date)
-    circular_title = db.Column(db.String)
-    issued_by_name = db.Column(db.String)
-    issued_by_designation = db.Column(db.String)
-    mode_of_dispatch = db.Column(db.String)
-    recipients = db.Column(db.String)
-    number_of_copies = db.Column(db.Integer)
-    date_of_acknowledgement = db.Column(db.Date)
-    remarks = db.Column(db.Text)
-    upload_document = db.Column(db.String)
+    date_of_issue: Mapped[Optional[date]]
+    circular_title: Mapped[Optional[str]]
+    issued_by_name: Mapped[Optional[str]]
+    issued_by_designation: Mapped[Optional[str]]
+    mode_of_dispatch: Mapped[Optional[str]]
+    recipients: Mapped[Optional[str]]
+    number_of_copies: Mapped[Optional[int]]
+    date_of_acknowledgement: Mapped[Optional[date]]
+    remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    upload_document: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class OutwardDocument(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    year = db.Column(db.Integer)
-    month = db.Column(db.Integer)
-    number = db.Column(db.Integer)
-    reference_number = db.Column(db.String)
+    year: Mapped[Optional[int]]
+    month: Mapped[Optional[int]]
+    number: Mapped[Optional[int]]
+    reference_number: Mapped[Optional[str]]
 
-    date_of_dispatch = db.Column(db.Date)
-    time_of_dispatch = db.Column(db.Time)
-    recipient_name = db.Column(db.String)
-    recipient_address = db.Column(db.Text)
-    mode_of_dispatch = db.Column(db.String)
+    date_of_dispatch: Mapped[Optional[date]]
+    time_of_dispatch: Mapped[Optional[time]]
+    recipient_name: Mapped[Optional[str]]
+    recipient_address: Mapped[Optional[str]] = mapped_column(db.Text)
+    mode_of_dispatch: Mapped[Optional[str]]
 
-    description_of_item = db.Column(db.Text)
-    sender_name = db.Column(db.String)
-    dispatched_by = db.Column(db.String)
-    remarks = db.Column(db.Text)
-    upload_document = db.Column(db.String)
+    description_of_item: Mapped[Optional[str]] = mapped_column(db.Text)
+    sender_name: Mapped[Optional[str]]
+    dispatched_by: Mapped[Optional[str]]
+    remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    upload_document: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class InwardDocument(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    year = db.Column(db.Integer)
-    month = db.Column(db.Integer)
-    number = db.Column(db.Integer)
-    reference_number = db.Column(db.String)
+    year: Mapped[Optional[int]]
+    month: Mapped[Optional[int]]
+    number: Mapped[Optional[int]]
+    reference_number: Mapped[Optional[str]]
 
-    date_of_receipt = db.Column(db.Date)
-    time_of_receipt = db.Column(db.Time)
-    sender_name = db.Column(db.String)
-    sender_address = db.Column(db.Text)
-    mode_of_receipt = db.Column(db.String)
-    letter_reference_number = db.Column(db.String)
+    date_of_receipt: Mapped[Optional[date]]
+    time_of_receipt: Mapped[Optional[time]]
+    sender_name: Mapped[Optional[str]]
+    sender_address: Mapped[Optional[str]] = mapped_column(db.Text)
+    mode_of_receipt: Mapped[Optional[str]]
+    letter_reference_number: Mapped[Optional[str]]
 
-    description_of_item = db.Column(db.Text)
+    description_of_item: Mapped[Optional[str]] = mapped_column(db.Text)
 
-    recipient_name = db.Column(db.String)
-    received_by = db.Column(db.String)
+    recipient_name: Mapped[Optional[str]]
+    received_by: Mapped[Optional[str]]
 
-    remarks = db.Column(db.Text)
-    upload_document = db.Column(db.String)
+    remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    upload_document: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
