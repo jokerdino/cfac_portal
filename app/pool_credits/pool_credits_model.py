@@ -1,96 +1,87 @@
-from datetime import datetime
-from dataclasses import dataclass, field
+from datetime import datetime, date
+
+from typing import Optional
 import uuid
 
-from flask_login import current_user
 
-from sqlalchemy import func
-from sqlalchemy.orm import column_property
+from sqlalchemy import Uuid
+from sqlalchemy.orm import column_property, Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID
 
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
-@dataclass
 class PoolCredits(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
-    date_uploaded_date = db.Column(db.Date)
+    id: Mapped[IntPK]
+    date_uploaded_date: Mapped[date]
 
     # below columns are uploaded from bank statement excel
-    book_date: datetime.date = db.Column(db.Date)
-    description: str = db.Column(db.Text)
-    ledger_balance = db.Column(db.Numeric(20, 2))
-    credit: float = db.Column(db.Numeric(20, 2))
-    debit: float = db.Column(db.Numeric(20, 2))
-    value_date: datetime.date = db.Column(db.Date)
-    reference_no: str = db.Column(db.String)
-    transaction_branch: str = db.Column(db.Text)
+    book_date: Mapped[date]
+    description: Mapped[str] = mapped_column(db.Text)
+    ledger_balance: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    credit: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    debit: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    value_date: Mapped[date] = mapped_column(db.Date)
+    reference_no: Mapped[Optional[str]]
+    transaction_branch: Mapped[str] = mapped_column(db.Text)
 
     # flag description is assigned from our table
-    flag_description = db.Column(db.Text)
+    flag_description: Mapped[str] = mapped_column(db.Text)
 
     # user inputs
 
     # regional office users will self assign the credits to their RO
-    str_regional_office_code: str = db.Column(db.String)
-    text_remarks: str = db.Column(db.Text)
+    str_regional_office_code: Mapped[Optional[str]]
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
 
-    bool_jv_passed: bool = db.Column(db.Boolean, default=False)
+    bool_jv_passed: Mapped[Optional[bool]] = mapped_column(default=False)
 
     # meta data
-    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
-    date_jv_passed_date = db.Column(db.DateTime)
+    batch_id: Mapped[Optional[Uuid]] = mapped_column(
+        UUID(as_uuid=True), default=uuid.uuid4, index=True
+    )
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
+    date_jv_passed_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
-    jv_passed_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
+    jv_passed_by: Mapped[Optional[str]]
 
-    month = column_property(func.to_char(value_date, "YYYY-MM"))
-    month_string = column_property(func.to_char(value_date, "Mon-YY"))
+    month: Mapped[str] = column_property(db.func.to_char(value_date, "YYYY-MM"))
+    month_string: Mapped[str] = column_property(db.func.to_char(value_date, "Mon-YY"))
 
 
-@dataclass
 class PoolCreditsPortal(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    txt_reference_number = db.Column(db.String)
-    date_value_date: datetime.date = db.Column(db.Date)
-    amount_credit: float = db.Column(db.Numeric(20, 2))
-    txt_name_of_remitter: str = db.Column(db.String)
+    txt_reference_number: Mapped[str]
+    date_value_date: Mapped[date] = mapped_column(db.Date)
+    amount_credit: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    txt_name_of_remitter: Mapped[str] = mapped_column(db.String)
 
-    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
-    date_created_date: datetime.time = db.Column(db.DateTime)
-    date_updated_date = db.Column(db.DateTime)
-    date_deleted_date = db.Column(db.DateTime)
+    batch_id: Mapped[Optional[Uuid]] = mapped_column(
+        UUID(as_uuid=True), default=uuid.uuid4, index=True
+    )
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String)
-    updated_by = db.Column(db.String)
-    deleted_by = db.Column(db.String)
-
-    office_code: str = field(init=False)
-    reference_number: str = field(init=False)
-
-    @property
-    def office_code(self):
-        return "000100"
-
-    @property
-    def reference_number(self):
-        return self.txt_reference_number.replace(" 00:00:00", "")
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
 class PoolCreditsJournalVoucher(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    str_regional_office_code = db.Column(db.String, unique=True)
-    gl_code = db.Column(db.String)
-    sl_code = db.Column(db.String)
+    id: Mapped[IntPK]
+    str_regional_office_code: Mapped[str] = mapped_column(unique=True)
+    gl_code: Mapped[str]
+    sl_code: Mapped[str]
 
-    created_on = db.Column(db.DateTime, default=datetime.now)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    created_on: Mapped[CreatedOn]
+    updated_on: Mapped[UpdatedOn]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]

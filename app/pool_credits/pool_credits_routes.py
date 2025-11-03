@@ -1,15 +1,8 @@
 from datetime import datetime
-from dataclasses import asdict
-from io import BytesIO
 
-# from sqlalchemy import (
-#     and_,
-#     func,
-#     case,
-#     cast,
-#     String,
-#     #   create_engine,
-# )
+
+from decimal import Decimal
+from io import BytesIO
 
 
 from flask import (
@@ -71,15 +64,14 @@ def pool_credits_portal():
     parameters are supported:
 
     - amount_credit__{op}: Filter by amount credit. {op} can be one of gt, lt,
-      ge, le, eq, ne.
+      gte, lte, eq, ne.
     - reference_no__{op}: Filter by reference number. {op} can be one of
-      contains, startswith, endswith, eq, ne.
-    - value_date__{op}: Filter by value date. {op} can be one of gt, lt, ge,
-      le, eq, ne.
-    - remitter__{op}: Filter by remitter. {op} can be one of contains,
-      startswith, endswith, eq, ne.
+      like, ilike, eq, ne.
+    - value_date__{op}: Filter by value date. {op} can be one of gt, lt, gte,
+      lte, eq, ne.
+    - remitter__{op}: Filter by remitter. {op} can be one of like, ilike, eq, ne.
     - created_date__{op}: Filter by created date. {op} can be one of gt, lt,
-      ge, le, eq, ne.
+      gte, lte, eq, ne.
     - id__{op}: Filter by id. {op} can be one of eq, ne.
 
     The response will be a JSON object with the following keys:
@@ -88,10 +80,18 @@ def pool_credits_portal():
     - data: A list of dictionaries, each representing a PoolCreditsPortal entry.
 
     Example:
-    curl -X GET "http://localhost:8080/pool_credits/api/v1/data/pool_credits_portal/?amount_credit__gt=1000&created_date__ge=2024-08-26T15:11:11Z"
+    curl -X GET "http://localhost:8080/pool_credits/api/v1/data/pool_credits_portal/?amount_credit__gt=1000&created_date__gte=2024-08-26T15:11:11Z"
     """
 
-    query = db.session.query(PoolCreditsPortal)
+    query = db.select(
+        PoolCreditsPortal.id,
+        PoolCreditsPortal.date_value_date,
+        PoolCreditsPortal.amount_credit,
+        PoolCreditsPortal.txt_name_of_remitter,
+        PoolCreditsPortal.date_created_date,
+        db.literal("000100").label("office_code"),
+        PoolCreditsPortal.txt_reference_number.label("reference_number"),
+    )
     query_params = request.args
 
     filters = {}
@@ -123,10 +123,13 @@ def pool_credits_portal():
             query = dynamic_query_column(query, column_name, filter_value)
 
     # Count the total number of records matching the query
-    total_records = query.count()
+    total_records = db.session.scalar(
+        db.select(db.func.count()).select_from(query.subquery())
+    )
 
     # Fetch the data from the query and convert it to a list of dictionaries
-    data = [asdict(entry) for entry in query]
+    result = db.session.execute(query).mappings()
+    data = [dict(row) for row in result]
 
     # Return a JSON response with the total records and the data
     return {
@@ -144,25 +147,35 @@ def get_value(params, param_name):
 def dynamic_query_column(entries, column_name, params):
     operator = params.get("operator", "gte")
     value = params["value"]
-
     column_attr = getattr(PoolCreditsPortal, column_name)
+    col_type = column_attr.type
+
+    # ✅ Cast based on column type
+    if isinstance(col_type, db.Numeric):
+        value = Decimal(value)
+
+    elif isinstance(col_type, db.DateTime):
+        value = datetime.fromisoformat(value)  # "2024-05-01T12:00:00"
+
+    elif isinstance(col_type, db.Date):
+        value = datetime.fromisoformat(value).date()  # "2024-05-01"
 
     if operator == "eq":
-        entries = entries.filter(column_attr == value)
+        entries = entries.where(column_attr == value)
     elif operator == "gt":
-        entries = entries.filter(column_attr > value)
+        entries = entries.where(column_attr > value)
     elif operator == "gte":
-        entries = entries.filter(column_attr >= value)
+        entries = entries.where(column_attr >= value)
     elif operator == "lt":
-        entries = entries.filter(column_attr < value)
+        entries = entries.where(column_attr < value)
     elif operator == "lte":
-        entries = entries.filter(column_attr <= value)
+        entries = entries.where(column_attr <= value)
     elif operator == "like":
-        entries = entries.filter(column_attr.like(f"%{value}%"))
+        entries = entries.where(column_attr.like(f"%{value}%"))
     elif operator == "ilike":
-        entries = entries.filter(column_attr.ilike(f"%{value}%"))
-    elif operator == "not":
-        entries = entries.filter(column_attr != value)
+        entries = entries.where(column_attr.ilike(f"%{value}%"))
+    elif operator == "ne":
+        entries = entries.where(column_attr != value)
 
     return entries
 
