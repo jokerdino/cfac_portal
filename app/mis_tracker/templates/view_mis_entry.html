@@ -1,8 +1,9 @@
 {% extends "mis_layout.html" %}
 
 {% block content %}
-{% if current_user.user_type =="admin" %}
+
 <div class="container mt-5">
+    <h1 class="title">View MIS entry</h1>
     <table class="table is-bordered">
         <tr>
             <th>Period</th>
@@ -61,5 +62,5 @@
     </table>
     <a class="button is-link" href="{{ url_for('mis.edit_mis_entry', mis_key=mis_entry.id ) }}">Edit MIS Entry</a>
 </div>
-{% endif %}
+
 {% endblock content %}

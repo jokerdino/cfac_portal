@@ -1,28 +1,26 @@
-from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
-from flask_login import current_user
+from sqlalchemy.orm import Mapped
+from extensions import db, IntPK, CreatedBy, CreatedOn
 
-from extensions import db
 
-
-@dataclass
 class MisTracker(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    id: Mapped[IntPK]
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    txt_period = db.Column(db.String)
-    txt_mis_type: str = db.Column(db.String)
+    txt_period: Mapped[str]
+    txt_mis_type: Mapped[str]
 
-    bool_mis_shared = db.Column(db.Boolean)
-    date_mis_shared = db.Column(db.DateTime)
-    mis_shared_by = db.Column(db.String)
+    bool_mis_shared: Mapped[Optional[bool]]
+    date_mis_shared: Mapped[Optional[datetime]]
+    mis_shared_by: Mapped[Optional[str]]
 
-    bool_brs_completed = db.Column(db.Boolean)
-    date_brs_completed = db.Column(db.DateTime)
-    brs_completed_by = db.Column(db.String)
+    bool_brs_completed: Mapped[Optional[bool]]
+    date_brs_completed: Mapped[Optional[datetime]]
+    brs_completed_by: Mapped[Optional[str]]
 
-    bool_jv_passed = db.Column(db.Boolean)
-    date_jv_passed = db.Column(db.DateTime)
-    jv_passed_by = db.Column(db.String)
+    bool_jv_passed: Mapped[Optional[bool]]
+    date_jv_passed: Mapped[Optional[datetime]]
+    jv_passed_by: Mapped[Optional[str]]

@@ -1,25 +1,24 @@
-from dataclasses import asdict
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
 import pandas as pd
-from flask import redirect, render_template, url_for, flash, current_app
+from flask import redirect, render_template, url_for, flash
 
 from flask_login import current_user, login_required
 
-from sqlalchemy import create_engine
 
-from app.mis_tracker import mis_bp
-from app.mis_tracker.mis_model import MisTracker
-from app.mis_tracker.mis_form import MISTrackerForm, FileUploadForm
+from . import mis_bp
+from .mis_model import MisTracker
+from .mis_form import MISTrackerForm, FileUploadForm
 
-from app.mis_tracker.mis_helper_functions import upload_mis_file
+from .mis_helper_functions import upload_mis_file
+from extensions import db
+from set_view_permissions import admin_required
 
 
 @mis_bp.route("/upload_previous_month/")
 def upload_previous_month():
     """View function to upload previous month MIS tracker entries after scheduled monthly cron job"""
-    from extensions import db
 
     # current_month refers to month that just ended
     current_month = date.today() - relativedelta(months=1)
@@ -27,39 +26,34 @@ def upload_previous_month():
     # prev_month is the month before current_month
     prev_month = current_month - relativedelta(months=1)
 
-    fresh_entries = []
-    mis_entries = db.session.scalars(
-        db.select(MisTracker).where(
-            MisTracker.txt_period == prev_month.strftime("%B-%Y")
-        )
+    current_month_string = current_month.strftime("%B-%Y")
+    prev_month_string = prev_month.strftime("%B-%Y")
+
+    stmt = db.select(
+        MisTracker.txt_mis_type,
+        db.literal(current_month_string),
+        db.literal("AUTOUPLOAD"),
+    ).where(MisTracker.txt_period == prev_month_string)
+
+    insert_stmt = db.insert(MisTracker).from_select(
+        [MisTracker.txt_mis_type, MisTracker.txt_period, MisTracker.created_by], stmt
     )
-    for entry in mis_entries:
+    db.session.execute(insert_stmt)
 
-        new_entry = MisTracker(
-            **asdict(entry),
-            txt_period=current_month.strftime("%B-%Y"),
-            created_by="AUTOUPLOAD"
-        )
-
-        fresh_entries.append(new_entry)
-
-    db.session.add_all(fresh_entries)
     db.session.commit()
     return "Success"
 
 
 @mis_bp.route("/bulk_upload", methods=["POST", "GET"])
 @login_required
+@admin_required
 def bulk_upload_mis_tracker():
     form = FileUploadForm()
     if form.validate_on_submit():
         df_mis_tracker = pd.read_csv(form.data["file_upload"])
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        upload_mis_file(df_mis_tracker, engine, current_user.username)
-        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        # df_mis_tracker["created_by"] = current_user.username
-        # df_mis_tracker["created_on"] = datetime.now()
-        # df_mis_tracker.to_sql("mis_tracker", engine, if_exists="append", index=False)
+
+        upload_mis_file(df_mis_tracker, db.engine, current_user.username)
+
         flash("MIS tracker has been uploaded successfully.")
 
     return render_template(
@@ -70,59 +64,54 @@ def bulk_upload_mis_tracker():
 @mis_bp.route("/", methods=["GET"])
 @login_required
 def view_mis_tracker():
-    list = MisTracker.query.order_by(MisTracker.created_on.desc(), MisTracker.id.asc())
+    list = db.session.scalars(
+        db.select(MisTracker).order_by(
+            MisTracker.created_on.desc(), MisTracker.id.asc()
+        )
+    )
     return render_template("view_mis_tracker.html", list=list)
 
 
-@mis_bp.route("/edit/<int:mis_key>", methods=["POST", "GET"])
+@mis_bp.route("/edit/<int:mis_key>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def edit_mis_entry(mis_key):
-    form = MISTrackerForm()
-    mis_entry = MisTracker.query.get_or_404(mis_key)
-    from extensions import db
-
+    mis_entry = db.get_or_404(MisTracker, mis_key)
+    form = MISTrackerForm(obj=mis_entry)
     if form.validate_on_submit():
-        # mis shared status
-        mis_entry.bool_mis_shared = form.data["bool_mis_shared"]
+        username = current_user.username
+        now = datetime.now()
+        # Boolean field → (date_field, user_field)
+        update_map = {
+            "bool_mis_shared": ("date_mis_shared", "mis_shared_by"),
+            "bool_brs_completed": ("date_brs_completed", "brs_completed_by"),
+            "bool_jv_passed": ("date_jv_passed", "jv_passed_by"),
+        }
+        # ✅ Capture original values BEFORE populate_obj changes them
+        original_values = {flag: getattr(mis_entry, flag) for flag in update_map.keys()}
+        form.populate_obj(mis_entry)
+        for flag, (date_attr, user_attr) in update_map.items():
+            new_value = form[flag].data
+            old_value = original_values[flag]
 
-        mis_entry.date_mis_shared = (
-            datetime.now() if form.data["bool_mis_shared"] else None
-        )
-        mis_entry.mis_shared_by = (
-            current_user.username if form.data["bool_mis_shared"] else None
-        )
-
-        # brs completed status
-        mis_entry.bool_brs_completed = form.data["bool_brs_completed"]
-        mis_entry.date_brs_completed = (
-            datetime.now() if form.data["bool_brs_completed"] else None
-        )
-        mis_entry.brs_completed_by = (
-            current_user.username if form.data["bool_brs_completed"] else None
-        )
-
-        # jv passed status
-        mis_entry.bool_jv_passed = form.data["bool_jv_passed"]
-        mis_entry.date_jv_passed = (
-            datetime.now() if form.data["bool_jv_passed"] else None
-        )
-        mis_entry.jv_passed_by = (
-            current_user.username if form.data["bool_jv_passed"] else None
-        )
-
+            if new_value != old_value:  # ✅ change detection
+                if new_value:
+                    setattr(mis_entry, date_attr, now)
+                    setattr(mis_entry, user_attr, username)
+                else:
+                    setattr(mis_entry, date_attr, None)
+                    setattr(mis_entry, user_attr, None)
         db.session.commit()
         return redirect(url_for("mis.view_mis_tracker"))
-    form.bool_mis_shared.data = mis_entry.bool_mis_shared
-    form.bool_brs_completed.data = mis_entry.bool_brs_completed
-    form.bool_jv_passed.data = mis_entry.bool_jv_passed
     return render_template("edit_mis_entry.html", form=form, mis_entry=mis_entry)
 
 
-@mis_bp.route("/view/<int:mis_key>")
+@mis_bp.route("/view/<int:mis_key>/")
 @login_required
+@admin_required
 def view_mis_entry(mis_key):
-    mis_entry = MisTracker.query.get_or_404(mis_key)
+    mis_entry = db.get_or_404(MisTracker, mis_key)
     return render_template(
         "view_mis_entry.html",
-        mis_entry=mis_entry,  # humanize_datetime=humanize_datetime
+        mis_entry=mis_entry,
     )
