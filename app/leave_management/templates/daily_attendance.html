@@ -11,7 +11,7 @@
 
         {{ form.csrf_token }}
 
-        <table class="table is-fullwidth is-hoverable is-striped is-narrow">
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered">
             <thead>
                 <tr>
                     <th class="has-text-centered">Date</th>
@@ -25,15 +25,14 @@
             <tbody>
                 {% for employee_form in form.daily_attendance %}
                 <tr>
-                    {% for field in employee_form %}
-                    <td> {% if field.type != "SelectField" %}
-                        {{ field }}
-                        {% elif field.type == "SelectField" %}
-                        <div class="select">{{ field }}</div>
-                        {% endif %}
+                    <td class="is-vcentered has-text-centered">{{
+                        employee_form.date_of_attendance.data.strftime("%d/%m/%Y") }}</td>
+                    <td class="is-vcentered">{{ employee_form.employee_name.data }}</td>
+                    <td class="is-vcentered has-text-centered">{{ employee_form.employee_number.data }}</td>
+                    <td class="is-vcentered">{{ employee_form.employee_designation.data }}</td>
+                    <td>
+                        <div class="select">{{ employee_form.status_of_attendance }}</div>
                     </td>
-
-                    {% endfor %}
                 </tr>
                 {% endfor %}
             </tbody>
