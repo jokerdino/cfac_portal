@@ -115,10 +115,10 @@ def filter_by_status(status):
 
 
 def select_department(stmt, form):
+    subq = stmt.subquery()
+
     department_list = db.session.scalars(
-        db.select(db.distinct(Tickets.department))
-        .select_from(stmt)
-        .order_by(Tickets.department)
+        db.select(db.distinct(subq.c.department)).order_by(subq.c.department)
     ).all()
 
     form.department.choices = ["View all"] + department_list
