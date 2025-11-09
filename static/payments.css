@@ -64,3 +64,13 @@ body {
         transform: scale(1.5); /* Example scale */
         margin: 8px; /* Example margin */
     }
+fieldset.box {
+    border: 1px solid #dbdbdb;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+legend {
+    font-size: 0.95rem;
+    padding: 0 6px;
+}

@@ -41,7 +41,6 @@
         {{ field(**kwargs) }}
         {% elif field.type in ["FileField", "MultipleFileField"] %}
         {{ field(class="file", **kwargs) }}
-
         {% set db_field_name = field.name.replace('_file', '') %}
         {%- if lien and (lien | attr(db_field_name)) %}
         <a class="button is-small is-outlined is-link" href="{{ url_for('lien.download_document',

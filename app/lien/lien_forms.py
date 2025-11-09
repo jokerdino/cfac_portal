@@ -65,16 +65,16 @@ class BaseLienForm(FlaskForm):
 
     dd_amount = IntegerField("DD Amount", validators=[Optional()])
     dd_date = DateField("DD Date", validators=[Optional()])
-    court_order_dd_file = FileField("Upload DD copy")
-    bank_remarks = TextAreaField(render_kw={"rows": 3})
-    action_taken_by_banker = TextAreaField(render_kw={"rows": 3})
+    court_order_dd_file = FileField("Upload court order for DD")
+    bank_remarks = TextAreaField(render_kw={"rows": 2})
+    action_taken_by_banker = TextAreaField(render_kw={"rows": 2})
 
     department = SelectField(choices=["Motor", "Others"])
     court_name = StringField()
 
     case_number = StringField()
     case_title = StringField()
-    mact_number = StringField()
+    mact_number = StringField("MACT Number")
     petitioner_name = StringField()
     date_of_lien_order = DateField(validators=[Optional()])
     claim_already_paid_by_hub_office = RadioField(
@@ -115,15 +115,15 @@ class BaseLienForm(FlaskForm):
     claim_accounting_voucher_number = StringField()
     claim_accounting_voucher_date = DateField(validators=[Optional()])
 
-    ro_remarks = TextAreaField("RO Remarks", render_kw={"rows": 3})
-    ho_tp_remarks = TextAreaField("HO TP remarks", render_kw={"rows": 3})
+    ro_remarks = TextAreaField("RO Motor TP Remarks", render_kw={"rows": 2})
+    ho_tp_remarks = TextAreaField("HO Motor TP remarks", render_kw={"rows": 2})
     court_order_lien_reversal_file = FileField("Upload court order - lien reversal")
-    court_order_dd_reversal_file = FileField("Upload DD reversal order")
+    court_order_dd_reversal_file = FileField("Upload court order - DD reversal")
     _order = [
         "bank_name",
         "account_number",
-        "ro_name",
         "ro_code",
+        "ro_name",
         "lien_date",
         "lien_amount",
         "court_order_lien_file",
@@ -142,6 +142,8 @@ class BaseLienForm(FlaskForm):
         "claim_already_paid_by_hub_office",
         "claim_number",
         "date_of_claim_registration",
+        "claim_accounting_voucher_number",
+        "claim_accounting_voucher_date",
         "claim_disbursement_voucher_file",
         "lien_dd_reversal_order_file",
         "lien_status",
@@ -151,8 +153,6 @@ class BaseLienForm(FlaskForm):
         "appeal_copy_2_file",
         "stay_obtained",
         "stay_order_file",
-        "claim_accounting_voucher_number",
-        "claim_accounting_voucher_date",
         "ro_remarks",
         "ho_tp_remarks",
         "court_order_lien_reversal_file",

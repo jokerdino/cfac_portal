@@ -9,21 +9,103 @@
         <div class="columns">
 
             <div class="column">
-                <table class="table is-fullwidth is-narrow">
-                    {% for field in form if field.widget.input_type != "hidden" %}
-                    {% if loop.index <= (loop.length / 2) %} {{ render_field_table_lien(field, lien) }} {% endif %} {%
-                        endfor %}</table>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Bank Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.bank_name, lien) }}
+                        {{ render_field_table_lien(form.account_number, lien) }}
+
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">RO Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.ro_code, lien) }}
+                        {{ render_field_table_lien(form.ro_name, lien) }}
+                    </table>
+                </fieldset>
+
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Lien Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.lien_date, lien) }}
+                        {{ render_field_table_lien(form.lien_amount, lien) }}
+                        {{ render_field_table_lien(form.court_order_lien_file, lien) }}
+                        {{ render_field_table_lien(form.date_of_lien_order, lien) }}
+                        {{ render_field_table_lien(form.lien_status, lien) }}
+                    </table>
+                </fieldset>
+
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">DD Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.dd_amount, lien) }}
+                        {{ render_field_table_lien(form.dd_date, lien) }}
+                        {{ render_field_table_lien(form.court_order_dd_file, lien) }}
+
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Case Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.department, lien) }}
+                        {{ render_field_table_lien(form.court_name, lien) }}
+                        {{ render_field_table_lien(form.case_number, lien) }}
+                        {{ render_field_table_lien(form.case_title, lien) }}
+                        {{ render_field_table_lien(form.mact_number, lien) }}
+                        {{ render_field_table_lien(form.petitioner_name, lien) }}
+
+                    </table>
+                </fieldset>
+
             </div>
+
+            <!-- Right Column -->
             <div class="column">
-                <table class="table is-fullwidth is-narrow">
-                    {% for field in form if field.widget.input_type != "hidden" %}
-                    {% if loop.index > (loop.length / 2) %}
-                    {{ render_field_table_lien(field, lien) }}
-                    {% endif %}
-                    {% endfor %}
-                </table>
+
+                <fieldset class="box">
+                    <legend class=" has-text-weight-semibold">Claim Details</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.claim_already_paid_by_hub_office, lien) }}
+                        {{ render_field_table_lien(form.claim_number, lien) }}
+                        {{ render_field_table_lien(form.date_of_claim_registration, lien) }}
+                        {{ render_field_table_lien(form.claim_accounting_voucher_number, lien) }}
+                        {{ render_field_table_lien(form.claim_accounting_voucher_date, lien) }}
+                        {{ render_field_table_lien(form.claim_disbursement_voucher_file, lien) }}
+                    </table>
+                </fieldset>
+
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Appeal and stay orders</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.appeal_given, lien) }}
+                        {{ render_field_table_lien(form.appeal_copy_file, lien) }}
+                        {{ render_field_table_lien(form.appeal_given_2, lien) }}
+                        {{ render_field_table_lien(form.appeal_copy_2_file, lien) }}
+                        {{ render_field_table_lien(form.stay_obtained, lien) }}
+                        {{ render_field_table_lien(form.stay_order_file, lien) }}
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Court reversal orders</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.court_order_lien_reversal_file, lien) }}
+                        {{ render_field_table_lien(form.court_order_dd_reversal_file, lien) }}
+                    </table>
+                </fieldset>
+
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Remarks</legend>
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table_lien(form.bank_remarks, lien) }}
+                        {{ render_field_table_lien(form.action_taken_by_banker, lien) }}
+                        {{ render_field_table_lien(form.ro_remarks, lien) }}
+                        {{ render_field_table_lien(form.ho_tp_remarks, lien) }}
+                    </table>
+                </fieldset>
             </div>
         </div>
+
         <div class="has-text-centered">
             <button class="button is-success">Submit</button>
         </div>
