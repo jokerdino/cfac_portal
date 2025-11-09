@@ -85,7 +85,7 @@ class DailySummaryForm(FlaskForm):
 
     text_person1_name = SelectField(
         "Enter name of person 1",
-        choices=["P Sudha Venkateswari", "S Vineeth", "G Suganya Priya"],
+        choices=["P Sudha Venkateswari", "Nanditha Rao", "G Suganya Priya"],
     )
     text_person1_designation = SelectField(
         "Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"]
@@ -100,7 +100,7 @@ class DailySummaryForm(FlaskForm):
     text_person3_designation = SelectField(
         "Enter designation of person 3", choices=["DGM & CFO"]
     )
-    text_person4_name = SelectField("Enter name of person 4", choices=["Usha Girish"])
+    text_person4_name = SelectField("Enter name of person 4", choices=["C M Manoharan"])
     text_person4_designation = SelectField(
         "Enter designation of person 4", choices=["General Manager"]
     )
