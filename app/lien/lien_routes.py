@@ -91,30 +91,31 @@ def lien_add():
     return render_template("lien_edit.html", form=form, title="Add new lien")
 
 
-@lien_bp.route("/view/<lien_id>/", methods=["GET", "POST"])
+@lien_bp.route("/view/<int:lien_id>/", methods=["GET", "POST"])
 @login_required
 def lien_view(lien_id):
     lien = db.get_or_404(Lien, lien_id)
     return render_template("lien_view.html", lien=lien)
 
 
-@lien_bp.route("/log/<lien_id>/")
+@lien_bp.route("/log/<int:lien_id>/")
 @login_required
 def lien_log_view(lien_id):
-
     LienVersion = version_class(Lien)
-    col_names = column_names = Lien.query.statement.columns.keys()
-    lien_log = (
-        db.session.query(LienVersion)
-        .filter_by(id=lien_id)
+    col_names = [col.key for col in Lien.__table__.columns]
+
+    stmt = (
+        db.select(LienVersion)
+        .where(LienVersion.id == lien_id)
         .order_by(LienVersion.transaction_id.asc())
     )
+    lien_log = db.session.scalars(stmt)
     return render_template(
         "lien_log_view.html", lien_log=lien_log, column_names=col_names, lien_id=lien_id
     )
 
 
-@lien_bp.route("/edit/<lien_id>/", methods=["GET", "POST"])
+@lien_bp.route("/edit/<int:lien_id>/", methods=["GET", "POST"])
 @login_required
 def lien_edit(lien_id):
     lien = db.get_or_404(Lien, lien_id)
@@ -190,10 +191,10 @@ def mark_duplicates(session, flush_context, instances):
     # 1. Handle new objects
     for obj in session.new:
         if isinstance(obj, Lien):
-            existing_liens = (
-                session.query(Lien)
-                .filter(Lien.lien_amount == obj.lien_amount, Lien.id != obj.id)
-                .all()
+            existing_liens = db.session.scalars(
+                db.select(Lien).where(
+                    Lien.lien_amount == obj.lien_amount, Lien.id != obj.id
+                )
             )
 
             if existing_liens:
@@ -206,10 +207,10 @@ def mark_duplicates(session, flush_context, instances):
         if isinstance(obj, Lien) and session.is_modified(
             obj, include_collections=False
         ):
-            existing_liens = (
-                session.query(Lien)
-                .filter(Lien.lien_amount == obj.lien_amount, Lien.id != obj.id)
-                .all()
+            existing_liens = db.session.scalars(
+                db.select(Lien).where(
+                    Lien.lien_amount == obj.lien_amount, Lien.id != obj.id
+                )
             )
 
             if existing_liens:
@@ -225,8 +226,7 @@ def mark_duplicates(session, flush_context, instances):
 @login_required
 @admin_required
 def lien_duplicates():
-
-    query = db.select(Lien).where(Lien.is_duplicate == True)
+    query = db.select(Lien).where(Lien.is_duplicate)
 
     liens = db.session.scalars(query)
     column_names = [column.name for column in Lien.__table__.columns][0:38]
@@ -245,13 +245,14 @@ def lien_duplicates():
 @admin_required
 def mark_lien_as_not_duplicates():
     selected_ids = request.form.getlist("selected_ids")
+    selected_ids = [int(i) for i in selected_ids]
     if not selected_ids:
         flash("No rows selected", "warning")
         return redirect(url_for("lien.lien_duplicates"))
 
-    db.session.query(Lien).filter(Lien.id.in_(selected_ids)).update(
-        {Lien.is_duplicate: False}, synchronize_session=False
-    )
+    stmt = db.update(Lien).where(Lien.id.in_(selected_ids)).values(is_duplicate=False)
+
+    db.session.execute(stmt)
     db.session.commit()
     flash(f"{len(selected_ids)} rows marked as not duplicate", "success")
     return redirect(url_for("lien.lien_duplicates"))
@@ -268,10 +269,7 @@ def lien_bulk_upload():
         try:
             df = pd.read_excel(lien_file, dtype={"ro_code": str, "case_number": str})
             df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
-            # df['lien_date'] = pd.to_datetime(df['lien_date'], errors="coerce")
-            # df['date_of_lien_order'] = pd.to_datetime(df['date_of_lien_order'], errors="coerce")
-            # df['lien_date'] = df['lien_date'].dt.date
-            # df['date_of_lien_order'] = df['date_of_lien_order'].dt.date
+
             df = df.where(pd.notnull(df), None)
             df = df.replace({pd.NaT: None, np.nan: None})
             ro_codes_in_file = set(df["ro_code"].dropna())
@@ -291,16 +289,23 @@ def lien_bulk_upload():
 
             # mark duplicate in the database
             upload_amounts = set(df["lien_amount"].dropna())
-            db.session.query(Lien).filter(Lien.lien_amount.in_(upload_amounts)).update(
-                {"is_duplicate": True}, synchronize_session=False
+            stmt = (
+                db.update(Lien)
+                .where(Lien.lien_amount.in_(upload_amounts))
+                .values(is_duplicate=True)
             )
-            # Insert valid rows
-            for row in df.to_dict(orient="records"):
-                lien = Lien(**row)
-                db.session.add(lien)
-                db.session.flush()
 
+            db.session.execute(stmt)
             db.session.commit()
+
+            # Insert valid rows
+            records = df.to_dict(orient="records")
+
+            # ORM aware bulk insert
+            # for marking duplicate entries
+            db.session.add_all(Lien(**row) for row in records)
+            db.session.commit()
+
             flash(f"Successfully uploaded {len(df)} liens.", "success")
 
         except Exception as e:
@@ -344,12 +349,10 @@ def upload_document(
 @lien_bp.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def lien_dashboard():
-
     # 1. Get distinct statuses
-    lien_status_query = (
-        db.session.query(Lien.lien_status).distinct().order_by(Lien.lien_status)
-    )
-    lien_statuses = [item[0] for item in lien_status_query]
+    lien_statuses = db.session.scalars(
+        db.select(Lien.lien_status).distinct().order_by(Lien.lien_status)
+    ).all()
 
     # 2. Build dynamic case statements
     status_columns = []
@@ -377,7 +380,7 @@ def lien_dashboard():
             func.sum(Lien.lien_amount).label("total_amount"),
         )
         .group_by(Lien.ro_code, Lien.bank_name, Lien.account_number)
-        .order_by(Lien.ro_code, Lien.bank_name)
+        .order_by(Lien.ro_code, Lien.bank_name, Lien.account_number)
     )
 
     # 4. Apply filter for RO users
@@ -402,9 +405,8 @@ def sanitize_status(status: str) -> str:
 
 @lien_bp.context_processor
 def get_duplicate_count():
-
     duplicate_count = db.session.scalar(
-        db.select(func.count(Lien.id)).where(Lien.is_duplicate == True)
+        db.select(func.count()).select_from(Lien).where(Lien.is_duplicate)
     )
 
     return dict(duplicate_count=duplicate_count)
