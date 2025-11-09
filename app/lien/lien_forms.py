@@ -54,7 +54,6 @@ ro_choices = sorted(ALLOWED_RO_CODES)
 
 
 class BaseLienForm(FlaskForm):
-
     bank_name = StringField(filters=[lambda x: x.strip().upper() if x else None])
     account_number = StringField(filters=[lambda x: x.strip() if x else None])
 
@@ -174,13 +173,13 @@ class BaseLienForm(FlaskForm):
             ):
                 raise ValidationError("Please upload claim disbursement voucher.")
 
-    def validate_claim_disbursement_voucher_file(form, field):
-        if field.data:
-            if not (
-                form.lien_dd_reversal_order_file.data
-                or (form.model_obj and form.model_obj.lien_dd_reversal_order)
-            ):
-                raise ValidationError("Please upload lien / DD reversal order.")
+    # def validate_claim_disbursement_voucher_file(form, field):
+    #     if field.data:
+    #         if not (
+    #             form.lien_dd_reversal_order_file.data
+    #             or (form.model_obj and form.model_obj.lien_dd_reversal_order)
+    #         ):
+    #             raise ValidationError("Please upload lien / DD reversal order.")
 
     def validate_appeal_given(form, field):
         if field.data == "Yes":
@@ -233,7 +232,6 @@ class LienFormHOTP(BaseLienForm):
 
 
 class LienFormRO(LienFormHOTP):
-
     ro_name = StringField("RO Name", render_kw={"disabled": True})
     ro_code = StringField("RO Code", render_kw={"disabled": True})
 
