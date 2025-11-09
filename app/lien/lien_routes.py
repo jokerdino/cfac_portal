@@ -95,6 +95,7 @@ def lien_add():
 @login_required
 def lien_view(lien_id):
     lien = db.get_or_404(Lien, lien_id)
+    lien.require_access(current_user)
     return render_template("lien_view.html", lien=lien)
 
 
@@ -119,6 +120,7 @@ def lien_log_view(lien_id):
 @login_required
 def lien_edit(lien_id):
     lien = db.get_or_404(Lien, lien_id)
+    lien.require_access(current_user)
     if current_user.user_type == "admin":
         form = LienFormCFAC(obj=lien)
     elif current_user.user_type in ["ro_motor_tp", "ro_user"]:
@@ -158,6 +160,7 @@ def download_document(document_type, lien_id):
         return document_map.get(document_type)
 
     lien = db.get_or_404(Lien, lien_id)
+    lien.require_access(current_user)
 
     path = get_document_path(lien, document_type)
     if not path:

@@ -1,6 +1,8 @@
 from datetime import date
 from typing import Optional
 
+
+from flask import abort
 from sqlalchemy.orm import validates, mapped_column, Mapped
 from sqlalchemy_continuum.plugins import FlaskPlugin
 from sqlalchemy_continuum import make_versioned
@@ -76,6 +78,21 @@ class Lien(db.Model):
         if value not in ALLOWED_RO_CODES:
             raise ValueError(f"Invalid RO code: {value}. Allowed: {ALLOWED_RO_CODES}")
         return value
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin", "ho_motor_tp"]:
+            return True
+
+        if role in ["ro_user", "ro_motor_tp"]:
+            return user.ro_code == self.ro_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 db.configure_mappers()
