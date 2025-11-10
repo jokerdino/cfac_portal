@@ -1,4 +1,4 @@
-from dataclasses import asdict
+# from dataclasses import asdict
 from datetime import datetime, date, timedelta
 from math import floor
 import decimal
@@ -7,7 +7,7 @@ import io
 
 from flask import (
     abort,
-    current_app,
+    # current_app,
     flash,
     redirect,
     render_template,
@@ -17,7 +17,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 import pandas as pd
-from sqlalchemy import case, func, and_, create_engine
+from sqlalchemy import case, func, and_  # , create_engine
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.exc import IntegrityError
 
@@ -71,6 +71,16 @@ def num_of_days(start_date, end_date):
     return (end_date - start_date).days
 
 
+def get_employee_balance(employee_number):
+    leave_balance = db.session.scalar(
+        db.select(LeaveBalance)
+        .where(LeaveBalance.employee_number == employee_number)
+        .order_by(LeaveBalance.calendar_year.desc())
+    )
+
+    return leave_balance
+
+
 @leave_mgmt_bp.route("/home/")
 @login_required
 @admin_required
@@ -120,12 +130,12 @@ def leave_attendance_list():
         list_date_keys = request.form.getlist("date_keys")
 
         date_list = [datetime.strptime(item, "%Y-%m-%d") for item in list_date_keys]
-
-        db.session.query(AttendanceRegister).filter(
-            AttendanceRegister.date_of_attendance.in_(date_list)
-        ).delete()
-
-        db.session.commit()
+        if date_list:
+            delete_stmt = db.delete(AttendanceRegister).where(
+                AttendanceRegister.date_of_attendance.in_(date_list)
+            )
+            db.session.execute(delete_stmt)
+            db.session.commit()
 
         flash(
             f"Given date(s) {', '.join(date_item.strftime('%d/%m/%Y') for date_item in date_list)} have been deleted."
@@ -242,17 +252,17 @@ def pending_leaves_list():
     )
 
 
-def get_employee_number(employee_number):
+def get_employee_number(employee_number: int) -> int:
     """
     Return the employee number, defaulting to the last 5 characters of the current_user's username
     if the current_user is not a leave_manager and no employee_number is given.
     """
     if current_user.role and "leave_manager" not in current_user.role:
-        return current_user.username[-5:]
+        return int(current_user.username[-5:])
     elif employee_number is None:
-        return current_user.username[-5:]
+        return int(current_user.username[-5:])
     else:
-        return employee_number
+        return int(employee_number)
 
 
 @leave_mgmt_bp.route("/leave_application/", defaults={"employee_number": None})
@@ -261,16 +271,11 @@ def get_employee_number(employee_number):
 @admin_required
 def leave_application_list(employee_number):
     employee_number = get_employee_number(employee_number)
-    leave_balance = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
+    leave_balance = get_employee_balance(employee_number)
 
-    leave_application_list_days = (
-        db.session.query(LeaveApplication)
-        .filter(
+    leave_application_list_days = db.session.scalars(
+        db.select(LeaveApplication)
+        .where(
             and_(
                 LeaveApplication.employee_number == employee_number,
                 LeaveApplication.current_status != "Deleted",
@@ -293,8 +298,6 @@ def get_leave_days_list(list_leave_applications):
             [leave_app.list_of_days for leave_app in list_leave_applications]
         )
     )
-
-    #  print(leave_days_list)
 
     return leave_days_list
 
@@ -324,10 +327,12 @@ def leave_application_view(id):
     if request.method == "POST":
         leave.current_status = "Deleted"
 
-        db.session.query(AttendanceRegister).filter(
-            AttendanceRegister.id.in_(leave.list_attendance_register_days)
-        ).update({"type_of_leave": None})
-
+        stmt = (
+            db.update(AttendanceRegister)
+            .where(AttendanceRegister.id.in_(leave.list_attendance_register_days))
+            .values({"type_of_leave": None})
+        )
+        db.session.execute(stmt)
         delete_leave_application(id)
         db.session.commit()
         return redirect(
@@ -351,12 +356,7 @@ def delete_leave_application(leave_id):
         ).where(LeaveApplication.id == leave_id)
     )
     employee_number, leave_type, days_on_leave = query.one()
-    employee = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
+    employee = get_employee_balance(employee_number)
     leave_taken_attribute = get_leave_taken_attribute(leave_type)
     leave_balance_attribute = get_leave_balance_attribute(leave_type)
 
@@ -460,7 +460,7 @@ def edit_employee_data(id):
 @login_required
 @leave_managers
 def leave_balance_list():
-    column_names = db.session.query(LeaveBalance).statement.columns.keys()
+    column_names = [column.name for column in LeaveBalance.__table__.columns]
     list = db.session.scalars(db.select(LeaveBalance).order_by(LeaveBalance.id))
     return render_template(
         "leave_balance_list.html", list=list, column_names=column_names
@@ -513,7 +513,7 @@ def edit_employee_leave_balance(id):
 @login_required
 @leave_managers
 def update_leave_submitted_data():
-    leave_date = db.session.scalars(db.select(LeaveSubmissionData)).one_or_none()
+    leave_date = db.session.scalar(db.select(LeaveSubmissionData))
     form = LeaveSubmittedDateForm(obj=leave_date)
     if form.validate_on_submit():
         form.populate_obj(leave_date)
@@ -537,12 +537,7 @@ def update_leave_submitted_data():
 @admin_required
 def leave_encashment_add(employee_number):
     employee_number = get_employee_number(employee_number)
-    leave_balance = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
+    leave_balance = get_employee_balance(employee_number)
     form = LeaveEncashmentForm()
     if leave_balance.leave_encashment_days:
         flash("Leave encashment already exhausted for given period.")
@@ -570,12 +565,15 @@ def leave_encashment_add(employee_number):
 def leave_balance_open_list():
     form = LeaveBalanceCloseForm()
     list = db.session.scalars(
-        db.Select(LeaveBalance).where(LeaveBalance.current_status == "Open")
+        db.select(LeaveBalance).where(LeaveBalance.current_status == "Open")
     )
     if form.validate_on_submit():
         list_leave_balance_keys = request.form.getlist("leave_balance_keys")
+        list_leave_balance_keys = [int(key) for key in list_leave_balance_keys]
+
         for key in list_leave_balance_keys:
             leave_balance_close(db.get_or_404(LeaveBalance, key))
+
         flash("Leave balance has been closed for selected employees.")
         return redirect(url_for(".leave_balance_open_list"))
     return render_template(
@@ -608,14 +606,14 @@ def holiday_list_upload():
     if form.validate_on_submit():
         holiday_list = form.data["file_upload"]
         df_holiday_list = pd.read_excel(holiday_list)
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_holiday_list["created_on"] = datetime.now()
         df_holiday_list["created_by"] = current_user.username
 
         df_holiday_list.to_sql(
             "public_holiday",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -677,12 +675,7 @@ def leave_balance_close(leave_balance):
 def leaves_taken_list(status, employee_number):
     form = UpdateLeaveTypeForm()
     employee_number = get_employee_number(employee_number)
-    leave_balance = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
+    leave_balance = get_employee_balance(employee_number)
     # calculate_earned_leave(employee_number)
     query = (
         db.select(AttendanceRegister)
@@ -706,13 +699,16 @@ def leaves_taken_list(status, employee_number):
 
     if form.validate_on_submit():
         list_leave_keys = request.form.getlist("leave_keys")
-        leaves = (
-            db.session.query(AttendanceRegister)
-            .with_entities(AttendanceRegister.date_of_attendance)
-            .filter(AttendanceRegister.id.in_(list_leave_keys))
-        )
+        list_leave_keys = [int(key) for key in list_leave_keys]
+
+        leaves = db.session.scalars(
+            db.select(AttendanceRegister.date_of_attendance).where(
+                AttendanceRegister.id.in_(list_leave_keys)
+            )
+        ).all()
+
         try:
-            end_date, start_date = max(leaves)[0], min(leaves)[0]
+            end_date, start_date = max(leaves), min(leaves)
             validate_status = validate_leave(
                 form.leave_type.data,
                 employee_number,
@@ -726,7 +722,7 @@ def leaves_taken_list(status, employee_number):
                 )
             else:
                 flash(f"Not enough leave balance for {form.leave_type.data}")
-        except ValueError as e:
+        except ValueError:
             flash("No leave days has been selected.")
 
     return render_template(
@@ -776,12 +772,7 @@ def validate_leave(
     end_date: date,
     list_leave_keys: list,
 ) -> bool:
-    employee = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
+    employee = get_employee_balance(employee_number)
     days_on_leave = num_of_days(start_date, end_date) + 1
 
     leave_taken_attribute = get_leave_taken_attribute(leave_type)
@@ -849,14 +840,26 @@ def update_leave_balance(
     employee_number,
     available_leave_credit=0,
 ):
-    db.session.query(AttendanceRegister).filter(
-        AttendanceRegister.id.in_(list_leave_keys)
-    ).update({"type_of_leave": leave_type})
+    list_leave_keys = [int(key) for key in list_leave_keys]
 
-    employee = db.session.execute(
-        db.select(EmployeeData).where(EmployeeData.employee_number == employee_number)
-    ).one()
-    employee_data_dict = [asdict(employee) for employee in employee][0]
+    stmt = (
+        db.update(AttendanceRegister)
+        .where(AttendanceRegister.id.in_(list_leave_keys))
+        .values({"type_of_leave": leave_type})
+    )
+    db.session.execute(stmt)
+    employee = (
+        db.session.execute(
+            db.select(
+                EmployeeData.employee_name,
+                EmployeeData.employee_number,
+                EmployeeData.employee_designation,
+                EmployeeData.date_of_joining_current_cadre,
+            ).where(EmployeeData.employee_number == employee_number)
+        )
+        .mappings()
+        .first()
+    )
 
     if leave_type == "Sick leave-full pay":
         num_of_days_off_duty = days_on_leave / 2
@@ -873,7 +876,7 @@ def update_leave_balance(
         num_of_days_off_duty = 0
 
     leave_application = LeaveApplication(
-        **employee_data_dict,
+        **employee,
         type_of_leave=leave_type,
         number_of_days_leave=days_on_leave,
         number_of_days_off_duty=num_of_days_off_duty,
@@ -901,13 +904,13 @@ def populate_attendance_register(date):
 
     if not last_leave_submitted_date(date):
         attendance_register_list = db.session.scalars(
-            db.Select(AttendanceRegister.employee_number).where(
+            db.select(AttendanceRegister.employee_number).where(
                 AttendanceRegister.date_of_attendance == date
             )
         ).all()
 
         active_employee_list = db.session.scalars(
-            db.Select(EmployeeData.employee_number).where(
+            db.select(EmployeeData.employee_number).where(
                 EmployeeData.current_status == "Active"
             )
         ).all()
@@ -917,20 +920,22 @@ def populate_attendance_register(date):
         )
 
         if missing_active_employee_list:
-            employee_data = db.session.scalars(
-                db.Select(EmployeeData).where(
-                    EmployeeData.employee_number.in_(missing_active_employee_list)
-                )
-            )
+            employee_data = db.session.execute(
+                db.select(
+                    EmployeeData.employee_name,
+                    EmployeeData.employee_number,
+                    EmployeeData.employee_designation,
+                    EmployeeData.date_of_joining_current_cadre,
+                ).where(EmployeeData.employee_number.in_(missing_active_employee_list))
+            ).mappings()
 
-            attendance_entries = []
-            for employee in employee_data:
-                new_entry = AttendanceRegister(
-                    **asdict(employee),
-                    date_of_attendance=date,
-                )
-                attendance_entries.append(new_entry)
-            db.session.add_all(attendance_entries)
+            new_entries = [
+                AttendanceRegister(**row, date_of_attendance=date)
+                for row in employee_data
+            ]
+
+            db.session.add_all(new_entries)
+
             db.session.commit()
 
 
@@ -949,9 +954,7 @@ def last_leave_submitted_date(leave_date) -> bool:
         leave_date = datetime.date(leave_date)
 
     if submitted_date := (
-        db.session.scalars(
-            db.select(LeaveSubmissionData.leaves_submitted_to_est_dept)
-        ).one_or_none()
+        db.session.scalar(db.select(LeaveSubmissionData.leaves_submitted_to_est_dept))
     ):
         return leave_date <= submitted_date
     else:
@@ -973,9 +976,8 @@ def get_leave_submission():
 
 
 def get_days_off_duty(employee_number, opening_balance_date, end_date):
-    off_duty_count = (
-        db.session.query(func.sum(LeaveApplication.number_of_days_off_duty))
-        .filter(
+    off_duty_count = db.session.scalar(
+        db.select(db.func.sum(LeaveApplication.number_of_days_off_duty)).where(
             and_(
                 LeaveApplication.employee_number == employee_number,
                 LeaveApplication.start_date >= opening_balance_date,
@@ -983,7 +985,6 @@ def get_days_off_duty(employee_number, opening_balance_date, end_date):
                 LeaveApplication.current_status != "Deleted",
             )
         )
-        .scalar()
     )
 
     return off_duty_count or 0
@@ -1022,16 +1023,14 @@ def get_earned_leave_taken(
     """
     Calculate the total number of earned leave days taken by an employee between the opening balance date and the end date.
     """
-    earned_leave_taken = (
-        db.session.query(func.sum(LeaveApplication.number_of_days_leave))
-        .filter(
+    earned_leave_taken = db.session.scalar(
+        db.select(db.func.sum(LeaveApplication.number_of_days_leave)).where(
             LeaveApplication.employee_number == employee_number,
             LeaveApplication.type_of_leave == "Privilege leave",
             LeaveApplication.start_date >= opening_balance_date,
             LeaveApplication.start_date <= end_date,
             LeaveApplication.current_status != "Deleted",
         )
-        .scalar()
     )
 
     return earned_leave_taken or 0
@@ -1046,13 +1045,8 @@ def get_leave_encashment_days(leave_balance, calculation_date):
 
 def calculate_earned_leave(employee_number: int, date_of_calculation: date) -> float:
     """Calculate the earned leave balance of an employee as of a given date."""
-    leave_balance = (
-        db.session.query(LeaveBalance)
-        .filter(LeaveBalance.employee_number == employee_number)
-        .order_by(LeaveBalance.calendar_year.desc())
-        .first_or_404()
-    )
 
+    leave_balance = get_employee_balance(employee_number)
     opening_earned_leave_balance = float(leave_balance.opening_privileged_leave_balance)
     opening_balance_date = leave_balance.opening_balance_date
 
@@ -1123,13 +1117,13 @@ def get_all_weekends(year: str) -> pd.DataFrame:
     return weekend_df
 
 
-@leave_mgmt_bp.route("/holiday_plot/<year>/")
+@leave_mgmt_bp.route("/holiday_plot/<string:year>/")
 def holiday_plot(year):
     df_combined = generate_holiday_plot(year)
-    return draw_holiday_plot(df_combined, year)
+    return draw_holiday_plot(df_combined)
 
 
-def draw_holiday_plot(dataframe: pd.DataFrame, year: str):
+def draw_holiday_plot(dataframe: pd.DataFrame):
     try:
         # Create colormap from your fixed colors
         cmap = plt.matplotlib.colors.ListedColormap(
@@ -1176,11 +1170,15 @@ def generate_holiday_plot(year: str):
     if not year:
         year = str(date.today().year)
 
-    holiday_query = db.session.query(PublicHoliday.date_of_holiday).filter_by(year=year)
+    holiday_query = db.select(PublicHoliday.date_of_holiday).where(
+        PublicHoliday.year == year
+    )
 
-    public_holidays = holiday_query.filter_by(type_of_list="PUBLIC HOLIDAY")
-    state_holidays = holiday_query.filter_by(type_of_list="TAMIL NADU")
-    all_india_holidays = holiday_query.filter_by(type_of_list="ALL INDIA")
+    public_holidays = holiday_query.where(
+        PublicHoliday.type_of_list == "PUBLIC HOLIDAY"
+    )
+    state_holidays = holiday_query.where(PublicHoliday.type_of_list == "TAMIL NADU")
+    all_india_holidays = holiday_query.where(PublicHoliday.type_of_list == "ALL INDIA")
 
     df_public_holidays = generate_pandas_timeseries(public_holidays, 1)
     df_all_india_holidays = generate_pandas_timeseries(all_india_holidays, 2)
@@ -1196,8 +1194,9 @@ def generate_holiday_plot(year: str):
     return df_combined
 
 
-def generate_pandas_timeseries(dates: list, value: int) -> pd.DataFrame:
-    date_list = [date[0] for date in dates]
+def generate_pandas_timeseries(dates_stmt, value: int) -> pd.DataFrame:
+    date_list = db.session.scalars(dates_stmt).all()
+
     df = pd.DataFrame(date_list, columns=["date_of_holiday"])
     df["value"] = value
     df["date_of_holiday"] = pd.to_datetime(df["date_of_holiday"], yearfirst=True)
