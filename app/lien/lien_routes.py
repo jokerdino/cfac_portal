@@ -207,39 +207,31 @@ def lien_list_review():
 
 
 @event.listens_for(Session, "before_flush")
-def mark_duplicates(session, flush_context, instances):
-    # 1. Handle new objects
-    for obj in session.new:
-        if isinstance(obj, Lien):
-            existing_liens = db.session.scalars(
-                db.select(Lien).where(
-                    Lien.lien_amount == obj.lien_amount, Lien.id != obj.id
-                )
+def mark_duplicates(session, flush_context=None, instances=None):
+    # Handle new and dirty Lien objects
+    liens_to_check = [
+        obj
+        for obj in session.new.union(session.dirty)
+        if isinstance(obj, Lien) and session.is_modified(obj, include_collections=False)
+    ]
+
+    for obj in liens_to_check:
+        # Query other liens with same amount (exclude current obj by identity)
+        existing_liens = session.scalars(
+            db.select(Lien).where(
+                Lien.lien_amount == obj.lien_amount,
+                Lien.id.isnot(None),  # exclude transient objects
+                Lien.id != obj.id if obj.id else True,  # sanity guard
             )
+        ).all()
 
-            if existing_liens:
-                obj.is_duplicate = True
-                for lien in existing_liens:
-                    lien.is_duplicate = True
+        # Update duplicate marker flags
+        is_duplicate = len(existing_liens) > 0
+        obj.is_duplicate = is_duplicate
 
-    # 2. Handle updated objects
-    for obj in session.dirty:
-        if isinstance(obj, Lien) and session.is_modified(
-            obj, include_collections=False
-        ):
-            existing_liens = db.session.scalars(
-                db.select(Lien).where(
-                    Lien.lien_amount == obj.lien_amount, Lien.id != obj.id
-                )
-            )
-
-            if existing_liens:
-                obj.is_duplicate = True
-                for lien in existing_liens:
-                    lien.is_duplicate = True
-            else:
-                # If no duplicates anymore, reset flag
-                obj.is_duplicate = False
+        if is_duplicate:
+            for lien in existing_liens:
+                lien.is_duplicate = True
 
 
 @lien_bp.route("/duplicates", methods=["GET"])
