@@ -92,7 +92,7 @@ class BaseLienForm(FlaskForm):
         "Upload lien / DD reversal order", render_kw={"disabled": True}
     )
     lien_status = SelectField(
-        choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"]
+            choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"], render_kw={"disabled": True}
     )
     appeal_given = RadioField(
         "Whether appeal is given", choices=["Yes", "No"], validators=[Optional()]
@@ -207,8 +207,9 @@ class BaseLienForm(FlaskForm):
 
 
 class LienFormCFAC(BaseLienForm):
-    pass
-
+    lien_status = SelectField(
+            choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"], render_kw={"disabled": False}
+    )
 
 class LienFormHOTP(BaseLienForm):
     bank_name = StringField(render_kw={"disabled": True})

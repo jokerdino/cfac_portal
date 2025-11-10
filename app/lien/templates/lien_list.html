@@ -47,9 +47,9 @@
                     </td>
                     {% endif %}
                     <td><a class="button is-link is-outlined is-small"
-                            href="{{ url_for('lien.lien_view', lien_id=item['id']) }}">View</a></td>
+                            href="{{ url_for('lien.lien_view', lien_id=item.id) }}">View</a></td>
                     <td> <a class="button is-link is-outlined is-small"
-                            href="{{ url_for('lien.lien_edit', lien_id=item['id']) }}">Edit</a>
+                            href="{{ url_for('lien.lien_edit', lien_id=item.id) }}">Edit</a>
                     </td>
                     {% for col in column_names[:7] %}
                     <td class="has-text-centered is-vcentered has-background-warning-light">{{ item[col] or "" }}</td>

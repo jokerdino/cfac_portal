@@ -30,6 +30,9 @@
                             class="tag is-danger is-rounded ml-2 has-text-white"> {{ duplicate_count }}
                         </span>
                     </a>
+                    <a class="navbar-item" href="{{ url_for('.lien_list_review') }}">For review <span
+                            class="tag is-success  ml-2 has-text-white"> {{ review_count }}
+                        </span></a>
 
                     {% endif -%}
 

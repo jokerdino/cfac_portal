@@ -189,6 +189,23 @@ def lien_list():
     return render_template("lien_list.html", lien_list=liens, column_names=column_names)
 
 
+@lien_bp.route("/review")
+@login_required
+@admin_required
+def lien_list_review():
+    lien_query = db.select(Lien).where(
+        (Lien.lien_status == "Lien exists")
+        & (Lien.court_order_lien_reversal.is_not(None))
+    )
+    dd_query = db.select(Lien).where(
+        (Lien.lien_status == "DD issued") & (Lien.court_order_dd_reversal.is_not(None))
+    )
+    union_query = db.union_all(lien_query, dd_query)
+    liens = db.session.execute(union_query)
+    column_names = [column.name for column in Lien.__table__.columns][0:38]
+    return render_template("lien_list.html", lien_list=liens, column_names=column_names)
+
+
 @event.listens_for(Session, "before_flush")
 def mark_duplicates(session, flush_context, instances):
     # 1. Handle new objects
@@ -411,5 +428,17 @@ def get_duplicate_count():
     duplicate_count = db.session.scalar(
         db.select(func.count()).select_from(Lien).where(Lien.is_duplicate)
     )
+    lien_query = db.select(Lien).where(
+        (Lien.lien_status == "Lien exists")
+        & (Lien.court_order_lien_reversal.is_not(None))
+    )
+    dd_query = db.select(Lien).where(
+        (Lien.lien_status == "DD issued") & (Lien.court_order_dd_reversal.is_not(None))
+    )
+    union_query = db.union_all(lien_query, dd_query)
 
-    return dict(duplicate_count=duplicate_count)
+    review_count = db.session.scalar(
+        db.select(func.count()).select_from(union_query.subquery())
+    )
+
+    return dict(duplicate_count=duplicate_count, review_count=review_count)
