@@ -151,7 +151,7 @@
         {% for field in form if field.type == "SubmitField" %}
         <div class="field">
             <p class="control">
-                {{ field }}
+                {{ field(class="button is-primary") }}
             </p>
         </div>
         {% endfor %}

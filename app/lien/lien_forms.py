@@ -6,6 +6,7 @@ from wtforms import (
     IntegerField,
     SelectField,
     RadioField,
+    SubmitField,
 )
 from wtforms.validators import Optional, ValidationError
 from flask_wtf.file import FileField, FileAllowed, FileRequired
@@ -92,7 +93,8 @@ class BaseLienForm(FlaskForm):
         "Upload lien / DD reversal order", render_kw={"disabled": True}
     )
     lien_status = SelectField(
-            choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"], render_kw={"disabled": True}
+        choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"],
+        render_kw={"disabled": True},
     )
     appeal_given = RadioField(
         "Whether appeal is given", choices=["Yes", "No"], validators=[Optional()]
@@ -208,8 +210,10 @@ class BaseLienForm(FlaskForm):
 
 class LienFormCFAC(BaseLienForm):
     lien_status = SelectField(
-            choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"], render_kw={"disabled": False}
+        choices=["Lien exists", "Lien reversed", "DD issued", "DD reversed"],
+        render_kw={"disabled": False},
     )
+
 
 class LienFormHOTP(BaseLienForm):
     bank_name = StringField(render_kw={"disabled": True})
@@ -241,3 +245,8 @@ class LienUploadForm(FlaskForm):
     lien_file = FileField(
         "Upload lien file", validators=[FileRequired(), FileAllowed(["xlsx"])]
     )
+
+
+class LienStatusFilterForm(FlaskForm):
+    lien_status = SelectField()
+    filter = SubmitField("Filter")

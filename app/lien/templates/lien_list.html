@@ -1,6 +1,14 @@
 {% extends "lien_layout.html" %}
 {% from "macros.html" import download_td %}
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
 {% block content %}
+{% if form %}
+
+<form method="post">
+    {{ render_dashboard_dropdown(form) }}
+</form>
+
+{% endif %}
 <div class="container table-container is-fluid">
     <h1 class="title">List of lien {{ title }} entries</h1>
 

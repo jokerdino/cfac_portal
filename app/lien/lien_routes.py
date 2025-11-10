@@ -14,7 +14,7 @@ from flask import (
     url_for,
     send_from_directory,
 )
-from sqlalchemy import func, case, event
+from sqlalchemy import func, case, event, and_, or_
 from sqlalchemy.orm import Session
 
 from flask_login import login_required, current_user
@@ -32,6 +32,7 @@ from .lien_forms import (
     LienFormRO,
     LienUploadForm,
     LienFormHOTP,
+    LienStatusFilterForm,
     ALLOWED_RO_CODES,
 )
 
@@ -177,33 +178,68 @@ def download_document(document_type, lien_id):
     )
 
 
-@lien_bp.route("/")
+@lien_bp.route("/", methods=["POST", "GET"])
 @login_required
 def lien_list():
     query = db.select(Lien)
 
     if current_user.user_type in ["ro_motor_tp", "ro_user"]:
         query = query.where(Lien.ro_code == current_user.ro_code)
+
+    form = LienStatusFilterForm()
+    populate_status(query, form)
+
+    if form.validate_on_submit():
+        status = form.lien_status.data
+        if status != "View all":
+            query = query.where(Lien.lien_status == status)
+
     liens = db.session.scalars(query)
     column_names = [column.name for column in Lien.__table__.columns][0:38]
-    return render_template("lien_list.html", lien_list=liens, column_names=column_names)
+    return render_template(
+        "lien_list.html", lien_list=liens, column_names=column_names, form=form
+    )
 
 
-@lien_bp.route("/review")
+def populate_status(stmt, form):
+    subq = stmt.subquery()
+
+    status_list = db.session.scalars(
+        db.select(db.distinct(subq.c.lien_status)).order_by(subq.c.lien_status)
+    ).all()
+
+    form.lien_status.choices = ["View all"] + status_list
+
+
+@lien_bp.route("/review", methods=["POST", "GET"])
 @login_required
 @admin_required
 def lien_list_review():
-    lien_query = db.select(Lien).where(
-        (Lien.lien_status == "Lien exists")
-        & (Lien.court_order_lien_reversal.is_not(None))
+    review_query = db.select(Lien).where(
+        or_(
+            and_(
+                Lien.lien_status == "Lien exists",
+                Lien.court_order_lien_reversal.is_not(None),
+            ),
+            and_(
+                Lien.lien_status == "DD issued",
+                Lien.court_order_dd_reversal.is_not(None),
+            ),
+        )
     )
-    dd_query = db.select(Lien).where(
-        (Lien.lien_status == "DD issued") & (Lien.court_order_dd_reversal.is_not(None))
-    )
-    union_query = db.union_all(lien_query, dd_query)
-    liens = db.session.execute(union_query)
+
+    form = LienStatusFilterForm()
+    populate_status(review_query, form)
+
+    if form.validate_on_submit():
+        status = form.lien_status.data
+        if status != "View all":
+            review_query = review_query.where(Lien.lien_status == status)
+    liens = db.session.scalars(review_query)
     column_names = [column.name for column in Lien.__table__.columns][0:38]
-    return render_template("lien_list.html", lien_list=liens, column_names=column_names)
+    return render_template(
+        "lien_list.html", lien_list=liens, column_names=column_names, form=form
+    )
 
 
 @event.listens_for(Session, "before_flush")
