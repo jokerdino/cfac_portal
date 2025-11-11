@@ -1,6 +1,4 @@
 from datetime import datetime
-
-
 from decimal import Decimal
 from io import BytesIO
 
@@ -37,6 +35,7 @@ from set_view_permissions import ro_user_only, admin_required
 def pool_credits_list_identified_api(status):
     if request.method == "POST":
         list_pool_keys = request.form.getlist("pool_keys")
+        list_pool_keys = [int(key) for key in list_pool_keys]
         if list_pool_keys:
             update_stmt = (
                 db.update(PoolCredits)
@@ -227,7 +226,7 @@ def get_data(status):
     if search:
         search_terms = search.strip().split()  # split by spaces
         for term in search_terms:
-            stmt = stmt.filter(
+            stmt = stmt.where(
                 db.or_(
                     db.cast(PoolCredits.book_date, db.String).like(f"%{term}%"),
                     PoolCredits.description.ilike(f"%{term}%"),
@@ -413,7 +412,7 @@ def daily_jv_entries_v2():
     if search:
         search_terms = search.strip().split()  # split by spaces
         for term in search_terms:
-            query = query.filter(
+            query = query.where(
                 db.or_(
                     db.cast(FundBankStatement.book_date, db.String).like(f"%{term}%"),
                     FundBankStatement.description.ilike(f"%{term}%"),

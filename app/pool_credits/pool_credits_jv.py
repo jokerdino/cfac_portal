@@ -13,8 +13,9 @@ from flask import (
 from flask_login import current_user, login_required
 
 from sqlalchemy import (
-    func,
-    literal,
+    #    func,
+    #   literal,
+    union_all,
     #    create_engine,
 )
 from sqlalchemy.exc import IntegrityError
@@ -49,14 +50,14 @@ def jv_add():
             db.session.add(jv)
             db.session.commit()
             return redirect(url_for("pool_credits.jv_list"))
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             flash("RO code already exists.")
 
     return render_template("jv_edit.html", form=form, title="Add new JV mapping")
 
 
-@pool_credits_bp.route("/jv/edit/<jv_id>/", methods=["GET", "POST"])
+@pool_credits_bp.route("/jv/edit/<int:jv_id>/", methods=["GET", "POST"])
 @login_required
 @admin_required
 def jv_edit(jv_id):
@@ -68,7 +69,7 @@ def jv_edit(jv_id):
         try:
             db.session.commit()
             return redirect(url_for("pool_credits.jv_list"))
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
             flash("RO code already exists.")
     return render_template("jv_edit.html", form=form, jv=jv, title="Edit JV mapping")
@@ -102,13 +103,14 @@ def jv_bulk_upload():
 @login_required
 @admin_required
 def download_jv_confirmed_entries():
+    """Obsolete function"""
     query = (
-        db.session.query(
-            literal("000100").label("Office Location"),
+        db.select(
+            db.literal("000100").label("Office Location"),
             PoolCreditsJournalVoucher.gl_code.label("GL Code"),
             PoolCreditsJournalVoucher.sl_code.label("SL Code"),
-            literal("CR").label("DR/CR"),
-            func.sum(PoolCredits.credit).label("Amount"),
+            db.literal("CR").label("DR/CR"),
+            db.func.sum(PoolCredits.credit).label("Amount"),
             PoolCredits.month_string.label("Month"),
             PoolCredits.str_regional_office_code,
         )
@@ -117,7 +119,7 @@ def download_jv_confirmed_entries():
             PoolCreditsJournalVoucher.str_regional_office_code
             == PoolCredits.str_regional_office_code,
         )
-        .filter(
+        .where(
             (PoolCredits.str_regional_office_code.is_not(None))
             & (PoolCredits.bool_jv_passed.is_(False))
         )
@@ -129,11 +131,10 @@ def download_jv_confirmed_entries():
         )
     )
     START_DATE = datetime(2024, 10, 1)
-    query = query.filter(PoolCredits.value_date >= START_DATE)
+    query = query.where(PoolCredits.value_date >= START_DATE)
 
-    #    engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-    conn = db.engine.connect()
-    df_confirmed_entries = pd.read_sql(query.statement, conn)
+    with db.engine.connect() as conn:
+        df_confirmed_entries = pd.read_sql(query, conn)
 
     df_confirmed_entries["Remarks"] = (
         "HDFC Pool account - "
@@ -151,6 +152,84 @@ def download_jv_confirmed_entries():
     df_concat = df_concat[
         ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
     ]
+    output = BytesIO()
+
+    df_concat.to_excel(output, index=False)
+
+    # Set the buffer position to the beginning
+    output.seek(0)
+
+    filename = f"pool_credits_jv_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+
+    return send_file(output, as_attachment=True, download_name=filename)
+
+
+@pool_credits_bp.route("/download_jv_v2/")
+@login_required
+@admin_required
+def download_jv_confirmed_entries_v2():
+    START_DATE = datetime(2024, 10, 1)
+    credit_query = (
+        db.select(
+            db.literal("000100").label("Office Location"),
+            PoolCreditsJournalVoucher.gl_code.label("GL Code"),
+            PoolCreditsJournalVoucher.sl_code.label("SL Code"),
+            db.case((PoolCredits.credit < 0, "DR"), else_="CR").label("DR/CR"),
+            db.case(
+                (PoolCredits.credit < 0, -PoolCredits.credit), else_=PoolCredits.credit
+            ).label("Amount"),
+            db.func.concat(
+                "HDFC Pool account - ",
+                PoolCredits.month_string,
+                " - ",
+                PoolCredits.str_regional_office_code,
+            ).label("Remarks"),
+        )
+        .outerjoin(
+            PoolCreditsJournalVoucher,
+            PoolCreditsJournalVoucher.str_regional_office_code
+            == PoolCredits.str_regional_office_code,
+        )
+        .where(
+            (PoolCredits.str_regional_office_code.is_not(None))
+            & (PoolCredits.bool_jv_passed.is_(False))
+        )
+    )
+
+    credit_query = credit_query.where(PoolCredits.value_date >= START_DATE)
+    debit_query = (
+        db.select(
+            db.literal("000100").label("Office Location"),
+            db.literal("5131405950").label("GL Code"),
+            db.literal("0").label("SL Code"),
+            db.case((PoolCredits.credit < 0, "CR"), else_="DR").label("DR/CR"),
+            db.case(
+                (PoolCredits.credit < 0, -PoolCredits.credit), else_=PoolCredits.credit
+            ).label("Amount"),
+            db.func.concat(
+                "HDFC Pool account - ",
+                PoolCredits.month_string,
+                " - ",
+                PoolCredits.str_regional_office_code,
+            ).label("Remarks"),
+        )
+        .outerjoin(
+            PoolCreditsJournalVoucher,
+            PoolCreditsJournalVoucher.str_regional_office_code
+            == PoolCredits.str_regional_office_code,
+        )
+        .where(
+            (PoolCredits.str_regional_office_code.is_not(None))
+            & (PoolCredits.bool_jv_passed.is_(False))
+        )
+    )
+    debit_query = debit_query.where(PoolCredits.value_date >= START_DATE)
+
+    union_query = union_all(credit_query, debit_query)
+
+    with db.engine.connect() as conn:
+        df_concat = pd.read_sql(union_query, conn)
+
     output = BytesIO()
 
     df_concat.to_excel(output, index=False)
