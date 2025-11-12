@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from io import BytesIO
-from typing import List, Any
+from typing import Any
 
 import pandas as pd
 
@@ -14,7 +14,7 @@ from flask import (
 )
 
 from flask_login import login_required, current_user
-from sqlalchemy import func, case, union, literal, union_all, and_
+from sqlalchemy import func, case, union, union_all, and_
 
 from . import funds_bp
 from .funds_form import FundsJVForm, UploadFileForm, JVFlagAddForm
@@ -180,7 +180,11 @@ def download_jv():
         else:
             return "no data"
 
-    return render_template("jv_download_jv_macro.html", form=form)
+    return render_template(
+        "jv_download_jv_macro.html",
+        form=form,
+        title="Enter dates for downloading funds JV",
+    )
 
 
 @funds_bp.route("/download_jv2/", methods=["POST", "GET"])
@@ -200,9 +204,7 @@ def download_jv2():
     form = FundsJVForm()
 
     if form.validate_on_submit():
-        # if no start date is provided, default to today
         start_date = form.start_date.data or date.today()
-        # if no end date is provided, default to today
         end_date = form.end_date.data or date.today()
 
         inflow_query_list = prepare_inflow_jv_new(start_date, end_date)
@@ -234,7 +236,11 @@ def download_jv2():
         else:
             return "no data"
 
-    return render_template("jv_download_jv_macro.html", form=form)
+    return render_template(
+        "jv_download_jv_macro.html",
+        form=form,
+        title="Enter dates for downloading funds JV",
+    )
 
 
 def filter_unidentified_credits(df_inflow: pd.DataFrame) -> pd.DataFrame:
@@ -277,6 +283,7 @@ def prepare_jv_flag() -> tuple[pd.DataFrame, list[str]]:
 
 
 def prepare_investment_jv(df_funds_excel: pd.DataFrame) -> pd.DataFrame:
+    """Obsolete function: Use prepare_investment_jv_new function instead."""
     df_investment = df_funds_excel[
         df_funds_excel["Type"] == "Given to investment"
     ].copy()
@@ -304,6 +311,7 @@ def prepare_investment_jv(df_funds_excel: pd.DataFrame) -> pd.DataFrame:
 def prepare_outflow_jv(
     df_funds_excel: pd.DataFrame, df_flags: pd.DataFrame, flag_description: list[str]
 ) -> pd.DataFrame:
+    """Obsolete function: Use prepare_outflow_jv_new function instead."""
     df_outflow = df_funds_excel[df_funds_excel["Type"] == "Outflow"].copy()
 
     if df_outflow.empty:
@@ -342,6 +350,7 @@ def prepare_outflow_jv(
 def prepare_inflow_jv(
     df_funds_excel: pd.DataFrame, df_flags: pd.DataFrame, flag_description: list[str]
 ) -> pd.DataFrame:
+    """Obsolete function: Use prepare_inflow_jv_new function"""
     df_inflow = df_funds_excel[df_funds_excel["Type"] == "Inflow"].copy()
     if df_inflow.empty:
         return pd.DataFrame()
@@ -378,22 +387,22 @@ def prepare_inflow_jv(
 def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
     inflow_credit_query = (
         db.select(
-            literal("000100").label("Office Location"),
-            func.coalesce(FundJournalVoucherFlagSheet.txt_gl_code, "5131405950").label(
-                "GL Code"
-            ),
-            func.coalesce(FundJournalVoucherFlagSheet.txt_sl_code, "0").label(
+            db.literal("000100").label("Office Location"),
+            db.func.coalesce(
+                FundJournalVoucherFlagSheet.txt_gl_code, "5131405950"
+            ).label("GL Code"),
+            db.func.coalesce(FundJournalVoucherFlagSheet.txt_sl_code, "0").label(
                 "SL Code"
             ),
-            case((FundBankStatement.credit > 0, "CR"), else_="DR").label("DR/CR"),
-            case(
+            db.case((FundBankStatement.credit > 0, "CR"), else_="DR").label("DR/CR"),
+            db.case(
                 (FundBankStatement.credit < 0, -FundBankStatement.credit),
                 else_=FundBankStatement.credit,
             ).label("Amount"),
-            func.concat(
-                func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+            db.func.concat(
+                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
                 " ",
-                func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
+                db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
             ).label("Remarks"),
         )
         .outerjoin(
@@ -408,18 +417,18 @@ def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
     )
     inflow_debit_query = (
         db.select(
-            literal("000100").label("Office Location"),
-            literal("9111310000").label("GL Code"),
-            literal("12404226").label("SL Code"),
-            case((FundBankStatement.credit < 0, "CR"), else_="DR").label("DR/CR"),
-            case(
+            db.literal("000100").label("Office Location"),
+            db.literal("9111310000").label("GL Code"),
+            db.literal("12404226").label("SL Code"),
+            db.case((FundBankStatement.credit < 0, "CR"), else_="DR").label("DR/CR"),
+            db.case(
                 (FundBankStatement.credit < 0, -FundBankStatement.credit),
                 else_=FundBankStatement.credit,
             ).label("Amount"),
-            func.concat(
-                func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+            db.func.concat(
+                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
                 " ",
-                func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
+                db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
             ).label("Remarks"),
         )
         .outerjoin(
@@ -437,14 +446,14 @@ def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
 
 def prepare_investment_jv_new(start_date, end_date) -> list[Any]:
     investment_debit_query = db.select(
-        literal("000100").label("Office Location"),
-        literal("9111310000").label("GL Code"),
-        literal("12404226").label("SL Code"),
-        literal("CR").label("DR/CR"),
+        db.literal("000100").label("Office Location"),
+        db.literal("9111310000").label("GL Code"),
+        db.literal("12404226").label("SL Code"),
+        db.literal("CR").label("DR/CR"),
         FundDailySheet.float_amount_given_to_investments.label("Amount"),
-        func.concat(
+        db.func.concat(
             "Given to investment ",
-            func.to_char(FundDailySheet.date_current_date, "DD/MM/YYYY"),
+            db.func.to_char(FundDailySheet.date_current_date, "DD/MM/YYYY"),
         ).label("Remarks"),
     ).where(
         and_(
@@ -453,14 +462,14 @@ def prepare_investment_jv_new(start_date, end_date) -> list[Any]:
         )
     )
     investment_credit_query = db.select(
-        literal("000100").label("Office Location"),
-        literal("5121900700").label("GL Code"),
-        literal("0").label("SL Code"),
-        literal("DR").label("DR/CR"),
+        db.literal("000100").label("Office Location"),
+        db.literal("5121900700").label("GL Code"),
+        db.literal("0").label("SL Code"),
+        db.literal("DR").label("DR/CR"),
         FundDailySheet.float_amount_given_to_investments.label("Amount"),
-        func.concat(
+        db.func.concat(
             "Given to investment ",
-            func.to_char(FundDailySheet.date_current_date, "DD/MM/YYYY"),
+            db.func.to_char(FundDailySheet.date_current_date, "DD/MM/YYYY"),
         ).label("Remarks"),
     ).where(
         and_(
@@ -474,17 +483,17 @@ def prepare_investment_jv_new(start_date, end_date) -> list[Any]:
 def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
     outflow_credit_query = (
         db.select(
-            literal("000100").label("Office Location"),
-            literal("9111310000").label("GL Code"),
-            literal("12404226").label("SL Code"),
-            literal("CR").label("DR/CR"),
+            db.literal("000100").label("Office Location"),
+            db.literal("9111310000").label("GL Code"),
+            db.literal("12404226").label("SL Code"),
+            db.literal("CR").label("DR/CR"),
             FundDailyOutflow.outflow_amount.label("Amount"),
-            func.concat(
+            db.func.concat(
                 FundDailyOutflow.normalized_description,
                 " ",
                 FundJournalVoucherFlagSheet.txt_flag,
                 " ",
-                func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
+                db.func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
             ).label("Remarks"),
         )
         .join(
@@ -502,17 +511,17 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
     )
     outflow_debit_query = (
         db.select(
-            literal("000100").label("Office Location"),
+            db.literal("000100").label("Office Location"),
             FundJournalVoucherFlagSheet.txt_gl_code.label("GL Code"),
             FundJournalVoucherFlagSheet.txt_sl_code.label("SL Code"),
-            literal("DR").label("DR/CR"),
+            db.literal("DR").label("DR/CR"),
             FundDailyOutflow.outflow_amount.label("Amount"),
-            func.concat(
+            db.func.concat(
                 FundDailyOutflow.normalized_description,
                 " ",
                 FundJournalVoucherFlagSheet.txt_flag,
                 " ",
-                func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
+                db.func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
             ).label("Remarks"),
         )
         .join(
@@ -535,8 +544,11 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
 @login_required
 @fund_managers
 def view_jv_flags():
-    list = FundJournalVoucherFlagSheet.query.order_by(FundJournalVoucherFlagSheet.id)
-    column_names = FundJournalVoucherFlagSheet.query.statement.columns.keys()
+    list = db.session.scalars(
+        db.select(FundJournalVoucherFlagSheet).order_by(FundJournalVoucherFlagSheet.id)
+    )
+
+    column_names = [col.key for col in FundJournalVoucherFlagSheet.__table__.columns]
 
     return render_template("jv_view_flags.html", list=list, column_names=column_names)
 

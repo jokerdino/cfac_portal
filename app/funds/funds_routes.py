@@ -964,7 +964,7 @@ def modify_dates():
     form = FundsModifyDatesForm()
 
     if form.validate_on_submit():
-        old_date = form.old_date.data
+        old_date = form.existing_date.data
         new_date = form.new_date.data
 
         bank_statement = FundBankStatement.query.filter(
@@ -988,7 +988,7 @@ def modify_dates():
 
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
-    return render_template("modify_dates.html", form=form)
+    return render_template("jv_download_jv_macro.html", form=form, title="Modify dates")
 
 
 @funds_bp.route("/delete_date", methods=["POST", "GET"])
@@ -1022,7 +1022,7 @@ def delete_date():
         db.session.commit()
         flash(f"{delete_date} has been deleted.")
 
-    return render_template("delete_date.html", form=form)
+    return render_template("jv_download_jv_macro.html", form=form, title="Delete dates")
 
 
 @funds_bp.context_processor

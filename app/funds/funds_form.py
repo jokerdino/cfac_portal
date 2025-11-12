@@ -43,8 +43,8 @@ class ReportsForm(FlaskForm):
 
 
 class FundsJVForm(FlaskForm):
-    start_date = DateField("Enter start date", validators=[DataRequired()])
-    end_date = DateField("Enter end date", validators=[DataRequired()])
+    start_date = DateField(validators=[DataRequired()])
+    end_date = DateField(validators=[DataRequired()])
 
     def validate_end_date(self, field):
         if field.data < self.start_date.data:
@@ -136,8 +136,8 @@ class AmountGivenToInvestmentForm(FlaskForm):
 
 
 class FundsModifyDatesForm(FlaskForm):
-    old_date = DateField("Enter old date", validators=[DataRequired()])
-    new_date = DateField("Enter new date", validators=[DataRequired()])
+    existing_date = DateField(validators=[DataRequired()])
+    new_date = DateField(validators=[DataRequired()])
     submit_button = SubmitField("Submit")
 
 
