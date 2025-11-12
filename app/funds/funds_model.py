@@ -1,133 +1,141 @@
 from datetime import datetime, date
-from dataclasses import dataclass
+
+# from dataclasses import dataclass
 import uuid
+from typing import Optional
 
-from flask_login import current_user
-
-from sqlalchemy import func
-from sqlalchemy.orm import column_property
+from sqlalchemy import Uuid
+from sqlalchemy.orm import column_property, mapped_column, Mapped, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
-@dataclass
+# @dataclass
 class FundBankStatement(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_uploaded_date = db.Column(db.Date)
+    id: Mapped[IntPK]
+    date_uploaded_date: Mapped[date]
 
-    book_date: datetime.date = db.Column(db.Date)
-    description: str = db.Column(db.Text)
-    ledger_balance = db.Column(db.Numeric(20, 2))
-    credit: float = db.Column(db.Numeric(20, 2))
-    debit = db.Column(db.Numeric(20, 2))
-    value_date: datetime.date = db.Column(db.Date)
-    reference_no: str = db.Column(db.String)
-    transaction_branch = db.Column(db.Text)
+    book_date: Mapped[Optional[date]]
+    description: Mapped[str] = mapped_column(db.Text)
+    ledger_balance: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    credit: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    debit: Mapped[Optional[float]] = mapped_column(db.Numeric(20, 2))
+    value_date: Mapped[Optional[date]] = mapped_column(db.Date)
+    reference_no: Mapped[Optional[str]]
+    transaction_branch: Mapped[Optional[str]] = mapped_column(db.Text)
 
-    flag_description = db.Column(db.Text)
+    flag_description: Mapped[str] = mapped_column(db.Text)
 
-    text_remarks = db.Column(db.Text)
-    current_status = db.Column(db.String)
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    current_status: Mapped[Optional[str]]
 
-    flag_id = db.Column(
-        db.Integer,
+    flag_id: Mapped[Optional[int]] = mapped_column(
         db.ForeignKey("fund_journal_voucher_flag_sheet.id"),
         index=True,
     )
 
-    flag = db.relationship(
-        "FundJournalVoucherFlagSheet", back_populates="bank_statements"
+    flag: Mapped[list["FundJournalVoucherFlagSheet"]] = relationship(
+        back_populates="bank_statements"
     )
 
-    batch_id = db.Column(UUID(as_uuid=True), default=uuid.uuid4, index=True)
+    batch_id: Mapped[Optional[Uuid]] = mapped_column(
+        UUID(as_uuid=True), default=uuid.uuid4, index=True
+    )
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
-    period = column_property(func.to_char(value_date, "YYYY-MM"))
+    period = column_property(db.func.to_char(value_date, "YYYY-MM"))
 
 
 class FundFlagSheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
+    flag_description: Mapped[str] = mapped_column(db.Text)
+    flag_reg_exp: Mapped[str] = mapped_column(db.Text)
 
-    flag_description = db.Column(db.Text)
-    flag_reg_exp = db.Column(db.Text)
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    current_status: Mapped[Optional[str]]
 
-    text_remarks = db.Column(db.Text)
-    current_status = db.Column(db.String)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
-
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
 class FundDailyOutflow(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    outflow_date = db.Column(db.Date)
-    outflow_amount = db.Column(db.Numeric(20, 2))
-    outflow_description = db.Column(db.String)
+    outflow_date: Mapped[date]
+    outflow_amount: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    outflow_description: Mapped[str] = mapped_column(db.String)
 
-    text_remarks = db.Column(db.Text)
-    current_status = db.Column(db.String)
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    current_status: Mapped[Optional[str]] = mapped_column(db.String)
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
     normalized_description = column_property(
-        func.replace(
-            func.replace(func.upper(outflow_description), "AMOUNT_", ""), "_", " "
+        db.func.replace(
+            db.func.replace(db.func.upper(outflow_description), "AMOUNT_", ""), "_", " "
         )
     )
 
 
 class FundDailySheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_current_date = db.Column(db.Date, default=date.today)
+    id: Mapped[IntPK]
+    date_current_date: Mapped[date] = mapped_column(default=date.today)
 
-    text_major_collections = db.Column(db.Text)
-    text_major_payments = db.Column(db.Text)
+    text_major_collections: Mapped[Optional[str]] = mapped_column(db.Text)
+    text_major_payments: Mapped[Optional[str]] = mapped_column(db.Text)
 
-    float_amount_given_to_investments = db.Column(db.Numeric(20, 2))
-    float_amount_taken_from_investments = db.Column(db.Numeric(20, 2))
+    float_amount_given_to_investments: Mapped[Optional[float]] = mapped_column(
+        db.Numeric(20, 2)
+    )
+    float_amount_taken_from_investments: Mapped[Optional[float]] = mapped_column(
+        db.Numeric(20, 2)
+    )
 
-    float_amount_hdfc_closing_balance = db.Column(db.Numeric(20, 2))
-    float_amount_investment_closing_balance = db.Column(db.Numeric(20, 2))
+    float_amount_hdfc_closing_balance: Mapped[Optional[float]] = mapped_column(
+        db.Numeric(20, 2)
+    )
+    float_amount_investment_closing_balance: Mapped[Optional[float]] = mapped_column(
+        db.Numeric(20, 2)
+    )
 
-    text_person1_name = db.Column(db.String)
-    text_person1_designation = db.Column(db.String)
-    text_person2_name = db.Column(db.String)
-    text_person2_designation = db.Column(db.String)
-    text_person3_name = db.Column(db.String)
-    text_person3_designation = db.Column(db.String)
-    text_person4_name = db.Column(db.String)
-    text_person4_designation = db.Column(db.String)
+    text_person1_name: Mapped[Optional[str]]
+    text_person1_designation: Mapped[Optional[str]]
+    text_person2_name: Mapped[Optional[str]]
+    text_person2_designation: Mapped[Optional[str]]
+    text_person3_name: Mapped[Optional[str]]
+    text_person3_designation: Mapped[Optional[str]]
+    text_person4_name: Mapped[Optional[str]]
+    text_person4_designation: Mapped[Optional[str]]
 
-    text_remarks = db.Column(db.Text)
-    current_status = db.Column(db.String)
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
     @property
     def get_net_investment(self):
@@ -137,77 +145,76 @@ class FundDailySheet(db.Model):
 
 
 class FundMajorOutgo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_of_outgo = db.Column(db.Date)
-    float_expected_outgo = db.Column(db.Numeric(20, 2))
-    text_dept = db.Column(db.Text)
-    text_remarks = db.Column(db.Text)
+    id: Mapped[IntPK]
+    date_of_outgo: Mapped[date]
+    float_expected_outgo: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    text_dept: Mapped[str] = mapped_column(db.Text)
+    text_remarks: Mapped[str] = mapped_column(db.Text)
 
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
 class FundAmountGivenToInvestment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_given_to_investment = db.Column(db.Date)
-    float_amount_given_to_investment = db.Column(db.Numeric(20, 2))
-    date_expected_date_of_return = db.Column(db.Date)
-    text_remarks = db.Column(db.Text)
+    id: Mapped[IntPK]
+    date_given_to_investment: Mapped[date]
+    float_amount_given_to_investment: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    date_expected_date_of_return: Mapped[Optional[date]]
+    text_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
 
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
 class FundBankAccountNumbers(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    outflow_description = db.Column(db.String)
-    bank_name = db.Column(db.String)
-    bank_type = db.Column(db.String)
-    bank_account_number = db.Column(db.String)
+    outflow_description: Mapped[str]
+    bank_name: Mapped[Optional[str]]
+    bank_type: Mapped[Optional[str]]
+    bank_account_number: Mapped[Optional[str]]
 
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
 
 
-@dataclass
 class FundJournalVoucherFlagSheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    txt_description: str = db.Column(db.String)
-    txt_flag: str = db.Column(db.String)
-    txt_gl_code: str = db.Column(db.String)
-    txt_sl_code: str = db.Column(db.String)
+    id: Mapped[IntPK]
+    txt_description: Mapped[str]
+    txt_flag: Mapped[str]
+    txt_gl_code: Mapped[str]
+    txt_sl_code: Mapped[str]
 
-    current_status = db.Column(db.String)
+    current_status: Mapped[Optional[str]]
 
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
-    date_updated_date = db.Column(db.DateTime, onupdate=datetime.now)
-    date_deleted_date = db.Column(db.DateTime)
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    deleted_by = db.Column(db.String)
-    bank_statements = db.relationship(
-        "FundBankStatement", back_populates="flag", lazy="dynamic"
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+    deleted_by: Mapped[Optional[str]]
+    bank_statements: Mapped["FundBankStatement"] = relationship(
+        back_populates="flag",
     )
