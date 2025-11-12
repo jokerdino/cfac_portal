@@ -24,6 +24,9 @@
     <h1 class="is-size-4 title">Funds flow statement for {{ display_date.strftime("%d/%m/%Y (%A)") }}</h1>
 
     <div class="columns is-centered">
+        {% set outflow_total = outflow | sum(attribute="amount") %}
+        {% set inflow_total = inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance
+        %}
 
         <div class="column is-half">
             <h3 class="is-size-4 has-text-weight-bold has-text-centered">Funds inflow</h3>
@@ -35,37 +38,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for flag in flag_description | sort | unique %}
+                    {% for item in inflow %}
                     <tr>
-                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS",
-                        "Drawn from investment"] %}
-                        <td>{{ flag[0] }}</td>
-
+                        <td>{{ item.flag_description }}</td>
                         <td class="has-text-right">
-                            {{ (display_inflow(display_date, flag[0]) or 0)| indian_number_format }}
+                            {{ (item.amount or 0) | indian_number_format }}
                         </td>
                     </tr>
-                    {% endif %}
                     {% endfor %}
-                    <tr>
-                        <td>Other receipts</td>
-                        <td class="has-text-right">
-                            {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0) | indian_number_format }}
-                        </td>
 
-                    </tr>
                     <tr>
                         <td>HDFC OPENING BAL</td>
-                        <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
-                            "hdfc_closing_balance") | indian_number_format }}
+                        <td class="has-text-right">{{ (prev_daily_sheet.float_amount_hdfc_closing_balance or 0) |
+                            indian_number_format }}
                         </td>
                     </tr>
 
-                    {% set inflow_total = get_inflow_total(display_date) %}
+
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
-                            {{ inflow_total | indian_number_format }}
+                            {{ (inflow_total or 0) | indian_number_format }}
                         </td>
                     </tr>
                 </tbody>
@@ -83,28 +76,16 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for label, item in outflow_items | sort %}
+                    {% for item in outflow %}
                     <tr>
-                        {% if label not in ["MRO1 HEALTH","TNCMCHIS"] %}
-                        <td>{{ label }}</td>
+                        <td>{{ item.normalized_description }}</td>
                         <td class="has-text-right">
-                            {{ (display_outflow(display_date, item) or 0 ) | indian_number_format }}
+                            {{ (item.amount or 0) | indian_number_format }}
                         </td>
                     </tr>
-                    {% endif %}
                     {% endfor %}
                     <tr>
-                        <td>MRO1 HEALTH</td>
-                        <td class="has-text-right">
-                            {{ (display_outflow(display_date, "amount_mro1_health") or 0) | indian_number_format }}</td>
-                    </tr>
-                    <tr>
-                        <td>TNCMCHIS</td>
-                        <td class="has-text-right">
-                            {{ (display_outflow(display_date, "amount_tncmchis") or 0) | indian_number_format }}</td>
-                    </tr>
-                    <tr>
-                        {% set filler_length = (flag_description|unique|list|length) - right_length -2 %}
+                        {% set filler_length = (inflow |length) + 1 - (outflow | length) %}
                         {% for number in range(filler_length) %}
                         <td></td>
                         <td class="is-invisible">text</td>
@@ -114,7 +95,7 @@
                         <td class="has-text-weight-bold">Total</td>
                         <td class="has-text-weight-bold has-text-right">
 
-                            {{ (display_outflow(display_date) or 0) | indian_number_format }}
+                            {{ (outflow_total or 0) | indian_number_format }}
 
                         </td>
                     </tr>
@@ -124,20 +105,22 @@
             <table class="table is-bordered is-fullwidth">
                 <tbody>
                     <tr>
-                        {% if (inflow_total - display_outflow(display_date)) > 0 %}
-                        <td class="has-text-success has-text-weight-bold" width="50%">Surplus</td>
 
-                        <td class="has-text-right has-text-success has-text-weight-bold">{{
-                            ( inflow_total -
-                            display_outflow(display_date)) | indian_number_format }}
+                        <td class="has-text-success has-text-weight-bold {% if (inflow_total - outflow_total) > 0 %}has-text-success
+                            {% else %}has-text-danger
+                            {% endif %}" width="50%">
+                            {% if (inflow_total - outflow_total) > 0 %}Surplus
+                            {% else %}Deficit
+                            {% endif %}
                         </td>
-                        {% else %}
-                        <td class="has-text-danger has-text-weight-bold" width="50%">Deficit</td>
-                        <td class="has-text-right has-text-weight-bold has-text-danger">{{
-                            (display_outflow(display_date)-
-                            inflow_total) | indian_number_format }}
+
+                        <td class="has-text-right has-text-weight-bold {% if (inflow_total - outflow_total) > 0 %}has-text-success
+                            {% else %}has-text-danger
+                            {% endif %}">{{
+                            (outflow_total-
+                            inflow_total) | abs | indian_number_format }}
                         </td>
-                        {% endif %}
+
                     </tr>
                 </tbody>
             </table>
@@ -158,30 +141,26 @@
         </thead>
         <tbody>
             <tr>
-                <td class="has-text-right"> {{ return_prev_day_closing_balance(display_date,
-                    "investment_closing_balance") | indian_number_format }}</td>
+                <td class="has-text-right"> {{ (prev_daily_sheet.float_amount_investment_closing_balance or 0) |
+                    indian_number_format }}</td>
                 <td class="has-text-right">
-                    {{ get_daily_summary(display_date, "investment_taken") | indian_number_format }}</td>
+                    {{ (daily_sheet.float_amount_taken_from_investments or 0) | indian_number_format }}</td>
                 <td class="has-text-right">
-                    {{ get_daily_summary(display_date, "investment_given") | indian_number_format }}</td>
+                    {{ (daily_sheet.float_amount_given_to_investments or 0) | indian_number_format }}</td>
 
                 <td class="has-text-right">
-                    {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                    "investment_closing_balance") | indian_number_format }}
+                    {{ (daily_sheet.float_amount_investment_closing_balance or 0) | indian_number_format }}
                 </td>
             </tr>
             <tr>
                 <th class="has-text-centered">HDFC Closing balance</th>
                 <td class="has-text-right">
-                    {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                    "hdfc_closing_balance") | indian_number_format }}</td>
-                <th class="has-text-centered">Investment closing balance <small>as on {{ (display_date -
-                        relativedelta(years=1)).strftime("%d/%m/%Y") }}
+                    {{ ( daily_sheet.float_amount_hdfc_closing_balance or 0 ) | indian_number_format }}</td>
+                <th class="has-text-centered">Investment closing balance <small>as on {{
+                        prev_year_date.strftime("%d/%m/%Y") }}
                     </small></th>
-                <td class="has-text-right">{{ (return_prev_day_closing_balance((display_date
-                    + relativedelta(days=1)
-                    - relativedelta(years=1))
-                    , "investment_closing_balance")) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (prev_year_daily_sheet.float_amount_investment_closing_balance or 0) |
+                    indian_number_format }}</td>
 
             </tr>
         </tbody>

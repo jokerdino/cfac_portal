@@ -87,16 +87,17 @@ outflow_amounts = [
 
 
 def get_inflow(input_date, inflow_description=None):
-    query = db.session.query(
-        func.sum(FundBankStatement.credit),
-        func.sum(FundBankStatement.debit),
-        func.sum(FundBankStatement.ledger_balance),
-    ).filter(FundBankStatement.date_uploaded_date == input_date)
+    query = db.select(
+        db.func.sum(FundBankStatement.credit),
+        db.func.sum(FundBankStatement.debit),
+        db.func.sum(FundBankStatement.ledger_balance),
+    ).where(FundBankStatement.date_uploaded_date == input_date)
 
     if inflow_description:
-        query = query.filter(FundBankStatement.flag_description == inflow_description)
+        query = query.where(FundBankStatement.flag_description == inflow_description)
 
-    total_credit, total_debit, total_ledger = query.first() or (0, 0, 0)
+    results = db.session.execute(query).first()
+    total_credit, total_debit, total_ledger = results
 
     # Special handling for balances
     if inflow_description in ("HDFC OPENING BAL", "HDFC CLOSING BAL"):
@@ -106,24 +107,23 @@ def get_inflow(input_date, inflow_description=None):
 
 
 def get_outflow(date, description=None):
-    query = db.session.query(func.sum(FundDailyOutflow.outflow_amount)).filter(
+    query = db.select(db.func.sum(FundDailyOutflow.outflow_amount)).where(
         FundDailyOutflow.outflow_date == date
     )
 
     if description:
-        query = query.filter(FundDailyOutflow.outflow_description == description)
+        query = query.where(FundDailyOutflow.outflow_description == description)
 
-    total_outflow = query.first()[0]  # first() returns a tuple like (sum_value,)
+    total_outflow = db.session.scalar(query)  # .first()
     return total_outflow or 0
 
 
 def get_previous_day_closing_balance_refactored(input_date, requirement):
-    daily_sheet = (
-        db.session.query(FundDailySheet)
-        .filter(FundDailySheet.date_current_date < input_date)
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date < input_date)
         .order_by(FundDailySheet.date_current_date.desc())
-    ).first()
-
+    )
     if not daily_sheet:
         return 0
 
@@ -131,9 +131,9 @@ def get_previous_day_closing_balance_refactored(input_date, requirement):
 
 
 def get_daily_summary_refactored(input_date, requirement):
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == input_date
-    ).first()
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == input_date)
+    )
     if not daily_sheet:
         return 0
 
@@ -167,9 +167,12 @@ def get_inflow_total(date):
 
 
 def get_ibt_details(outflow_description):
-    outflow = FundBankAccountNumbers.query.filter(
-        FundBankAccountNumbers.outflow_description == outflow_description
-    ).first()
+    # TODO: Switch to scalars if possible
+    outflow = db.session.scalar(
+        db.select(FundBankAccountNumbers).where(
+            FundBankAccountNumbers.outflow_description == outflow_description
+        )
+    )
 
     return outflow
 
@@ -262,14 +265,14 @@ def funds_home_data_v2():
     )
 
     count_query = db.select(func.count()).select_from(query.subquery())
-    total_records = db.session.execute(count_query).scalar_one()
+    total_records = db.session.scalar(count_query)
     records_filtered = total_records
 
     start = request.args.get("start", type=int)
     length = request.args.get("length", type=int)
 
     paginated_query = query.offset(start).limit(length)
-    rows = db.session.execute(paginated_query).mappings().all()
+    rows = db.session.execute(paginated_query).mappings()
     data = [dict(row) for row in rows]
 
     return {
@@ -438,9 +441,11 @@ def save_bank_statement_and_credits(df: pd.DataFrame):
 
 
 def create_or_update_daily_sheet(closing_balance_statement):
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == datetime.date.today()
-    ).first()
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(
+            FundDailySheet.date_current_date == datetime.date.today()
+        )
+    )
 
     # if there is no daily sheet created for the day, initiate blank daily sheet
 
@@ -487,9 +492,11 @@ def add_flag(df_bank_statement):
 @fund_managers
 def view_bank_statement(date_string):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    query = FundBankStatement.query.filter(
-        FundBankStatement.date_uploaded_date == param_date
-    ).order_by(FundBankStatement.id)
+    query = db.session.scalars(
+        db.select(FundBankStatement)
+        .where(FundBankStatement.date_uploaded_date == param_date)
+        .order_by(FundBankStatement.id)
+    )
 
     column_names = [
         "date_uploaded_date",
@@ -511,7 +518,9 @@ def view_bank_statement(date_string):
 @login_required
 @fund_managers
 def view_flag_sheet():
-    query = FundFlagSheet.query.order_by(FundFlagSheet.flag_description)
+    query = db.session.scalars(
+        db.select(FundFlagSheet).order_by(FundFlagSheet.flag_description)
+    )
 
     column_names = [
         "flag_description",
@@ -541,7 +550,7 @@ def add_flag_entry():
 @login_required
 @fund_managers
 def edit_flag_entry(flag_id):
-    flag = FundFlagSheet.query.get_or_404(flag_id)
+    flag = db.get_or_404(FundFlagSheet, flag_id)
     form = FlagForm(obj=flag)
     if form.validate_on_submit():
         form.populate_obj(flag)
@@ -556,10 +565,33 @@ def edit_flag_entry(flag_id):
 @fund_managers
 def enter_outflow(date_string):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    daily_sheet, investment_list, list_outgo, flag_description = get_outflow_data(
-        param_date
+    flags = db.select(
+        FundFlagSheet.flag_description.distinct().label("flag_description")
+    ).subquery()
+    inflow = db.session.execute(
+        db.select(
+            flags.c.flag_description.label("flag_description"),
+            db.func.sum(db.func.coalesce(FundBankStatement.credit, 0)).label("amount"),
+        )
+        .select_from(flags)
+        .outerjoin(
+            FundBankStatement,
+            and_(
+                flags.c.flag_description == FundBankStatement.flag_description,
+                FundBankStatement.date_uploaded_date == param_date,
+            ),
+        )
+        .where(
+            flags.c.flag_description.not_in(["HDFC CLOSING BAL", "HDFC OPENING BAL"]),
+        )
+        .group_by(flags.c.flag_description)
+    ).all()
+    daily_sheet, investment_list, list_outgo = get_outflow_data(param_date)
+    prev_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date < param_date)
+        .order_by(FundDailySheet.date_current_date.desc())
     )
-
     DynamicOutflowForm = generate_outflow_form(outflow_labels)
     form = DynamicOutflowForm()
 
@@ -575,8 +607,10 @@ def enter_outflow(date_string):
         display_date=param_date,
         investment_list=investment_list,
         list_outgo=list_outgo,
-        flag_description=flag_description,
+        # flag_description=flag_description,
         daily_sheet=daily_sheet,
+        inflow=inflow,
+        prev_daily_sheet=prev_daily_sheet,
     )
 
 
@@ -588,23 +622,29 @@ def date_or_pending_filter(date_field, status_field, target_date):
 
 
 def get_outflow_data(param_date):
-    daily_sheet = FundDailySheet.query.filter_by(date_current_date=param_date).first()
-
-    investment_list = FundAmountGivenToInvestment.query.filter(
-        date_or_pending_filter(
-            FundAmountGivenToInvestment.date_expected_date_of_return,
-            FundAmountGivenToInvestment.current_status,
-            param_date,
-        )
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
     )
 
-    list_outgo = FundMajorOutgo.query.filter(
-        date_or_pending_filter(
-            FundMajorOutgo.date_of_outgo, FundMajorOutgo.current_status, param_date
+    investment_list = db.session.scalars(
+        db.select(FundAmountGivenToInvestment).where(
+            date_or_pending_filter(
+                FundAmountGivenToInvestment.date_expected_date_of_return,
+                FundAmountGivenToInvestment.current_status,
+                param_date,
+            )
         )
-    )
-    flag_description = db.session.query(FundFlagSheet.flag_description)
-    return daily_sheet, investment_list, list_outgo, flag_description
+    ).all()
+
+    list_outgo = db.session.scalars(
+        db.select(FundMajorOutgo).where(
+            date_or_pending_filter(
+                FundMajorOutgo.date_of_outgo, FundMajorOutgo.current_status, param_date
+            )
+        )
+    ).all()
+
+    return daily_sheet, investment_list, list_outgo
 
 
 def handle_outflow_form_submission(form, param_date, daily_sheet):
@@ -623,19 +663,22 @@ def handle_outflow_form_submission(form, param_date, daily_sheet):
 
 
 def update_given_to_investment_entry(param_date, amount, expected_date):
-    entry = (
-        FundAmountGivenToInvestment.query.filter_by(date_given_to_investment=param_date)
+    # TODO: update queries
+    entry = db.session.scalar(
+        db.select(FundAmountGivenToInvestment)
+        .where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
         .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-        .first()
     )
 
-    total_investment = (
-        db.session.query(
-            func.sum(FundAmountGivenToInvestment.float_amount_given_to_investment)
-        )
-        .filter_by(date_given_to_investment=param_date)
-        .scalar()
-        or 0
+    total_investment = db.session.scalar(
+        db.select(
+            db.func.coalesce(
+                db.func.sum(
+                    FundAmountGivenToInvestment.float_amount_given_to_investment
+                ),
+                0,
+            )
+        ).where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
     )
 
     if not entry:
@@ -674,18 +717,29 @@ def update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given):
 
 
 def populate_outflow_form_data(form, param_date, daily_sheet):
+    # Fetch all outflows for the given date in one query
+    outflow_entries = db.session.scalars(
+        db.select(FundDailyOutflow).where(FundDailyOutflow.outflow_date == param_date)
+    )
+
+    # Build lookup dict: { "item_name": amount }
+    outflow_map = {
+        entry.outflow_description: entry.outflow_amount for entry in outflow_entries
+    }
+
+    # Populate form from the dict (no more DB hits)
     for item in outflow_amounts:
-        form[item].data = get_outflow(param_date, item)
+        form[item].data = outflow_map.get(item, 0)
 
     # form.given_to_investment.data = daily_sheet.float_amount_given_to_investments or 0
     form.given_to_investment.data = (
         getattr(daily_sheet, "float_amount_given_to_investments", 0) or 0
     )
 
-    entry = (
-        FundAmountGivenToInvestment.query.filter_by(date_given_to_investment=param_date)
+    entry = db.session.scalar(
+        db.select(FundAmountGivenToInvestment)
+        .where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
         .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-        .first()
     )
 
     if entry:
@@ -697,18 +751,17 @@ def enable_update(date):
 
 
 def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
-    outflow = (
-        db.session.query(FundDailyOutflow)
-        .filter(
+    outflow = db.session.scalar(
+        db.select(FundDailyOutflow).where(
             (FundDailyOutflow.outflow_date == outflow_date)
             & (FundDailyOutflow.outflow_description == outflow_description)
         )
-        .first()
     )
 
     if not outflow:
         outflow = FundDailyOutflow(
-            outflow_date=outflow_date, outflow_description=outflow_description
+            outflow_date=outflow_date,
+            outflow_description=outflow_description,
         )
 
         db.session.add(outflow)
@@ -720,11 +773,44 @@ def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
 @login_required
 @fund_managers
 def add_remarks(date_string):
-    flag_description = db.session.query(FundFlagSheet.flag_description)
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == param_date
-    ).first()
+    flags = db.select(
+        FundFlagSheet.flag_description.distinct().label("flag_description")
+    ).subquery()
+    inflow = db.session.execute(
+        db.select(
+            flags.c.flag_description.label("flag_description"),
+            db.func.sum(db.func.coalesce(FundBankStatement.credit, 0)).label("amount"),
+        )
+        .select_from(flags)
+        .outerjoin(
+            FundBankStatement,
+            and_(
+                flags.c.flag_description == FundBankStatement.flag_description,
+                FundBankStatement.date_uploaded_date == param_date,
+            ),
+        )
+        .where(
+            flags.c.flag_description.not_in(["HDFC CLOSING BAL", "HDFC OPENING BAL"]),
+        )
+        .group_by(flags.c.flag_description)
+    ).all()
+    outflow = db.session.execute(
+        db.select(
+            FundDailyOutflow.normalized_description,
+            db.func.sum(FundDailyOutflow.outflow_amount).label("amount"),
+        )
+        .where(FundDailyOutflow.outflow_date == param_date)
+        .group_by(FundDailyOutflow.normalized_description)
+    ).all()
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
+    )
+    prev_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date < param_date)
+        .order_by(FundDailySheet.date_current_date.desc())
+    )
     form = DailySummaryForm(obj=daily_sheet)
     if form.validate_on_submit():
         form.populate_obj(daily_sheet)
@@ -742,8 +828,9 @@ def add_remarks(date_string):
         form=form,
         display_date=param_date,
         daily_sheet=daily_sheet,
-        flag_description=flag_description,
-        outflow_items=zip(outflow_labels, outflow_amounts),
+        prev_daily_sheet=prev_daily_sheet,
+        inflow=inflow,
+        outflow=outflow,
     )
 
 
@@ -753,20 +840,96 @@ def add_remarks(date_string):
 def ibt(date_string, pdf="False"):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
 
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == param_date
-    ).first()
-    flag_description = db.session.query(FundFlagSheet.flag_description)
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
+    )
+    prev_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date < param_date)
+        .order_by(FundDailySheet.date_current_date.desc())
+    )
+
+    flags = db.select(
+        FundFlagSheet.flag_description.distinct().label("flag_description")
+    ).subquery()
+    inflow = db.session.execute(
+        db.select(
+            flags.c.flag_description.label("flag_description"),
+            db.literal("HDFC").label("bank_name"),
+            db.literal("RTGS").label("type"),
+            db.literal("").label("account_number"),
+            db.func.sum(db.func.coalesce(FundBankStatement.credit, 0)).label("amount"),
+        )
+        .select_from(flags)
+        .outerjoin(
+            FundBankStatement,
+            and_(
+                flags.c.flag_description == FundBankStatement.flag_description,
+                FundBankStatement.date_uploaded_date == param_date,
+            ),
+        )
+        .where(
+            flags.c.flag_description.not_in(
+                ["Drawn from investment", "HDFC CLOSING BAL", "HDFC OPENING BAL"]
+            ),
+        )
+        .group_by(flags.c.flag_description)
+    ).all()
+
+    outflow_other_than_axis_neft = (
+        db.select(
+            FundDailyOutflow.normalized_description.label("normalized_description"),
+            FundBankAccountNumbers.bank_name,
+            FundBankAccountNumbers.bank_type,
+            FundBankAccountNumbers.bank_account_number,
+            db.func.coalesce(FundDailyOutflow.outflow_amount, 0).label("amount"),
+        )
+        .outerjoin(
+            FundBankAccountNumbers,
+            FundBankAccountNumbers.outflow_description
+            == FundDailyOutflow.normalized_description,
+        )
+        .where(
+            and_(
+                FundDailyOutflow.outflow_date == param_date,
+                FundDailyOutflow.normalized_description.not_in(
+                    ["AXIS NEFT", "MRO1 HEALTH", "TNCMCHIS"]
+                ),
+            )
+        )
+        .order_by(FundDailyOutflow.normalized_description)
+    )
+
+    outflow_axis_neft = db.select(
+        db.literal("AXIS NEFT").label("normalized_description"),
+        db.literal("AXIS").label("bank_name"),
+        db.literal("AXIS NEFT").label("bank_type"),
+        db.literal("914020047605659").label("bank_account_number"),
+        db.func.sum(db.func.coalesce(FundDailyOutflow.outflow_amount, 0)).label(
+            "amount"
+        ),
+    ).where(
+        and_(
+            FundDailyOutflow.outflow_date == param_date,
+            FundDailyOutflow.normalized_description.in_(
+                ["AXIS NEFT", "MRO1 HEALTH", "TNCMCHIS"]
+            ),
+        )
+    )
+
+    outflow = db.session.execute(
+        db.union_all(outflow_other_than_axis_neft, outflow_axis_neft)
+    ).all()
 
     return render_template(
         "ibt.html",
         display_date=param_date,
         datetime=datetime,
         daily_sheet=daily_sheet,
-        outflow_items=zip(outflow_labels, outflow_amounts),
-        right_length=len(outflow_labels),
-        flag_description=flag_description,
+        prev_daily_sheet=prev_daily_sheet,
         pdf=pdf,
+        inflow=inflow,
+        outflow=outflow,
     )
 
 
@@ -775,20 +938,65 @@ def ibt(date_string, pdf="False"):
 @fund_managers
 def daily_summary(date_string, pdf="False"):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    daily_sheet = FundDailySheet.query.filter(
-        FundDailySheet.date_current_date == param_date
-    ).first()
-    flag_description = db.session.query(FundFlagSheet.flag_description)
+    daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
+    )
+    prev_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date < param_date)
+        .order_by(FundDailySheet.date_current_date.desc())
+    )
+
+    prev_year_date = param_date - relativedelta(years=1)
+    prev_year_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet).where(
+            FundDailySheet.date_current_date == prev_year_date
+        )
+    )
+    flags = db.select(
+        FundFlagSheet.flag_description.distinct().label("flag_description")
+    ).subquery()
+    inflow = db.session.execute(
+        db.select(
+            flags.c.flag_description.label("flag_description"),
+            db.func.sum(db.func.coalesce(FundBankStatement.credit, 0)).label("amount"),
+        )
+        .select_from(flags)
+        .outerjoin(
+            FundBankStatement,
+            and_(
+                flags.c.flag_description == FundBankStatement.flag_description,
+                FundBankStatement.date_uploaded_date == param_date,
+            ),
+        )
+        .where(
+            flags.c.flag_description.not_in(
+                ["Drawn from investment", "HDFC CLOSING BAL", "HDFC OPENING BAL"]
+            ),
+        )
+        .group_by(flags.c.flag_description)
+    ).all()
+
+    outflow = db.session.execute(
+        db.select(
+            FundDailyOutflow.normalized_description,
+            db.func.sum(FundDailyOutflow.outflow_amount).label("amount"),
+        )
+        .where(FundDailyOutflow.outflow_date == param_date)
+        .group_by(FundDailyOutflow.normalized_description)
+    ).all()
 
     return render_template(
         "daily_summary.html",
         display_date=param_date,
         datetime=datetime,
         daily_sheet=daily_sheet,
-        outflow_items=zip(outflow_labels, outflow_amounts),
-        right_length=len(outflow_labels),
-        flag_description=flag_description,
+        prev_daily_sheet=prev_daily_sheet,
         pdf=pdf,
+        inflow=inflow,
+        outflow=outflow,
+        prev_year_daily_sheet=prev_year_daily_sheet,
+        prev_year_date=prev_year_date,
     )
 
 
@@ -894,7 +1102,7 @@ def add_major_outgo():
 @login_required
 @fund_managers
 def edit_major_outgo(outgo_id):
-    outgo = FundMajorOutgo.query.get_or_404(outgo_id)
+    outgo = db.get_or_404(FundMajorOutgo, outgo_id)
     form = MajorOutgoForm(obj=outgo)
     if form.validate_on_submit():
         form.populate_obj(outgo)
@@ -908,7 +1116,9 @@ def edit_major_outgo(outgo_id):
 @login_required
 @fund_managers
 def list_outgo():
-    list_outgo = FundMajorOutgo.query.order_by(FundMajorOutgo.date_of_outgo.asc())
+    list_outgo = db.session.scalars(
+        db.select(FundMajorOutgo).order_by(FundMajorOutgo.date_of_outgo.asc())
+    )
 
     return render_template("outgo_list.html", list_outgo=list_outgo)
 
@@ -934,7 +1144,7 @@ def add_amount_given_to_investment():
 @login_required
 @fund_managers
 def edit_amount_given_to_investment(investment_id):
-    investment = FundAmountGivenToInvestment.query.get_or_404(investment_id)
+    investment = db.get_or_404(FundAmountGivenToInvestment, investment_id)
 
     form = AmountGivenToInvestmentForm(obj=investment)
     if form.validate_on_submit():
@@ -950,8 +1160,10 @@ def edit_amount_given_to_investment(investment_id):
 @login_required
 @fund_managers
 def list_amount_given_to_investment():
-    investment_list = FundAmountGivenToInvestment.query.order_by(
-        FundAmountGivenToInvestment.date_expected_date_of_return.asc()
+    investment_list = db.session.scalars(
+        db.select(FundAmountGivenToInvestment).order_by(
+            FundAmountGivenToInvestment.date_expected_date_of_return.asc()
+        )
     )
 
     return render_template("investment_list.html", investment_list=investment_list)
@@ -967,23 +1179,24 @@ def modify_dates():
         old_date = form.existing_date.data
         new_date = form.new_date.data
 
-        bank_statement = FundBankStatement.query.filter(
-            FundBankStatement.date_uploaded_date == old_date
+        bank_stmt = (
+            db.update(FundBankStatement)
+            .where(FundBankStatement.date_uploaded_date == old_date)
+            .values(date_uploaded_date=new_date)
         )
-        daily_outflow = FundDailyOutflow.query.filter(
-            FundDailyOutflow.outflow_date == old_date
+        db.session.execute(bank_stmt)
+        daily_outflow = (
+            db.update(FundDailyOutflow)
+            .where(FundDailyOutflow.outflow_date == old_date)
+            .values(outflow_date=new_date)
         )
-        daily_sheet = FundDailySheet.query.filter(
-            FundDailySheet.date_current_date == old_date
+        db.session.execute(daily_outflow)
+        daily_sheet = (
+            db.update(FundDailySheet)
+            .where(FundDailySheet.date_current_date == old_date)
+            .values(date_current_date=new_date)
         )
-
-        for item in bank_statement:
-            item.date_uploaded_date = new_date
-        for item in daily_outflow:
-            item.outflow_date = new_date
-        for item in daily_sheet:
-            item.date_current_date = new_date
-
+        db.session.execute(daily_sheet)
         db.session.commit()
 
         flash(f"Dates have been changed from {old_date} to {new_date}.")
@@ -999,26 +1212,34 @@ def delete_date():
 
     if form.validate_on_submit():
         delete_date = form.delete_date.data
-        db.session.query(FundBankStatement).filter(
+
+        bank_stmt = db.delete(FundBankStatement).where(
             FundBankStatement.date_uploaded_date == delete_date
-        ).delete()
-        db.session.query(FundDailyOutflow).filter(
+        )
+        daily_outflow = db.delete(FundDailyOutflow).where(
             FundDailyOutflow.outflow_date == delete_date
-        ).delete()
-        db.session.query(FundDailySheet).filter(
+        )
+        daily_sheet = db.delete(FundDailySheet).where(
             FundDailySheet.date_current_date == delete_date
-        ).delete()
+        )
 
-        db.session.query(CoinsuranceReceipts).filter(
-            func.date(CoinsuranceReceipts.created_on) == delete_date
-        ).delete()
-        db.session.query(PoolCredits).filter(
-            func.date(PoolCredits.date_created_date) == delete_date
-        ).delete()
-        db.session.query(PoolCreditsPortal).filter(
-            func.date(PoolCreditsPortal.date_created_date) == delete_date
-        ).delete()
+        db.session.execute(bank_stmt)
+        db.session.execute(daily_outflow)
+        db.session.execute(daily_sheet)
 
+        coinsurance_receipts = db.delete(CoinsuranceReceipts).where(
+            db.func.date(CoinsuranceReceipts.created_on) == delete_date
+        )
+        pool_credits = db.delete(PoolCredits).where(
+            db.func.date(PoolCredits.date_created_date) == delete_date
+        )
+        pool_credits_portal = db.delete(PoolCreditsPortal).where(
+            db.func.date(PoolCreditsPortal.date_created_date) == delete_date
+        )
+
+        db.session.execute(coinsurance_receipts)
+        db.session.execute(pool_credits)
+        db.session.execute(pool_credits_portal)
         db.session.commit()
         flash(f"{delete_date} has been deleted.")
 

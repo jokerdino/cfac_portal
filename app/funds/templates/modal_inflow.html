@@ -2,6 +2,8 @@
     <div class="modal-background"></div>
 
     <div class="modal-content">
+        {% set inflow_total = inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance
+        %}
         <div class="box">
 
             <table class="table is-bordered is-fullwidth">
@@ -12,43 +14,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for flag in flag_description | sort | unique %}
+                    {% for item in inflow %}
                     <tr>
-                        {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS"] %}
-                        <td>{{ flag[0] }}</td>
-
+                        <td>{{ item.flag_description }}</td>
                         <td class="has-text-right">
-
-                            {{ (display_inflow(display_date, flag[0]) or 0) | indian_number_format }}
-
+                            {{ (item.amount or 0) | indian_number_format }}
                         </td>
                     </tr>
-                    {% endif %}
                     {% endfor %}
-                    <tr>
-                        <td>Other receipts</td>
-                        <td class="has-text-right">
 
-                            {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0) | indian_number_format }}
-
-                        </td>
-
-                    </tr>
                     <tr>
                         <td>HDFC OPENING BAL</td>
-                        <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
-                            "hdfc_closing_balance") | indian_number_format }}
-
+                        <td class="has-text-right">{{ ( prev_daily_sheet.float_amount_hdfc_closing_balance or 0) |
+                            indian_number_format }}
                         </td>
                     </tr>
 
-                    {% set inflow_total = get_inflow_total(display_date) %}
                     <tr class="has-text-weight-bold">
                         <td>Total</td>
                         <td class="has-text-right">
-                            {{ (display_inflow(display_date) +
-                            return_prev_day_closing_balance(display_date,
-                            "hdfc_closing_balance")) | indian_number_format }}
+                            {{ (inflow_total or 0) | indian_number_format }}
                         </td>
                     </tr>
 

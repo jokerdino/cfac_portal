@@ -12,15 +12,8 @@
     {% endif %}
     {% endfor %}
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="notification is-danger">
-        <p>{{ message }}</p>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+    {% include "partials/messages.html" %}
+
     <h1 class="title">Enter outflow for {{ display_date.strftime("%d/%m/%Y") }}</h1>
 
     <table class="table is-bordered is-narrow is-fullwidth">
@@ -39,7 +32,7 @@
             <td class="has-text-right" id="pending"></td>
         </tr>
     </table>
-    {% if investment_list.count() > 0 %}
+    {% if investment_list | length > 0 %}
     <table class="table is-bordered is-fullwidth">
         <thead>
             <tr>
@@ -61,7 +54,7 @@
                 <td>{{ item['text_remarks'] }}</td>
                 <td class="has-text-centered">{{ item['current_status'] }}</td>
                 <td class="has-text-centered"><a
-                        href="{{ url_for('funds.edit_amount_given_to_investment', investment_id=item['id'] )}}"
+                        href="{{ url_for('funds.edit_amount_given_to_investment', investment_id=item['id'] ) }}"
                         target="_blank">Edit</a>
                 </td>
             </tr>
@@ -69,7 +62,7 @@
         </tbody>
     </table>
     {% endif %}
-    {% if list_outgo.count() > 0 %}
+    {% if list_outgo | length > 0 %}
 
     <table class="table is-bordered is-fullwidth">
         <thead>
@@ -109,21 +102,23 @@
                     <br />Date of expected return: {{ form.expected_date_of_return }}
                 </th>
                 <td class="has-text-right is-vcentered"><label id="label_given_to_investment"></label></td>
-                <td onkeyup="displayincrores()">{{ form.given_to_investment(class="input") }}</td>
+                <td>{{ form.given_to_investment(class="input amount-input",
+                    onkeyup="displayincrores()") }}</td>
             </tr>
             <tr>
 
-                {% for item in form if (item.widget.input_type != 'hidden' and item.widget.input_type != 'date') %}
+                {% for item in form if (item.widget.input_type not in ['hidden','date']) %}
                 {% if item.id not in ["drawn_from_investment","given_to_investment"] %}
                 <td class="is-vcentered has-text-weight-bold"> {{ item.label }} </td>
                 <td class="has-text-right is-vcentered"><label id="label_{{ item.id }}"></label></td>
-                <td onkeyup="displayincrores()">{{ item(class="input") }} </td>
+                <td>{{ item(class="input amount-input", onkeyup="displayincrores()") }}
+                </td>
             </tr>
 
             {% endif %}
             {% endfor %}
         </table>
-        <div class="has-text-centered">
+        <div class="has-text-centered mb-5">
             {% if enable_update(display_date) %}
             <a class="button" href='{{ url_for("funds.view_bank_statement", date_string=display_date.strftime("%d%m%Y") )
                 }}'>View bank statement</a>
@@ -151,21 +146,28 @@
     });
 
     $(document).ready(function () {
+        updateOutflowTotals();
         displayincrores();
     });
 
+    function updateOutflowTotals() {
+        let totalOutflow = 0;
+        const inputs = document.querySelectorAll(".amount-input");
 
+        inputs.forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            const label = document.getElementById(`label_${input.id}`);
+            if (label) label.innerText = (value / 10000000).toFixed(2) + " cr";
+            totalOutflow += value;
+        });
+
+        const totalLabel = document.getElementById("total_outflow");
+        if (totalLabel) totalLabel.innerText = (totalOutflow / 10000000).toFixed(2) + " cr";
+
+        return totalOutflow
+    }
     function displayincrores() {
-        var totalOutflow = 0;
-        {% for item in form if (item.widget.input_type != 'hidden' and item.widget.input_type != 'date') %}
-
-        document.getElementById("label_{{item.id}}").innerText = parseFloat(document.getElementById("{{ item.id }}").value / 10000000).toFixed(2) + " cr";
-        //console.log(totalOutflow);
-        totalOutflow += parseFloat(document.getElementById("{{ item.id }}").value);
-        //console.log(parseFloat(document.getElementById("{{ item.id }}").value));
-        //console.log(parseFloat(document.getElementById("{{ item.id }}").value || 0));
-
-        {% endfor %}
+        var totalOutflow = updateOutflowTotals();
         const formatter = new Intl.NumberFormat('en-IN', {
             //style: 'currency',
             currency: 'INR',
@@ -176,7 +178,8 @@
         //totalOutflow = totalOutflow - parseFloat(document.getElementById("drawn_from_investment").value);
         document.getElementById("outflow").innerText = formatter.format(totalOutflow);
 
-        inflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'hdfc_closing_balance') }}";
+        let inflow = parseFloat("{{ inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance }}") || 0;
+
         document.getElementById("inflow").innerText = formatter.format(inflow);
         document.getElementById("pending").innerText = formatter.format(inflow - totalOutflow);
 
@@ -188,7 +191,6 @@
             document.getElementById("submit").disabled = false;
         }
     }
-
 
 </script>
 

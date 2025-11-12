@@ -4,6 +4,7 @@
 
 <div class="container">
     <h1 class="title">Add remarks for {{ display_date.strftime("%d/%m/%Y") }}</h1>
+
     <form method="post">
         {{ form.csrf_token }}
         <table class="table is-bordered is-fullwidth">
@@ -65,16 +66,15 @@
         //trailingZeroDisplay: 'stripIfInteger'
     });
 
-    amountInflow = "{{ display_inflow(display_date) + return_prev_day_closing_balance(display_date, 'hdfc_closing_balance') }}";
+
+    let amountInflow = parseFloat("{{ inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance }}") || 0;
+    let amountOutflow = parseFloat("{{ outflow | sum(attribute='amount') }}")
 
     document.getElementById("inflow").innerText = formatter.format(amountInflow);
-    amountOutflow = "{{ display_outflow(display_date) }}";
     document.getElementById("outflow").innerText = formatter.format(amountOutflow);
 
-    // amountInvestmentDrawn = "{{ get_daily_summary(display_date, 'investment_taken') }}";
-    //document.getElementById("investment_drawn").innerText = formatter.format(amountInvestmentDrawn);
 
-    amountInvestmentGiven = "{{ get_daily_summary(display_date, 'investment_given') }}";
+    amountInvestmentGiven = parseFloat("{{ daily_sheet.float_amount_given_to_investment or 0 }}");
     document.getElementById("investment_given").innerText = formatter.format(amountInvestmentGiven);
 
 

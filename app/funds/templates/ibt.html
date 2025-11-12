@@ -12,6 +12,10 @@
 {% endif %}
 
 {% block content %}
+{% set outflow_total = outflow | sum(attribute="amount") %}
+{% set inflow_total = inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance
+%}
+
 <div class="container">
     {% if pdf == "False" %}
     <div class="has-text-right">
@@ -22,7 +26,6 @@
 
     <h1 class="title has-text-centered">UNITED INDIA INSURANCE COMPANY LIMITED</h1>
     <h1 class="is-size-4 title">INTER BANK TRANSFER OF FUNDS for {{ display_date.strftime("%d/%m/%Y (%A)") }}</h1>
-
     <h3 class="is-size-4 has-text-weight-bold has-text-centered">Collections</h3>
     <table class="table is-bordered is-narrow is-fullwidth">
         <thead>
@@ -35,42 +38,21 @@
             </tr>
         </thead>
         <tbody>
-            {% for flag in flag_description | sort | unique %}
+            {% for item in inflow %}
             <tr>
-                {% if flag[0] not in ["HDFC OPENING BAL","HDFC CLOSING BAL", "OTHER RECEIPTS", "Drawn from investment"]
-                %}
-                <td>{{ flag[0] }}</td>
-                <td>HDFC</td>
-                <td>RTGS</td>
-                <td></td>
-
-                <td class="has-text-right">
-
-                    {{ (display_inflow(display_date, flag[0]) or 0) | indian_number_format }}
-
-                </td>
+                <td>{{ item.flag_description }}</td>
+                <td>{{ item.bank_name }}</td>
+                <td>{{ item.type }}</td>
+                <td>{{ item.account_number }}</td>
+                <td class="has-text-right">{{ (item.amount or 0) | indian_number_format }}</td>
             </tr>
-            {% endif %}
-            {% endfor %}
-            <tr>
-                <td>Other receipts</td>
-                <td>HDFC</td>
-                <td>RTGS</td>
-                <td></td>
-                <td class="has-text-right">
-
-                    {{ (display_inflow(display_date, "OTHER RECEIPTS") or 0)| indian_number_format }}
-
-                </td>
-
-            </tr>
-            <tr>
+            {% endfor %} <tr>
                 <td>HDFC OPENING BAL</td>
                 <td>HDFC</td>
                 <td></td>
                 <td></td>
-                <td class="has-text-right">{{ return_prev_day_closing_balance(display_date,
-                    "hdfc_closing_balance") | indian_number_format }}
+                <td class="has-text-right">{{ prev_daily_sheet.float_amount_hdfc_closing_balance | indian_number_format
+                    }}
                 </td>
             </tr>
             <tr>
@@ -78,8 +60,8 @@
                 <td>HDFC</td>
                 <td>RTGS</td>
                 <td></td>
-                <td class="has-text-right">{{ get_daily_summary(display_date,
-                    "investment_taken") | indian_number_format }}</td>
+                <td class="has-text-right">{{ daily_sheet.float_amount_taken_from_investments | indian_number_format }}
+                </td>
             </tr>
 
             <tr>
@@ -88,14 +70,11 @@
                 <td></td>
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
-                    {{ (display_inflow(display_date) + return_prev_day_closing_balance(display_date,
-                    "hdfc_closing_balance")) | indian_number_format }}
+                    {{ inflow_total| indian_number_format }}
                 </td>
             </tr>
-
         </tbody>
     </table>
-
     <h3 class="is-size-4 has-text-centered has-text-weight-bold">Payments</h3>
     <table class="table is-bordered is-narrow is-fullwidth">
         <thead>
@@ -108,40 +87,23 @@
             </tr>
         </thead>
         <tbody>
-            {% for label, item in outflow_items | sort %}
+            {% for item in outflow %}
             <tr>
-                {% if label not in ["AXIS NEFT","MRO1 HEALTH","TNCMCHIS"] %}
-                <td>{{ label }}</td>
-                <td> {{ get_ibt_details(label)["bank_name"] or "" }}</td>
-                <td> {{ get_ibt_details(label)["bank_type"] or "" }}</td>
-                <td class="has-text-right"> {{ get_ibt_details(label)["bank_account_number"] or "" }}</td>
-                <td class="has-text-right">
-
-                    {{ (display_outflow(display_date, item) or 0) | indian_number_format }}
-
-                    {% endif %}
-                </td>
+                <td> {{ item.normalized_description }}</td>
+                <td> {{ item.bank_name or "" }}</td>
+                <td> {{ item.bank_type or "" }}</td>
+                <td class="has-text-right"> {{ item.bank_account_number or "" }}</td>
+                <td class="has-text-right"> {{ (item.amount or 0 ) | indian_number_format }}</td>
             </tr>
             {% endfor %}
-            <tr>
-                <td>AXIS NEFT</td>
-                <td>{{ get_ibt_details("AXIS NEFT")["bank_name"] }}</td>
-                <td>{{ get_ibt_details("AXIS NEFT")["bank_type"] }}</td>
-                <td class="has-text-right">{{ get_ibt_details("AXIS NEFT")["bank_account_number"] }}</td>
-                <td class="has-text-right">
-
-                    {{ (display_outflow(display_date, "amount_axis_neft") +
-                    display_outflow(display_date, "amount_mro1_health") + display_outflow(display_date,
-                    "amount_tncmchis")) | indian_number_format }}
-                </td>
-            </tr>
             <tr>
                 <td>Investment</td>
                 <td>HDFC</td>
                 <td>Book transfer</td>
                 <td class="has-text-right">00040350000860</td>
-                <td class="has-text-right">{{ (get_daily_summary(display_date,
-                    "investment_given")) | indian_number_format }}</td>
+                <td class="has-text-right">{{ (daily_sheet.float_amount_given_to_investments or 0) |
+                    indian_number_format
+                    }}</td>
             </tr>
             <tr>
                 <td class="has-text-weight-bold">Total</td>
@@ -150,12 +112,12 @@
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
 
-                    {{ ((display_outflow(display_date) or 0) + get_daily_summary(display_date,
-                    "investment_given"))| indian_number_format }}
+                    {{ ((outflow_total | float) + (daily_sheet.float_amount_given_to_investments| float or 0))|
+                    indian_number_format
+                    }}
 
                 </td>
             </tr>
-
         </tbody>
     </table>
 
@@ -167,8 +129,7 @@
                     <tr>
                         <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
                         <td class="has-text-right has-text-weight-bold">
-                            {{ return_prev_day_closing_balance((display_date + relativedelta(days=1)),
-                            "hdfc_closing_balance") | indian_number_format }}</td>
+                            {{ daily_sheet.float_amount_hdfc_closing_balance | indian_number_format }}</td>
                     </tr>
                 </tbody>
             </table>
