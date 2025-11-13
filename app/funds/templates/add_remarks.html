@@ -74,7 +74,7 @@
     document.getElementById("outflow").innerText = formatter.format(amountOutflow);
 
 
-    amountInvestmentGiven = parseFloat("{{ daily_sheet.float_amount_given_to_investment or 0 }}");
+    amountInvestmentGiven = parseFloat("{{ daily_sheet.float_amount_given_to_investments or 0 }}");
     document.getElementById("investment_given").innerText = formatter.format(amountInvestmentGiven);
 
 

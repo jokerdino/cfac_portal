@@ -5,25 +5,15 @@ import uuid
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 from flask import (
-    abort,
-    current_app,
     flash,
     redirect,
     render_template,
     request,
-    send_from_directory,
     url_for,
 )
 from flask_login import current_user, login_required
 from sqlalchemy import (
-    String,
-    case,
-    cast,
-    #    create_engine,
-    distinct,
     func,
-    text,
-    union,
     or_,
     and_,
 )
@@ -33,13 +23,9 @@ from app.funds.funds_form import (
     AmountGivenToInvestmentForm,
     DailySummaryForm,
     FlagForm,
-    FundsJVForm,
     FundsModifyDatesForm,
     MajorOutgoForm,
-    #    OutflowForm,
-    ReportsForm,
     UploadFileForm,
-    JVFlagAddForm,
     FundsDeleteForm,
     generate_outflow_form,
 )
@@ -60,7 +46,7 @@ from app.pool_credits.pool_credits_portal import prepare_dataframe
 from .funds_jv import filter_unidentified_credits
 from extensions import db
 
-from set_view_permissions import admin_required, fund_managers
+from set_view_permissions import fund_managers
 
 outflow_labels = [
     "CITI HEALTH",
@@ -114,7 +100,7 @@ def get_outflow(date, description=None):
     if description:
         query = query.where(FundDailyOutflow.outflow_description == description)
 
-    total_outflow = db.session.scalar(query)  # .first()
+    total_outflow = db.session.scalar(query)
     return total_outflow or 0
 
 
@@ -131,9 +117,7 @@ def get_previous_day_closing_balance_refactored(input_date, requirement):
 
 
 def get_daily_summary_refactored(input_date, requirement):
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == input_date)
-    )
+    daily_sheet = get_daily_sheet(input_date)
     if not daily_sheet:
         return 0
 
@@ -167,7 +151,6 @@ def get_inflow_total(date):
 
 
 def get_ibt_details(outflow_description):
-    # TODO: Switch to scalars if possible
     outflow = db.session.scalar(
         db.select(FundBankAccountNumbers).where(
             FundBankAccountNumbers.outflow_description == outflow_description
@@ -441,12 +424,7 @@ def save_bank_statement_and_credits(df: pd.DataFrame):
 
 
 def create_or_update_daily_sheet(closing_balance_statement):
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(
-            FundDailySheet.date_current_date == datetime.date.today()
-        )
-    )
-
+    daily_sheet = get_daily_sheet(datetime.date.today())
     # if there is no daily sheet created for the day, initiate blank daily sheet
 
     if not daily_sheet:
@@ -607,7 +585,6 @@ def enter_outflow(date_string):
         display_date=param_date,
         investment_list=investment_list,
         list_outgo=list_outgo,
-        # flag_description=flag_description,
         daily_sheet=daily_sheet,
         inflow=inflow,
         prev_daily_sheet=prev_daily_sheet,
@@ -621,10 +598,15 @@ def date_or_pending_filter(date_field, status_field, target_date):
     )
 
 
-def get_outflow_data(param_date):
+def get_daily_sheet(input_date):
     daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
+        db.select(FundDailySheet).where(FundDailySheet.date_current_date == input_date)
     )
+    return daily_sheet
+
+
+def get_outflow_data(param_date):
+    daily_sheet = get_daily_sheet(param_date)
 
     investment_list = db.session.scalars(
         db.select(FundAmountGivenToInvestment).where(
@@ -663,7 +645,6 @@ def handle_outflow_form_submission(form, param_date, daily_sheet):
 
 
 def update_given_to_investment_entry(param_date, amount, expected_date):
-    # TODO: update queries
     entry = db.session.scalar(
         db.select(FundAmountGivenToInvestment)
         .where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
@@ -803,9 +784,7 @@ def add_remarks(date_string):
         .where(FundDailyOutflow.outflow_date == param_date)
         .group_by(FundDailyOutflow.normalized_description)
     ).all()
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
-    )
+    daily_sheet = get_daily_sheet(param_date)
     prev_daily_sheet = db.session.scalar(
         db.select(FundDailySheet)
         .where(FundDailySheet.date_current_date < param_date)
@@ -840,9 +819,7 @@ def add_remarks(date_string):
 def ibt(date_string, pdf="False"):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
 
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
-    )
+    daily_sheet = get_daily_sheet(param_date)
     prev_daily_sheet = db.session.scalar(
         db.select(FundDailySheet)
         .where(FundDailySheet.date_current_date < param_date)
@@ -938,9 +915,7 @@ def ibt(date_string, pdf="False"):
 @fund_managers
 def daily_summary(date_string, pdf="False"):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == param_date)
-    )
+    daily_sheet = get_daily_sheet(param_date)
     prev_daily_sheet = db.session.scalar(
         db.select(FundDailySheet)
         .where(FundDailySheet.date_current_date < param_date)
@@ -948,11 +923,7 @@ def daily_summary(date_string, pdf="False"):
     )
 
     prev_year_date = param_date - relativedelta(years=1)
-    prev_year_daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(
-            FundDailySheet.date_current_date == prev_year_date
-        )
-    )
+    prev_year_daily_sheet = get_daily_sheet(prev_year_date)
     flags = db.select(
         FundFlagSheet.flag_description.distinct().label("flag_description")
     ).subquery()
