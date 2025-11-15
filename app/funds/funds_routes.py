@@ -859,7 +859,9 @@ def ibt(date_string, pdf="False"):
             FundBankAccountNumbers.bank_name,
             FundBankAccountNumbers.bank_type,
             FundBankAccountNumbers.bank_account_number,
-            db.func.coalesce(FundDailyOutflow.outflow_amount, 0).label("amount"),
+            db.func.coalesce(db.func.sum(FundDailyOutflow.outflow_amount), 0).label(
+                "amount"
+            ),
         )
         .outerjoin(
             FundBankAccountNumbers,
@@ -874,6 +876,12 @@ def ibt(date_string, pdf="False"):
                 ),
             )
         )
+        .group_by(
+            FundDailyOutflow.normalized_description,
+            FundBankAccountNumbers.bank_name,
+            FundBankAccountNumbers.bank_type,
+            FundBankAccountNumbers.bank_account_number,
+        )
         .order_by(FundDailyOutflow.normalized_description)
     )
 
@@ -882,7 +890,7 @@ def ibt(date_string, pdf="False"):
         db.literal("AXIS").label("bank_name"),
         db.literal("AXIS NEFT").label("bank_type"),
         db.literal("914020047605659").label("bank_account_number"),
-        db.func.sum(db.func.coalesce(FundDailyOutflow.outflow_amount, 0)).label(
+        db.func.coalesce(db.func.sum(FundDailyOutflow.outflow_amount), 0).label(
             "amount"
         ),
     ).where(
@@ -893,7 +901,6 @@ def ibt(date_string, pdf="False"):
             ),
         )
     )
-
     outflow = db.session.execute(
         db.union_all(outflow_other_than_axis_neft, outflow_axis_neft)
     ).all()
@@ -923,7 +930,11 @@ def daily_summary(date_string, pdf="False"):
     )
 
     prev_year_date = param_date - relativedelta(years=1)
-    prev_year_daily_sheet = get_daily_sheet(prev_year_date)
+    prev_year_daily_sheet = db.session.scalar(
+        db.select(FundDailySheet)
+        .where(FundDailySheet.date_current_date <= prev_year_date)
+        .order_by(FundDailySheet.date_current_date.desc())
+    )
     flags = db.select(
         FundFlagSheet.flag_description.distinct().label("flag_description")
     ).subquery()

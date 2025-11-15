@@ -13,8 +13,8 @@
 
 {% block content %}
 {% set outflow_total = outflow | sum(attribute="amount") %}
-{% set inflow_total = inflow | sum(attribute='amount') + prev_daily_sheet.float_amount_hdfc_closing_balance
-%}
+{% set inflow_total = (inflow | sum(attribute='amount') | float) + ((prev_daily_sheet.float_amount_hdfc_closing_balance
+or 0 )| float ) + ((daily_sheet.float_amount_taken_from_investments or 0) | float) %}
 
 <div class="container">
     {% if pdf == "False" %}
@@ -51,7 +51,8 @@
                 <td>HDFC</td>
                 <td></td>
                 <td></td>
-                <td class="has-text-right">{{ prev_daily_sheet.float_amount_hdfc_closing_balance | indian_number_format
+                <td class="has-text-right">{{ (prev_daily_sheet.float_amount_hdfc_closing_balance or 0) |
+                    indian_number_format
                     }}
                 </td>
             </tr>
@@ -60,7 +61,8 @@
                 <td>HDFC</td>
                 <td>RTGS</td>
                 <td></td>
-                <td class="has-text-right">{{ daily_sheet.float_amount_taken_from_investments | indian_number_format }}
+                <td class="has-text-right">{{ (daily_sheet.float_amount_taken_from_investments or 0) |
+                    indian_number_format }}
                 </td>
             </tr>
 
@@ -70,7 +72,7 @@
                 <td></td>
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
-                    {{ inflow_total| indian_number_format }}
+                    {{ inflow_total | indian_number_format }}
                 </td>
             </tr>
         </tbody>
@@ -112,7 +114,7 @@
                 <td></td>
                 <td class="has-text-weight-bold has-text-right">
 
-                    {{ ((outflow_total | float) + (daily_sheet.float_amount_given_to_investments| float or 0))|
+                    {{ ((outflow_total | float) + (daily_sheet.float_amount_given_to_investments or 0) | float )|
                     indian_number_format
                     }}
 
@@ -129,7 +131,7 @@
                     <tr>
                         <td class="has-text-centered has-text-weight-bold">HDFC Closing balance</td>
                         <td class="has-text-right has-text-weight-bold">
-                            {{ daily_sheet.float_amount_hdfc_closing_balance | indian_number_format }}</td>
+                            {{ (daily_sheet.float_amount_hdfc_closing_balance or 0)| indian_number_format }}</td>
                     </tr>
                 </tbody>
             </table>
