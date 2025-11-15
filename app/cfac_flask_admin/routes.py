@@ -39,6 +39,7 @@ from app.coinsurance.coinsurance_model import (
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
+from app.correspondence.models import Circular, OutwardDocument, InwardDocument
 from app.escalation_matrix.models import EscalationMatrix
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
@@ -97,6 +98,7 @@ admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="BRS_CC", parent_name="BRS_CC")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
+admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
@@ -292,6 +294,18 @@ admin.add_view(ModelView(Contacts, db.session, endpoint="contacts_"))
 # contracts
 admin.add_view(ModelView(Contracts, db.session, endpoint="contracts_"))
 
+# Correspondence
+admin.add_view(
+    ModelView(Circular, db.session, endpoint="circular_", category="Correspondence")
+)
+admin.add_view(
+    ModelView(InwardDocument, db.session, endpoint="inward_", category="Correspondence")
+)
+admin.add_view(
+    ModelView(
+        OutwardDocument, db.session, endpoint="outward_", category="Correspondence"
+    )
+)
 # escalation matrix
 admin.add_view(ModelView(EscalationMatrix, db.session, endpoint="em_"))
 # funds
