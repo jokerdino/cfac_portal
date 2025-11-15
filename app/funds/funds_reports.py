@@ -50,8 +50,8 @@ def funds_reports():
         if outflow:
             outflow_query = db.select(
                 FundDailyOutflow.outflow_date,
-                FundDailyOutflow.outflow_description,
-                FundDailyOutflow.outflow_description,
+                FundDailyOutflow.normalized_description,
+                FundDailyOutflow.normalized_description,
                 db.cast(FundDailyOutflow.outflow_amount, db.String),
                 db.literal("Outflow"),
             ).where(
