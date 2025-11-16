@@ -564,9 +564,8 @@ def leave_encashment_add(employee_number):
 @leave_managers
 def leave_balance_open_list():
     form = LeaveBalanceCloseForm()
-    list = db.session.scalars(
-        db.select(LeaveBalance).where(LeaveBalance.current_status == "Open")
-    )
+    query = db.session.execute(calculate_earned_leave_subquery(date.today()))
+
     if form.validate_on_submit():
         list_leave_balance_keys = request.form.getlist("leave_balance_keys")
         list_leave_balance_keys = [int(key) for key in list_leave_balance_keys]
@@ -577,7 +576,7 @@ def leave_balance_open_list():
         flash("Leave balance has been closed for selected employees.")
         return redirect(url_for(".leave_balance_open_list"))
     return render_template(
-        "leave_balance_close_list.html", list=list, form=form, today=date.today()
+        "leave_balance_close_list.html", list=query, form=form, today=date.today()
     )
 
 
@@ -1043,6 +1042,83 @@ def get_leave_encashment_days(leave_balance, calculation_date):
     return 0
 
 
+def calculate_earned_leave_subquery(end_date):
+    total_days = (
+        (db.bindparam("end_date") - LeaveBalance.opening_balance_date) + 1
+    ).label("total_days")
+    case_leave_encashment = case(
+        (
+            LeaveBalance.date_of_leave_encashment <= end_date,
+            LeaveBalance.leave_encashment_days,
+        ),
+        else_=0,
+    ).label("leave_encashment_days")
+    case_earned_leave_taken = db.func.sum(
+        case(
+            (
+                and_(
+                    LeaveApplication.type_of_leave == "Privilege leave",
+                    LeaveApplication.start_date >= LeaveBalance.opening_balance_date,
+                    LeaveApplication.start_date <= end_date,
+                    LeaveApplication.current_status != "Deleted",
+                ),
+                (LeaveApplication.number_of_days_leave),
+            ),
+            else_=0,
+        )
+    ).label("earned_leave_taken")
+    case_off_duty_days = db.func.sum(
+        case(
+            (
+                and_(
+                    LeaveApplication.start_date >= LeaveBalance.opening_balance_date,
+                    LeaveApplication.start_date <= end_date,
+                    LeaveApplication.current_status != "Deleted",
+                ),
+                (LeaveApplication.number_of_days_off_duty),
+            ),
+            else_=0,
+        )
+    ).label("off_duty_days")
+    case_on_duty_days = (total_days - case_off_duty_days).label("on_duty_days")
+    query = (
+        db.select(
+            LeaveBalance.id,
+            LeaveBalance.calendar_year,
+            LeaveBalance.employee_name,
+            LeaveBalance.employee_number,
+            LeaveBalance.current_status,
+            LeaveBalance.current_casual_leave_balance,
+            LeaveBalance.current_sick_leave_balance,
+            LeaveBalance.current_rh_balance,
+            db.func.least(
+                LeaveBalance.opening_privileged_leave_balance
+                - case_earned_leave_taken
+                - case_leave_encashment
+                + (case_on_duty_days / 11),
+                270.0,
+            ).label("current_earned_leave_balance"),
+        )
+        .join(
+            LeaveApplication,
+            LeaveBalance.employee_number == LeaveApplication.employee_number,
+        )
+        .where(LeaveBalance.current_status == "Open")
+    ).group_by(
+        LeaveBalance.id,
+        LeaveBalance.calendar_year,
+        LeaveBalance.employee_name,
+        LeaveBalance.employee_number,
+        LeaveBalance.current_status,
+        LeaveBalance.current_casual_leave_balance,
+        LeaveBalance.current_sick_leave_balance,
+        LeaveBalance.current_rh_balance,
+        LeaveBalance.opening_privileged_leave_balance,
+        case_leave_encashment,
+    )
+    return query.params(end_date=end_date)
+
+
 def calculate_earned_leave(employee_number: int, date_of_calculation: date) -> float:
     """Calculate the earned leave balance of an employee as of a given date."""
 
@@ -1068,7 +1144,7 @@ def calculate_earned_leave(employee_number: int, date_of_calculation: date) -> f
         opening_earned_leave_balance
         - earned_leave_taken
         - leave_encashment
-        + on_duty_days / 11
+        + (on_duty_days / 11)
     )
 
     return min(closing_earned_leave_balance, 270)
