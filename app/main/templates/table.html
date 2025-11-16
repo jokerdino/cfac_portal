@@ -3,7 +3,7 @@
         <tr>
             {% for name, col in table.columns %}
             <th class="text-center">
-                {{ col.header }}
+                {{ col.header.upper() }}
                 {# <a href="{{ table.sort_url(name, 'asc') }}">↑</a>
                 <a href="{{ table.sort_url(name, 'desc') }}">↓</a> #}
             </th>

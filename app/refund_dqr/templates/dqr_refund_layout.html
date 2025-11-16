@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | {% block title %}DQR Refund{% endblock title %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.css') }}" />
+
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-custom" data-bs-theme="light">
+            <div class="container-fluid">
+
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="nav-link" href="{{ url_for('.dqr_refund_list') }}">DQR refund home</a>
+                    <a class="nav-link" href="{{ url_for('.dqr_refund_add') }}">Add new DQR refund entry</a>
+
+                    {% if current_user.user_type == "admin" %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            DQR machines data
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_list') }}">List of DQR
+                                    machines</a></li>
+
+                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_add') }}">Add new DQR
+                                    machine</a></li>
+                            <li>
+                                <hr class="dropdown-divider" />
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_bulk_upload') }}">Bulk Upload
+                                    DQR
+                                    machines</a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                    {% endif %}
+                </div>
+                {% if not current_user.is_authenticated %}
+
+                <div class="navbar-nav">
+                    <a class="nav-link" href="{{ url_for('users.login_page') }}">Login</a>
+                    {% else %}
+                    <a class="nav-link disabled" tabindex="-1" href="">{{ current_user.username.upper() }}</a>
+                    <a class="nav-link ms-3" href="{{ url_for('users.logout_page') }}">Log out</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid mt-5">
+
+        {% if current_user.is_authenticated %}
+        {% block content %}{% endblock content %}
+        {% endif %}
+    </div>
+
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.js') }}"></script>
+
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

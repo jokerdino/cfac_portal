@@ -1,9 +1,10 @@
 import math
 
-
+import sqlalchemy
 from sqlalchemy.inspection import inspect
 from flask import request, url_for, render_template
-from markupsafe import Markup
+
+from extensions import db
 
 
 class Column:
@@ -58,10 +59,14 @@ class Table:
         self.order = request.args.get("order", "asc")
 
         # Detect model & query
-        if hasattr(model_or_query, "all") or hasattr(model_or_query, "count"):
-            # SQLAlchemy Query
+        # if hasattr(model_or_query, "all") or hasattr(model_or_query, "count"):
+        #     # SQLAlchemy Query
+        #     self.model = model_or_query.column_descriptions[0]["entity"]
+        #     self.query = model_or_query
+        if isinstance(model_or_query, sqlalchemy.sql.Select):
             self.model = model_or_query.column_descriptions[0]["entity"]
-            self.query = model_or_query
+
+            self.query = db.session.scalars(model_or_query)  # .scalars()
         else:
             # SQLAlchemy Model
             self.model = model_or_query
@@ -85,30 +90,37 @@ class Table:
         self.columns = cols + (extra_columns or [])
 
         # Apply query sorting/pagination
+
         self._process_query()
 
     def _process_query(self):
         query = self.query
+        self.data = query.all()
 
-        # Sorting
-        if self.sort_by and self.sort_by in [name for name, _ in self.columns]:
-            col_attr = getattr(self.model, self.sort_by)
-            if self.order == "desc":
-                query = query.order_by(col_attr.desc())
-            else:
-                query = query.order_by(col_attr.asc())
+    #     # Sorting
+    #     if self.sort_by and self.sort_by in [name for name, _ in self.columns]:
+    #         col_attr = getattr(self.model, self.sort_by)
+    #         if self.order == "desc":
+    #             query = query.order_by(col_attr.desc())
+    #         else:
+    #             query = query.order_by(col_attr.asc())
 
-        # Pagination
-        if self.paginate:
-            self.total = query.count()
-            self.pages = math.ceil(self.total / self.per_page)
-            self.data = (
-                query.limit(self.per_page).offset((self.page - 1) * self.per_page).all()
-            )
-        else:
-            self.total = query.count()
-            self.pages = 1
-            self.data = query.all()
+    #     # Pagination
+    #     if self.paginate:
+    #         self.total = query.count()
+    #         self.pages = math.ceil(self.total / self.per_page)
+    #         self.data = (
+    #             query.limit(self.per_page).offset((self.page - 1) * self.per_page).all()
+    #         )
+    #     else:
+    #         if query_stmt:
+    #             self.total = db.session.scalar(
+    #                 db.select(db.func.count()).select_from(query_stmt.subquery())
+    #             )
+    #         else:
+    #             self.total = query.count()
+    #         self.pages = 1
+    #         self.data = query.all()
 
     # Helpers for templates
     def sort_url(self, column, order="asc"):

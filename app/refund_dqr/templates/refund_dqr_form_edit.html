@@ -1,0 +1,113 @@
+{% extends "dqr_refund_layout.html" %}
+{% block content %}
+
+{% include "partials/bootstrap_alerts.html" %}
+{% include "partials/bootstrap_errors.html" %}
+<div class="container">
+    <h1 class="title mb-3">{{ title }}</h1>
+    {% from "bootstrap_macros.html" import render_field_horizontal %}
+    <form method="post" class="form-horizontal" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
+        {% if field.name == "office_code" %}
+        <div id="office_code_container">
+            {{ render_field_horizontal(field) }}
+        </div>
+        {% else %}
+        {{ render_field_horizontal(field) }}
+        {% endif %}
+        {% endfor %}
+        <div class="row mb-3">
+            <div class="col-sm-9 offset-sm-3">
+                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="reset" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </form>
+
+</div>
+{% block scripts %}
+
+{% if fetch %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const refundAmount = document.getElementById("refund_amount");
+        const txnAmount = document.getElementById("txn_amt");
+        refundAmount.addEventListener("blur", function () {
+            txnAmount.value = refundAmount.value;
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const roSelect = document.getElementById("ro_code");
+        const ooSelect = document.getElementById("office_code");
+
+        // Use url_for — server renders this to a proper URL
+        const fetchOoUrl = "{{ url_for('.fetch_oo_code') }}";
+
+        roSelect.addEventListener("change", function () {
+            const roCode = roSelect.value;
+
+            if (!roCode) return;
+            // Build the URL dynamically
+            const url = `${fetchOoUrl}?ro_code=${encodeURIComponent(roCode)}`;
+
+            // Call your Flask endpoint to get OO code choices
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Clear existing options
+                    ooSelect.innerHTML = "";
+
+                    // Add placeholder
+                    const placeholder = document.createElement("option");
+                    placeholder.value = "";
+                    placeholder.textContent = "Select OO Code";
+                    ooSelect.appendChild(placeholder);
+
+                    // Add new options
+                    data.forEach(item => {
+                        const opt = document.createElement("option");
+                        opt.value = item.value;
+                        opt.textContent = item.label;
+                        ooSelect.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error("Error fetching OO code:", err));
+        });
+    });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const ooSelect = document.getElementById("office_code");
+
+        const deviceSerialNumberInput = document.getElementById("device_serial_number");
+        const midInput = document.getElementById("mid");
+        const tidInput = document.getElementById("tid");
+
+        const fetchMachineDetailsUrl = "{{ url_for('.fetch_machine_details') }}";
+
+        ooSelect.addEventListener("change", function () {
+            const ooCode = ooSelect.value;
+
+            if (!ooCode) return;
+
+            const url = `${fetchMachineDetailsUrl}?office_code=${encodeURIComponent(ooCode)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Update fields
+                    deviceSerialNumberInput.value = data.device_serial_number || "";
+                    midInput.value = data.mid || "";
+                    tidInput.value = data.tid || "";
+                })
+                .catch(err => console.error("Error fetching machine details:", err));
+        });
+    });
+</script>
+{% endif %}
+{% endblock scripts %}
+{% endblock content %}

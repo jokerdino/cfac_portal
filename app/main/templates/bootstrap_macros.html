@@ -37,16 +37,16 @@ show_errors=True) %}
 
     <div class="{{ div_class }}">
         {% if field.type == "TextAreaField" %}
-        {{ field(class=input_class) }}
+        {{ field(class=input_class, **(field.render_kw or {})) }}
         {% elif field.type in ["SelectField", "SelectMultipleField"] %}
-        {{ field(class="form-select") }}
+        {{ field(class="form-select", **(field.render_kw or {})) }}
         {% elif field.type == "BooleanField" %}
         <div class="form-check">
             {{ field(class="form-check-input") }}
             {{ field.label(class="form-check-label") }}
         </div>
         {% else %}
-        {{ field(class=input_class) }}
+        {{ field(class=input_class, **(field.render_kw or {})) }}
         {% endif %}
 
         {% if show_errors and field.errors %}

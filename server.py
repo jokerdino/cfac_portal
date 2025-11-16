@@ -39,6 +39,7 @@ from app.mis_tracker import mis_bp
 
 from app.brs_centralised_cheque import brs_cc_bp
 from app.correspondence import correspondence_bp
+from app.refund_dqr import refund_dqr_bp
 from app.ri_page import ri_page_bp
 
 from app.errors import errors_bp
@@ -224,6 +225,7 @@ def create_app(config_class=Config):
     app.register_blueprint(brs_cc_bp, url_prefix="/brs_cc")
     app.register_blueprint(em_bp, url_prefix="/escalation_matrix")
     app.register_blueprint(correspondence_bp, url_prefix="/correspondence")
+    app.register_blueprint(refund_dqr_bp, url_prefix="/refund_dqr")
     app.register_blueprint(ri_page_bp, url_prefix="/ri")
 
     app.register_blueprint(errors_bp, url_prefix="/error")

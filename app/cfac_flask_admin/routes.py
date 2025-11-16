@@ -89,6 +89,7 @@ from app.brs_centralised_cheque.models import (
     CentralisedChequeEnableDelete,
 )
 
+from app.refund_dqr.models import DqrRefund, DqrMachines
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -105,6 +106,7 @@ admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="Leave management", parent_name="Leave management")
 admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
+admin.add_sub_category(name="Refund - DQR", parent_name="Refund DQR")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Users", parent_name="Users")
 
@@ -515,6 +517,18 @@ admin.add_view(
         db.session,
         endpoint="pool_credits_jv_",
         category="Pool credits",
+    )
+)
+
+# refund - dqr
+admin.add_view(
+    DefaultModelView(
+        DqrRefund, db.session, endpoint="refund_dqr_", category="Refund DQR"
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        DqrMachines, db.session, endpoint="refund_dqr_machines", category="Refund DQR"
     )
 )
 

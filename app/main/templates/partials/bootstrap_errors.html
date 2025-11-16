@@ -1,0 +1,8 @@
+{% if form %}
+{% for field, errors in form.errors.items() %}
+<div class="alert alert-danger" role="alert">
+    <span class="d-flex align-items-center"> {{ form[field].label.text }}: {{ ', '.join(errors) }}</span>
+</div>
+{% endfor %}
+
+{% endif %}

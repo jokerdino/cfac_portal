@@ -56,6 +56,14 @@
           {% endif %}
         </ul>
         {% endif %}
+        {% if current_user.user_type in ["admin", "ro_user", "oo_user"] %}
+        <p class="menu-label">Refund tracker</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('refund_dqr.dqr_refund_list') }}">DQR Refunds<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
+        </ul>
+        {% endif %}
         {% if current_user.user_type in ["admin", "ro_user","ro_motor_tp","ho_motor_tp"] %}
         <p class="menu-label">Lien</p>
         <ul class="menu-list">
@@ -68,12 +76,12 @@
           <li><a>Reinsurance</a></li>
         </ul>
         {% endif %}
+
         <p class="menu-label">Information</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>
           <li><a href="{{ url_for('contacts.contacts_homepage') }}">Contacts</a></li>
-          <li><a href="{{ url_for('escalation_matrix.list_escalation_matrix') }}">Escalation Matrix<div
-                class="tag is-warning is-rounded">New</div></a></li>
+          <li><a href="{{ url_for('escalation_matrix.list_escalation_matrix') }}">Escalation Matrix</a></li>
           <li><a href="{{ url_for('announcements.view_announcements') }}">Announcements</a></li>
           <li><a href="{{ url_for('mis.view_mis_tracker') }}">MIS status</a></li>
         </ul>
