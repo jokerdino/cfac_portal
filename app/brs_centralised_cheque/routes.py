@@ -1,15 +1,16 @@
-from dataclasses import asdict
+# from dataclasses import asdict
 from datetime import date, datetime, timedelta
 
-from dateutil.relativedelta import relativedelta
-from math import fabs
+# from dateutil.relativedelta import relativedelta
+# from math import fabs
 
 from flask import flash, redirect, render_template, send_file, url_for
 import pandas as pd
-import sqlalchemy
+
+# import sqlalchemy
 from sqlalchemy import func
 from flask_login import current_user, login_required
-from flask_weasyprint import HTML, render_pdf
+# from flask_weasyprint import HTML, render_pdf
 
 from . import brs_cc_bp
 
@@ -209,50 +210,6 @@ def brs_cc_data_entry(key):
             "centralised_cheque_instrument_stale_details",
             brs_entry.id,
         )
-        # # upload unencashed entries
-        # if form.data["unencashed_cheques_file"]:
-        #     df_unencashed = pd.read_excel(
-        #         form.data["unencashed_cheques_file"],
-        #         usecols=required_columns,
-        #     )
-
-        #     for date_col in date_columns:
-        #         if date_col in df_unencashed.columns:
-        #             df_unencashed[date_col] = pd.to_datetime(
-        #                 df_unencashed[date_col], errors="coerce", format="%d/%m/%Y"
-        #             )
-        #     df_unencashed[str_columns_to_convert] = df_unencashed[
-        #         str_columns_to_convert
-        #     ].astype(str)
-        #     df_unencashed["centralised_cheque_details_id"] = brs_entry.id
-        #     df_unencashed.to_sql(
-        #         "centralised_cheque_instrument_unencashed_details",
-        #         db.engine,
-        #         if_exists="append",
-        #         index=False,
-        #     )
-        # # upload stale entries
-        # if form.data["stale_cheques_file"]:
-        #     df_stale = pd.read_excel(
-        #         form.data["stale_cheques_file"],
-        #         usecols=required_columns,
-        #     )
-
-        #     for date_col in date_columns:
-        #         if date_col in df_stale.columns:
-        #             df_stale[date_col] = pd.to_datetime(
-        #                 df_stale[date_col], errors="coerce", format="%d/%m/%Y"
-        #             )
-        #     df_stale[str_columns_to_convert] = df_stale[str_columns_to_convert].astype(
-        #         str
-        #     )
-        #     df_stale["centralised_cheque_details_id"] = brs_entry.id
-        #     df_stale.to_sql(
-        #         "centralised_cheque_instrument_stale_details",
-        #         db.engine,
-        #         if_exists="append",
-        #         index=False,
-        #     )
         return redirect(url_for(".brs_cc_view_status", key=brs.id))
 
     unencashed, stale = get_prev_month_closing_balance(brs.id)
@@ -357,22 +314,28 @@ def brs_auto_upload_prev_month():
     # prev_month is the month before current_month
     prev_month = current_month.replace(day=1) - timedelta(days=1)
 
-    fresh_entries = []
-    brs_entries = db.session.scalars(
-        db.select(CentralisedChequeSummary).where(
-            CentralisedChequeSummary.date_of_month == prev_month
-        )
+    current_month_string = current_month.strftime("%Y-%m-%d")
+
+    #    fresh_entries = []
+    stmt = db.select(
+        CentralisedChequeSummary.regional_office_code,
+        CentralisedChequeSummary.operating_office_code,
+        CentralisedChequeSummary.centralised_cheque_bank,
+        db.literal(current_month_string).label("date_of_month"),
+        db.literal("AUTOUPLOAD").label("created_by"),
+    ).where(CentralisedChequeSummary.date_of_month == prev_month)
+
+    insert_stmt = db.insert(CentralisedChequeSummary).from_select(
+        [
+            CentralisedChequeSummary.regional_office_code,
+            CentralisedChequeSummary.operating_office_code,
+            CentralisedChequeSummary.centralised_cheque_bank,
+            CentralisedChequeSummary.date_of_month,
+            CentralisedChequeSummary.created_by,
+        ],
+        stmt,
     )
-    for entry in brs_entries:
-        new_entry = CentralisedChequeSummary(
-            **asdict(entry),
-            date_of_month=current_month,
-            created_by="AUTOUPLOAD",
-        )
-
-        fresh_entries.append(new_entry)
-
-    db.session.add_all(fresh_entries)
+    db.session.execute(insert_stmt)
 
     delete_month_entry = CentralisedChequeEnableDelete(
         date_of_month=current_month, created_by="AUTOUPLOAD"
@@ -506,52 +469,90 @@ def list_stale_entries():
     return render_template("brs_summary_form.html", form=form)
 
 
-@brs_cc_bp.route(
-    "/api/v1/view_brs_cc/<string:office_code>/<string:month>/", methods=["POST", "GET"]
-)
-def view_brs_cc_api(office_code, month):
-    response = {"office_code": office_code, "month": month}
-    brs = db.session.scalars(
-        db.select(CentralisedChequeDetails)
-        .join(CentralisedChequeSummary)
-        .outerjoin(CentralisedChequeInstrumentUnencashedDetails)
-        .outerjoin(CentralisedChequeInstrumentStaleDetails)
-        .where(
-            (CentralisedChequeDetails.brs_status.is_(None))
-            & (CentralisedChequeSummary.month == month)
-            & (CentralisedChequeSummary.operating_office_code == office_code)
-        )
-    ).first()
+# @brs_cc_bp.route(
+#     "/api/v1/view_brs_cc/<string:office_code>/<string:month>/", methods=["POST", "GET"]
+# )
+# def view_brs_cc_api(office_code, month):
+#     response = {"office_code": office_code, "month": month}
+#     brs = db.session.scalars(
+#         db.select(CentralisedChequeDetails)
+#         .join(CentralisedChequeSummary)
+#         .outerjoin(CentralisedChequeInstrumentUnencashedDetails)
+#         .outerjoin(CentralisedChequeInstrumentStaleDetails)
+#         .where(
+#             (CentralisedChequeDetails.brs_status.is_(None))
+#             & (CentralisedChequeSummary.month == month)
+#             & (CentralisedChequeSummary.operating_office_code == office_code)
+#         )
+#     ).first()
 
-    if brs:
-        response["summary"] = asdict(brs.summary)
-        response["brs"] = asdict(brs)
-        if brs.unencashed_cheques:
-            response["brs"]["unencashed_cheques"] = [
-                asdict(unencashed_cheque)
-                for unencashed_cheque in brs.unencashed_cheques
-            ]
-        if brs.stale_cheques:
-            response["brs"]["stale_cheques"] = [
-                asdict(stale_cheque) for stale_cheque in brs.stale_cheques
-            ]
+#     if brs:
+#         response["summary"] = asdict(brs.summary)
+#         response["brs"] = asdict(brs)
+#         if brs.unencashed_cheques:
+#             response["brs"]["unencashed_cheques"] = [
+#                 asdict(unencashed_cheque)
+#                 for unencashed_cheque in brs.unencashed_cheques
+#             ]
+#         if brs.stale_cheques:
+#             response["brs"]["stale_cheques"] = [
+#                 asdict(stale_cheque) for stale_cheque in brs.stale_cheques
+#             ]
 
-    return response
+#     return response
 
 
-# Custom dict factory
-def custom_dict_factory(items):
-    result = {}
-    for key, value in items:
-        if isinstance(value, (datetime, date)):
-            result[key] = value.strftime("%d/%m/%Y")
-        else:
-            result[key] = value
-    return result
+# # Custom dict factory
+# def custom_dict_factory(items):
+#     result = {}
+#     for key, value in items:
+#         if isinstance(value, (datetime, date)):
+#             result[key] = value.strftime("%d/%m/%Y")
+#         else:
+#             result[key] = value
+#     return result
+
+
+# @brs_cc_bp.route("/api/v1/view_brs_cc_items/<string:ro_code>/<string:month>/")
+# def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
+#     """Obsolete function: use view_brs_cc_api_ro_wise_cheque_items_v2 instead"""
+#     response = {
+#         "regional_office": ro_code,
+#         "month": month,
+#         "unencashed_cheques": [],
+#         "stale_cheques": [],
+#     }
+#     brs_query = db.session.scalars(
+#         db.select(CentralisedChequeDetails)
+#         .join(CentralisedChequeSummary)
+#         .where(
+#             (CentralisedChequeDetails.brs_status.is_(None))
+#             & (CentralisedChequeSummary.month == month)
+#             & (CentralisedChequeSummary.regional_office_code == ro_code)
+#         )
+#     )
+#     for brs in brs_query:
+#         if brs is None:
+#             continue
+
+#         operating_office = brs.summary.operating_office_code
+
+#         if brs.unencashed_cheques:
+#             for cheque in brs.unencashed_cheques:
+#                 item = asdict(cheque, dict_factory=custom_dict_factory)
+#                 item["operating_office"] = operating_office
+#                 response["unencashed_cheques"].append(item)
+
+#         if brs.stale_cheques:
+#             for cheque in brs.stale_cheques:
+#                 item = asdict(cheque, dict_factory=custom_dict_factory)
+#                 item["operating_office"] = operating_office
+#                 response["stale_cheques"].append(item)
+#     return response
 
 
 @brs_cc_bp.route("/api/v1/view_brs_cc_items/<string:ro_code>/<string:month>/")
-def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
+def view_brs_cc_api_ro_wise_cheque_items_v2(ro_code, month):
     response = {
         "regional_office": ro_code,
         "month": month,
@@ -559,31 +560,44 @@ def view_brs_cc_api_ro_wise_cheque_items(ro_code, month):
         "stale_cheques": [],
     }
     brs_query = db.session.scalars(
-        db.select(CentralisedChequeDetails)
+        db.select(CentralisedChequeDetails.id)
         .join(CentralisedChequeSummary)
         .where(
             (CentralisedChequeDetails.brs_status.is_(None))
             & (CentralisedChequeSummary.month == month)
             & (CentralisedChequeSummary.regional_office_code == ro_code)
         )
-    )
-    for brs in brs_query:
-        if brs is None:
-            continue
+    ).all()
+    for model, key in [
+        (CentralisedChequeInstrumentUnencashedDetails, "unencashed_cheques"),
+        (CentralisedChequeInstrumentStaleDetails, "stale_cheques"),
+    ]:
+        stmt = (
+            db.select(
+                CentralisedChequeSummary.operating_office_code.label(
+                    "operating_office"
+                ),
+                model.instrument_amount,
+                model.instrument_number,
+                db.func.to_char(model.instrument_date, "DD/MM/YYYY").label(
+                    "instrument_date"
+                ),
+                model.payee_name,
+            )
+            .join(
+                CentralisedChequeDetails,
+                model.centralised_cheque_details_id == CentralisedChequeDetails.id,
+            )
+            .join(
+                CentralisedChequeSummary,
+                CentralisedChequeDetails.summary_id == CentralisedChequeSummary.id,
+            )
+            .where(model.centralised_cheque_details_id.in_(brs_query))
+        )
 
-        operating_office = brs.summary.operating_office_code
+        rows = db.session.execute(stmt).mappings()
+        response[key] = [dict(r) for r in rows]
 
-        if brs.unencashed_cheques:
-            for cheque in brs.unencashed_cheques:
-                item = asdict(cheque, dict_factory=custom_dict_factory)
-                item["operating_office"] = operating_office
-                response["unencashed_cheques"].append(item)
-
-        if brs.stale_cheques:
-            for cheque in brs.stale_cheques:
-                item = asdict(cheque, dict_factory=custom_dict_factory)
-                item["operating_office"] = operating_office
-                response["stale_cheques"].append(item)
     return response
 
 
@@ -607,7 +621,7 @@ def enable_month_deletion():
 @login_required
 @admin_required
 def edit_month_deletion(month_id):
-    delete_entries = CentralisedChequeEnableDelete.query.get_or_404(month_id)
+    delete_entries = db.get_or_404(CentralisedChequeEnableDelete, month_id)
     form = EnableDeleteMonthForm(obj=delete_entries)
     if form.validate_on_submit():
         form.populate_obj(delete_entries)
@@ -621,10 +635,15 @@ def edit_month_deletion(month_id):
 @login_required
 @admin_required
 def list_month_deletions():
-    list_months = CentralisedChequeEnableDelete.query.order_by(
-        CentralisedChequeEnableDelete.date_of_month
+    list_months = db.session.scalars(
+        db.select(CentralisedChequeEnableDelete).order_by(
+            CentralisedChequeEnableDelete.date_of_month
+        )
     )
-    column_names = CentralisedChequeEnableDelete.query.statement.columns.keys()
+
+    column_names = [
+        column.name for column in CentralisedChequeEnableDelete.__table__.columns
+    ]
 
     return render_template(
         "brs_cc_list_enable_delete.html", list=list_months, column_names=column_names
