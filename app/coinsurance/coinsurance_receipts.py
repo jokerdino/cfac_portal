@@ -7,13 +7,12 @@ import pandas as pd
 from flask import (
     flash,
     redirect,
-    request,
     render_template,
     send_file,
     url_for,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import literal, insert
+
 from set_view_permissions import admin_required
 
 from . import coinsurance_bp
@@ -23,7 +22,7 @@ from .coinsurance_form import (
     CoinsuranceReceiptAddForm,
     CoinsuranceReceiptEditForm,
 )
-from .coinsurance_model_forms import ReceiptForm
+
 from .coinsurance_model import (
     CoinsuranceReceipts,
     CoinsuranceReceiptsJournalVoucher,
@@ -67,29 +66,65 @@ def jv_bulk_upload():
 @login_required
 @admin_required
 def coinsurance_receipts_jv_download_monthly():
-    # START_DATE = datetime(2024, 10, 1)
-    receipts_jvs = db.session.query(
-        CoinsuranceReceipts, CoinsuranceReceiptsJournalVoucher
+    receipts_cr = db.select(
+        db.literal("000100").label("Office Location"),
+        CoinsuranceReceiptsJournalVoucher.gl_code.label("GL Code"),
+        db.literal("0").label("SL Code"),
+        db.literal("CR").label("DR/CR"),
+        CoinsuranceReceipts.credit.label("Amount"),
+        db.func.concat(
+            CoinsuranceReceipts.transaction_code,
+            " ",
+            db.func.to_char(CoinsuranceReceipts.value_date, "DD/MM/YYYY"),
+            " ",
+            CoinsuranceReceiptsJournalVoucher.company_name,
+            " ",
+            CoinsuranceReceipts.reference_no,
+        ).label("Remarks"),
     ).join(
         CoinsuranceReceiptsJournalVoucher,
         CoinsuranceReceipts.description.contains(
             CoinsuranceReceiptsJournalVoucher.pattern
         ),
     )
-    filter_month = receipts_jvs.with_entities(CoinsuranceReceipts.period).distinct()
+    receipts_dr = db.select(
+        db.literal("000100").label("Office Location"),
+        db.literal("5121910000").label("GL Code"),
+        db.literal("0").label("SL Code"),
+        db.literal("DR").label("DR/CR"),
+        CoinsuranceReceipts.credit.label("Amount"),
+        db.func.concat(
+            CoinsuranceReceipts.transaction_code,
+            " ",
+            db.func.to_char(CoinsuranceReceipts.value_date, "DD/MM/YYYY"),
+            " ",
+            CoinsuranceReceiptsJournalVoucher.company_name,
+            " ",
+            CoinsuranceReceipts.reference_no,
+        ).label("Remarks"),
+    ).join(
+        CoinsuranceReceiptsJournalVoucher,
+        CoinsuranceReceipts.description.contains(
+            CoinsuranceReceiptsJournalVoucher.pattern
+        ),
+    )
+
+    filter_month = db.session.scalars(db.select(CoinsuranceReceipts.period).distinct())
 
     form = FilterMonthForm()
-    list_period = [datetime.strptime(item[0], "%b-%y") for item in filter_month]
+    list_period = [datetime.strptime(item, "%b-%y") for item in filter_month]
     list_period.sort(reverse=True)
     form.period.choices = [month.strftime("%b-%y") for month in list_period]
 
     if form.validate_on_submit():
-        entries = receipts_jvs.filter(CoinsuranceReceipts.period == form.period.data)
-        df_receipts = pd.read_sql(entries.statement, db.engine)
+        period = form.period.data
+        receipts_dr = receipts_dr.where(CoinsuranceReceipts.period == period)
+        receipts_cr = receipts_cr.where(CoinsuranceReceipts.period == period)
+        receipts_jv = db.union_all(receipts_dr, receipts_cr)
+        df_receipts = pd.read_sql(receipts_jv, db.engine)
         output = BytesIO()
-        df_receipts_concat = prepare_coinsurance_receipts_jv(df_receipts)
 
-        df_receipts_concat.to_excel(output, index=False)
+        df_receipts.to_excel(output, index=False)
 
         # Set the buffer position to the beginning
         output.seek(0)
@@ -98,38 +133,6 @@ def coinsurance_receipts_jv_download_monthly():
 
         return send_file(output, as_attachment=True, download_name=filename)
     return render_template("coinsurance_receipts_download_jv_monthly.html", form=form)
-
-
-def prepare_coinsurance_receipts_jv(df) -> pd.DataFrame:
-    df_receipts = df[
-        [
-            "gl_code",
-            "value_date",
-            "company_name_1",
-            "credit",
-            "transaction_code",
-            "reference_no",
-        ]
-    ].copy()
-    df_receipts["value_date"] = pd.to_datetime(
-        df_receipts["value_date"], format="%Y-%m-%d"
-    ).dt.strftime("%d/%m/%y")
-    df_receipts["Remarks"] = df_receipts["transaction_code"].str.cat(
-        df_receipts[["value_date", "company_name_1", "reference_no"]], sep=" "
-    )
-    df_receipts.rename(columns={"gl_code": "GL Code", "credit": "Amount"}, inplace=True)
-    df_receipts["Office Location"] = "000100"
-    df_receipts["SL Code"] = 0
-    df_receipts["DR/CR"] = "CR"
-    df_receipts = df_receipts[
-        ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
-    ]
-
-    df_receipts_copy = df_receipts.copy()
-    df_receipts_copy["DR/CR"] = "DR"
-    df_receipts_copy["GL Code"] = 5121910000
-    df_receipts_concat = pd.concat([df_receipts, df_receipts_copy])
-    return df_receipts_concat
 
 
 @coinsurance_bp.route("/receipts/add/", methods=["POST", "GET"])
@@ -143,30 +146,6 @@ def add_coinsurance_receipts():
         db.session.add(receipt)
         db.session.commit()
         return redirect(url_for("coinsurance.list_coinsurance_receipts"))
-    return render_template(
-        "coinsurance_receipts_add.html",
-        form=form,
-    )
-
-
-@coinsurance_bp.route("/receipts/model_add/", methods=["POST", "GET"])
-@login_required
-@admin_required
-def add_coinsurance_receipts_model_form():
-    """Add new pending coinsurance receipts through model form"""
-
-    receipt = CoinsuranceReceipts(status="Pending")
-
-    if request.method == "POST":
-        form = ReceiptForm(request.form, obj=receipt)
-        if form.validate():
-            form.populate_obj(receipt)
-            db.session.add(receipt)
-            db.session.commit()
-            return redirect(url_for("coinsurance.list_coinsurance_receipts"))
-    else:
-        form = ReceiptForm()
-
     return render_template(
         "coinsurance_receipts_add.html",
         form=form,
@@ -217,8 +196,8 @@ def fetch_settlements():
             CoinsuranceReceipts.credit.label("settled_amount"),
             CoinsuranceReceipts.reference_no.label("utr_number"),
             CoinsuranceReceipts.transaction_code.label("notes"),
-            literal("Received").label("type_of_transaction"),
-            literal("API").label("created_by"),
+            db.literal("Received").label("type_of_transaction"),
+            db.literal("API").label("created_by"),
         )
         .join(
             CoinsuranceReceiptsJournalVoucher,
@@ -229,7 +208,7 @@ def fetch_settlements():
         .where(CoinsuranceReceipts.created_on > prev_time)
     )
 
-    insert_stmt = insert(Settlement).from_select(
+    insert_stmt = db.insert(Settlement).from_select(
         [
             Settlement.name_of_company,
             Settlement.date_of_settlement,
@@ -266,10 +245,19 @@ def download_receipts_jv_hubs():
         reference_number = df["TXT_INSTRUMENT_NO"].tolist()
         receipts_stmt = (
             db.select(
-                CoinsuranceReceipts.transaction_code,
-                CoinsuranceReceipts.value_date,
-                CoinsuranceReceiptsJournalVoucher.company_name,
-                CoinsuranceReceiptsJournalVoucher.gl_code,
+                db.literal("000100").label("Office Location"),
+                CoinsuranceReceiptsJournalVoucher.gl_code.label("GL Code"),
+                db.literal("0").label("SL Code"),
+                db.literal("DR").label("DR/CR"),
+                db.func.concat(
+                    CoinsuranceReceipts.transaction_code,
+                    " ",
+                    db.func.to_char(CoinsuranceReceipts.value_date, "DD/MM/YYYY"),
+                    " ",
+                    CoinsuranceReceiptsJournalVoucher.company_name,
+                    " ",
+                    CoinsuranceReceipts.reference_no,
+                ).label("Remarks"),
                 CoinsuranceReceipts.reference_no,
             )
             .join(
@@ -280,41 +268,18 @@ def download_receipts_jv_hubs():
             )
             .where(CoinsuranceReceipts.reference_no.in_(reference_number))
         )
-        df_hub_receipts_jv = pd.read_sql_query(receipts_stmt, db.engine)
-        df_hub_receipts_jv["value_date"] = pd.to_datetime(
-            df_hub_receipts_jv["value_date"], format="%Y-%m-%d"
-        ).dt.strftime("%d/%m/%y")
-        df_hub_receipts_jv["Remarks"] = (
-            df_hub_receipts_jv["transaction_code"]
-            .str.cat(
-                df_hub_receipts_jv[
-                    [
-                        "value_date",
-                        "company_name",
-                        "reference_no",
-                    ]
-                ],
-                sep=" ",
-            )
-            .str.strip()
-        )
+        df_hub_receipts_jv = pd.read_sql(receipts_stmt, db.engine)
+
         df_ho = df.merge(
-            df_hub_receipts_jv[
-                [
-                    "reference_no",
-                    "Remarks",
-                    "gl_code",
-                ]
-            ],
+            df_hub_receipts_jv,
             left_on="TXT_INSTRUMENT_NO",
             right_on="reference_no",
             how="left",
         )
-        df_ho["Office Location"] = "000100"
+        df_ho["Office Location"] = df_ho["Office Location"].fillna("000100")
         df_ho["Remarks"] = df_ho["Remarks"].fillna(df_ho["TXT_INSTRUMENT_NO"])
-        df_ho["GL Code"] = df_ho["gl_code"]
-        df_ho["SL Code"] = 0
-        df_ho["DR/CR"] = "DR"
+        df_ho["SL Code"] = df_ho["SL Code"].fillna("0")
+        df_ho["DR/CR"] = df_ho["DR/CR"].fillna("DR")
         df_ho["Amount"] = df_ho["NUM_AMOUNT"]
         df_ho = df_ho[
             [
@@ -329,8 +294,8 @@ def download_receipts_jv_hubs():
         ]
         df_ho_cr = df_ho.copy()
         df_ho_cr["DR/CR"] = "CR"
-        df_ho_cr["GL Code"] = 5121901000
-        df_ho_cr["SL Code"] = df_ho_cr["NUM_OFFICE_CD"].astype(int)
+        df_ho_cr["GL Code"] = "5121901000"
+        df_ho_cr["SL Code"] = df_ho_cr["NUM_OFFICE_CD"]
         df_ho_final = pd.concat([df_ho, df_ho_cr])
         df_ho_final = df_ho_final[
             ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
@@ -343,8 +308,8 @@ def download_receipts_jv_hubs():
             how="left",
         )
         df_hub["Office Location"] = df_hub["NUM_OFFICE_CD"].str[1:]
-        df_hub["GL Code"] = 9111310000
-        df_hub["SL Code"] = 12402233
+        df_hub["GL Code"] = "9111310000"
+        df_hub["SL Code"] = "12402233"
         df_hub["DR/CR"] = "CR"
         df_hub["Amount"] = df_hub["NUM_AMOUNT"]
         df_hub["Remarks"] = df_hub["Remarks"].fillna(df_hub["TXT_INSTRUMENT_NO"])
@@ -360,8 +325,8 @@ def download_receipts_jv_hubs():
         ]
         df_hub_dr = df_hub.copy()
         df_hub_dr["DR/CR"] = "DR"
-        df_hub_dr["GL Code"] = 5121901000
-        df_hub_dr["SL Code"] = 0
+        df_hub_dr["GL Code"] = "5121901000"
+        df_hub_dr["SL Code"] = "0"
         df_hub_final = pd.concat([df_hub, df_hub_dr])
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
