@@ -3,9 +3,9 @@ from io import BytesIO
 
 import numpy as np
 import pandas as pd
-from flask import current_app, flash, render_template, request, send_file
+from flask import flash, render_template, send_file
 from flask_login import current_user, login_required
-from sqlalchemy import create_engine, func
+
 
 from extensions import db
 from set_view_permissions import admin_required
@@ -22,10 +22,12 @@ from .coinsurance_model import CoinsuranceBalances
 
 def populate_period_choices(form):
     # Querying distinct list of periods from the table
-    period_list_query = db.session.query(CoinsuranceBalances.period).distinct()
+    period_list_query = db.session.scalars(
+        db.select(CoinsuranceBalances.period).distinct()
+    )
 
     # converting the period from string to datetime object
-    list_period = [datetime.strptime(item[0], "%b-%y") for item in period_list_query]
+    list_period = [datetime.strptime(item, "%b-%y") for item in period_list_query]
 
     # sorting the items of list_period in reverse order
     # newer months will be above
@@ -49,45 +51,47 @@ def query_view_coinsurance_balance():
 
     if form.validate_on_submit():
         period = form.data["period"]
-    coinsurance_balance = CoinsuranceBalances.query.filter(
+    coinsurance_balance = db.select(CoinsuranceBalances).where(
         CoinsuranceBalances.period == period
     )
 
     summary = (
-        CoinsuranceBalances.query.with_entities(
+        db.select(
             CoinsuranceBalances.company_name,
-            func.sum(CoinsuranceBalances.hub_due_to_claims),
-            func.sum(CoinsuranceBalances.hub_due_to_premium),
-            func.sum(CoinsuranceBalances.oo_due_to),
-            func.sum(CoinsuranceBalances.hub_due_from_claims),
-            func.sum(CoinsuranceBalances.hub_due_from_premium),
-            func.sum(CoinsuranceBalances.oo_due_from),
-            func.sum(CoinsuranceBalances.net_amount),
+            db.func.sum(CoinsuranceBalances.hub_due_to_claims),
+            db.func.sum(CoinsuranceBalances.hub_due_to_premium),
+            db.func.sum(CoinsuranceBalances.oo_due_to),
+            db.func.sum(CoinsuranceBalances.hub_due_from_claims),
+            db.func.sum(CoinsuranceBalances.hub_due_from_premium),
+            db.func.sum(CoinsuranceBalances.oo_due_from),
+            db.func.sum(CoinsuranceBalances.net_amount),
         )
-        .filter(CoinsuranceBalances.period == period)
+        .where(CoinsuranceBalances.period == period)
         .group_by(CoinsuranceBalances.company_name)
         .order_by(CoinsuranceBalances.company_name)
     )
 
     if not form.data["head_office_balance"]:
-        summary = summary.filter(
+        summary = summary.where(
             CoinsuranceBalances.office_code.not_in(("000100", "660000", "001900"))
         )
-        coinsurance_balance = coinsurance_balance.filter(
+        coinsurance_balance = coinsurance_balance.where(
             CoinsuranceBalances.office_code.not_in(("000100", "660000", "001900"))
         )
 
     if current_user.user_type == "ro_user":
-        summary = summary.filter(
+        summary = summary.where(
             CoinsuranceBalances.str_regional_office_code == current_user.ro_code
         )
-        coinsurance_balance = coinsurance_balance.filter(
+        coinsurance_balance = coinsurance_balance.where(
             CoinsuranceBalances.str_regional_office_code == current_user.ro_code
         )
+    summary_query = db.session.execute(summary)
+    coinsurance_balance_query = db.session.scalars(coinsurance_balance)
     return render_template(
         "view_coinsurance_balance.html",
-        coinsurance_balance=coinsurance_balance,
-        summary=summary,
+        coinsurance_balance=coinsurance_balance_query,
+        summary=summary_query,
         form=form,
         period=period,
     )
@@ -98,15 +102,15 @@ def query_view_coinsurance_balance():
 @admin_required
 def delete_coinsurance_balance():
     form = FilterMonthForm()
-    _period = populate_period_choices(form)
+    populate_period_choices(form)
 
     if form.validate_on_submit():
         period = form.period.data
-        result = db.session.scalars(
-            db.select(CoinsuranceBalances).filter(CoinsuranceBalances.period == period)
+
+        stmt = db.delete(CoinsuranceBalances).where(
+            CoinsuranceBalances.period == period
         )
-        for item in result:
-            db.session.delete(item)
+        db.session.execute(stmt)
         db.session.commit()
         flash(f"{period} has been deleted.")
 
@@ -336,56 +340,56 @@ def upload_coinsurance_balance_refactored(df):
     db.session.commit()
 
 
-@coinsurance_bp.route("/coinsurance_balance/upload", methods=["POST", "GET"])
-@login_required
-@admin_required
-def upload_coinsurance_balance():
-    """Obsolete function: Replaced by upload_coinsurance_balance_refactored"""
-    if request.method == "POST":
-        file_upload_coinsurance_balance = request.files.get("file")
-        df_coinsurance_balance = pd.read_excel(
-            file_upload_coinsurance_balance,
-            sheet_name="office_wise",
-            dtype={
-                "Office Code": str,
-                "Company name": str,
-                "Hub Due from Claims": float,
-                "Hub Due from Premium": float,
-                "Hub Due to Claims": float,
-                "Hub Due to Premium": float,
-                "OO Due to": float,
-                "OO Due from": float,
-                "Net": float,
-                "Period": str,
-                "regional_code": str,
-                "zone": str,
-            },
-        )
+# @coinsurance_bp.route("/coinsurance_balance/upload", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def upload_coinsurance_balance():
+#     """Obsolete function: Replaced by upload_coinsurance_balance_refactored"""
+#     if request.method == "POST":
+#         file_upload_coinsurance_balance = request.files.get("file")
+#         df_coinsurance_balance = pd.read_excel(
+#             file_upload_coinsurance_balance,
+#             sheet_name="office_wise",
+#             dtype={
+#                 "Office Code": str,
+#                 "Company name": str,
+#                 "Hub Due from Claims": float,
+#                 "Hub Due from Premium": float,
+#                 "Hub Due to Claims": float,
+#                 "Hub Due to Premium": float,
+#                 "OO Due to": float,
+#                 "OO Due from": float,
+#                 "Net": float,
+#                 "Period": str,
+#                 "regional_code": str,
+#                 "zone": str,
+#             },
+#         )
 
-        df_coinsurance_balance = df_coinsurance_balance.rename(
-            columns={
-                "Office Code": "office_code",
-                "Company name": "company_name",
-                "Hub Due from Claims": "hub_due_from_claims",
-                "Hub Due from Premium": "hub_due_from_premium",
-                "Hub Due to Claims": "hub_due_to_claims",
-                "Hub Due to Premium": "hub_due_to_premium",
-                "OO Due to": "oo_due_to",
-                "OO Due from": "oo_due_from",
-                "Net": "net_amount",
-                "Period": "period",
-                "regional_code": "str_regional_office_code",
-                "zone": "str_zone",
-            },
-        )
-        df_coinsurance_balance["created_by"] = current_user.username
-        df_coinsurance_balance["created_on"] = datetime.now()
-        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_coinsurance_balance.to_sql(
-            "coinsurance_balances", db.engine, if_exists="append", index=False
-        )
-        flash("Coinsurance balance has been uploaded to database.")
-    return render_template("coinsurance_balance_upload.html")
+#         df_coinsurance_balance = df_coinsurance_balance.rename(
+#             columns={
+#                 "Office Code": "office_code",
+#                 "Company name": "company_name",
+#                 "Hub Due from Claims": "hub_due_from_claims",
+#                 "Hub Due from Premium": "hub_due_from_premium",
+#                 "Hub Due to Claims": "hub_due_to_claims",
+#                 "Hub Due to Premium": "hub_due_to_premium",
+#                 "OO Due to": "oo_due_to",
+#                 "OO Due from": "oo_due_from",
+#                 "Net": "net_amount",
+#                 "Period": "period",
+#                 "regional_code": "str_regional_office_code",
+#                 "zone": "str_zone",
+#             },
+#         )
+#         df_coinsurance_balance["created_by"] = current_user.username
+#         df_coinsurance_balance["created_on"] = datetime.now()
+#         # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+#         df_coinsurance_balance.to_sql(
+#             "coinsurance_balances", db.engine, if_exists="append", index=False
+#         )
+#         flash("Coinsurance balance has been uploaded to database.")
+#     return render_template("coinsurance_balance_upload.html")
 
 
 @coinsurance_bp.route("/coinsurance_balance/gl_code/upload/", methods=["POST", "GET"])
