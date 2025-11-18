@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container is-fluid">
-    <h1 class="title">List of stale cheque entries</h1>
+    <h1 class="title">{{ title }}</h1>
     <table class="table is-bordered" id="brs_table">
         <thead>
             <tr>
@@ -26,16 +26,16 @@
         <tbody> {% for entry in result %}
 
             <tr>
-                <td> {{ entry.instrument_stale_details.summary.regional_office_code }}
+                <td> {{ entry.details.summary.regional_office_code }}
 
                 </td>
-                <td> {{ entry.instrument_stale_details.summary.operating_office_code }}
+                <td> {{ entry.details.summary.operating_office_code }}
 
                 </td>
-                <td> {{ entry.instrument_stale_details.summary.month }}
+                <td> {{ entry.details.summary.month }}
 
                 </td>
-                <td> {{ entry.instrument_stale_details.summary.centralised_cheque_bank }}
+                <td> {{ entry.details.summary.centralised_cheque_bank }}
 
                 </td>
                 <td>{{ entry.instrument_number }}</td>
@@ -47,8 +47,8 @@
                 <td>{{ entry.payee_name }}</td>
                 <td>{{ entry.instrument_status }}</td>
                 <td> {{ entry.remarks }} </td>
-                <td><a href="{{ url_for('.brs_cc_view_entry', key=entry.instrument_stale_details.id) }}">{{
-                        entry.instrument_stale_details.created_on }}</a>
+                <td><a href="{{ url_for('.brs_cc_view_entry', key=entry.details.id) }}">{{
+                        entry.details.created_on }}</a>
                 </td>
             </tr> {% endfor %}
 

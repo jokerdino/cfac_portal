@@ -9,7 +9,9 @@ import pandas as pd
 
 # import sqlalchemy
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from flask_login import current_user, login_required
+
 # from flask_weasyprint import HTML, render_pdf
 
 from . import brs_cc_bp
@@ -371,6 +373,7 @@ def list_brs_data():
         month = form.month.data
         query = (
             db.select(CentralisedChequeDetails)
+            .options(joinedload(CentralisedChequeDetails.summary))
             .join(CentralisedChequeSummary)
             .where(
                 (CentralisedChequeSummary.month == month)
@@ -409,6 +412,11 @@ def list_unencashed_entries():
         month = form.month.data
         query = (
             db.select(CentralisedChequeInstrumentUnencashedDetails)
+            .options(
+                joinedload(
+                    CentralisedChequeInstrumentUnencashedDetails.details
+                ).joinedload(CentralisedChequeDetails.summary)
+            )
             .join(CentralisedChequeDetails)
             .join(CentralisedChequeSummary)
             .where(
@@ -426,7 +434,11 @@ def list_unencashed_entries():
                 CentralisedChequeSummary.regional_office_code == current_user.ro_code
             )
         result = db.session.scalars(query)
-        return render_template("brs_list_unencashed.html", result=result)
+        return render_template(
+            "brs_list_instrument_wise.html",
+            result=result,
+            title="List of unencashed cheque entries",
+        )
     return render_template("brs_summary_form.html", form=form)
 
 
@@ -448,6 +460,11 @@ def list_stale_entries():
         month = form.month.data
         query = (
             db.select(CentralisedChequeInstrumentStaleDetails)
+            .options(
+                joinedload(CentralisedChequeInstrumentStaleDetails.details).joinedload(
+                    CentralisedChequeDetails.summary
+                )
+            )
             .join(CentralisedChequeDetails)
             .join(CentralisedChequeSummary)
             .where(
@@ -465,7 +482,11 @@ def list_stale_entries():
                 CentralisedChequeSummary.regional_office_code == current_user.ro_code
             )
         result = db.session.scalars(query)
-        return render_template("brs_list_stale.html", result=result)
+        return render_template(
+            "brs_list_instrument_wise.html",
+            result=result,
+            title="List of stale cheque entries",
+        )
     return render_template("brs_summary_form.html", form=form)
 
 
