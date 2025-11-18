@@ -1,8 +1,7 @@
 from datetime import datetime
 
-
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, MultipleFileField, FileAllowed, FileRequired
+from flask_wtf.file import FileAllowed, FileField, FileRequired, MultipleFileField
 from wtforms import (
     BooleanField,
     DateField,

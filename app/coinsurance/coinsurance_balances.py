@@ -6,7 +6,6 @@ import pandas as pd
 from flask import flash, render_template, send_file
 from flask_login import current_user, login_required
 
-
 from extensions import db
 from set_view_permissions import admin_required
 

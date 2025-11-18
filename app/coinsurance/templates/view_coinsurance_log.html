@@ -1,26 +1,44 @@
 {% extends "coinsurance_layout.html" %}
 
 {% block content %}
-{% if current_user.user_type == "admin" %}
+
 <div class="table-container">
-<table class="table is-striped is-bordered" id="gst_table">
-    <thead>
-        <tr>
-        {% for i in column_names %}
-            <th>{{ i|upper }}</th>
-{% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-        {% for item in log %}
-        {% for i in column_names %}
-        <td>{{ item[i] }}</td>
-        {% endfor %}
-        </tr>
-        {% endfor %}
-    </tbody>
- </table>
+    <table class="table is-striped is-bordered" id="log_table">
+        <thead>
+            <tr>
+                {% for i in column_names %}
+                <th>{{ i|upper }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in log %}
+                {% for i in column_names %}
+                <td>{{ item[i] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <table class="table is-striped is-bordered" id="version_log_table">
+        <thead>
+            <tr>
+                {% for i in version_column_names %}
+                <th>{{ i|upper }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in version_log %}
+                {% for i in version_column_names %}
+                <td>{{ item[i] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-{% endif %}
+
 {% endblock content %}

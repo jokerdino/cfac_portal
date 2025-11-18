@@ -2,14 +2,13 @@ from datetime import datetime
 from dataclasses import dataclass
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 from flask_login import current_user
-
-from sqlalchemy import func
 from sqlalchemy.orm import column_property, Mapped, mapped_column
 from utils import indian_number_format
 
 
 @dataclass
 class Coinsurance(db.Model):
+    # TODO: Enable row level security
     id = db.Column(db.Integer, primary_key=True)
     uiic_regional_code: str = db.Column(db.String)
     uiic_office_code: str = db.Column(db.String)
@@ -313,7 +312,7 @@ class CoinsuranceReceipts(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
-    period: Mapped[str] = column_property(func.to_char(value_date, "Mon-YY"))
+    period: Mapped[str] = column_property(db.func.to_char(value_date, "Mon-YY"))
 
 
 class CoinsuranceReceiptsJournalVoucher(db.Model):

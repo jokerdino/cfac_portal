@@ -1,7 +1,7 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
 
-<h1 class="title"></h1>
+<h1 class="title">View coinsurance confirmation entry</h1>
 <div class="columns">
     <div class="column">
 
@@ -115,7 +115,7 @@
                         Download RI confirmation</a></td>
             </tr>
             {% endif %}
-            {% if remarks.count() > 0 %}
+            {% if remarks | length > 0 %}
             <tr>
                 <th>Remarks</th>
                 <td>

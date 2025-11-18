@@ -75,11 +75,11 @@
                     <th>{{ form.statement_file.label }}</th>
                     <td>{{ form.statement_file }}
 
-                        {% if edit and coinsurance.statement %}
+                        {% if coinsurance and coinsurance.statement %}
                         <a class="button is-link is-small is-outlined"
                             href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'>Download
                             statement</a>
-                        {% elif edit %} Statement not uploaded {% endif %}
+                        {% elif coinsurance %} Statement not uploaded {% endif %}
                     </td>
                 </tr>
 
@@ -87,11 +87,11 @@
                     <th>{{ form.confirmation_file.label }}</th>
                     <td>{{ form.confirmation_file }}
 
-                        {% if edit and coinsurance.confirmation %}
+                        {% if coinsurance and coinsurance.confirmation %}
                         <a class="button is-link is-small is-outlined"
                             href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'>Download
                             confirmation</a>
-                        {% elif edit %} Confirmation not uploaded {% endif %}
+                        {% elif coinsurance %} Confirmation not uploaded {% endif %}
                     </td>
                 </tr>
 
@@ -109,11 +109,11 @@
                 <tr>
                     <th>{{ form.ri_confirmation_file.label }}</th>
                     <td>{{ form.ri_confirmation_file }}
-                        {% if edit and coinsurance.ri_confirmation %}
+                        {% if coinsurance and coinsurance.ri_confirmation %}
                         <a class="button is-link is-small is-outlined"
                             href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'>Download
                             RI confirmation</a>
-                        {% elif edit %} Reinsurance confirmation not uploaded {% endif %}
+                        {% elif coinsurance %} Reinsurance confirmation not uploaded {% endif %}
                     </td>
                 </tr>
 
@@ -129,7 +129,7 @@
 
                 {% endif %}
                 {% if remarks %}
-                {% if remarks.count() > 0 %}
+                {% if remarks | length > 0 %}
                 <tr>
                     <th>Remarks</th>
                     <td>

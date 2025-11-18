@@ -1,36 +1,26 @@
-from io import BytesIO
-from datetime import datetime, timedelta
 import zipfile
+from datetime import datetime, timedelta
+from io import BytesIO
 
 import pandas as pd
-
-from flask import (
-    flash,
-    redirect,
-    render_template,
-    send_file,
-    url_for,
-)
+from flask import flash, redirect, render_template, send_file, url_for
 from flask_login import current_user, login_required
 
+from extensions import db
 from set_view_permissions import admin_required
 
 from . import coinsurance_bp
 from .coinsurance_form import (
-    UploadFileForm,
-    FilterMonthForm,
     CoinsuranceReceiptAddForm,
     CoinsuranceReceiptEditForm,
+    FilterMonthForm,
+    UploadFileForm,
 )
-
 from .coinsurance_model import (
     CoinsuranceReceipts,
     CoinsuranceReceiptsJournalVoucher,
     Settlement,
 )
-
-
-from extensions import db
 
 
 @coinsurance_bp.route("/receipts/jv/bulk_upload/", methods=["GET", "POST"])
