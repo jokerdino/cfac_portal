@@ -130,7 +130,7 @@ class Settlement(db.Model):
     deleted_by = db.Column(db.String)
     deleted_on = db.Column(db.DateTime)
 
-    month = column_property(func.to_char(date_of_settlement, "YYYY-MM"))
+    month: Mapped[str] = column_property(func.to_char(date_of_settlement, "YYYY-MM"))
 
     def __str__(self):
         return (
@@ -313,7 +313,7 @@ class CoinsuranceReceipts(db.Model):
     updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
     updated_on = db.Column(db.DateTime, onupdate=datetime.now)
 
-    period = column_property(func.to_char(value_date, "Mon-YY"))
+    period: Mapped[str] = column_property(func.to_char(value_date, "Mon-YY"))
 
 
 class CoinsuranceReceiptsJournalVoucher(db.Model):

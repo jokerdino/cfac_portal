@@ -51,7 +51,7 @@ class FundBankStatement(db.Model):
     updated_by: Mapped[UpdatedBy]
     deleted_by: Mapped[Optional[str]]
 
-    period = column_property(db.func.to_char(value_date, "YYYY-MM"))
+    period: Mapped[str] = column_property(db.func.to_char(value_date, "YYYY-MM"))
 
 
 class FundFlagSheet(db.Model):
@@ -89,7 +89,7 @@ class FundDailyOutflow(db.Model):
     updated_by: Mapped[UpdatedBy]
     deleted_by: Mapped[Optional[str]]
 
-    normalized_description = column_property(
+    normalized_description: Mapped[str] = column_property(
         db.func.replace(
             db.func.replace(db.func.upper(outflow_description), "AMOUNT_", ""), "_", " "
         )

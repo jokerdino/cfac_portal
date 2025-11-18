@@ -42,8 +42,10 @@ class AttendanceRegister(db.Model):
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
 
-    month = column_property(func.to_char(date_of_attendance, "YYYY-MM"))
-    month_string = column_property(func.to_char(date_of_attendance, "Mon-YY"))
+    month: Mapped[str] = column_property(func.to_char(date_of_attendance, "YYYY-MM"))
+    month_string: Mapped[str] = column_property(
+        func.to_char(date_of_attendance, "Mon-YY")
+    )
 
 
 class LeaveApplication(db.Model):
@@ -203,7 +205,7 @@ class PublicHoliday(db.Model):
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
 
-    year = column_property(func.to_char(date_of_holiday, "YYYY"))
+    year: Mapped[str] = column_property(func.to_char(date_of_holiday, "YYYY"))
     #    holiday_value: str = field(init=False)
 
     @property
