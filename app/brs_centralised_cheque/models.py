@@ -1,136 +1,146 @@
-from dataclasses import dataclass
-from datetime import datetime
+# from dataclasses import dataclass
+from datetime import date
+from typing import Optional
 
-from flask_login import current_user
-from sqlalchemy import func
-from sqlalchemy.orm import column_property
+# from flask_login import current_user
+# from sqlalchemy import func
+from sqlalchemy.orm import column_property, mapped_column, Mapped
 
-from extensions import db
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
-@dataclass
 class CentralisedChequeSummary(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    regional_office_code: str = db.Column(db.String)
-    operating_office_code: str = db.Column(db.String)
+    id: Mapped[IntPK]
+    regional_office_code: Mapped[str]
+    operating_office_code: Mapped[str]
 
-    date_of_month = db.Column(db.Date)
+    date_of_month: Mapped[date] = mapped_column(db.Date)
 
-    centralised_cheque_bank: str = db.Column(db.String)
-    centralised_cheque_brs_id = db.Column(db.Integer)
+    centralised_cheque_bank: Mapped[str]
+    centralised_cheque_brs_id: Mapped[Optional[int]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
-    details = db.relationship(
-        "CentralisedChequeDetails", backref="summary", lazy="select"
+    details: Mapped["CentralisedChequeDetails"] = db.relationship(
+        back_populates="summary"
     )
 
-    month = column_property(func.to_char(date_of_month, "FMMonth-YYYY"))
+    month: Mapped[str] = column_property(db.func.to_char(date_of_month, "FMMonth-YYYY"))
 
 
-@dataclass
 class CentralisedChequeDetails(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    summary_id = db.Column(db.Integer, db.ForeignKey("centralised_cheque_summary.id"))
-    opening_balance_unencashed: float = db.Column(db.Numeric(15, 2))
-    cheques_issued: float = db.Column(db.Numeric(15, 2))
-    cheques_reissued_unencashed: float = db.Column(db.Numeric(15, 2))
-    opening_balance_stale: float = db.Column(db.Numeric(15, 2))
-    cheques_reissued_stale: float = db.Column(db.Numeric(15, 2))
-    cheques_cleared: float = db.Column(db.Numeric(15, 2))
-    cheques_cancelled: float = db.Column(db.Numeric(15, 2))
-    closing_balance_unencashed: float = db.Column(db.Numeric(15, 2))
-    closing_balance_stale: float = db.Column(db.Numeric(15, 2))
+    id: Mapped[IntPK]
+    summary_id: Mapped[int] = mapped_column(
+        db.ForeignKey("centralised_cheque_summary.id")
+    )
+    opening_balance_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_issued: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_reissued_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    opening_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_reissued_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_cleared: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_cancelled: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    closing_balance_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    closing_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
 
-    remarks = db.Column(db.Text)
+    remarks: Mapped[str] = mapped_column(db.Text)
 
-    prepared_by_employee_name = db.Column(db.String)
-    prepared_by_employee_number = db.Column(db.String)
+    prepared_by_employee_name: Mapped[str]
+    prepared_by_employee_number: Mapped[str]
 
-    brs_status = db.Column(db.String)
+    brs_status: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
-
-    unencashed_cheques = db.relationship(
-        "CentralisedChequeInstrumentUnencashedDetails",
-        backref="instrument_unencashed_details",
-        lazy="dynamic",
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
+    summary: Mapped["CentralisedChequeSummary"] = db.relationship(
+        back_populates="details"
     )
 
-    stale_cheques = db.relationship(
-        "CentralisedChequeInstrumentStaleDetails",
-        backref="instrument_stale_details",
-        lazy="dynamic",
+    unencashed_cheques: Mapped[list["CentralisedChequeInstrumentUnencashedDetails"]] = (
+        db.relationship(
+            back_populates="details",
+            lazy="dynamic",
+        )
+    )
+
+    stale_cheques: Mapped[list["CentralisedChequeInstrumentStaleDetails"]] = (
+        db.relationship(
+            back_populates="details",
+            lazy="dynamic",
+        )
     )
 
 
-@dataclass
 class CentralisedChequeInstrumentStaleDetails(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    voucher_number = db.Column(db.String)
-    voucher_date = db.Column(db.Date)
-    transaction_id = db.Column(db.String)
-    instrument_number: str = db.Column(db.String)
-    instrument_date: datetime = db.Column(db.Date)
-    instrument_amount: float = db.Column(db.Numeric(15, 2))
-    payee_name: str = db.Column(db.String)
+    voucher_number: Mapped[str]
+    voucher_date: Mapped[date]
+    transaction_id: Mapped[str]
+    instrument_number: Mapped[str]
+    instrument_date: Mapped[date]
+    instrument_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    payee_name: Mapped[str]
 
-    remarks = db.Column(db.Text)
-    instrument_status = db.Column(db.String)
+    remarks: Mapped[str] = mapped_column(db.Text)
+    instrument_status: Mapped[Optional[str]]
 
-    centralised_cheque_details_id = db.Column(
-        db.Integer, db.ForeignKey("centralised_cheque_details.id")
+    centralised_cheque_details_id: Mapped[int] = mapped_column(
+        db.ForeignKey("centralised_cheque_details.id")
+    )
+    details: Mapped["CentralisedChequeDetails"] = db.relationship(
+        back_populates="stale_cheques"
     )
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
-@dataclass
 class CentralisedChequeInstrumentUnencashedDetails(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    voucher_number = db.Column(db.String)
-    voucher_date = db.Column(db.Date)
-    transaction_id = db.Column(db.String)
-    instrument_number: str = db.Column(db.String)
-    instrument_date: datetime = db.Column(db.Date)
-    instrument_amount: float = db.Column(db.Numeric(15, 2))
-    payee_name: str = db.Column(db.String)
+    voucher_number: Mapped[str]
+    voucher_date: Mapped[date]
+    transaction_id: Mapped[str]
+    instrument_number: Mapped[str]
+    instrument_date: Mapped[date]
+    instrument_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    payee_name: Mapped[str]
 
-    remarks = db.Column(db.Text)
-    instrument_status = db.Column(db.String)
+    remarks: Mapped[str] = mapped_column(db.Text)
+    instrument_status: Mapped[Optional[str]]
 
-    centralised_cheque_details_id = db.Column(
-        db.Integer, db.ForeignKey("centralised_cheque_details.id")
+    centralised_cheque_details_id: Mapped[int] = mapped_column(
+        db.ForeignKey("centralised_cheque_details.id")
+    )
+    details: Mapped["CentralisedChequeDetails"] = db.relationship(
+        back_populates="unencashed_cheques"
     )
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CentralisedChequeEnableDelete(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date_of_month = db.Column(db.Date)
-    enable_delete = db.Column(db.Boolean, default=True)
+    id: Mapped[IntPK]
+    date_of_month: Mapped[date]
+    enable_delete: Mapped[bool] = mapped_column(default=True)
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
