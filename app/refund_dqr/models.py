@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Optional, Literal
 
+from flask import abort
 from sqlalchemy.orm import Mapped, mapped_column
 
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
@@ -34,6 +35,22 @@ class DqrRefund(db.Model):
     created_on: Mapped[CreatedOn]
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin"]:
+            return True
+
+        elif role in ["ro_user"]:
+            return user.ro_code == self.ro_code
+        elif role in ["oo_user"]:
+            return user.oo_code == self.office_code
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class DqrMachines(db.Model):

@@ -80,6 +80,7 @@ def dqr_refund_add():
 @oo_user_only
 def dqr_refund_edit(id):
     dqr_refund = db.get_or_404(DqrRefund, id)
+    dqr_refund.require_access(current_user)
     form = DQRRefundEditForm(obj=dqr_refund)
     form.ro_code.choices = [dqr_refund.ro_code]
     form.office_code.choices = [dqr_refund.office_code]
@@ -99,6 +100,7 @@ def dqr_refund_edit(id):
 @oo_user_only
 def dqr_refund_view(id):
     dqr_refund = db.get_or_404(DqrRefund, id)
+    dqr_refund.require_access(current_user)
 
     return render_template(
         "dqr_refund_view.html", refund=dqr_refund, title="View DQR refund"
@@ -250,8 +252,6 @@ def dqr_machines_edit(id):
 @login_required
 @admin_required
 def dqr_machines_list():
-    #  query = db.select(DqrRefund).order_by(DqrRefund.id)
-
     table = Table(
         DqrMachines,
         classes="table table-striped table-bordered",
@@ -300,7 +300,7 @@ def dqr_machines_list():
 @admin_required
 def dqr_machines_bulk_upload():
     form = UploadFileForm()
-    # column_names = [column.name for column in DqrMachines.__table__.columns][1:]
+
     if form.validate_on_submit():
         df = pd.read_excel(form.data["file"])
         df.columns = df.columns.str.lower().str.strip().str.replace(" ", "_")
