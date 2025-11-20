@@ -1,43 +1,71 @@
-from datetime import datetime
-from dataclasses import dataclass
-from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
-from flask_login import current_user
-from sqlalchemy.orm import column_property, Mapped, mapped_column
+from datetime import date
+from typing import Optional
+
+from flask import abort
+from sqlalchemy.orm import Mapped, column_property, mapped_column
+from sqlalchemy_continuum import make_versioned
+from sqlalchemy_continuum.plugins import FlaskPlugin
+
+from extensions import CreatedBy, CreatedOn, IntPK, UpdatedBy, UpdatedOn, db
 from utils import indian_number_format
 
+make_versioned(plugins=[FlaskPlugin()])
 
-@dataclass
+
 class Coinsurance(db.Model):
-    # TODO: Enable row level security
-    id = db.Column(db.Integer, primary_key=True)
-    uiic_regional_code: str = db.Column(db.String)
-    uiic_office_code: str = db.Column(db.String)
-    follower_company_name: str = db.Column(db.String)
-    follower_office_code: str = db.Column(db.String)
+    __versioned__ = {}
 
-    str_period: str = db.Column(db.String)
-    type_of_transaction: str = db.Column(db.String)
-    request_id: str = db.Column(db.String)
-    payable_amount: float = db.Column(db.Numeric(15, 2))
-    receivable_amount: float = db.Column(db.Numeric(15, 2))
-    insured_name: str = db.Column(db.String)
+    id: Mapped[IntPK]
+    uiic_regional_code: Mapped[str]
+    uiic_office_code: Mapped[str]
+    follower_company_name: Mapped[str]
+    follower_office_code: Mapped[str]
 
-    boolean_reinsurance_involved: bool = db.Column(db.Boolean)
-    int_ri_payable_amount: float = db.Column(db.Numeric(15, 2))
-    int_ri_receivable_amount: float = db.Column(db.Numeric(15, 2))
+    str_period: Mapped[Optional[str]]
+    type_of_transaction: Mapped[str]
+    request_id: Mapped[Optional[str]]
+    payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    insured_name: Mapped[Optional[str]]
 
-    #    net_amount = db.Column(db.Integer)
+    boolean_reinsurance_involved: Mapped[Optional[bool]]
+    int_ri_payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    int_ri_receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
 
-    statement: str = db.Column(db.String)
-    confirmation: str = db.Column(db.String)
-    ri_confirmation: str = db.Column(db.String)
+    statement: Mapped[Optional[str]]
+    confirmation: Mapped[Optional[str]]
+    ri_confirmation: Mapped[Optional[str]]
 
-    current_status: str = db.Column(db.String)
+    current_status: Mapped[str]
 
-    utr_number: str = db.Column(db.String)
+    utr_number: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    date_created_date = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    date_created_date: Mapped[CreatedOn]
+
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
+
+    coinsurance_remarks: Mapped[list["Remarks"]] = db.relationship(
+        back_populates="coinsurance", cascade="all, delete-orphan"
+    )
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin", "coinsurance_hub_user"]:
+            return True
+
+        if role in ["ro_user"]:
+            return user.ro_code == self.uiic_regional_code
+        if role in ["oo_user"]:
+            return user.oo_code == self.uiic_office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
     @property
     def zone(self):
@@ -110,26 +138,23 @@ class Coinsurance(db.Model):
 
 
 class Settlement(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    name_of_company = db.Column(db.String)
-    date_of_settlement = db.Column(db.Date)
-    settled_amount = db.Column(db.Numeric(15, 2))
-    utr_number = db.Column(db.String)
-    file_settlement_file = db.Column(db.String)
-    type_of_transaction = db.Column(db.String)
-    notes = db.Column(db.Text)
+    name_of_company: Mapped[str]
+    date_of_settlement: Mapped[date] = mapped_column(db.Date)
+    settled_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    utr_number: Mapped[str]
+    file_settlement_file: Mapped[Optional[str]]
+    type_of_transaction: Mapped[str]
+    notes: Mapped[str] = mapped_column(db.Text)
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
-    deleted_by = db.Column(db.String)
-    deleted_on = db.Column(db.DateTime)
-
-    month: Mapped[str] = column_property(func.to_char(date_of_settlement, "YYYY-MM"))
+    month: Mapped[str] = column_property(db.func.to_char(date_of_settlement, "YYYY-MM"))
 
     def __str__(self):
         return (
@@ -141,46 +166,50 @@ class Settlement(db.Model):
 
 
 class Remarks(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    coinsurance_id = db.Column(db.Integer)
+    id: Mapped[IntPK]
+    coinsurance_id: Mapped[int] = mapped_column(db.ForeignKey("coinsurance.id"))
 
-    user = db.Column(db.String, default=lambda: current_user.username)
-    remarks = db.Column(db.Text)
-    time_of_remark = db.Column(db.DateTime, default=datetime.now)
+    user: Mapped[CreatedBy]
+    remarks: Mapped[str] = mapped_column(db.Text)
+    time_of_remark: Mapped[CreatedOn]
+
+    coinsurance: Mapped["Coinsurance"] = db.relationship(
+        back_populates="coinsurance_remarks"
+    )
 
 
 class CoinsuranceLog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    coinsurance_id = db.Column(db.Integer)
+    coinsurance_id: Mapped[int]
 
-    user = db.Column(db.String, default=lambda: current_user.username)
-    time_of_update = db.Column(db.DateTime, default=datetime.now)
+    user: Mapped[CreatedBy]
+    time_of_update: Mapped[CreatedOn]
 
-    uiic_regional_code = db.Column(db.String)
-    uiic_office_code = db.Column(db.String)
-    follower_company_name = db.Column(db.String)
-    follower_office_code = db.Column(db.String)
+    uiic_regional_code: Mapped[str]
+    uiic_office_code: Mapped[str]
+    follower_company_name: Mapped[str]
+    follower_office_code: Mapped[str]
 
-    str_period = db.Column(db.String)
-    type_of_transaction = db.Column(db.String)
-    request_id = db.Column(db.String)
-    payable_amount = db.Column(db.Numeric(15, 2))
-    receivable_amount = db.Column(db.Numeric(15, 2))
-    insured_name = db.Column(db.String)
+    str_period: Mapped[Optional[str]]
+    type_of_transaction: Mapped[str]
+    request_id: Mapped[Optional[str]]
+    payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    insured_name: Mapped[Optional[str]]
 
-    boolean_reinsurance_involved = db.Column(db.Boolean)
-    int_ri_payable_amount = db.Column(db.Numeric(15, 2))
-    int_ri_receivable_amount = db.Column(db.Numeric(15, 2))
+    boolean_reinsurance_involved: Mapped[Optional[bool]]
+    int_ri_payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    int_ri_receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
 
-    # net_amount = db.Column(db.Integer)
+    # net_amount : Mapped[int]
 
-    statement = db.Column(db.String)
-    confirmation = db.Column(db.String)
-    ri_confirmation = db.Column(db.String)
+    statement: Mapped[Optional[str]]
+    confirmation: Mapped[Optional[str]]
+    ri_confirmation: Mapped[Optional[str]]
 
-    current_status = db.Column(db.String)
-    utr_number = db.Column(db.String)
+    current_status: Mapped[str]
+    utr_number: Mapped[Optional[str]]
 
 
 class CoinsuranceBalances(db.Model):
@@ -190,7 +219,7 @@ class CoinsuranceBalances(db.Model):
 
     office_code: Mapped[str]
     company_name: Mapped[str]
-    period: Mapped[str]
+    period: Mapped[Optional[str]]
     hub_due_to_claims: Mapped[float]
     hub_due_to_premium: Mapped[float]
     hub_due_from_claims: Mapped[float]
@@ -207,148 +236,144 @@ class CoinsuranceBalances(db.Model):
 
 
 class CoinsuranceBalanceGeneralLedgerCodeFlagSheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    gl_code = db.Column(db.String)
-    description = db.Column(db.String)
-    company_name = db.Column(db.String)
+    gl_code: Mapped[str]
+    description: Mapped[str]
+    company_name: Mapped[Optional[str]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CoinsuranceBalanceZoneFlagSheet(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    regional_code = db.Column(db.String)
-    zone = db.Column(db.String)
+    regional_code: Mapped[str]
+    zone: Mapped[str]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CoinsuranceCashCall(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    txt_hub = db.Column(db.String)
-    txt_ro_code = db.Column(db.String)
-    txt_oo_code = db.Column(db.String)
+    txt_hub: Mapped[str]
+    txt_ro_code: Mapped[str]
+    txt_oo_code: Mapped[str]
 
-    str_leader_follower = db.Column(db.String)
-    txt_insured_name = db.Column(db.String)
-    date_policy_start_date = db.Column(db.Date)
-    date_policy_end_date = db.Column(db.Date)
+    str_leader_follower: Mapped[str]
+    txt_insured_name: Mapped[str]
+    date_policy_start_date: Mapped[date]
+    date_policy_end_date: Mapped[date]
 
-    amount_total_paid = db.Column(db.Numeric(15, 2))
-    txt_remarks = db.Column(db.Text)
-    date_claim_payment = db.Column(db.Date)
+    amount_total_paid: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    txt_remarks: Mapped[str] = mapped_column(db.Text)
+    date_claim_payment: Mapped[Optional[date]]
 
-    txt_coinsurer_name = db.Column(db.String)
-    percent_share = db.Column(db.Numeric(5, 2))
-    amount_of_share = db.Column(db.Numeric(15, 2))
-    txt_request_id = db.Column(db.String)
+    txt_coinsurer_name: Mapped[str]
+    percent_share: Mapped[float] = mapped_column(db.Numeric(5, 2))
+    amount_of_share: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    txt_request_id: Mapped[str]
 
-    date_of_cash_call_raised = db.Column(db.Date)
-    txt_current_status = db.Column(db.String)
+    date_of_cash_call_raised: Mapped[date]
+    txt_current_status: Mapped[str]
 
-    txt_utr_number = db.Column(db.String)
-    date_of_cash_call_settlement = db.Column(db.Date)
-    amount_settlement = db.Column(db.Numeric(15, 2))
+    txt_utr_number: Mapped[str]
+    date_of_cash_call_settlement: Mapped[Optional[date]]
+    amount_settlement: Mapped[Optional[date]] = mapped_column(db.Numeric(15, 2))
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
-
-    deleted_by = db.Column(db.String)
-    deleted_on = db.Column(db.DateTime)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
-@dataclass
 class CoinsuranceBankMandate(db.Model):
-    id: int = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    company_name: str = db.Column(db.String)
-    office_code: str = db.Column(db.String)
-    bank_name: str = db.Column(db.String)
-    ifsc_code: str = db.Column(db.String)
-    bank_account_number: str = db.Column(db.String)
-    bank_mandate: str = db.Column(db.String)
+    company_name: Mapped[str]
+    office_code: Mapped[str]
+    bank_name: Mapped[str]
+    ifsc_code: Mapped[str]
+    bank_account_number: Mapped[str]
+    bank_mandate: Mapped[str]
 
-    remarks: str = db.Column(db.Text)
+    remarks: Mapped[str] = mapped_column(db.Text)
 
-    created_by: str = db.Column(db.String, default=lambda: current_user.username)
-    created_on: datetime.time = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by: str = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on: datetime.time = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CoinsuranceReceipts(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    book_date = db.Column(db.Date)
-    description = db.Column(db.String)
-    company_name = db.Column(db.String)
-    credit = db.Column(db.Float)
-    value_date = db.Column(db.Date)
-    reference_no = db.Column(db.String)  # , unique=True)
-    transaction_code = db.Column(db.String)
-    remarks = db.Column(db.Text)
-    status = db.Column(db.String)
-    receipting_office = db.Column(db.String)
-    date_of_receipt = db.Column(db.Date)
+    book_date: Mapped[Optional[date]]
+    description: Mapped[str]
+    company_name: Mapped[str]
+    credit: Mapped[float]
+    value_date: Mapped[date] = mapped_column(db.Date)
+    reference_no: Mapped[str]
+    transaction_code: Mapped[str]
+    remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    status: Mapped[str]
+    receipting_office: Mapped[Optional[str]]
+    date_of_receipt: Mapped[Optional[date]]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
     period: Mapped[str] = column_property(db.func.to_char(value_date, "Mon-YY"))
 
 
 class CoinsuranceReceiptsJournalVoucher(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    pattern = db.Column(db.String)
-    company_name = db.Column(db.String)
-    gl_code = db.Column(db.String)
+    pattern: Mapped[Optional[str]]
+    company_name: Mapped[Optional[str]]
+    gl_code: Mapped[str]
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
 
 
 class CoinsuranceTokenRequestId(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[IntPK]
 
-    hub_office_code = db.Column(db.String)
-    company_name = db.Column(db.String)
-    coinsurer_office_code = db.Column(db.String)
-    name_of_insured = db.Column(db.String)
-    request_id = db.Column(db.String)
-    amount = db.Column(db.Numeric(15, 2))
-    type_of_amount = db.Column(db.String)
-    gl_code = db.Column(db.String)
-    remarks = db.Column(db.Text)
-    upload_document = db.Column(db.String)
+    hub_office_code: Mapped[str]
+    company_name: Mapped[str]
+    coinsurer_office_code: Mapped[str]
+    name_of_insured: Mapped[str]
+    request_id: Mapped[str]
+    amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    type_of_amount: Mapped[str]
+    gl_code: Mapped[str]
+    remarks: Mapped[str] = mapped_column(db.Text)
+    upload_document: Mapped[Optional[str]]
 
-    jv_gl_code = db.Column(db.String)
-    jv_sl_code = db.Column(db.String)
-    jv_passed = db.Column(db.Boolean)
+    jv_gl_code: Mapped[Optional[str]]
+    jv_sl_code: Mapped[Optional[str]]
+    jv_passed: Mapped[Optional[bool]] = mapped_column(default=False)
 
-    created_by = db.Column(db.String, default=lambda: current_user.username)
-    created_on = db.Column(db.DateTime, default=datetime.now)
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String, onupdate=lambda: current_user.username)
-    updated_on = db.Column(db.DateTime, onupdate=datetime.now)
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
