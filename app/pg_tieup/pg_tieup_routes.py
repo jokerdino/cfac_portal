@@ -13,9 +13,9 @@ from flask_login import current_user, login_required
 
 from werkzeug.utils import secure_filename
 
-from app.pg_tieup import pg_tieup_bp
-from app.pg_tieup.pg_tieup_form import PaymentGatewayTieupAddForm, UploadFileForm
-from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
+from . import pg_tieup_bp
+from .pg_tieup_form import PaymentGatewayTieupAddForm, UploadFileForm
+from .pg_tieup_model import PaymentGatewayTieup
 from set_view_permissions import admin_required
 
 from extensions import db
@@ -49,7 +49,7 @@ def add_pg_tieup():
 @login_required
 @admin_required
 def edit_pg_tieup(key):
-    pg_tieup = db.session.query(PaymentGatewayTieup).get_or_404(key)
+    pg_tieup = db.get_or_404(PaymentGatewayTieup, key)
     form = PaymentGatewayTieupAddForm(obj=pg_tieup)
 
     if form.validate_on_submit():
@@ -62,8 +62,6 @@ def edit_pg_tieup(key):
             "bank_mandate",
             "bank_mandate",
         )
-        # pg_tieup.date_updated_date = datetime.now()
-        #        pg_tieup.updated_by = current_user.username
 
         db.session.commit()
         return redirect(url_for("pg_tieup.view_pg_tieup", key=pg_tieup.id))
@@ -75,29 +73,44 @@ def edit_pg_tieup(key):
 @login_required
 @admin_required
 def view_pg_tieup(key):
-    pg_tieup = db.session.query(PaymentGatewayTieup).get_or_404(key)
-    return render_template("view_pg_tieup.html", pg_tieup=pg_tieup)
-
-
-@pg_tieup_bp.route("/list/")
-@login_required
-@admin_required
-def list_pg_tieup():
-    column_names = db.session.query(PaymentGatewayTieup).statement.columns.keys()
-
+    pg_tieup = db.get_or_404(PaymentGatewayTieup, key)
+    column_names = [col.name for col in PaymentGatewayTieup.__table__.columns]
     meta_columns = [
         "id",
         "bank_mandate_file",
         "current_status",
         "created_by",
         "updated_by",
-        "deleted_by",
         "date_created_date",
         "date_updated_date",
-        "date_deleted_date",
+    ]
+
+    column_names = [col for col in column_names if col not in meta_columns]
+
+    return render_template(
+        "view_pg_tieup.html", pg_tieup=pg_tieup, column_names=column_names
+    )
+
+
+@pg_tieup_bp.route("/")
+@login_required
+@admin_required
+def list_pg_tieup():
+    column_names = [col.name for col in PaymentGatewayTieup.__table__.columns]
+    meta_columns = [
+        "id",
+        "bank_mandate_file",
+        "current_status",
+        "created_by",
+        "updated_by",
+        "date_created_date",
+        "date_updated_date",
     ]
     column_names = [col for col in column_names if col not in meta_columns]
-    query = db.session.query(PaymentGatewayTieup).order_by(PaymentGatewayTieup.id)
+
+    query = db.session.scalars(
+        db.select(PaymentGatewayTieup).order_by(PaymentGatewayTieup.id)
+    )
     return render_template("list_pg_tieup.html", query=query, column_names=column_names)
 
 
@@ -108,7 +121,7 @@ def bulk_upload_pg_tieup():
     form = UploadFileForm()
     if form.validate_on_submit():
         df_cash_call = pd.read_excel(form.data["file_upload"])
-        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+
         df_cash_call.columns = df_cash_call.columns.str.lower()
 
         df_cash_call["date_created_date"] = datetime.now()
