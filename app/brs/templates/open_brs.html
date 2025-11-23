@@ -80,7 +80,7 @@
                         brs_entry.local_collection_brs_id %}
                         <!-- djlint:off -->
                         <a class="button is-link"
-                                href="{{ url_for('brs.view_consolidated_brs', brs_key=brs_entry.id) }}">
+                                href="{{ url_for('brs.view_consolidated_brs', brs_key=brs_entry.id, display='html') }}">
                                 Open Consolidated BRS</a>
                         <!-- djlint:on -->
                         {% if current_user.user_type in list_delete_brs %}

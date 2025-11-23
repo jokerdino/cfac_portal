@@ -1,6 +1,7 @@
-{% if not pdf %}
+{% if display == "html" %}
 {% extends "brs_layout.html" %}
 {% else %}
+<title>Consolidated BRS</title>
 <style>
     @page {
         size: landscape legal;
@@ -133,7 +134,7 @@
     </table>
 
 </div>
-{% if pdf %}
+{% if display == "pdf" %}
 <table class="mt-5 table is-centered is-fullwidth is-bordered">
     <thead>
         <tr>
@@ -155,10 +156,10 @@
 
 {% endif %}
 
-{% if not pdf %}
+{% if display == "html" %}
 <div class="mt-5 has-text-centered">
     <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_month.id) }}">Go back</a>
-    <a class="button is-link" href="{{ url_for('brs.view_consolidated_brs_pdf', brs_key = brs_month.id) }}"
+    <a class="button is-link" href="{{ url_for('brs.view_consolidated_brs', brs_key = brs_month.id, display='pdf') }}"
         target="_blank">
         Print as PDF</a>
 </div>

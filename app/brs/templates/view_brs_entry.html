@@ -1,6 +1,7 @@
-{% if not pdf %}
+{% if display == "html" %}
 {% extends "brs_layout.html" %}
 {% else %}
+<title>View {{ brs_entry.brs_type.upper() }} BRS</title>
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
 {% endif %}
 {% block content %}
@@ -99,7 +100,7 @@
         {% endif %}
     </table>
 
-    {% if brs_entry.int_closing_balance != 0 %}
+    {% if (brs_entry.int_closing_balance != 0) or (brs_entry.int_balance_as_per_bank != 0) %}
 
     <h3 class="title is-size-5">Details of closing balance:</h3>
     {{ render_brs_table("Deposited but not credited", brs_entry.int_deposited_not_credited, brs_entry.brs_outstanding,
@@ -116,9 +117,10 @@
         brs_entry.timestamp.strftime("%d/%m/%Y %H:%M") }}.
     </div>
 
-    {% if not pdf %}
+    {% if display == "html" %}
     <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
-    <a class="button is-link" href="{{ url_for('brs.view_brs_pdf', brs_key = brs_entry.id) }}" target="_blank">Print as
+    <a class="button is-link" href="{{ url_for('brs.view_brs', brs_key = brs_entry.id, display = 'pdf') }}"
+        target="_blank">Print as
         PDF</a>
     {% endif %}
 </div>

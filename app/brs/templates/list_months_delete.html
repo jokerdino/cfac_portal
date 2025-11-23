@@ -1,7 +1,7 @@
 {% extends "brs_layout.html" %}
 
 {% block content %}
-{% if current_user.user_type == "admin" %}
+
 <div class="container">
     <table class="table is-striped is-bordered" id="gst_table">
         <thead>
@@ -25,5 +25,5 @@
         </tbody>
     </table>
 </div>
-{% endif %}
+
 {% endblock content %}

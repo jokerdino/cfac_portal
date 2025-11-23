@@ -2,7 +2,7 @@
 {% block content %}
 {% if outstanding %}
 <h1 class="title">List of {{ title }} entries</h1>
-<table class="table is-fullwidth" id="outstanding">
+<table class="table is-fullwidth is-bordered" id="outstanding">
     <thead>
         <tr>
             <th>Regional office</th>
@@ -22,16 +22,16 @@
     <tbody>
         {% for entries in outstanding %}
         <tr>
-            <td>{{ entries.brs_month.brs.uiic_regional_code }}</td>
-            <td>{{ entries.brs_month.brs.uiic_office_code }}</td>
-            <td>{{ entries.brs_month.brs.financial_year }}</td>
-            <td>{{ entries.brs_month.brs.month }}</td>
-            <td>{{ entries.brs_month.brs_type | upper() }}</td>
+            <td>{{ entries.brs_month.brs.uiic_regional_code or "" }}</td>
+            <td>{{ entries.brs_month.brs.uiic_office_code or "" }}</td>
+            <td>{{ entries.brs_month.brs.financial_year or "" }}</td>
+            <td>{{ entries.brs_month.brs.month or "" }}</td>
+            <td>{{ entries.brs_month.brs_type or ""| upper() }}</td>
             <td>{{ entries.brs_month.brs.get_bank_for_type(entries.brs_month.brs_type) }}</td>
-            <td>{{ entries.date_of_collection }}</td>
-            <td>{{ entries.instrument_number }}</td>
-            <td>{{ entries.date_of_instrument }}</td>
-            <td class="has-text-right">{{ entries.instrument_amount }}</td>
+            <td>{{ entries.date_of_collection or "" }}</td>
+            <td>{{ entries.instrument_number or "" }}</td>
+            <td>{{ entries.date_of_instrument or "" }}</td>
+            <td class="has-text-right">{{ entries.instrument_amount or "" }}</td>
             <td>{{ entries.remarks or "" }}</td>
             <td><a href="{{ url_for('brs.view_brs', brs_key = entries.brs_month.id) }}">View</a></td>
         </tr>
@@ -42,7 +42,6 @@
 {% block scripts %}
 <script>
     new DataTable('#outstanding', {
-        //dom: 'lfBrtip',
         layout: { top1Start: 'pageLength', topStart: 'buttons' },
         scrollY: true,
         fixedHeader: true,

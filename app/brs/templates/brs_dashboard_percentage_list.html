@@ -11,10 +11,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for ro_code in ro_list %}
+            {% for item in percentages %}
             <tr>
-                <td class="has-text-centered">{{ ro_code }}</td>
-                <td class="has-text-right">{{ "%.2f"|format(percentages[ro_code]) }}%</td>
+                <td class="has-text-centered">{{ item.uiic_regional_code }}</td>
+                <td class="has-text-right">{{ "%.2f"|format(item.percent_complete) }}%</td>
             </tr>
             {% endfor %}
         </tbody>

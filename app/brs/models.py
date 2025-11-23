@@ -8,6 +8,7 @@ from extensions import db
 
 @dataclass
 class BRS(db.Model):
+    # TODO: Enable row level security
     id = db.Column(db.Integer, primary_key=True)
     uiic_regional_code: str = db.Column(db.String)
     uiic_office_code: str = db.Column(db.String)

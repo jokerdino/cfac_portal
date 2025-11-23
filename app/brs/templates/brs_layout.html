@@ -28,11 +28,14 @@
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">List of entries</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('brs.list_outstanding_entries') }}">Outstanding
+                            <a class="navbar-item"
+                                href="{{ url_for('brs.list_brs_items', entry_type='outstanding') }}">Outstanding
                                 entries</a>
-                            <a class="navbar-item" href="{{ url_for('brs.list_short_credit_entries') }}">Short
+                            <a class="navbar-item"
+                                href="{{ url_for('brs.list_brs_items', entry_type='short_credit') }}">Short
                                 credit entries</a>
-                            <a class="navbar-item" href="{{ url_for('brs.list_excess_credit_entries') }}">Excess
+                            <a class="navbar-item"
+                                href="{{ url_for('brs.list_brs_items', entry_type='excess_credit') }}">Excess
                                 credit entries</a>
                         </div>
                     </div>
