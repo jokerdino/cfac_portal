@@ -30,7 +30,15 @@ def ri_page():
 
             return send_file(output, as_attachment=True, download_name=filename)
         elif form.file_process_option.data == "split":
-            zip_buffer = split_pdf_by_broker_name(form.file_upload.data, line_number)
+            prefix = form.prefix.data
+            suffix = form.suffix.data
+
+            prefix = None if prefix == "" else prefix + "_"
+            suffix = None if suffix == "" else "_" + suffix
+
+            zip_buffer = split_pdf_by_broker_name(
+                form.file_upload.data, line_number, prefix, suffix
+            )
             zip_buffer.seek(0)
             return send_file(
                 zip_buffer,
@@ -43,8 +51,18 @@ def ri_page():
 
 
 def sanitize_filename(filename):
-    """Remove invalid characters from filename."""
-    return re.sub(r'[\/:*?"<>|]', "_", filename)
+    """Remove invalid characters and unwanted phrases from filename."""
+    # Remove specific unwanted phrases
+    unwanted_phrases = [
+        "Reinsurer Name ",
+        "Broker Name ",
+        "Amount in Rs",
+        "_",
+    ]
+    for phrase in unwanted_phrases:
+        filename = filename.replace(phrase, "")
+    filename = re.sub(r'[\/:*?"<>|]', "", filename)
+    return filename.strip()
 
 
 def extract_tables_to_excel(pdf_path, line_number):
@@ -75,7 +93,7 @@ def extract_tables_to_excel(pdf_path, line_number):
     return combined_df
 
 
-def split_pdf_by_broker_name(input_pdf_stream, line_number):
+def split_pdf_by_broker_name(input_pdf_stream, line_number, prefix, suffix):
     broker_writers = {}
 
     # Read uploaded PDF into memory
@@ -104,5 +122,5 @@ def split_pdf_by_broker_name(input_pdf_stream, line_number):
             pdf_bytes = BytesIO()
             writer.write(pdf_bytes)
             pdf_bytes.seek(0)
-            zipf.writestr(f"{broker}.pdf", pdf_bytes.read())
+            zipf.writestr(f"{prefix or ''}{broker}{suffix or ''}.pdf", pdf_bytes.read())
     return zip_buffer

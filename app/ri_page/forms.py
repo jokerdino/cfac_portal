@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileRequired, FileAllowed
-from wtforms import IntegerField, RadioField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import IntegerField, RadioField, StringField, SubmitField
+from wtforms.validators import DataRequired, Optional
 
 
 class UploadFileForm(FlaskForm):
@@ -15,4 +15,6 @@ class UploadFileForm(FlaskForm):
         choices=[("export_excel", "Excel extract"), ("split", "Split PDF file")],
     )
     line_number = IntegerField(validators=[DataRequired()])
+    prefix = StringField(validators=[Optional()])
+    suffix = StringField(validators=[Optional()])
     upload_document = SubmitField("Upload")
