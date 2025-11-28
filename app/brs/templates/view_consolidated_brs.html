@@ -11,9 +11,6 @@
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
 {% endif %}
 {% block content %}
-{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_month.uiic_regional_code) or
-(current_user.user_type == "oo_user" and current_user.oo_code == brs_month.uiic_office_code) or
-(current_user.user_type == "admin") %}
 
 <div class="container is-size-8 is-centered">
 
@@ -164,5 +161,5 @@
         Print as PDF</a>
 </div>
 {% endif %}
-{% endif %}
+
 {% endblock content %}

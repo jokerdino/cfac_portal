@@ -8,7 +8,6 @@ from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class BRS(db.Model):
-    # TODO: Enable row level security
     id: Mapped[IntPK]
     uiic_regional_code: Mapped[str]
     uiic_office_code: Mapped[str]
@@ -32,7 +31,7 @@ class BRS(db.Model):
     dqr_brs_id: Mapped[Optional[int]]
     local_collection_brs_id: Mapped[Optional[int]]
 
-    brs_month: Mapped["BRSMonth"] = db.relationship(
+    brs_month: Mapped[list["BRSMonth"]] = db.relationship(
         back_populates="brs", cascade="all, delete-orphan"
     )
     timestamp: Mapped[CreatedOn]
@@ -48,6 +47,23 @@ class BRS(db.Model):
             "local_collection": self.local_collection_bank,
         }
         return mapping.get(brs_type, "")
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin"]:
+            return True
+
+        if role in ["ro_user"]:
+            return user.ro_code == self.uiic_regional_code
+        if role in ["oo_user"]:
+            return user.oo_code == self.uiic_office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class DeleteEntries(db.Model):
@@ -102,7 +118,6 @@ class BRSMonth(db.Model):
     brs: Mapped["BRS"] = db.relationship(back_populates="brs_month")
 
 
-
 class Outstanding(db.Model):
     id: Mapped[IntPK]
     brs_month_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("brs_month.id"))
@@ -116,6 +131,7 @@ class Outstanding(db.Model):
     remarks: Mapped[Optional[str]] = mapped_column(db.Text)
 
     brs_month: Mapped["BRSMonth"] = db.relationship(back_populates="brs_outstanding")
+
 
 class BankReconShortCredit(db.Model):
     id: Mapped[IntPK]
@@ -131,6 +147,7 @@ class BankReconShortCredit(db.Model):
 
     brs_month: Mapped["BRSMonth"] = db.relationship(back_populates="brs_short_credit")
 
+
 class BankReconExcessCredit(db.Model):
     id: Mapped[IntPK]
     brs_month_id: Mapped[int] = mapped_column(db.Integer, db.ForeignKey("brs_month.id"))
@@ -144,6 +161,7 @@ class BankReconExcessCredit(db.Model):
     remarks: Mapped[Optional[str]] = mapped_column(db.Text)
 
     brs_month: Mapped["BRSMonth"] = db.relationship(back_populates="brs_excess_credit")
+
 
 class BankReconAccountDetails(db.Model):
     id: Mapped[IntPK]

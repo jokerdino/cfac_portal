@@ -321,11 +321,12 @@ def list_month_deletions():
     )
 
 
-@brs_bp.route("/upload_brs/<int:brs_key>", methods=["POST", "GET"])
+@brs_bp.route("/upload_brs/<int:brs_key>/", methods=["POST", "GET"])
 @login_required
 def upload_brs(brs_key):
     # Fetch the BRS entry and list of months where deletion is enabled
     brs_entry = db.get_or_404(BRS, brs_key)
+    brs_entry.require_access(current_user)
 
     month_string = brs_entry.month
 
@@ -373,6 +374,7 @@ def upload_brs(brs_key):
 @login_required
 def view_consolidated_brs(brs_key, display):
     brs_entry = db.get_or_404(BRS, brs_key)
+    brs_entry.require_access(current_user)
 
     brs_ids = {
         "cash_brs": brs_entry.cash_brs_id,
@@ -415,14 +417,7 @@ def download_format(requirement):
 @login_required
 def view_brs(brs_key, display):
     brs_entry = db.get_or_404(BRSMonth, brs_key)
-
-    # return render_template(
-    #     "view_brs_entry.html",
-    #     brs_entry=brs_entry,
-    #     get_brs_bank=get_brs_bank,
-    #     # pdf=False,
-    #     display=display,
-    # )
+    brs_entry.brs.require_access(current_user)
 
     html = render_template(
         "view_brs_entry.html",
@@ -434,20 +429,6 @@ def view_brs(brs_key, display):
         return html
     elif display == "pdf":
         return render_pdf(HTML(string=html))
-
-
-# @brs_bp.route("/pdf/<int:brs_key>/")
-# @login_required
-# def view_brs_pdf(brs_key):
-#     brs_entry = db.get_or_404(BRSMonth, brs_key)
-
-#     html = render_template(
-#         "view_brs_entry.html",
-#         brs_entry=brs_entry,
-#         get_brs_bank=get_brs_bank,
-#         pdf=True,
-#     )
-#     return render_pdf(HTML(string=html))
 
 
 def get_prev_month_amount(requirement: str, brs_id: int):
@@ -595,6 +576,7 @@ def upload_df_entries(file, brs_type, table_name, brs_id):
 @login_required
 def enter_brs(requirement, brs_id):
     brs_entry = db.get_or_404(BRS, brs_id)
+    brs_entry.require_access(current_user)
 
     brs_month = datetime.strptime(brs_entry.month, "%B-%Y") + relativedelta(
         months=1, day=1

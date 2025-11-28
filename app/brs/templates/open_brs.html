@@ -1,8 +1,5 @@
 {% extends "brs_layout.html" %}
 {% block content %}
-{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.uiic_regional_code) or
-(current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.uiic_office_code) or
-(current_user.user_type == "admin") %}
 
 <div class="container">
         <h1 class="title">Upload BRS</h1>
@@ -111,5 +108,4 @@
         </div>
 </div>
 
-{% endif %}
 {% endblock content %}

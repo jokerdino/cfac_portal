@@ -7,9 +7,6 @@
 {% block content %}
 {% from "brs_macro_templates.html" import render_brs_table, render_brs_details %}
 
-{% if (current_user.user_type == "ro_user" and current_user.ro_code == brs_entry.brs.uiic_regional_code) or
-(current_user.user_type == "oo_user" and current_user.oo_code == brs_entry.brs.uiic_office_code) or
-(current_user.user_type == "admin") %}
 <div class="container">
     <h1 class="title">View {{ brs_entry.brs_type.upper() }} BRS</h1>
     {{ render_brs_details(brs_entry.brs, brs_entry.brs_type) }}
@@ -125,5 +122,4 @@
     {% endif %}
 </div>
 
-{% endif %}
 {% endblock content %}
