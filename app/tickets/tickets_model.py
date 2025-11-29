@@ -1,4 +1,5 @@
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from flask import abort
+from sqlalchemy.orm import Mapped, mapped_column
 
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
@@ -22,12 +23,30 @@ class Tickets(db.Model):
     updated_on: Mapped[UpdatedOn]
 
     # ✅ ORM relationship to remarks
-    remarks: Mapped[list["TicketRemarks"]] = relationship(
+    remarks: Mapped[list["TicketRemarks"]] = db.relationship(
         back_populates="ticket",
         cascade="all, delete-orphan",
         order_by="TicketRemarks.time_of_remark.asc()",
         # lazy="selectin",
     )
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role == "admin":
+            return True
+
+        if role == "ro_user":
+            return user.ro_code == self.regional_office_code
+
+        if role == "oo_user":
+            return user.oo_code == self.office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class TicketRemarks(db.Model):
@@ -39,4 +58,4 @@ class TicketRemarks(db.Model):
     time_of_remark: Mapped[CreatedOn]
 
     # ✅ Back-reference
-    ticket: Mapped["Tickets"] = relationship(back_populates="remarks")
+    ticket: Mapped["Tickets"] = db.relationship(back_populates="remarks")

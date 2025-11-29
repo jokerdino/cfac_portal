@@ -49,6 +49,8 @@ def add_ticket():
 def view_ticket(ticket_id):
     ticket = db.get_or_404(Tickets, ticket_id)
 
+    ticket.require_access(current_user)
+
     return render_template(
         "view_ticket.html",
         ticket=ticket,
@@ -59,6 +61,8 @@ def view_ticket(ticket_id):
 @login_required
 def edit_ticket(ticket_id):
     ticket = db.get_or_404(Tickets, ticket_id)
+
+    ticket.require_access(current_user)
 
     form = TicketsForm(obj=ticket)
 
