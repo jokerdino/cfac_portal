@@ -26,7 +26,7 @@
             <td>{{ entries.brs_month.brs.uiic_office_code or "" }}</td>
             <td>{{ entries.brs_month.brs.financial_year or "" }}</td>
             <td>{{ entries.brs_month.brs.month or "" }}</td>
-            <td>{{ entries.brs_month.brs_type or ""| upper() }}</td>
+            <td>{{ (entries.brs_month.brs_type or "")| upper() }}</td>
             <td>{{ entries.brs_month.brs.get_bank_for_type(entries.brs_month.brs_type) }}</td>
             <td>{{ entries.date_of_collection or "" }}</td>
             <td>{{ entries.instrument_number or "" }}</td>

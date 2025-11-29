@@ -3,6 +3,8 @@
 
 {% if brs_entries %}
 
+{% set brs_types = ["cash", "cheque", "pg", "pos", "bbps", "dqr", "local_collection"] %}
+
 <table class="table is-bordered is-hoverable" id="brs_table">
     <thead>
         <tr>
@@ -26,25 +28,23 @@
     <tbody>
         {% for entry in brs_entries %}
 
-        <tr {% if colour_check(entry.id) %} class="has-background-success" {% endif %}>
+        <tr {% if entry.colour_check() %} class="has-background-success" {% endif %}>
 
             <td class="has-text-centered">{{ entry.uiic_regional_code }}</td>
             <td class="has-text-centered">{{ entry.uiic_office_code }}</td>
             <td class="has-text-centered">{{ entry.financial_year }}</td>
             <td class="has-text-left" data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry.month }}</td>
-
-            <td class="has-text-right">{{ percent_completed(entry.id) | round | int }}% </td>
-            {% set brs_types = ["cash", "cheque", "pg", "pos", "bbps", "dqr", "local_collection"] %}
+            <td class="has-text-right">{{ entry.percent_completed() | int }}% </td>
 
             {% for key in brs_types %}
-            {% if entry[key ~ "_bank"] %}
-            {% if entry[key ~ "_brs_id"] %}
+            {% if entry.get_bank_for_type(key) %}
+            {% if entry.get_brs_id(key) %}
             <td class="has-background-success">Uploaded</td>
             {% else %}
             <td class="has-text-danger">Pending</td>
             {% endif %}
             {% else %}
-            {% if not colour_check(entry.id) %}
+            {% if not entry.colour_check() %}
             <td class="has-background-grey">NA</td>
             {% else %}
             <td>NA</td>

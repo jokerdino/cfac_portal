@@ -1,6 +1,6 @@
 from math import fabs
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     BooleanField,
     # FileField,
@@ -20,13 +20,13 @@ from .forms_custom_validators import ExcelFileValidator
 
 
 class BRSForm(FlaskForm):
-    delete_cash_brs = BooleanField("Delete cash BRS")
-    delete_cheque_brs = BooleanField("Delete cheque BRS")
-    delete_pos_brs = BooleanField("Delete POS BRS")
-    delete_pg_brs = BooleanField("Delete PG BRS")
-    delete_bbps_brs = BooleanField("Delete BBPS BRS")
-    delete_dqr_brs = BooleanField("Delete DQR BRS")
-    delete_local_collection_brs = BooleanField("Delete local collection BRS")
+    cash = BooleanField("Delete cash BRS")
+    cheque = BooleanField("Delete cheque BRS")
+    pos = BooleanField("Delete POS BRS")
+    pg = BooleanField("Delete PG BRS")
+    bbps = BooleanField("Delete BBPS BRS")
+    dqr = BooleanField("Delete DQR BRS")
+    local_collection = BooleanField("Delete local collection BRS")
 
 
 class BRSEntryForm(FlaskForm):

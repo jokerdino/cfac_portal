@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Literal
+
 from dateutil.relativedelta import relativedelta
 
 import pandas as pd
@@ -122,8 +122,8 @@ def brs_home_page():
     return render_template(
         "brs_home.html",
         brs_entries=brs_entries,
-        colour_check=colour_check,
-        percent_completed=percent_completed,
+        # colour_check=colour_check,
+        # percent_completed=percent_completed,
     )
 
 
@@ -142,8 +142,8 @@ def brs_ro_wise(ro_code, month):
     return render_template(
         "brs_home.html",
         brs_entries=brs_entries,
-        colour_check=colour_check,
-        percent_completed=percent_completed,
+        #  colour_check=colour_check,
+        # percent_completed=percent_completed,
     )
 
 
@@ -228,40 +228,6 @@ def brs_dashboard():
     return render_template("brs_dashboard.html", query=query, form=form)
 
 
-def colour_check(brs_key) -> bool:
-    brs_entry = db.get_or_404(BRS, brs_key)
-
-    checks = [
-        ("cash_bank", "cash_brs_id"),
-        ("cheque_bank", "cheque_brs_id"),
-        ("pg_bank", "pg_brs_id"),
-        ("pos_bank", "pos_brs_id"),
-        ("bbps_bank", "bbps_brs_id"),
-        ("dqr_bank", "dqr_brs_id"),
-        ("local_collection_bank", "local_collection_brs_id"),
-    ]
-
-    return all(
-        bool(getattr(brs_entry, id_attr)) if getattr(brs_entry, bank_attr) else True
-        for bank_attr, id_attr in checks
-    )
-
-
-def percent_completed(brs_key) -> float | Literal[100]:
-    brs_entry = db.get_or_404(BRS, brs_key)
-
-    fields = ["cash", "cheque", "pg", "pos", "bbps", "dqr", "local_collection"]
-
-    denom = sum(1 for f in fields if getattr(brs_entry, f"{f}_bank"))
-    numerator = sum(
-        1
-        for f in fields
-        if getattr(brs_entry, f"{f}_bank") and getattr(brs_entry, f"{f}_brs_id")
-    )
-
-    return (numerator / denom) * 100 if denom else 100
-
-
 @brs_bp.route("/bulk_upload", methods=["POST", "GET"])
 @login_required
 @admin_required
@@ -341,22 +307,14 @@ def upload_brs(brs_key):
     # Initialize form and handle submission
     form = BRSForm()
     if form.validate_on_submit():
-        delete_mapping = {
-            "delete_cash_brs": "cash_brs_id",
-            "delete_cheque_brs": "cheque_brs_id",
-            "delete_pos_brs": "pos_brs_id",
-            "delete_pg_brs": "pg_brs_id",
-            "delete_bbps_brs": "bbps_brs_id",
-            "delete_dqr_brs": "dqr_brs_id",
-            "delete_local_collection_brs": "local_collection_brs_id",
-        }
-
-        # Process each deletion option and update the database
-        for field, attr in delete_mapping.items():
-            if form.data[field]:
-                brs_month = db.get_or_404(BRSMonth, getattr(brs_entry, attr))
-                brs_month.status = "Deleted"
-                setattr(brs_entry, attr, None)
+        delete_fields = [f for f in form.data if f not in ("csrf_token", "submit")]
+        for brs_type in delete_fields:
+            if form.data[brs_type]:
+                month_id = brs_entry.get_brs_id(brs_type)
+                if month_id:
+                    brs_month = db.get_or_404(BRSMonth, month_id)
+                    brs_month.status = "Deleted"
+                    brs_entry.set_brs_id(brs_type, None)
 
         db.session.commit()
         flash("BRS entry has been deleted.")
@@ -376,20 +334,20 @@ def view_consolidated_brs(brs_key, display):
     brs_entry = db.get_or_404(BRS, brs_key)
     brs_entry.require_access(current_user)
 
+    # Collect brs_type → brs_id using model method
     brs_ids = {
-        "cash_brs": brs_entry.cash_brs_id,
-        "cheque_brs": brs_entry.cheque_brs_id,
-        "pg_brs": brs_entry.pg_brs_id,
-        "pos_brs": brs_entry.pos_brs_id,
-        "bbps_brs": brs_entry.bbps_brs_id,
-        "dqr_brs": brs_entry.dqr_brs_id,
-        "local_collection_brs": brs_entry.local_collection_brs_id,
+        brs_type: brs_entry.get_brs_id(brs_type)
+        for brs_type in brs_entry.brs_field_list()
     }
 
-    brs_data = {
-        key: db.get_or_404(BRSMonth, brs_id) if brs_id else None
-        for key, brs_id in brs_ids.items()
-    }
+    # Filter out None values
+    valid_ids = [i for i in brs_ids.values() if i]
+
+    # Bulk load all BRSMonth rows into a dict
+    query = db.session.scalars(
+        db.select(BRSMonth).where(BRSMonth.id.in_(valid_ids))
+    ).all()
+    brs_data = {brs_month.brs_type: brs_month for brs_month in query}
 
     html = render_template(
         "view_consolidated_brs.html",
@@ -422,7 +380,7 @@ def view_brs(brs_key, display):
     html = render_template(
         "view_brs_entry.html",
         brs_entry=brs_entry,
-        get_brs_bank=get_brs_bank,
+        # get_brs_bank=get_brs_bank,
         display=display,
     )
     if display == "html":
@@ -446,18 +404,19 @@ def get_prev_month_amount(requirement: str, brs_id: int):
     if not prev_brs_entry:
         return 0, 0
 
-    attr_map = {
-        "cash": "cash_brs_id",
-        "cheque": "cheque_brs_id",
-        "pg": "pg_brs_id",
-        "pos": "pos_brs_id",
-        "bbps": "bbps_brs_id",
-        "dqr": "dqr_brs_id",
-        "local_collection": "local_collection_brs_id",
-    }
-    field_name = attr_map.get(requirement)
+    # attr_map = {
+    #     "cash": "cash_brs_id",
+    #     "cheque": "cheque_brs_id",
+    #     "pg": "pg_brs_id",
+    #     "pos": "pos_brs_id",
+    #     "bbps": "bbps_brs_id",
+    #     "dqr": "dqr_brs_id",
+    #     "local_collection": "local_collection_brs_id",
+    # }
+    # field_name = attr_map.get(requirement)
 
-    brs_entry_id = getattr(prev_brs_entry, field_name, None)
+    #    brs_entry_id = getattr(prev_brs_entry, field_name, None)
+    brs_entry_id = prev_brs_entry.get_brs_id(requirement)
 
     if not brs_entry_id:
         return 0, 0
@@ -470,33 +429,35 @@ def prevent_duplicate_brs(brs_type: str, brs_id: int) -> bool:
     """Check if BRS already exists for given BRS type and BRS ID."""
     brs_entry = db.get_or_404(BRS, brs_id)
 
-    mapping = {
-        "cash": brs_entry.cash_brs_id,
-        "cheque": brs_entry.cheque_brs_id,
-        "pg": brs_entry.pg_brs_id,
-        "pos": brs_entry.pos_brs_id,
-        "bbps": brs_entry.bbps_brs_id,
-        "dqr": brs_entry.dqr_brs_id,
-        "local_collection": brs_entry.local_collection_brs_id,
-    }
+    return bool(brs_entry.get_brs_id(brs_type))
 
-    return bool(mapping.get(brs_type))
+    # mapping = {
+    #     "cash": brs_entry.cash_brs_id,
+    #     "cheque": brs_entry.cheque_brs_id,
+    #     "pg": brs_entry.pg_brs_id,
+    #     "pos": brs_entry.pos_brs_id,
+    #     "bbps": brs_entry.bbps_brs_id,
+    #     "dqr": brs_entry.dqr_brs_id,
+    #     "local_collection": brs_entry.local_collection_brs_id,
+    # }
+
+    # return bool(mapping.get(brs_type))
 
 
-def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
-    """Update the BRS ID on brs_entry based on requirement."""
-    field_map = {
-        "cash": "cash_brs_id",
-        "cheque": "cheque_brs_id",
-        "pg": "pg_brs_id",
-        "pos": "pos_brs_id",
-        "bbps": "bbps_brs_id",
-        "dqr": "dqr_brs_id",
-        "local_collection": "local_collection_brs_id",
-    }
-    field_name = field_map.get(brs_type)
-    if field_name:
-        setattr(brs_entry, field_name, brs_id)
+# def update_brs_id(brs_type: str, brs_entry: BRS, brs_id: int) -> None:
+#     """Update the BRS ID on brs_entry based on requirement."""
+#     field_map = {
+#         "cash": "cash_brs_id",
+#         "cheque": "cheque_brs_id",
+#         "pg": "pg_brs_id",
+#         "pos": "pos_brs_id",
+#         "bbps": "bbps_brs_id",
+#         "dqr": "dqr_brs_id",
+#         "local_collection": "local_collection_brs_id",
+#     }
+#     field_name = field_map.get(brs_type)
+#     if field_name:
+#         setattr(brs_entry, field_name, brs_id)
 
 
 def upload_df_entries(file, brs_type, table_name, brs_id):
@@ -621,7 +582,8 @@ def enter_brs(requirement, brs_id):
                             form.data.get(file_field), requirement, table_name, brs.id
                         )
 
-            update_brs_id(requirement, brs_entry, brs.id)
+            # update_brs_id(requirement, brs_entry, brs.id)
+            brs_entry.set_brs_id(requirement, brs.id)
             db.session.commit()
 
             return redirect(url_for("brs.upload_brs", brs_key=brs_id))
@@ -643,7 +605,7 @@ def enter_brs(requirement, brs_id):
         form=form,
         brs_entry=brs_entry,
         requirement=requirement,
-        get_brs_bank=get_brs_bank,
+        # get_brs_bank=get_brs_bank,
         prevent_duplicate_brs=prevent_duplicate_brs,
     )
 
@@ -804,18 +766,20 @@ def list_brs_items(entry_type):
     return render_template("brs_raw_data_form.html", form=form)
 
 
-def get_brs_bank(brs_id, brs_type):
-    brs_entry = db.get_or_404(BRS, brs_id)
-    bank_mapping = {
-        "cash": brs_entry.cash_bank,
-        "cheque": brs_entry.cheque_bank,
-        "pos": brs_entry.pos_bank,
-        "pg": brs_entry.pg_bank,
-        "bbps": brs_entry.bbps_bank,
-        "dqr": brs_entry.dqr_bank,
-        "local_collection": brs_entry.local_collection_bank,
-    }
-    return bank_mapping.get(brs_type)
+# def get_brs_bank(brs_id, brs_type):
+#     brs_entry = db.get_or_404(BRS, brs_id)
+
+#     return brs_entry.get_bank_for_type(brs_type)
+#     # bank_mapping = {
+#     #     "cash": brs_entry.cash_bank,
+#     #     "cheque": brs_entry.cheque_bank,
+#     #     "pos": brs_entry.pos_bank,
+#     #     "pg": brs_entry.pg_bank,
+#     #     "bbps": brs_entry.bbps_bank,
+#     #     "dqr": brs_entry.dqr_bank,
+#     #     "local_collection": brs_entry.local_collection_bank,
+#     # }
+#     # return bank_mapping.get(brs_type)
 
 
 def get_bank_account_detail(requirement: str, bank_name: str) -> str:
@@ -891,7 +855,7 @@ def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
 
 @brs_bp.route("/api/v2/brs/<string:office_code>/<string:month>/")
 def get_schedule_bbc_updated_v2(office_code: str, month: str) -> dict:
-    """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
+    """Sample URL: http://0.0.0.0:8080/brs/api/v2/brs/500200/January-2024/
     Function for entering BBC schedule in E formats
     Input: Office code and month
     Output: dictionary containing office code, month, each BRS type,

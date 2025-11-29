@@ -38,21 +38,21 @@
                         ] %}
 
                         {% for key, label in brs_types %}
-                        {% if brs_entry[key ~ "_bank"] %}
+                        {% if brs_entry.get_bank_for_type(key) %}
                         <tr>
                                 <th class="is-vcentered">{{ label }}</th>
 
-                                {% if brs_entry[key ~ "_brs_id"] %}
+                                {% if brs_entry.get_brs_id(key) %}
                                 <td>
                                         <a class="button is-success"
-                                                href='{{ url_for("brs.view_brs", brs_key=brs_entry[key ~ "_brs_id"]) }}'>
+                                                href='{{ url_for("brs.view_brs", brs_key=brs_entry.get_brs_id(key)) }}'>
                                                 View {{ label }}
                                         </a>
                                 </td>
                                 <td class="is-vcentered">
                                         {% if current_user.user_type in list_delete_brs %}
-                                        {{ form["delete_" ~ key ~ "_brs"] }}
-                                        {{ form["delete_" ~ key ~ "_brs"].label }}
+                                        {{ form[key] }}
+                                        {{ form[key].label }}
                                         {% endif %}
                                 </td>
                                 {% else %}

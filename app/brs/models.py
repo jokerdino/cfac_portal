@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional
+from typing import Optional, Literal
 
 from flask import abort
 from sqlalchemy.orm import Mapped, mapped_column
@@ -47,6 +47,65 @@ class BRS(db.Model):
             "local_collection": self.local_collection_bank,
         }
         return mapping.get(brs_type, "")
+
+    def brs_field_map(self) -> dict[str, str]:
+        return {
+            "cash": "cash_brs_id",
+            "cheque": "cheque_brs_id",
+            "pos": "pos_brs_id",
+            "pg": "pg_brs_id",
+            "bbps": "bbps_brs_id",
+            "dqr": "dqr_brs_id",
+            "local_collection": "local_collection_brs_id",
+        }
+
+    def get_brs_id(self, brs_type: str):
+        field = self.brs_field_map().get(brs_type)
+        return getattr(self, field) if field else None
+
+    def set_brs_id(self, brs_type: str, brs_id: int | None) -> None:
+        field = self.brs_field_map().get(brs_type)
+        if field:
+            setattr(self, field, brs_id)
+
+    def brs_field_list(self) -> list[str]:
+        return [
+            "cash",
+            "cheque",
+            "pos",
+            "pg",
+            "bbps",
+            "dqr",
+            "local_collection",
+        ]
+
+    def percent_completed(self) -> float | Literal[100]:
+        fields = self.brs_field_list()
+
+        denom = sum(1 for f in fields if getattr(self, f"{f}_bank"))
+        numerator = sum(
+            1
+            for f in fields
+            if getattr(self, f"{f}_bank") and getattr(self, f"{f}_brs_id")
+        )
+
+        return (numerator / denom) * 100 if denom else 100
+
+    def colour_check(self) -> bool:
+        checks = [
+            ("cash_bank", "cash_brs_id"),
+            ("cheque_bank", "cheque_brs_id"),
+            ("pg_bank", "pg_brs_id"),
+            ("pos_bank", "pos_brs_id"),
+            ("bbps_bank", "bbps_brs_id"),
+            ("dqr_bank", "dqr_brs_id"),
+            ("local_collection_bank", "local_collection_brs_id"),
+        ]
+
+        return all(
+            bool(getattr(self, id_attr)) if getattr(self, bank_attr) else True
+            for bank_attr, id_attr in checks
+        )
 
     def has_access(self, user) -> bool:
         role = user.user_type

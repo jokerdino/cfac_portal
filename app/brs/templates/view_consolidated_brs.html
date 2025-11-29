@@ -33,13 +33,13 @@
         </tbody>
     </table>
     {% set brs_types = [
-    ("cash", "Cash", cash_brs),
-    ("cheque", "Cheque", cheque_brs),
-    ("pg", "Payment Gateway", pg_brs),
-    ("pos", "POS", pos_brs),
-    ("bbps", "BBPS", bbps_brs),
-    ("dqr", "DQR", dqr_brs),
-    ("local_collection", "Local Collection", local_collection_brs)
+    ("cash", "Cash", cash),
+    ("cheque", "Cheque", cheque),
+    ("pg", "Payment Gateway", pg),
+    ("pos", "POS", pos),
+    ("bbps", "BBPS", bbps),
+    ("dqr", "DQR", dqr),
+    ("local_collection", "Local Collection", local_collection)
     ] %}
 
     <table class="table is-fullwidth is-bordered">
@@ -57,7 +57,7 @@
                 <th class="is-vcentered">BRS bank</th>
                 <td></td>
                 {% for key, label, brs in brs_types %}
-                <td class="has-text-centered is-vcentered">{{ brs_month[key ~ "_bank"] if brs }}</td>
+                <td class="has-text-centered is-vcentered">{{ brs_month.get_bank_for_type(key) | upper() if brs }}</td>
                 {% endfor %}
             </tr>
 
