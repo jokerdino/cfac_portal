@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import abort, flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 
@@ -42,10 +42,7 @@ def view_contact(contact_id):
 def edit_contact(contact_id):
     contact = db.get_or_404(Contacts, contact_id)
 
-    # enable edit only if the RO code of login user matches with contact RO code
-    if current_user.user_type == "ro_user":
-        if current_user.ro_code != contact.office_code:
-            abort(404)
+    contact.require_access(current_user)
 
     form = ContactsForm(obj=contact)
     if form.validate_on_submit():
