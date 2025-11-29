@@ -1,9 +1,7 @@
-# from dataclasses import dataclass
 from datetime import date
 from typing import Optional
 
-# from flask_login import current_user
-# from sqlalchemy import func
+from flask import abort
 from sqlalchemy.orm import column_property, mapped_column, Mapped
 
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
@@ -25,11 +23,26 @@ class CentralisedChequeSummary(db.Model):
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
 
-    details: Mapped["CentralisedChequeDetails"] = db.relationship(
+    details: Mapped[list["CentralisedChequeDetails"]] = db.relationship(
         back_populates="summary"
     )
 
     month: Mapped[str] = column_property(db.func.to_char(date_of_month, "FMMonth-YYYY"))
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin"]:
+            return True
+
+        if role in ["ro_user"]:
+            return user.ro_code == self.regional_office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class CentralisedChequeDetails(db.Model):

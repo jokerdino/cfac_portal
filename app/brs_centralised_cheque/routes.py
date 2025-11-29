@@ -135,18 +135,17 @@ def brs_cc_homepage(month, ro_code):
 @ro_user_only
 def brs_cc_view_status(key):
     brs = db.get_or_404(CentralisedChequeSummary, key)
-
-    delete_button: bool = db.session.scalars(
+    brs.require_access(current_user)
+    delete_button: bool = db.session.scalar(
         db.select(CentralisedChequeEnableDelete.enable_delete).where(
             CentralisedChequeEnableDelete.date_of_month == brs.date_of_month
         )
-    ).first()
+    )
 
     form = DeleteMonthForm()
     if form.validate_on_submit():
         brs.centralised_cheque_brs_id = None
-        for detail in brs.details:
-            detail.brs_status = "Deleted"
+        brs.details.brs_status = "Deleted"
         db.session.commit()
         flash("BRS entry has been deleted.")
         return redirect(url_for(".brs_cc_view_status", key=key))
@@ -164,7 +163,7 @@ def get_prev_month_closing_balance(brs_id):
 
     previous_month = brs_summary.date_of_month.replace(day=1) - timedelta(days=1)
 
-    previous_month_brs = db.session.scalars(
+    previous_month_brs = db.session.scalar(
         db.select(CentralisedChequeDetails)
         .where(
             CentralisedChequeDetails.summary_id == CentralisedChequeSummary.id,
@@ -173,7 +172,7 @@ def get_prev_month_closing_balance(brs_id):
             CentralisedChequeSummary.date_of_month == previous_month,
         )
         .order_by(CentralisedChequeDetails.id.desc())
-    ).first()
+    )
     if previous_month_brs:
         return (
             previous_month_brs.closing_balance_unencashed,
@@ -188,6 +187,7 @@ def get_prev_month_closing_balance(brs_id):
 @ro_user_only
 def brs_cc_data_entry(key):
     brs = db.get_or_404(CentralisedChequeSummary, key)
+    brs.require_access(current_user)
     form = CentralisedChequeBankReconForm(obj=brs)
 
     if form.validate_on_submit():
@@ -266,6 +266,7 @@ def process_cheque_file(file, table_name, brs_entry_id):
 @ro_user_only
 def brs_cc_view_entry(key):
     brs = db.get_or_404(CentralisedChequeDetails, key)
+    brs.summary.require_access(current_user)
     column_labels = {
         "opening_balance_unencashed": (
             "Opening balance: Unencashed cheques",
