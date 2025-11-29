@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, Literal
 
+from flask import abort
 from flask_login import UserMixin
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -43,6 +44,22 @@ class User(UserMixin, db.Model):
 
     def is_authenticated(self):
         return True
+
+    def has_access(self, user) -> bool:
+        role = user.user_type
+
+        if role in ["admin"]:
+            return True
+
+        if role in ["ro_user"]:
+            if self.user_type in ["oo_user"]:
+                return user.ro_code == self.ro_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class LogUser(db.Model):

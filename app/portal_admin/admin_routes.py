@@ -1,10 +1,9 @@
 from random import randint
 
 import pandas as pd
-from flask import abort, current_app, flash, render_template, request
+from flask import flash, render_template, request
 from flask_login import current_user, login_required
 
-# from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 
@@ -36,7 +35,6 @@ def upload_users():
         for df_user_upload in df_user_upload_chunk:
             df_user_upload["password"] = password_hash
             df_user_upload["reset_password"] = True
-            # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
             try:
                 df_user_upload.to_sql(
@@ -54,11 +52,9 @@ def upload_users():
 @ro_user_only
 def view_user_page(user_key):
     user = db.get_or_404(User, user_key)
+    user.require_access(current_user)
     form = UpdateUserForm(obj=user)
-    if current_user.user_type == "ro_user" and (
-        user.user_type != "oo_user" or user.ro_code != current_user.ro_code
-    ):
-        abort(404)
+
     user_log = db.session.scalars(
         db.select(LogUser).where(LogUser.user_id == user.username)
     )
