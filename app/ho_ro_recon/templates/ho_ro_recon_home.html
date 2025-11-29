@@ -36,15 +36,17 @@
                     <table class="table">
                         <tr>
                             <td>{{ form.str_assigned_to.label }}</td>
-                            <td>{{ form.str_assigned_to }}</td>
+                            <td>
+                                <div class="select">{{ form.str_assigned_to }}</div>
+                            </td>
                         </tr>
                         <tr>
                             <td>{{ form.str_head_office_status.label }}</td>
                             <td>{{ form.str_head_office_status }}</td>
                         </tr>
                         <tr>
-                            <td>{{ form.str_head_office_voucher_number.label }}</td>
-                            <td>{{ form.str_head_office_voucher_number(class="input") }}
+                            <td>{{ form.str_head_office_voucher.label }}</td>
+                            <td>{{ form.str_head_office_voucher(class="input") }}
                             </td>
                         </tr>
                         <tr>

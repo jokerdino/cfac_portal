@@ -9,8 +9,9 @@ from wtforms import (
     DateField,
     DecimalField,
     SubmitField,
+    HiddenField,
 )
-from wtforms.validators import DataRequired, Optional
+from wtforms.validators import DataRequired, Optional, ValidationError
 
 ro_list = [
     "010000",
@@ -77,6 +78,7 @@ department_list = [
 
 
 class ReconEntriesForm(FlaskForm):
+    str_regional_office_code = HiddenField()
     str_period = SelectField("Period", choices=["Jun-24"], validators=[DataRequired()])
 
     str_department_inter_region = RadioField(
@@ -87,20 +89,32 @@ class ReconEntriesForm(FlaskForm):
     str_department = SelectField(
         "Department", choices=department_list, validators=[Optional()]
     )
-    str_ro_code = SelectField("Region", choices=ro_list, validators=[Optional()])
+    str_target_ro_code = SelectField("Region", choices=ro_list, validators=[Optional()])
     str_debit_credit = RadioField(
         "Debit / Credit",
         choices=[("DR", "DR / Add"), ("CR", "CR / Less")],
         validators=[DataRequired()],
     )
     amount_recon = DecimalField("Amount", validators=[DataRequired()])
-    text_remarks = TextAreaField("Remarks", validators=[Optional()])
+    txt_remarks = TextAreaField("Remarks", validators=[Optional()])
     submit_button = SubmitField("Submit")
     delete_button = SubmitField("Delete")
 
+    def validate_str_department_inter_region(self, field):
+        if field.data == "RO" and not self.str_target_ro_code.data:
+            raise ValidationError("Target RO code is required for RO selection.")
+
+        if field.data == "HO" and not self.str_department.data:
+            raise ValidationError("Department is required for HO selection.")
+
+    def validate_str_target_ro_code(self, field):
+        if self.str_regional_office_code.data == field.data:
+            raise ValidationError(
+                "Selected RO code cannot be same as the RO code of the user."
+            )
+
 
 class HeadOfficeAcceptForm(FlaskForm):
-
     str_assigned_to = SelectField("Assign to", validators=[Optional()])
     str_head_office_status = RadioField(
         "Head office status",
@@ -111,7 +125,7 @@ class HeadOfficeAcceptForm(FlaskForm):
         "Head office remarks", validators=[Optional()]
     )
 
-    str_head_office_voucher_number = StringField(
+    str_head_office_voucher = StringField(
         "Head office voucher number", validators=[Optional()]
     )
     date_head_office_voucher = DateField(
@@ -129,16 +143,16 @@ class RegionalOfficeAcceptForm(FlaskForm):
 
 
 class ReconSummaryForm(FlaskForm):
-    str_ro_balance_dr_cr = SelectField(
+    input_ro_balance_dr_cr = SelectField(
         choices=["DR", "CR"], validators=[DataRequired()]
     )
-    float_ro_balance = DecimalField(
+    input_float_ro_balance = DecimalField(
         "Enter balance as per RO", validators=[DataRequired()]
     )
-    str_ho_balance_dr_cr = SelectField(
+    input_ho_balance_dr_cr = SelectField(
         choices=["DR", "CR"], validators=[DataRequired()]
     )
-    float_ho_balance = DecimalField(
+    input_float_ho_balance = DecimalField(
         "Enter balance as per HO", validators=[DataRequired()]
     )
 
@@ -169,8 +183,3 @@ class ConsolUploadForm(FlaskForm):
         "Upload Consolidated file", validators=[FileRequired(), FileAllowed(["xlsx"])]
     )
     upload_document = SubmitField("Submit")
-
-
-# class ReconEntriesForm(FlaskForm):
-#     add_entries = FieldList(FormField(IndividualEntriesForm), min_entries=5) # type: ignore
-#     submit_button = SubmitField("Submit")

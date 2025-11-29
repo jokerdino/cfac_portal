@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from math import fabs
 import zipfile
 
@@ -8,20 +9,15 @@ from flask import (
     redirect,
     url_for,
     flash,
-    abort,
-    current_app,
     request,
     send_from_directory,
 )
 from flask_login import login_required, current_user
 
-from wtforms.validators import DataRequired
 
-from sqlalchemy import func, create_engine
+from . import ho_ro_recon_bp
 
-from app.ho_ro_recon import ho_ro_recon_bp
-
-from app.ho_ro_recon.ho_ro_recon_form import (
+from .ho_ro_recon_form import (
     ReconEntriesForm,
     RegionalOfficeAcceptForm,
     HeadOfficeAcceptForm,
@@ -29,9 +25,8 @@ from app.ho_ro_recon.ho_ro_recon_form import (
     UploadFileForm,
     ConsolUploadForm,
     ReconUploadForm,
-    ro_list,
 )
-from app.ho_ro_recon.ho_ro_recon_model import (
+from .ho_ro_recon_model import (
     ReconEntries,
     ReconSummary,
     ReconUpdateBalance,
@@ -40,131 +35,84 @@ from app.ho_ro_recon.ho_ro_recon_model import (
 from app.users.user_model import User
 from extensions import db
 
+from set_view_permissions import ro_user_only, admin_required
+
 
 @ho_ro_recon_bp.route("/add", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def add_ho_ro_recon():
     form = ReconEntriesForm()
+    form.str_regional_office_code.data = current_user.ro_code
 
-    if form.str_department_inter_region.data == "RO":
-        form.str_ro_code.validators = [DataRequired()]
-    elif form.str_department_inter_region.data == "HO":
-        form.str_department.validators = [DataRequired()]
-    if form.str_ro_code.data == current_user.ro_code:
-        flash("Selected RO code cannot be same as the RO code of the user.")
-    elif form.validate_on_submit():
-        str_period = form.str_period.data
-        str_target_ro_code = (
-            form.str_ro_code.data
-            if form.str_department_inter_region.data == "RO"
-            else None
-        )
-        str_department = (
-            form.str_department.data
-            if form.str_department_inter_region.data == "HO"
-            else None
-        )
-        text_remarks = form.text_remarks.data
-        str_dr_cr = form.str_debit_credit.data
-        amount_recon = form.amount_recon.data
-        #      print(str_dept)
-        entry = ReconEntries(
-            str_regional_office_code=current_user.ro_code,
-            str_period=str_period,
-            str_department=str_department or None,
-            str_target_ro_code=str_target_ro_code or None,
-            txt_remarks=text_remarks,
-            str_debit_credit=str_dr_cr,
-            str_head_office_status="Pending",
-            amount_recon=amount_recon,
-            created_by=current_user.username,
-            date_created_date=datetime.now(),
-        )
+    if form.validate_on_submit():
+        entry = ReconEntries()
+        form.populate_obj(entry)
         db.session.add(entry)
         db.session.commit()
-        #
+
         return redirect(url_for("ho_ro_recon.recon_home"))
     return render_template(
         "ho_ro_recon_add.html",
         form=form,
-        edit=False,
     )
 
 
 def check_for_status(recon):
-    # update_status = True
-    # if recon.str_head_office_status != "Pending":
-    #     update_status = False
-    # return update_status
-
     return True if recon.str_head_office_status == "Pending" else False
 
 
-@ho_ro_recon_bp.route("/edit/<int:key>", methods=["POST", "GET"])
+@ho_ro_recon_bp.route("/edit/<int:key>/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def update_source_ro(key):
-    recon = ReconEntries.query.get_or_404(key)
-    if current_user.user_type == "ro_user":
-        if not recon.str_regional_office_code == current_user.ro_code:
-            abort(404)
-    form = ReconEntriesForm()
-    if form.str_department_inter_region.data == "RO":
-        form.str_ro_code.validators = [DataRequired()]
-    elif form.str_department_inter_region.data == "HO":
-        form.str_department.validators = [DataRequired()]
+    recon = db.get_or_404(ReconEntries, key)
+    recon.require_access(current_user)
+
+    form = ReconEntriesForm(obj=recon)
+
     if not check_for_status(recon):
         flash("Cannot edit the entry as the status is no longer pending.")
-    elif form.str_ro_code.data == current_user.ro_code:
-        flash("Selected RO code cannot be same as the RO code of the user.")
-    elif form.validate_on_submit():
+
+    if form.validate_on_submit():
         if form.delete_button.data:
             recon.str_head_office_status = "Deleted"
             recon.deleted_by = current_user.username
             recon.date_deleted_date = datetime.now()
 
         else:
-            recon.str_period = form.str_period.data
+            form.populate_obj(recon)
             if form.str_department_inter_region.data == "HO":
                 recon.str_department = form.str_department.data
                 recon.str_target_ro_code = None
             elif form.str_department_inter_region.data == "RO":
-                recon.str_target_ro_code = form.str_ro_code.data
+                recon.str_target_ro_code = form.str_target_ro_code.data
                 recon.str_department = None
-            recon.amount_recon = form.amount_recon.data
-            recon.txt_remarks = form.text_remarks.data
-            recon.str_debit_credit = form.str_debit_credit.data
-            recon.updated_by = current_user.username
-            recon.date_updated_date = datetime.now()
+
         db.session.commit()
         return redirect(url_for("ho_ro_recon.recon_home"))
 
-    form.str_period.data = recon.str_period
     if recon.str_department:
         form.str_department_inter_region.data = "HO"
-        form.str_department.data = recon.str_department
+
     elif recon.str_target_ro_code:
         form.str_department_inter_region.data = "RO"
-        form.str_ro_code.data = recon.str_target_ro_code
-    form.amount_recon.data = recon.amount_recon
-    form.text_remarks.data = recon.txt_remarks
-    form.str_debit_credit.data = recon.str_debit_credit
 
     return render_template(
         "ho_ro_recon_add.html",
         form=form,
-        edit=True,
         recon=recon,
         check_for_status=check_for_status,
     )
 
 
-@ho_ro_recon_bp.route("/accept/<int:key>", methods=["POST", "GET"])
+@ho_ro_recon_bp.route("/accept/<int:key>/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def update_target_ro(key):
-    recon = ReconEntries.query.get_or_404(key)
-    form = RegionalOfficeAcceptForm()
-    if not recon.str_target_ro_code == current_user.ro_code:
-        abort(404)
+    recon = db.get_or_404(ReconEntries, key)
+    recon.require_access(current_user)
+    form = RegionalOfficeAcceptForm(obj=recon)
 
     if not check_for_status(recon):
         flash("Cannot edit the entry as the status is no longer pending.")
@@ -172,8 +120,6 @@ def update_target_ro(key):
     elif form.validate_on_submit():
         recon.str_head_office_status = form.str_accept.data
         recon.txt_head_office_remarks = f"{form.text_remarks.data}; {form.str_accept.data} by {current_user.ro_code}"
-        recon.updated_by = current_user.username
-        recon.date_updated_date = datetime.now()
 
         # create contra entry if accepted
         if form.str_accept.data == "Accepted":
@@ -187,8 +133,6 @@ def update_target_ro(key):
                 amount_recon=recon.amount_recon,
                 str_head_office_status="Accepted",
                 txt_head_office_remarks=f"Accepted original entry of {recon.str_regional_office_code} by {current_user.ro_code}",
-                created_by=current_user.username,
-                date_created_date=datetime.now(),
             )
             db.session.add(recon)
         db.session.commit()
@@ -203,46 +147,29 @@ def update_target_ro(key):
     )
 
 
-@ho_ro_recon_bp.route("/ho/<int:key>", methods=["POST", "GET"])
+@ho_ro_recon_bp.route("/ho/<int:key>/", methods=["POST", "GET"])
 @login_required
+@admin_required
 def update_ho(key):
-    if not current_user.user_type == "admin":
-        abort(404)
+    recon = db.get_or_404(ReconEntries, key)
 
-    recon = ReconEntries.query.get_or_404(key)
-
-    form = HeadOfficeAcceptForm()
+    form = HeadOfficeAcceptForm(obj=recon)
     if current_user.role and "chief_manager" in current_user.role:
-        ho_staff = User.query.filter(User.user_type == "admin").order_by(User.username)
-        form.str_assigned_to.choices = [
-            person.username.upper()
-            for person in ho_staff
-            if "admin" not in person.username
-        ]
+        ho_staff = db.session.scalars(
+            db.select(db.func.upper(User.username).label("username"))
+            .where(User.user_type == "admin", db.not_(User.username.contains("admin")))
+            .order_by(User.username)
+        ).all()
+        form.str_assigned_to.choices = ho_staff
     elif current_user.role and "chief_manager" not in current_user.role:
         form.str_assigned_to.choices = [current_user.username.upper()]
 
     if form.validate_on_submit():
-        recon.str_assigned_to = (
-            form.str_assigned_to.data
-            if form.str_assigned_to.data
-            else recon.str_assigned_to
-        )
-        recon.str_head_office_status = form.str_head_office_status.data
-        recon.txt_head_office_remarks = form.text_head_office_remarks.data or None
-        recon.str_head_office_voucher = form.str_head_office_voucher_number.data or None
-        recon.date_head_office_voucher = form.date_head_office_voucher.data or None
+        form.populate_obj(recon)
 
-        recon.updated_by = current_user.username
-        recon.date_updated_date = datetime.now()
         db.session.commit()
         return redirect(url_for("ho_ro_recon.recon_home"))
 
-    form.str_assigned_to.data = recon.str_assigned_to
-    form.str_head_office_status.data = recon.str_head_office_status
-    form.text_head_office_remarks.data = recon.txt_head_office_remarks
-    form.str_head_office_voucher_number.data = recon.str_head_office_voucher
-    form.date_head_office_voucher.data = recon.date_head_office_voucher
     return render_template(
         "ho_accept.html", recon=recon, form=form, check_for_status=check_for_status
     )
@@ -250,63 +177,51 @@ def update_ho(key):
 
 @ho_ro_recon_bp.route("/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def recon_home():
     form = HeadOfficeAcceptForm()
     # initialize form
     if current_user.user_type == "admin":
         if current_user.role and "chief_manager" in current_user.role:
-            ho_staff = User.query.filter(User.user_type == "admin").order_by(
-                User.username
-            )
-            form.str_assigned_to.choices = [
-                person.username.upper()
-                for person in ho_staff
-                if "admin" not in person.username
-            ]
+            ho_staff = db.session.scalars(
+                db.select(db.func.upper(User.username).label("username"))
+                .where(
+                    User.user_type == "admin", db.not_(User.username.contains("admin"))
+                )
+                .order_by(User.username)
+            ).all()
+            form.str_assigned_to.choices = ho_staff
         elif current_user.role and "chief_manager" not in current_user.role:
             form.str_assigned_to.choices = [current_user.username.upper()]
 
-    query = ReconEntries.query.filter(
-        ReconEntries.str_head_office_status != "Deleted"
-    ).order_by(ReconEntries.id)
+    stmt = (
+        db.select(ReconEntries)
+        .where(ReconEntries.str_head_office_status != "Deleted")
+        .order_by(ReconEntries.id)
+    )
     if current_user.user_type == "ro_user":
-        query = query.filter(
-            ReconEntries.str_regional_office_code == current_user.ro_code
-        )
-
+        stmt = stmt.where(ReconEntries.str_regional_office_code == current_user.ro_code)
+    query = db.session.scalars(stmt)
     if form.validate_on_submit():
         list_recon_keys = request.form.getlist("recon_keys")
+        list_recon_keys = [int(key) for key in list_recon_keys]
         updated_time = datetime.now()
-        for key in list_recon_keys:
-            recon_entry = ReconEntries.query.get_or_404(key)
 
-            recon_entry.str_head_office_voucher = (
-                form.str_head_office_voucher_number.data
-                if form.str_head_office_voucher_number.data
-                else recon_entry.str_head_office_voucher
+        update_stmt = (
+            db.update(ReconEntries)
+            .where(ReconEntries.id.in_(list_recon_keys))
+            .values(
+                str_head_office_voucher=form.str_head_office_voucher.data,
+                str_assigned_to=form.str_assigned_to.data,
+                str_head_office_status=form.str_head_office_status.data,
+                date_head_office_voucher=form.date_head_office_voucher.data,
+                updated_by=current_user.username,
+                date_updated_date=updated_time,
             )
+        )
+        db.session.execute(update_stmt)
+        db.session.commit()
 
-            # if recon entry is already assigned to someone, dont assign it in bulk update
-            # if recon entry is not assigned to anyone, assign to self in bulk update
-            if not recon_entry.str_assigned_to:
-                recon_entry.str_assigned_to = (
-                    form.str_assigned_to.data
-                    if form.str_assigned_to.data
-                    else recon_entry.str_assigned_to
-                )
-            recon_entry.str_head_office_status = (
-                form.str_head_office_status.data
-                if form.str_head_office_status.data
-                else recon_entry.str_head_office_status
-            )
-            recon_entry.date_head_office_voucher = (
-                form.date_head_office_voucher.data
-                if form.date_head_office_voucher.data
-                else recon_entry.date_head_office_voucher
-            )
-            recon_entry.updated_by = current_user.username
-            recon_entry.date_updated_date = updated_time
-            db.session.commit()
         return redirect(url_for("ho_ro_recon.recon_home"))
 
     return render_template(
@@ -318,13 +233,19 @@ def recon_home():
 
 @ho_ro_recon_bp.route("/pending_voucher", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def recon_pending_for_voucher():
-    query = ReconEntries.query.filter(
-        (ReconEntries.str_head_office_status == "Accepted")
-        & (ReconEntries.str_head_office_voucher.is_(None))
-    ).order_by(ReconEntries.id)
+    stmt = (
+        db.select(ReconEntries)
+        .where(
+            ReconEntries.str_head_office_status == "Accepted",
+            ReconEntries.str_head_office_voucher.is_(None),
+        )
+        .order_by(ReconEntries.id)
+    )
     if current_user.user_type == "ro_user":
-        query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
+        stmt = stmt.where(ReconEntries.str_target_ro_code == current_user.ro_code)
+    query = db.session.scalars(stmt)
     return render_template(
         "ho_ro_recon_home.html",
         query=query,
@@ -333,12 +254,16 @@ def recon_pending_for_voucher():
 
 @ho_ro_recon_bp.route("/pending", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def recon_pending_at_ro():
-    query = ReconEntries.query.filter(
-        ReconEntries.str_head_office_status == "Pending"
-    ).order_by(ReconEntries.id)
+    stmt = (
+        db.select(ReconEntries)
+        .where(ReconEntries.str_head_office_status == "Pending")
+        .order_by(ReconEntries.id)
+    )
     if current_user.user_type == "ro_user":
-        query = query.filter(ReconEntries.str_target_ro_code == current_user.ro_code)
+        stmt = stmt.where(ReconEntries.str_target_ro_code == current_user.ro_code)
+    query = db.session.scalars(stmt)
     return render_template(
         "ho_ro_recon_home.html",
         query=query,
@@ -347,135 +272,136 @@ def recon_pending_at_ro():
 
 @ho_ro_recon_bp.route("/summary/")
 @login_required
+@ro_user_only
 def list_recon_summary():
-    query = ReconSummary.query.filter(ReconSummary.str_period == "Jun-24").order_by(
-        ReconSummary.id
+    stmt = (
+        db.select(ReconSummary)
+        .where(ReconSummary.str_period == "Jun-24")
+        .order_by(ReconSummary.id)
     )
     if current_user.user_type == "ro_user":
-        query = query.filter(
-            ReconSummary.str_regional_office_code == current_user.ro_code
-        )
-
+        stmt = stmt.where(ReconSummary.str_regional_office_code == current_user.ro_code)
+    query = db.session.scalars(stmt)
     return render_template("ho_ro_recon_summary_list.html", query=query)
 
 
-def calculate_amount(ro_code):
-    query = (
-        ReconEntries.query.with_entities(func.sum(ReconEntries.amount_recon))
-        .filter(ReconEntries.str_regional_office_code == ro_code)
-        .group_by(ReconEntries.str_head_office_status)
+def calculate_amount(ro_code: str) -> Decimal:
+    # Define CASE expressions once
+    is_pending = ReconEntries.str_head_office_status == "Pending"
+    is_not_passed = (ReconEntries.str_head_office_status == "Accepted") & (
+        ReconEntries.str_head_office_voucher.is_(None)
     )
 
-    pending_amount = query.filter(ReconEntries.str_head_office_status == "Pending")
-    pending_amount_dr = pending_amount.filter(
-        ReconEntries.str_debit_credit == "DR"
-    ).first() or [0]
-    pending_amount_cr = pending_amount.filter(
-        ReconEntries.str_debit_credit == "CR"
-    ).first() or [0]
+    is_dr = ReconEntries.str_debit_credit == "DR"
+    is_cr = ReconEntries.str_debit_credit == "CR"
 
-    not_passed = query.filter(
-        (ReconEntries.str_head_office_status == "Accepted")
-        & (ReconEntries.str_head_office_voucher.is_(None))
+    amount_col = db.func.coalesce(ReconEntries.amount_recon, 0)
+
+    stmt = db.select(
+        db.func.sum(db.case((is_pending & is_dr, amount_col), else_=0)).label(
+            "pending_dr"
+        ),
+        db.func.sum(db.case((is_pending & is_cr, amount_col), else_=0)).label(
+            "pending_cr"
+        ),
+        db.func.sum(db.case((is_not_passed & is_dr, amount_col), else_=0)).label(
+            "not_passed_dr"
+        ),
+        db.func.sum(db.case((is_not_passed & is_cr, amount_col), else_=0)).label(
+            "not_passed_cr"
+        ),
+    ).where(ReconEntries.str_regional_office_code == ro_code)
+
+    row = db.session.execute(stmt).one()
+
+    pending_dr, pending_cr, not_passed_dr, not_passed_cr = (
+        r or Decimal(0) for r in row
     )
 
-    not_passed_dr = not_passed.filter(
-        ReconEntries.str_debit_credit == "DR"
-    ).first() or [0]
-    not_passed_cr = not_passed.filter(
-        ReconEntries.str_debit_credit == "CR"
-    ).first() or [0]
-
-    return (
-        pending_amount_dr[0]
-        - pending_amount_cr[0]
-        + not_passed_dr[0]
-        - not_passed_cr[0]
-    )
+    return pending_dr - pending_cr + not_passed_dr - not_passed_cr
 
 
-@ho_ro_recon_bp.route("/summary/edit/<int:id>", methods=["POST", "GET"])
+def pending_items(ro_code: str) -> tuple[list, list, list, list]:
+    rows = db.session.scalars(
+        db.select(ReconEntries)
+        .where(ReconEntries.str_regional_office_code == ro_code)
+        .order_by(ReconEntries.id)
+    ).all()
+
+    pending_dr = []
+    pending_cr = []
+    not_passed_dr = []
+    not_passed_cr = []
+
+    for row in rows:
+        if row.str_head_office_status == "Pending":
+            if row.str_debit_credit == "DR":
+                pending_dr.append(row)
+            else:
+                pending_cr.append(row)
+        elif (
+            row.str_head_office_status == "Accepted"
+            and row.str_head_office_voucher is None
+        ):
+            if row.str_debit_credit == "DR":
+                not_passed_dr.append(row)
+            else:
+                not_passed_cr.append(row)
+
+    return pending_dr, pending_cr, not_passed_dr, not_passed_cr
+
+
+@ho_ro_recon_bp.route("/summary/edit/<int:id>/", methods=["POST", "GET"])
 @login_required
+@ro_user_only
 def update_recon_summary(id):
-    summary = ReconSummary.query.get_or_404(id)
-    if current_user.user_type == "ro_user":
-        if current_user.ro_code != summary.str_regional_office_code:
-            abort(404)
+    summary = db.get_or_404(ReconSummary, id)
+    summary.require_access(current_user)
 
-    recon_entries = ReconEntries.query.filter(
-        ReconEntries.str_regional_office_code == summary.str_regional_office_code
-    ).order_by(ReconEntries.id)
-    pending_entries = recon_entries.filter(
-        ReconEntries.str_head_office_status == "Pending"
+    pending_dr, pending_cr, not_passed_dr, not_passed_cr = pending_items(
+        summary.str_regional_office_code
     )
-    pending_entries_debit = pending_entries.filter(
-        ReconEntries.str_debit_credit == "DR"
-    )
-    pending_entries_credit = pending_entries.filter(
-        ReconEntries.str_debit_credit == "CR"
-    )
-    accepted_but_not_passed_entries = recon_entries.filter(
-        (ReconEntries.str_head_office_status == "Accepted")
-        & (ReconEntries.str_head_office_voucher.is_(None))
-    )
-    accepted_but_not_passed_entries_dr = accepted_but_not_passed_entries.filter(
-        ReconEntries.str_debit_credit == "DR"
-    )
-    accepted_but_not_passed_entries_cr = accepted_but_not_passed_entries.filter(
-        ReconEntries.str_debit_credit == "CR"
-    )
-    form = ReconSummaryForm()
+    form = ReconSummaryForm(obj=summary)
+
+    def signed(value, dr_cr):
+        """Return value with correct sign: DR = +value, CR = -value."""
+        if value is None:
+            return 0
+        return value if dr_cr == "DR" else -value
 
     if request.method == "POST":
-        if form.str_ro_balance_dr_cr.data == "CR":
-            ro_balance = form.float_ro_balance.data or 0
-        elif form.str_ro_balance_dr_cr.data == "DR":
-            ro_balance = -(form.float_ro_balance.data) or 0
-        if form.str_ho_balance_dr_cr.data == "DR":
-            ho_balance = form.float_ho_balance.data or 0
-        elif form.str_ho_balance_dr_cr.data == "CR":
-            ho_balance = -(form.float_ho_balance.data) or 0
+        ro_balance = signed(
+            form.input_float_ro_balance.data, form.input_ro_balance_dr_cr.data
+        )
+        ho_balance = signed(
+            form.input_float_ho_balance.data, form.input_ho_balance_dr_cr.data
+        )
 
-        if (
-            fabs(
-                int_diff := (
-                    (ro_balance)
-                    - calculate_amount(summary.str_regional_office_code)
-                    - (ho_balance)
-                )
-            )
-            > 0.001
-        ):
+        int_diff = (
+            ro_balance + ho_balance + calculate_amount(summary.str_regional_office_code)
+        )
+        if fabs(int_diff) > 0.001:
             flash(f"Amount mismatch {int_diff}.")
         elif form.validate_on_submit():
-            summary.input_ro_balance_dr_cr = form.str_ro_balance_dr_cr.data
-            summary.input_float_ro_balance = form.float_ro_balance.data
-            summary.input_ho_balance_dr_cr = form.str_ho_balance_dr_cr.data
-            summary.input_float_ho_balance = form.float_ho_balance.data
-            summary.updated_by = current_user.username
-            summary.date_updated_date = datetime.now()
+            form.populate_obj(summary)
 
             db.session.commit()
             return redirect(url_for("ho_ro_recon.list_recon_summary"))
-
-    form.str_ro_balance_dr_cr.data = summary.input_ro_balance_dr_cr
-    form.float_ro_balance.data = summary.input_float_ro_balance or 0
-    form.str_ho_balance_dr_cr.data = summary.input_ho_balance_dr_cr
-    form.float_ho_balance.data = summary.input_float_ho_balance or 0
 
     return render_template(
         "recon_summary_edit.html",
         form=form,
         summary=summary,
-        pending_dr=pending_entries_debit,
-        pending_cr=pending_entries_credit,
-        not_passed_dr=accepted_but_not_passed_entries_dr,
-        not_passed_cr=accepted_but_not_passed_entries_cr,
+        pending_dr=pending_dr,
+        pending_cr=pending_cr,
+        not_passed_dr=not_passed_dr,
+        not_passed_cr=not_passed_cr,
     )
 
 
 @ho_ro_recon_bp.route("/upload_summary_template", methods=["GET", "POST"])
 @login_required
+@admin_required
 def upload_summary_template():
     form = UploadFileForm()
 
@@ -488,14 +414,13 @@ def upload_summary_template():
                 "str_regional_office_code": str,
             },
         )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
         df_summary_template["date_created_date"] = datetime.now()
         df_summary_template["created_by"] = current_user.username
 
         df_summary_template.to_sql(
             "recon_summary",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
@@ -509,10 +434,12 @@ def upload_summary_template():
 
 @ho_ro_recon_bp.route("/upload_updated_summary_balance", methods=["GET", "POST"])
 @login_required
+@admin_required
 def upload_new_ho_balance_summary():
     form = UploadFileForm()
     if form.validate_on_submit():
-        db.session.query(ReconUpdateBalance).delete()
+        delete_stmt = db.delete(ReconUpdateBalance)
+        db.session.execute(delete_stmt)
         db.session.commit()
         summary_template = form.data["file_upload"]
         df_summary_template = pd.read_excel(
@@ -522,50 +449,35 @@ def upload_new_ho_balance_summary():
                 "str_regional_office_code": str,
             },
         )
-        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-
-        #  df_summary_template["date_created_date"] = datetime.now()
-        #  df_summary_template["created_by"] = current_user.username
 
         df_summary_template.to_sql(
             "recon_update_balance",
-            engine,
+            db.engine,
             if_exists="append",
             index=False,
         )
-        # flash("HO RO recon summary has been uploaded successfully.")
-        str_period = (
-            db.session.query(ReconUpdateBalance)
-            .with_entities(ReconUpdateBalance.str_period)
-            .distinct()
+
+        update_stmt = (
+            db.update(ReconSummary)
+            .where(
+                db.and_(
+                    ReconSummary.str_regional_office_code
+                    == ReconUpdateBalance.str_regional_office_code,
+                    ReconSummary.str_period == ReconUpdateBalance.str_period,
+                )
+            )
+            .values(
+                input_float_ro_balance=ReconUpdateBalance.ro_balance,
+                input_ro_balance_dr_cr=ReconUpdateBalance.ro_dr_cr,
+                input_float_ho_balance=ReconUpdateBalance.ho_balance,
+                input_ho_balance_dr_cr=ReconUpdateBalance.ho_dr_cr,
+                updated_by=current_user.username,
+                date_updated_date=datetime.now(),
+            )
         )
-        for regional_office in ro_list:
-            recon_summary = ReconSummary.query.filter(
-                (ReconSummary.str_regional_office_code == regional_office)
-                & (ReconSummary.str_period == str_period.scalar_subquery())
-            ).first()
-            updated_recon_summary_balance = ReconUpdateBalance.query.filter(
-                (ReconUpdateBalance.str_regional_office_code == regional_office)
-                & (ReconUpdateBalance.str_period == str_period.scalar_subquery())
-            ).first()
-            if updated_recon_summary_balance:
-                recon_summary.input_ro_balance_dr_cr = (
-                    updated_recon_summary_balance.ro_dr_cr
-                )
-                recon_summary.input_float_ro_balance = (
-                    updated_recon_summary_balance.ro_balance
-                )
-
-                recon_summary.input_ho_balance_dr_cr = (
-                    updated_recon_summary_balance.ho_dr_cr
-                )
-                recon_summary.input_float_ho_balance = (
-                    updated_recon_summary_balance.ho_balance
-                )
-
-                recon_summary.updated_by = current_user.username
-                recon_summary.date_updated_date = datetime.now()
+        db.session.execute(update_stmt)
         db.session.commit()
+
         flash("Balances have been updated.")
     return render_template(
         "ho_ro_upload_file_template.html",
@@ -577,12 +489,12 @@ def upload_new_ho_balance_summary():
 @ho_ro_recon_bp.context_processor
 def recon_count():
     def recon_pending_count(status: str) -> int:
-        count = ReconEntries.query.with_entities(func.count(ReconEntries.id))
+        count = db.select(db.func.count(ReconEntries.id))
 
         if status == "pending":
-            count = count.filter(ReconEntries.str_head_office_status == "Pending")
+            count = count.where(ReconEntries.str_head_office_status == "Pending")
         elif status == "voucher_pending":
-            count = count.filter(
+            count = count.where(
                 (ReconEntries.str_head_office_status == "Accepted")
                 & (ReconEntries.str_head_office_voucher.is_(None))
             )
@@ -590,18 +502,18 @@ def recon_count():
             return 0
 
         if current_user.user_type == "ro_user":
-            count = count.filter(
-                ReconEntries.str_target_ro_code == current_user.ro_code
-            )
+            count = count.where(ReconEntries.str_target_ro_code == current_user.ro_code)
         elif current_user.user_type != "admin":
             return 0
 
-        return count.scalar()
+        return db.session.scalar(count)
 
     return dict(recon_pending_count=recon_pending_count)
 
 
 @ho_ro_recon_bp.route("/upload_csv/", methods=["POST", "GET"])
+@login_required
+@ro_user_only
 def upload_csv_files():
     form = ReconUploadForm()
     if form.validate_on_submit():
@@ -773,6 +685,8 @@ def prepare_pivot(df_consol):
 
 
 @ho_ro_recon_bp.route("/upload_consol/", methods=["POST", "GET"])
+@login_required
+@ro_user_only
 def upload_consol_file():
     form = ConsolUploadForm()
     if form.validate_on_submit():

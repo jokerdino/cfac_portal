@@ -1,6 +1,7 @@
 {% extends "ho_ro_recon_layout.html" %}
 
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
     {% for field in form %}
     {% if field.errors %}
@@ -11,15 +12,7 @@
     {% endif %}
     {% endfor %}
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="notification is-danger">
-        <p>{{ message }}</p>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+    {% include "partials/messages.html" %}
     <form method="post">
         {{ form.csrf_token }}
         <table class="table">
@@ -47,14 +40,10 @@
                 <th>Remarks</th>
                 <td>{{ recon.txt_remarks }}</td>
             </tr>
-            <tr>
-                <th>{{ form.str_accept.label }}</th>
-                <td>{{ form.str_accept }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.text_remarks.label }}</th>
-                <td>{{ form.text_remarks(class="textarea") }}</td>
-            </tr>
+
+            {{ render_field_table(form.str_accept) }}
+            {{ render_field_table(form.text_remarks) }}
+
         </table>
         <div class="has-text-centered">
             {% if check_for_status(recon) %}

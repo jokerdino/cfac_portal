@@ -1,6 +1,7 @@
 {% extends "ho_ro_recon_layout.html" %}
 
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
     {% for field in form %}
     {% if field.errors %}
@@ -10,19 +11,11 @@
     </div>
     {% endif %}
     {% endfor %}
-
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="notification is-danger">
-        <p>{{ message }}</p>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+    {% include "partials/messages.html" %}
     <form method="post">
         {{ form.csrf_token }}
         <table class="table">
+
             <tr>
                 <th>Period</th>
                 <td>{{ recon.str_period }}</td>
@@ -57,31 +50,20 @@
                 <th>{{ form.str_assigned_to.label }}</th>
                 <td>
                     {% if current_user.role and "chief_manager" in current_user.role %}
-                    {{ form.str_assigned_to(class="select") }}
+                    <div class="select"> {{ form.str_assigned_to(class="select") }}</div>
                     {% elif not recon.str_assigned_to %}
-                    {{ form.str_assigned_to(class="select") }}
+                    <div class="select"> {{ form.str_assigned_to(class="select") }}</div>
                     {% else %}
                     {{ recon.str_assigned_to or "" }}
                     {% endif %}
                 </td>
             </tr>
 
-            <tr>
-                <th>{{ form.str_head_office_status.label }}</th>
-                <td>{{ form.str_head_office_status }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.text_head_office_remarks.label }}</th>
-                <td>{{ form.text_head_office_remarks(class="textarea") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_head_office_voucher_number.label }}</th>
-                <td>{{ form.str_head_office_voucher_number(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.date_head_office_voucher.label }}</th>
-                <td>{{ form.date_head_office_voucher(class="input") }}</td>
-            </tr>
+            {{ render_field_table(form.str_head_office_status) }}
+            {{ render_field_table(form.text_head_office_remarks) }}
+            {{ render_field_table(form.str_head_office_voucher) }}
+            {{ render_field_table(form.date_head_office_voucher) }}
+
         </table>
         <div class="has-text-centered">
 

@@ -1,6 +1,7 @@
 {% extends "ho_ro_recon_layout.html" %}
 
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
 <div class="container">
     {% for field in form %}
     {% if field.errors %}
@@ -11,65 +12,32 @@
     {% endif %}
     {% endfor %}
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    {% for message in messages %}
-    <div class="notification is-danger">
-        <p>{{ message }}</p>
-    </div>
-    {% endfor %}
-    {% endif %}
-    {% endwith %}
+    {% include "partials/messages.html" %}
+
     <form method="post">
         {{ form.csrf_token }}
 
         <table class="table">
-
-            <tr>
-                <th>{{ form.str_period.label }}</th>
-                <td>{{ form.str_period(class="select") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_department_inter_region.label }}</th>
-                <td>{{ form.str_department_inter_region }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.str_ro_code.label }}</th>
-                <td>{% if edit and recon.str_target_ro_code %}
-                    {{ form.str_ro_code(class="select") }}
-                    {% else %}
-                    {{ form.str_ro_code(class="select", disabled=disabled) }}
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <th>{{ form.str_department.label }}</th>
-                <td>{% if edit and recon.str_department %}
-                    {{ form.str_department(class="select") }}
-                    {% else %}
-                    {{ form.str_department(class="select", disabled=disabled) }}
-                    {% endif %}
-                </td>
-            </tr>
-
-            <tr>
-                <th>{{ form.str_debit_credit.label }}</th>
-                <td>{{ form.str_debit_credit }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.amount_recon.label }}</th>
-                <td>{{ form.amount_recon(class="input") }}</td>
-            </tr>
-            <tr>
-                <th>{{ form.text_remarks.label }}</th>
-                <td>{{ form.text_remarks(class="textarea") }}</td>
-
-            </tr>
+            {{ render_field_table(form.str_period) }}
+            {{ render_field_table(form.str_department_inter_region) }}
+            {% if recon and recon.str_target_ro_code %}
+            {{ render_field_table(form.str_target_ro_code) }}
+            {% else %}
+            {{ render_field_table(form.str_target_ro_code, disabled=disabled) }}
+            {% endif %}
+            {% if recon and recon.str_department %}
+            {{ render_field_table(form.str_department) }}
+            {% else %}
+            {{ render_field_table(form.str_department, disabled=disabled) }}
+            {% endif %}
+            {{ render_field_table(form.str_debit_credit) }}
+            {{ render_field_table(form.amount_recon) }}
+            {{ render_field_table(form.txt_remarks) }}
 
         </table>
 
         <div class="has-text-centered">
-            {% if not edit %}
+            {% if not recon %}
             {{ form.submit_button(class="button is-success") }}
             {% else %}
             {% if check_for_status(recon) %}
@@ -88,14 +56,14 @@
 
     document.getElementById('str_department_inter_region-0').addEventListener('change', (event) => {
         if (event.target.checked) {
-            document.getElementById('str_ro_code').disabled = false;
+            document.getElementById('str_target_ro_code').disabled = false;
             document.getElementById('str_department').disabled = true;
         }
     });
 
     document.getElementById('str_department_inter_region-1').addEventListener('change', (event) => {
         if (event.target.checked) {
-            document.getElementById('str_ro_code').disabled = true;
+            document.getElementById('str_target_ro_code').disabled = true;
             document.getElementById('str_department').disabled = false;
         }
     });

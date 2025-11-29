@@ -38,11 +38,14 @@
         {{ form.csrf_token }}
         <table class="table is-bordered">
             <tr>
-                <th colspan="3">{{ form.float_ro_balance.label }}</th>
+                <th colspan="3">{{ form.input_float_ro_balance.label }}</th>
                 <td></td>
-                <td class="has-text-right">{{ form.str_ro_balance_dr_cr(class="select") }}
+
+                <td class="has-text-right">
+                    <div class="select">{{ form.input_ro_balance_dr_cr }}</div>
                 </td>
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.float_ro_balance(class="input") }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.input_float_ro_balance(class="input") }}
+                </td>
             </tr>
             <tr>{% for item in pending_dr %}
                 <td>Pending</td>
@@ -53,7 +56,7 @@
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
                 {% if current_user.user_type == "admin" %}
-                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] ) }}" target='_blank'>Edit</a></td>
                 {% endif %}
 
             </tr>
@@ -69,7 +72,7 @@
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
                 {% if current_user.user_type == "admin" %}
-                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] ) }}" target='_blank'>Edit</a></td>
                 {% endif %}
 
             </tr>
@@ -94,7 +97,7 @@
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
                 {% if current_user.user_type == "admin" %}
-                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] ) }}" target='_blank'>Edit</a></td>
                 {% endif %}
 
             </tr>
@@ -109,7 +112,7 @@
                 <td class="has-text-right">{{ item['amount_recon'] }}</td>
                 <td></td>
                 {% if current_user.user_type == "admin" %}
-                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] )}}" target='_blank'>Edit</a></td>
+                <td><a href="{{ url_for('ho_ro_recon.update_ho', key=item['id'] ) }}" target='_blank'>Edit</a></td>
                 {% endif %}
 
             </tr>
@@ -134,12 +137,14 @@
                 <td class="has-text-right" id="cal_ho_balance"></td>
             </tr>
             <tr>
-                <th colspan="3">{{ form.float_ho_balance.label }}</th>
+                <th colspan="3">{{ form.input_float_ho_balance.label }}</th>
                 <td></td>
-                <td class="has-text-right">{{ form.str_ho_balance_dr_cr(class="select") }}
+                <td class="has-text-right">
+                    <div class="select">{{ form.input_ho_balance_dr_cr }}</div>
                 </td>
 
-                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.float_ho_balance(class="input") }}</td>
+                <td onload="calculateSum()" onkeyup="calculateSum()">{{ form.input_float_ho_balance(class="input") }}
+                </td>
             </tr>
             <tr>
                 <td colspan="3">Difference</td>
@@ -159,22 +164,22 @@
         calculateSum();
     });
 
-    document.getElementById('str_ro_balance_dr_cr').addEventListener('change', (event) => {
+    document.getElementById('input_ro_balance_dr_cr').addEventListener('change', (event) => {
         calculateSum();
     })
 
-    document.getElementById('str_ho_balance_dr_cr').addEventListener('change', (event) => {
+    document.getElementById('input_ho_balance_dr_cr').addEventListener('change', (event) => {
         calculateSum();
     })
     function calculateSum() {
-        var ro_balance = parseFloat(document.getElementById("float_ro_balance").value === "" ? 0 : document.getElementById("float_ro_balance").value);
-        var ho_balance = parseFloat(document.getElementById("float_ho_balance").value === "" ? 0 : document.getElementById("float_ho_balance").value);
+        var ro_balance = parseFloat(document.getElementById("input_float_ro_balance").value === "" ? 0 : document.getElementById("input_float_ro_balance").value);
+        var ho_balance = parseFloat(document.getElementById("input_float_ho_balance").value === "" ? 0 : document.getElementById("input_float_ho_balance").value);
 
         var pending_amount = parseFloat(document.getElementById("int_pending").innerText === "" ? 0 : document.getElementById("int_pending").innerText);
         var not_passed_amount = parseFloat(document.getElementById("int_not_passed").innerText === "" ? 0 : document.getElementById("int_not_passed").innerText);
 
         var cal_ho_balance;
-        var ro_balance_type = document.getElementById("str_ro_balance_dr_cr").value;
+        var ro_balance_type = document.getElementById("input_ro_balance_dr_cr").value;
 
         if (ro_balance_type == "DR") {
             cal_ho_balance = ro_balance + pending_amount + not_passed_amount;
@@ -182,7 +187,7 @@
             cal_ho_balance = -ro_balance + pending_amount + not_passed_amount;
         }
 
-        var ho_balance_type = document.getElementById("str_ho_balance_dr_cr").value;
+        var ho_balance_type = document.getElementById("input_ho_balance_dr_cr").value;
         var diff;
         if (ho_balance_type == "CR") {
             diff = cal_ho_balance - ho_balance;

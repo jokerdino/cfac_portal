@@ -1,65 +1,94 @@
-from extensions import db
+from datetime import datetime, date
+from typing import Optional
+
+from flask import abort
+
+from sqlalchemy.orm import Mapped, mapped_column
+from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
 
 class ReconEntries(db.Model):
+    id: Mapped[IntPK]
+    str_period: Mapped[str]
 
-    id = db.Column(db.Integer, primary_key=True)
-    str_period = db.Column(db.String)
+    str_regional_office_code: Mapped[str]
+    str_department: Mapped[Optional[str]]
+    str_target_ro_code: Mapped[Optional[str]]
+    txt_remarks: Mapped[str] = mapped_column(db.Text)
+    str_debit_credit: Mapped[str]
+    amount_recon: Mapped[float] = mapped_column(db.Numeric(20, 2))
 
-    str_regional_office_code = db.Column(db.String)
-    str_department = db.Column(db.String)
-    str_target_ro_code = db.Column(db.String)
-    txt_remarks = db.Column(db.Text)
-    str_debit_credit = db.Column(db.String)
-    amount_recon = db.Column(db.Numeric(20, 2))
+    str_assigned_to: Mapped[Optional[str]]
+    str_head_office_status: Mapped[str] = mapped_column(default="Pending")
 
-    str_assigned_to = db.Column(db.String)
-    str_head_office_status = db.Column(db.String)
+    txt_head_office_remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    str_head_office_voucher: Mapped[Optional[str]]
+    date_head_office_voucher: Mapped[Optional[date]] = mapped_column(db.Date)
 
-    txt_head_office_remarks = db.Column(db.Text)
-    str_head_office_voucher = db.Column(db.String)
-    date_head_office_voucher = db.Column(db.Date)
+    created_by: Mapped[CreatedBy]
+    date_created_date: Mapped[CreatedOn]
 
-    created_by = db.Column(db.String)
-    date_created_date = db.Column(db.DateTime)
+    updated_by: Mapped[UpdatedBy]
+    date_updated_date: Mapped[UpdatedOn]
 
-    updated_by = db.Column(db.String)
-    date_updated_date = db.Column(db.DateTime)
+    deleted_by: Mapped[Optional[str]]
+    date_deleted_date: Mapped[Optional[datetime]]
 
-    deleted_by = db.Column(db.String)
-    date_deleted_date = db.Column(db.DateTime)
+    def has_access(self, user):
+        if user.user_type == "admin":
+            return True
+        if user.user_type == "ro_user":
+            if user.ro_code in [
+                self.str_regional_office_code,
+                self.str_target_ro_code,
+            ]:
+                return True
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class ReconSummary(db.Model):
+    id: Mapped[IntPK]
+    str_period: Mapped[str]
+    str_regional_office_code: Mapped[str]
 
-    id = db.Column(db.Integer, primary_key=True)
-    str_period = db.Column(db.String)
-    str_regional_office_code = db.Column(db.String)
-
-    input_ro_balance_dr_cr = db.Column(db.String)
-    input_float_ro_balance = db.Column(db.Numeric(20, 2))
-    input_ho_balance_dr_cr = db.Column(db.String)
-    input_float_ho_balance = db.Column(db.Numeric(20, 2))
-
-    float_ho_balance = db.Column(db.Numeric(20, 2))  # calculated value
+    input_ro_balance_dr_cr: Mapped[str]
+    input_float_ro_balance: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    input_ho_balance_dr_cr: Mapped[str]
+    input_float_ho_balance: Mapped[float] = mapped_column(db.Numeric(20, 2))
 
     # meta data
-    created_by = db.Column(db.String)
-    date_created_date = db.Column(db.DateTime)
+    created_by: Mapped[CreatedBy]
+    date_created_date: Mapped[CreatedOn]
 
-    updated_by = db.Column(db.String)
-    date_updated_date = db.Column(db.DateTime)
+    updated_by: Mapped[UpdatedBy]
+    date_updated_date: Mapped[UpdatedOn]
 
-    deleted_by = db.Column(db.String)
-    date_deleted_date = db.Column(db.DateTime)
+    deleted_by: Mapped[Optional[str]]
+    date_deleted_date: Mapped[Optional[datetime]]
+
+    def has_access(self, user):
+        if user.user_type == "admin":
+            return True
+        if user.user_type == "ro_user":
+            return user.ro_code == self.str_regional_office_code
+
+        return False
+
+    def require_access(self, user):
+        if not self.has_access(user):
+            abort(404)
 
 
 class ReconUpdateBalance(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    str_period = db.Column(db.String)
-    str_regional_office_code = db.Column(db.String)
+    id: Mapped[IntPK]
+    str_period: Mapped[str]
+    str_regional_office_code: Mapped[str]
 
-    ro_balance = db.Column(db.Numeric(20, 2))
-    ro_dr_cr = db.Column(db.String)
-    ho_balance = db.Column(db.Numeric(20, 2))
-    ho_dr_cr = db.Column(db.String)
+    ro_balance: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    ro_dr_cr: Mapped[str]
+    ho_balance: Mapped[float] = mapped_column(db.Numeric(20, 2))
+    ho_dr_cr: Mapped[str]
