@@ -62,6 +62,7 @@ def add_bg_entry():
 @oo_user_only
 def edit_bg_entry(bg_key):
     bg = db.get_or_404(BankGuarantee, bg_key)
+    bg.require_access(current_user)
     form = BGForm(obj=bg)
 
     if form.validate_on_submit():
@@ -79,4 +80,5 @@ def edit_bg_entry(bg_key):
 @oo_user_only
 def view_bg_entry(bg_key):
     bg = db.get_or_404(BankGuarantee, bg_key)
+    bg.require_access(current_user)
     return render_template("view_bg_entry.html", bg=bg)
