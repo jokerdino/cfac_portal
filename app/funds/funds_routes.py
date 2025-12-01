@@ -38,6 +38,7 @@ from app.funds.funds_model import (
     FundFlagSheet,
     FundJournalVoucherFlagSheet,
     FundMajorOutgo,
+    FundOutflowLabel,
 )
 from app.coinsurance.coinsurance_model import CoinsuranceReceipts
 from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
@@ -48,7 +49,7 @@ from extensions import db
 
 from set_view_permissions import fund_managers
 
-outflow_labels = [
+outflow_labels_old = [
     "CITI HEALTH",
     "AXIS HEALTH",
     "MRO1 HEALTH",
@@ -68,9 +69,9 @@ outflow_labels = [
     "Other payments",
 ]
 
-outflow_amounts = [
-    f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
-]
+# outflow_amounts = [
+#     f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
+# ]
 
 
 def get_inflow(input_date, inflow_description=None):
@@ -571,6 +572,7 @@ def enter_outflow(date_string):
         .where(FundDailySheet.date_current_date < param_date)
         .order_by(FundDailySheet.date_current_date.desc())
     )
+    outflow_labels = db.session.scalars(db.select(FundOutflowLabel.outflow_label)).all()
     DynamicOutflowForm = generate_outflow_form(outflow_labels)
     form = DynamicOutflowForm()
 
@@ -708,6 +710,11 @@ def populate_outflow_form_data(form, param_date, daily_sheet):
     outflow_map = {
         entry.outflow_description: entry.outflow_amount for entry in outflow_entries
     }
+
+    outflow_labels = db.session.scalars(db.select(FundOutflowLabel.outflow_label)).all()
+    outflow_amounts = [
+        f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
+    ]
 
     # Populate form from the dict (no more DB hits)
     for item in outflow_amounts:
