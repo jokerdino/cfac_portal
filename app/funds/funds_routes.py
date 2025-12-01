@@ -17,6 +17,8 @@ from sqlalchemy import (
     or_,
     and_,
 )
+from sqlalchemy.dialects.postgresql import insert
+
 
 from app.funds import funds_bp
 from app.funds.funds_form import (
@@ -68,10 +70,26 @@ outflow_labels_old = [
     "HDFC Lien",
     "Other payments",
 ]
-
 # outflow_amounts = [
 #     f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
 # ]
+
+
+@funds_bp.route("/outflow/labels")
+@login_required
+@fund_managers
+def populate_outflow_model():
+    insert_stmt = (
+        insert(FundOutflowLabel)
+        .values([{"outflow_label": label} for label in outflow_labels_old])
+        .on_conflict_do_nothing(index_elements=["outflow_label"])
+    )
+    result = db.session.execute(insert_stmt)
+    db.session.commit()
+
+    rows_inserted = result.rowcount
+
+    return f"{rows_inserted} rows inserted"
 
 
 def get_inflow(input_date, inflow_description=None):
