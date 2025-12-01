@@ -114,13 +114,23 @@ def dqr_refund_list():
     role = current_user.user_type
 
     query = db.select(DqrRefund).order_by(DqrRefund.id)
+    pending = db.select(DqrRefund).where(DqrRefund.refund_status == "Refund pending")
+    completed = db.select(DqrRefund).where(
+        DqrRefund.refund_status == "Refund completed"
+    )
     if role == "ro_user":
-        query = query.where(DqrRefund.ro_code == current_user.ro_code)
+        ro_filter = DqrRefund.ro_code == current_user.ro_code
+        query = query.where(ro_filter)
+        pending = pending.where(ro_filter)
+        completed = completed.where(ro_filter)
 
     elif role == "oo_user":
-        query = query.where(DqrRefund.office_code == current_user.oo_code)
+        oo_filter = DqrRefund.office_code == current_user.oo_code
+        query = query.where(oo_filter)
+        pending = pending.where(oo_filter)
+        completed = completed.where(oo_filter)
 
-    table = Table(
+    all_table = Table(
         query,
         classes="table table-striped table-bordered",
         id="dqr_refund_table",
@@ -170,7 +180,114 @@ def dqr_refund_list():
         ],
     )
 
-    return render_template("dqr_refund_list.html", table=table, title="DQR refunds")
+    pending_table = Table(
+        pending,
+        classes="table table-striped table-bordered",
+        id="dqr_pending_refund_table",
+        paginate=False,
+        only=[
+            "organisation",
+            "ro_code",
+            "office_code",
+            "device_serial_number",
+            "refund_amount",
+            "txn_date",
+            "txn_currency",
+            "refund_currency",
+            "auth_code",
+            "mid",
+            "tid",
+            "txn_amt",
+            "rrn",
+            "account_number",
+            "reason_for_refund",
+            "refund_ref_no",
+            "refund_date",
+            "ro_remarks",
+            "refund_status",
+        ],
+        extra_columns=[
+            (
+                "view",
+                Column(
+                    "View",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.dqr_refund_view', id=u.id)}'>View</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+            (
+                "edit",
+                Column(
+                    "Edit",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.dqr_refund_edit', id=u.id)}'>Edit</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+        ],
+    )
+    completed_table = Table(
+        completed,
+        classes="table table-striped table-bordered",
+        id="dqr_completed_table",
+        paginate=False,
+        only=[
+            "organisation",
+            "ro_code",
+            "office_code",
+            "device_serial_number",
+            "refund_amount",
+            "txn_date",
+            "txn_currency",
+            "refund_currency",
+            "auth_code",
+            "mid",
+            "tid",
+            "txn_amt",
+            "rrn",
+            "account_number",
+            "reason_for_refund",
+            "refund_ref_no",
+            "refund_date",
+            "ro_remarks",
+            "refund_status",
+        ],
+        extra_columns=[
+            (
+                "view",
+                Column(
+                    "View",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.dqr_refund_view', id=u.id)}'>View</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+            (
+                "edit",
+                Column(
+                    "Edit",
+                    formatter=lambda u: Markup(
+                        f"<a href='{url_for('.dqr_refund_edit', id=u.id)}'>Edit</a>"
+                    ),
+                    is_html=True,
+                ),
+            ),
+        ],
+    )
+
+    return render_template(
+        "dqr_refund_list.html",
+        all_table=all_table,
+        pending_table=pending_table,
+        completed_table=completed_table,
+        title="All DQR refunds",
+        pending_title="Pending DQR refunds",
+        completed_title="Completed DQR refunds",
+    )
 
 
 @refund_dqr_bp.get("/fetch-oo-code")
