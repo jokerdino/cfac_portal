@@ -60,6 +60,7 @@ outflow_labels = [
     "AXIS TDS RO",
     "PENSION PAYMENT",
     "GRATUITY",
+    "GRATUITY IDFC FIRST",
     "AXIS GST",
     "RO NAGPUR CROP",
     "CITI OMP",
