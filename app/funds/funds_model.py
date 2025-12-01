@@ -218,3 +218,14 @@ class FundJournalVoucherFlagSheet(db.Model):
     bank_statements: Mapped["FundBankStatement"] = relationship(
         back_populates="flag",
     )
+
+
+class FundOutflowLabel(db.Model):
+    id: Mapped[IntPK]
+    outflow_label: Mapped[str] = mapped_column(unique=True)
+
+    date_created_date: Mapped[CreatedOn]
+    date_updated_date: Mapped[UpdatedOn]
+
+    created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
