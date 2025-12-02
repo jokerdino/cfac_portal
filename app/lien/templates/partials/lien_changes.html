@@ -1,0 +1,23 @@
+<div class="box">
+    <h4 class="title is-5">Changes for Lien ID {{ id }}</h4>
+
+    <table class="table is-striped is-fullwidth is-bordered" id="changes_table">
+        <thead>
+            <tr>
+                <th width="20%">Field</th>
+                <th width="40%">Old</th>
+                <th>New</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for field, change in diff.items() %}
+            <tr>
+                <td>{{ field }}</td>
+                <td>{{ change[0] }}</td>
+                <td>{{ change[1] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>

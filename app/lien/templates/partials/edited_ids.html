@@ -1,0 +1,29 @@
+<h4 class="title is-5">Records Edited by RO Users</h4>
+
+<table class="table is-striped is-hoverable is-fullwidth is-bordered" id="lien_table">
+    <thead>
+        <tr>
+            <th>Lien ID</th>
+            <th>Transaction ID</th>
+            <th>Time of change</th>
+            <th>User</th>
+            <th>View Changes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in rows %}
+        <tr>
+            <td><a class="button is-link is-small" href="{{ url_for('lien.lien_view', lien_id=r.id) }}" target="_blank"> {{ r.id }}</a></td>
+            <td>{{ r.transaction_id }}</td>
+            <td>{{ r.issued_at }}</td>
+            <td>{{ r.username }}</td>
+            <td>
+                <button class="button is-info is-small" data-id="{{ r.id }}" data-tx="{{ r.transaction_id }}"
+                    onclick="loadChanges(this.dataset.id, this.dataset.tx)">
+                    View Changes
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

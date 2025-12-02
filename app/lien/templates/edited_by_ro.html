@@ -1,0 +1,65 @@
+{% extends "lien_layout.html" %}
+
+{% block content %}
+
+<!-- Where the list of edited IDs (Bulma table) will be rendered -->
+<div id="edited-ids"></div>
+
+<hr />
+
+<!-- Where the "changes" table will be rendered -->
+<div id="changes"></div>
+
+<script>
+    function loadEditedIds() {
+        fetch("{{ url_for('.lien_edited_ids') }}")
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("edited-ids").innerHTML = html;
+
+                new DataTable('#lien_table', {
+                    layout: {
+                        top1start: 'pageLength',
+                        topStart: 'buttons',
+                    },
+                    buttons: [
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+                    order: [[1, 'desc']],
+                    pagingType: 'full_numbers',
+                    pageLength: 5,
+                    lengthMenu: [
+                        [5, 10, 25, 50, 100, -1],
+                        [5, 10, 25, 50, 100, 'All'],]
+
+                })
+            });
+    }
+
+    const baseChangesUrl = "{{ url_for('.api_changes', id=0, tx_id=0) }}";
+    function loadChanges(id, tx_id) {
+        // replace 0/0 with actual values
+        const url = baseChangesUrl.replace('/0/0', `/${id}/${tx_id}`);
+        fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("changes").innerHTML = html;
+                new DataTable('#changes_table', {
+                    layout: {
+                        topStart: 'buttons',
+                    },
+                    buttons: [
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+                    order: [[0, 'asc']],
+                    paging: false
+                })
+            });
+    }
+
+    loadEditedIds();
+
+</script>
+{% endblock content %}

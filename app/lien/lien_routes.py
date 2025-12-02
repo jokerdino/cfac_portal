@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 import re
 
+
 import pandas as pd
 import numpy as np
 from flask import (
@@ -18,7 +19,7 @@ from sqlalchemy import func, case, event, and_, or_
 from sqlalchemy.orm import Session
 
 from flask_login import login_required, current_user
-from sqlalchemy_continuum import version_class
+from sqlalchemy_continuum import version_class, versioning_manager
 
 from werkzeug.utils import secure_filename
 
@@ -35,6 +36,8 @@ from .lien_forms import (
     LienStatusFilterForm,
     ALLOWED_RO_CODES,
 )
+
+from app.users.user_model import User
 
 
 def prepare_upload_document(lien, form) -> None:
@@ -115,6 +118,52 @@ def lien_log_view(lien_id):
     return render_template(
         "lien_log_view.html", lien_log=lien_log, column_names=col_names, lien_id=lien_id
     )
+
+
+@lien_bp.route("/api/edited_ids/")
+@login_required
+@admin_required
+def lien_edited_ids():
+    LienVersion = version_class(Lien)
+    Transaction = versioning_manager.transaction_cls
+
+    stmt = (
+        db.select(
+            Lien.id, LienVersion.transaction_id, Transaction.issued_at, User.username
+        )
+        .join(LienVersion, LienVersion.id == Lien.id)
+        .join(Transaction, LienVersion.transaction_id == Transaction.id)
+        .join(User, User.id == Transaction.user_id)
+        .where(User.user_type != "admin")
+        .order_by(Transaction.issued_at.desc())
+    )
+
+    rows = db.session.execute(stmt).mappings().all()
+
+    return render_template(
+        "partials/edited_ids.html",
+        rows=rows,
+    )
+
+
+@lien_bp.get("/api/changes/<int:id>/<int:tx_id>/")
+@login_required
+@admin_required
+def api_changes(id, tx_id):
+    LienVersion = version_class(Lien)
+
+    # Composite PK lookup
+    version = db.get_or_404(LienVersion, (id, tx_id))
+
+    diff = version.changeset or {}
+    return render_template("partials/lien_changes.html", diff=diff, id=id)
+
+
+@lien_bp.route("/edited_by_ro_users")
+@login_required
+@admin_required
+def edited_by_ro_users():
+    return render_template("edited_by_ro.html")
 
 
 @lien_bp.route("/edit/<int:lien_id>/", methods=["GET", "POST"])
