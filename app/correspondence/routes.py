@@ -1,4 +1,6 @@
 from datetime import datetime
+import re
+
 from flask import (
     abort,
     render_template,
@@ -149,8 +151,15 @@ def download_document(document_type, document_id):
         abort(404)
 
     file_extension = path.rsplit(".", 1)[-1]
-    file_title = getattr(model_obj, field)
 
+    def clean_filename(name: str) -> str:
+        # Remove newlines (causes send_file header break)
+        name = name.replace("\n", "").replace("\r", "")
+
+        # Remove only characters not allowed by OS or HTTP headers
+        return re.sub(r'[\\/:*?"<>|]', "", name).strip()
+
+    file_title = clean_filename(getattr(model_obj, field))
     filename = f"{model_obj.reference_number}_{file_title}.{file_extension}"
     return send_from_directory(
         directory=f"{current_app.config.get('UPLOAD_FOLDER')}correspondence/{document_type}/",
