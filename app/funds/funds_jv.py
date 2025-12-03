@@ -140,7 +140,7 @@ def download_jv():
 
         all_queries.append(investment_given_query)
 
-        query_set = union(*all_queries)
+        query_set = union_all(*all_queries)
 
         with db.engine.connect() as conn:
             df_funds = pd.read_sql(query_set, conn)
@@ -211,12 +211,15 @@ def download_jv2():
         outflow_query_list = prepare_outflow_jv_new(start_date, end_date)
         investment_query_list = prepare_investment_jv_new(start_date, end_date)
 
-        query_set = union_all(
+        query_set = db.union_all(
             *inflow_query_list, *outflow_query_list, *investment_query_list
         )
 
+        inflow_details_list = prepare_inflow_details(start_date, end_date)
+
         with db.engine.connect() as conn:
             df_merged = pd.read_sql(query_set, conn)
+            df_inflow = pd.read_sql(inflow_details_list, conn)
 
         if not df_merged.empty:
             df_merged["GL Code"] = pd.to_numeric(df_merged["GL Code"])
@@ -225,6 +228,7 @@ def download_jv2():
             output = BytesIO()
             with pd.ExcelWriter(output) as writer:
                 df_merged.to_excel(writer, sheet_name="JV", index=False)
+                df_inflow.to_excel(writer, sheet_name="Inflow", index=False)
 
             output.seek(0)
             return send_file(
@@ -442,6 +446,51 @@ def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
         )
     )
     return [inflow_credit_query, inflow_debit_query]
+
+
+def prepare_inflow_details(start_date, end_date):
+    inflow_credit_query = (
+        db.select(
+            db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY").label(
+                "Value date"
+            ),
+            FundBankStatement.description.label("Bank Description"),
+            FundBankStatement.reference_no.label("Reference No"),
+            db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS").label(
+                "Flag name"
+            ),
+            db.func.coalesce(
+                FundJournalVoucherFlagSheet.txt_description, "OTHERS"
+            ).label("Flag pattern"),
+            db.func.coalesce(
+                FundJournalVoucherFlagSheet.txt_gl_code, "5131405950"
+            ).label("GL Code"),
+            db.func.coalesce(FundJournalVoucherFlagSheet.txt_sl_code, "0").label(
+                "SL Code"
+            ),
+            db.case((FundBankStatement.credit > 0, "CR"), else_="DR").label("DR/CR"),
+            db.case(
+                (FundBankStatement.credit < 0, -FundBankStatement.credit),
+                else_=FundBankStatement.credit,
+            ).label("Amount"),
+            db.func.concat(
+                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+                " ",
+                db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
+            ).label("Remarks"),
+        )
+        .outerjoin(
+            FundBankStatement.flag,
+        )
+        .where(
+            and_(
+                (FundBankStatement.value_date.between(start_date, end_date)),
+                FundBankStatement.credit != 0,
+            )
+        )
+    ).order_by(FundBankStatement.id)
+
+    return inflow_credit_query
 
 
 def prepare_investment_jv_new(start_date, end_date) -> list[Any]:
