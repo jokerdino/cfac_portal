@@ -49,10 +49,10 @@
                             <a class="navbar-item {% if active_page == 'pool_credits.jv_bulk_upload' %} has-background-info-light {% endif %}"
                                 href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV mapping</a>
                             <hr class="navbar-divider" />
-                            <a class="navbar-item" href="{{ url_for('.download_jv_confirmed_entries') }}">Download
-                                JV</a>
+                            {# <a class="navbar-item" href="{{ url_for('.download_jv_confirmed_entries') }}">Download
+                                JV</a> #}
                             <a class="navbar-item" href="{{ url_for('.download_jv_confirmed_entries_v2') }}">Download
-                                JV<div class="tag is-danger">Testing</div></a>
+                                JV</a>
                         </div>
                     </div>
                     {% endif %}
