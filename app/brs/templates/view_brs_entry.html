@@ -115,10 +115,12 @@
     </div>
 
     {% if display == "html" %}
-    <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
-    <a class="button is-link" href="{{ url_for('brs.view_brs', brs_key = brs_entry.id, display = 'pdf') }}"
-        target="_blank">Print as
-        PDF</a>
+    <div class="no-print">
+        <a class="button is-link" href="{{ url_for('brs.upload_brs', brs_key = brs_entry.brs_id) }}">Go back</a>
+        <a class="button is-link" href="{{ url_for('brs.view_brs', brs_key = brs_entry.id, display = 'pdf') }}"
+            target="_blank">Print as
+            PDF</a>
+    </div>
     {% endif %}
 </div>
 

@@ -18,7 +18,7 @@ or 0 )| float ) + ((daily_sheet.float_amount_taken_from_investments or 0) | floa
 
 <div class="container">
     {% if pdf == "False" %}
-    <div class="has-text-right">
+    <div class="has-text-right no-print">
         <a class="button is-link is-outlined" target="_blank" href="{{ url_for('funds.ibt',
             date_string=display_date.strftime('%d%m%Y'), pdf='True' ) }}">Print to PDF</a>
     </div>
@@ -160,7 +160,7 @@ or 0 )| float ) + ((daily_sheet.float_amount_taken_from_investments or 0) | floa
     </table>
     <div class="mb-5 mt-5"></div>
     {% if pdf == "False" %}
-    <div class="has-text-centered">
+    <div class="has-text-centered no-print">
         <a class="button" href="{{ url_for('funds.add_remarks',
             date_string=display_date.strftime('%d%m%Y')) }}">Go to remarks</a>
         <a class="button is-link is-outlined" href="{{ url_for('funds.daily_summary',

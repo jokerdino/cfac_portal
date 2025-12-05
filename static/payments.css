@@ -74,3 +74,17 @@ legend {
     font-size: 0.95rem;
     padding: 0 6px;
 }
+
+@media print {
+    .navbar {
+        display: none !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    html {
+        filter: grayscale(100%);
+    }
+}

@@ -14,7 +14,7 @@
 {% block content %}
 <div class="container">
     {% if pdf == "False" %}
-    <div class="has-text-right">
+    <div class="has-text-right no-print">
         <a class="button is-link is-outlined" target="_blank" href="{{ url_for('funds.daily_summary',
             date_string=display_date.strftime('%d%m%Y'), pdf='True' ) }}">Print to PDF</a>
     </div>
