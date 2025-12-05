@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 
-from wtforms import BooleanField, FileField, SubmitField
+from wtforms import BooleanField, FileField, SubmitField, SelectField
 from wtforms.validators import Optional
 
 
@@ -19,3 +19,8 @@ class MISTrackerForm(FlaskForm):
     bool_jv_passed = BooleanField(
         "Whether necessary JV has been passed", validators=[Optional()]
     )
+
+
+class FilterMonthForm(FlaskForm):
+    month = SelectField()
+    submit = SubmitField(render_kw={"class": "button is-success is-outlined"})

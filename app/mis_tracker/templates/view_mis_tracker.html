@@ -1,6 +1,13 @@
 {% extends "mis_layout.html" %}
 {% block content %}
+
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
 <div class="container mt-5 mb-5">
+
+    <form class="mb-5" method="post">
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
     <table class="table is-fullwidth is-bordered" id="mis_table">
         <thead>
             <tr>

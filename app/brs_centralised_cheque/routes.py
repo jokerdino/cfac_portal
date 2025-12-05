@@ -82,9 +82,9 @@ def brs_cc_dashboard():
         )
         .distinct()
         .order_by(CentralisedChequeSummary.date_of_month.desc())
-    )
+    ).all()
 
-    form.month.choices = ["View all"] + [month for month in month_choices]
+    form.month.choices = ["View all"] + month_choices
     query = (
         db.select(
             CentralisedChequeSummary.regional_office_code,

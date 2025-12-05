@@ -9,7 +9,7 @@ from flask_login import current_user, login_required
 
 from . import mis_bp
 from .mis_model import MisTracker
-from .mis_form import MISTrackerForm, FileUploadForm
+from .mis_form import MISTrackerForm, FileUploadForm, FilterMonthForm
 
 from .mis_helper_functions import upload_mis_file
 from extensions import db
@@ -61,15 +61,30 @@ def bulk_upload_mis_tracker():
     )
 
 
-@mis_bp.route("/", methods=["GET"])
+@mis_bp.route("/", methods=["GET", "POST"])
 @login_required
 def view_mis_tracker():
-    list = db.session.scalars(
-        db.select(MisTracker).order_by(
-            MisTracker.created_on.desc(), MisTracker.id.asc()
+    form = FilterMonthForm()
+
+    period = db.func.to_date(MisTracker.txt_period, "Month-YYYY")
+    month_choices = db.session.scalars(
+        db.select(
+            MisTracker.txt_period,
+            period,
         )
-    )
-    return render_template("view_mis_tracker.html", list=list)
+        .distinct()
+        .order_by(period.desc())
+    ).all()
+
+    form.month.choices = month_choices
+    stmt = db.select(MisTracker).order_by(period.desc())
+    month = month_choices[0]
+    if form.validate_on_submit():
+        month = form.month.data
+
+    stmt = stmt.where(MisTracker.txt_period == month)
+    query = db.session.scalars(stmt)
+    return render_template("view_mis_tracker.html", list=query, form=form)
 
 
 @mis_bp.route("/edit/<int:mis_key>/", methods=["POST", "GET"])
