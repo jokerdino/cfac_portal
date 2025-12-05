@@ -144,7 +144,7 @@
           </thead>
           <tbody>
             <tr>
-              {% for item in query %}
+              {% for item in announcements %}
               <td title="{{ item.created_on }}">{{ item.created_on | humanize_datetime }}</td>
               <td>{{ item.txt_title }}</td>
               <td>{{ item.txt_message }}</td>
@@ -172,7 +172,7 @@
         </thead>
         <tbody>
           <tr>
-            {% for item in list %}
+            {% for item in mis %}
             <td>{{ item.txt_period }}</td>
             <td>{{ item.txt_mis_type }}</td>
             <td class="has-text-centered">{{ "✅" if item.bool_mis_shared else "❌" }}</td>
