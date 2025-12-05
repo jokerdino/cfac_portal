@@ -23,10 +23,8 @@
                 <th>Refund Reference No</th>
                 <th>Refund Date</th>
                 <th>RO/OO Remarks</th>
-
             </tr>
         </thead>
-
         <tbody>
             <tr>
                 <td>{{ refund.organisation }}</td>
@@ -34,7 +32,7 @@
                 <td>{{ refund.office_code }}</td>
                 <td>{{ refund.device_serial_number }}</td>
                 <td>{{ '{:,.2f}'.format(refund.refund_amount) }}</td>
-                <td>{{ refund.txn_date.strftime('%d-%m-%Y') }}</td>
+                <td>{{ refund.txn_date.strftime("%d-%m-%Y") }}</td>
                 <td>{{ refund.txn_currency }}</td>
                 <td>{{ refund.refund_currency }}</td>
                 <td>{{ refund.auth_code }}</td>
@@ -45,133 +43,115 @@
                 <td>{{ refund.account_number }}</td>
                 <td>{{ refund.reason_for_refund }}</td>
                 <td>{{ refund.refund_ref_no }}</td>
-                <td>{{ refund.refund_date.strftime('%d-%m-%Y') if refund.refund_date else "" }}</td>
+                <td>{{ refund.refund_date.strftime("%d-%m-%Y") if refund.refund_date else "" }}</td>
                 <td>{{ refund.ro_remarks }}</td>
-
             </tr>
         </tbody>
     </table>
 </div>
-
 <div class="container my-4">
-
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">Refund Details</h5>
         </div>
-
         <div class="card-body">
             <table class="table table-bordered table-striped">
                 <tbody>
-
                     <!-- 1. organisation -->
                     <tr>
                         <th class="col-25">Organisation</th>
                         <td>{{ refund.organisation }}</td>
                     </tr>
-
                     <!-- 2. ro_code -->
                     <tr>
                         <th>RO Code</th>
                         <td>{{ refund.ro_code }}</td>
                     </tr>
-
                     <!-- 3. office_code -->
                     <tr>
                         <th>Office Code</th>
                         <td>{{ refund.office_code }}</td>
                     </tr>
-
                     <!-- 4. device_serial_number -->
                     <tr>
                         <th>Device Serial Number</th>
                         <td>{{ refund.device_serial_number }}</td>
                     </tr>
-
                     <!-- 5. refund_amount -->
                     <tr>
                         <th>Refund Amount</th>
                         <td>{{ refund.refund_amount }}</td>
                     </tr>
-
                     <!-- 6. txn_date -->
                     <tr>
                         <th>Transaction Date</th>
-                        <td>{{ refund.txn_date.strftime('%d-%m-%Y') if refund.txn_date else '' }}</td>
+                        <td>{{ refund.txn_date.strftime("%d-%m-%Y") if refund.txn_date else '' }}</td>
                     </tr>
-
                     <!-- 7. txn_currency -->
                     <tr>
                         <th>Transaction Currency</th>
                         <td>{{ refund.txn_currency }}</td>
                     </tr>
-
                     <!-- 8. refund_currency -->
                     <tr>
                         <th>Refund Currency</th>
                         <td>{{ refund.refund_currency }}</td>
                     </tr>
-
                     <!-- 9. auth_code -->
                     <tr>
                         <th>Auth Code</th>
                         <td>{{ refund.auth_code }}</td>
                     </tr>
-
                     <!-- 10. mid -->
                     <tr>
                         <th>MID</th>
                         <td>{{ refund.mid }}</td>
                     </tr>
-
                     <!-- 11. tid -->
                     <tr>
                         <th>TID</th>
                         <td>{{ refund.tid }}</td>
                     </tr>
-
                     <!-- 12. txn_amt -->
                     <tr>
                         <th>Transaction Amount</th>
                         <td>{{ refund.txn_amt }}</td>
                     </tr>
-
                     <!-- 13. rrn -->
                     <tr>
                         <th>RRN</th>
                         <td>{{ refund.rrn }}</td>
                     </tr>
-
                     <!-- 14. account_number -->
                     <tr>
                         <th>Account Number</th>
                         <td>{{ refund.account_number }}</td>
                     </tr>
-
                     <!-- 15. reason_for_refund -->
                     <tr>
                         <th>Reason for Refund</th>
                         <td>{{ refund.reason_for_refund }}</td>
                     </tr>
-
+                    <tr>
+                        <th>Date of email sent to bank for refund</th>
+                        <td>{{ refund.date_of_email_sent_to_bank.strftime("%d-%m-%Y") if refund.date_of_email_sent_to_bank else "" }}
+                        </td>
+                    </tr>
                     <!-- 16. refund_ref_no -->
                     <tr>
                         <th>Refund Reference No.</th>
                         <td>{{ refund.refund_ref_no }}</td>
                     </tr>
-
                     <!-- 17. refund_date -->
                     <tr>
                         <th>Refund Date</th>
-                        <td>{{ refund.refund_date.strftime('%d-%m-%Y') if refund.refund_date else '' }}</td>
+                        <td>{{ refund.refund_date.strftime("%d-%m-%Y") if refund.refund_date else '' }}</td>
                     </tr>
-
                     <!-- 18. ro_remarks -->
                     <tr>
                         <th>RO/OO Remarks</th>
                         <td>{{ refund.ro_remarks }}</td>
                     </tr>
-
                     <!-- 19. refund_status -->
                     <tr>
                         <th>Refund Status</th>
@@ -183,22 +163,13 @@
                             {% endif %}
                         </td>
                     </tr>
-
                 </tbody>
             </table>
         </div>
-
         <div class="card-footer text-end">
-            <a href="{{ url_for('.dqr_refund_edit', id=refund.id) }}" class="btn btn-primary btn-sm">
-                Edit
-            </a>
-            <a href="{{ url_for('.dqr_refund_list') }}" class="btn btn-secondary btn-sm">
-                Back to List
-            </a>
+            <a href="{{ url_for('.dqr_refund_edit', id=refund.id) }}" class="btn btn-primary btn-sm">Edit</a>
+            <a href="{{ url_for('.dqr_refund_list') }}" class="btn btn-secondary btn-sm">Back to List</a>
         </div>
-
     </div>
-
 </div>
-
 {% endblock content %}

@@ -25,6 +25,7 @@ class DqrRefund(db.Model):
     rrn: Mapped[str]
     account_number: Mapped[str] = mapped_column(default="719011004568")
     reason_for_refund: Mapped[str] = mapped_column(db.Text)
+    date_of_email_sent_to_bank: Mapped[Optional[date]]
     refund_ref_no: Mapped[Optional[str]]
     refund_date: Mapped[Optional[date]]
     ro_remarks: Mapped[Optional[str]] = mapped_column(db.Text)

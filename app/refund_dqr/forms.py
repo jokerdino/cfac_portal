@@ -40,6 +40,9 @@ class DQRRefundEditForm(FlaskForm):
     rrn = StringField("RRN", validators=[DataRequired()])
     account_number = StringField(default="719011004568", render_kw={"readonly": True})
     reason_for_refund = TextAreaField(validators=[DataRequired()])
+    date_of_email_sent_to_bank = DateField(
+        "Date of email sent to bank for refund", validators=[DataRequired()]
+    )
     refund_ref_no = StringField(validators=[Optional()])
     refund_date = DateField(validators=[Optional()])
     ro_remarks = TextAreaField("OO/RO remarks", validators=[Optional()])
