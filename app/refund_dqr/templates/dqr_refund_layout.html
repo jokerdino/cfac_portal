@@ -50,15 +50,7 @@
 
                     {% endif %}
                 </div>
-                {% if not current_user.is_authenticated %}
-
-                <div class="navbar-nav">
-                    <a class="nav-link" href="{{ url_for('users.login_page') }}">Login</a>
-                    {% else %}
-                    <a class="nav-link disabled" tabindex="-1" href="">{{ current_user.username.upper() }}</a>
-                    <a class="nav-link ms-3" href="{{ url_for('users.logout_page') }}">Log out</a>
-                    {% endif %}
-                </div>
+                {% include "partials/bootstrap_user_details.html" %}
             </div>
         </nav>
     </header>

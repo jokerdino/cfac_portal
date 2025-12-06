@@ -1,0 +1,32 @@
+<div class="navbar-nav">
+    {% if not current_user.is_authenticated %}
+    <a class="nav-link" href="{{ url_for('users.login_page') }}">Login</a>
+    {% else %}
+    <div class="nav-link" tabindex="-1" href="">{{ current_user.username.upper() }}</div>
+    <!-- Notifications dropdown -->
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            🔔 Notifications ({{ g.unread_count }})
+        </a>
+
+        <ul class="dropdown-menu dropdown-menu-end">
+            {% if g.notifications %}
+            {% for n in g.notifications %}
+            <li>
+                <a class="dropdown-item {% if not n.is_read %}bg-warning-subtle{% endif %}"
+                    href="{{ url_for('todo.read', id=n.id) }}">
+                    {{ n.message }}<br />
+                    <small class="text-muted">
+                        {{ n.created_on.strftime('%d %b %Y %H:%M') }}
+                    </small>
+                </a>
+            </li>
+            {% endfor %}
+            {% else %}
+            <li><span class="dropdown-item-text">No notifications</span></li>
+            {% endif %}
+        </ul>
+    </li>
+    <a class="nav-link ms-3" href="{{ url_for('users.logout_page') }}">Log out</a>
+    {% endif %}
+</div>
