@@ -33,6 +33,8 @@ class User(UserMixin, db.Model):
 
     role: Mapped[Optional[list[str]]] = mapped_column(db.ARRAY(db.String))
 
+    display_name: Mapped[Optional[str]]
+
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
     updated_by: Mapped[UpdatedBy]

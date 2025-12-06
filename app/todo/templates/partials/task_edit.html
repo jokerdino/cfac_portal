@@ -1,0 +1,15 @@
+{% from "bootstrap_macros.html" import render_field_horizontal %}
+
+<form method="post" class="form-horizontal" enctype="multipart/form-data"
+    action="{{ action_url | default(url_for('todo.task_add')) }}">
+    {{ form.csrf_token }}
+    {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
+    {{ render_field_horizontal(field) }}
+    {% endfor %}
+    <div class="row mb-3">
+        <div class="col-sm-9 offset-sm-3">
+            <button type="submit" class="btn btn-primary">Submit</button>
+            <button type="reset" class="btn btn-secondary">Cancel</button>
+        </div>
+    </div>
+</form>

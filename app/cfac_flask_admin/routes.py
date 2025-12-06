@@ -91,6 +91,8 @@ from app.brs_centralised_cheque.models import (
 )
 
 from app.refund_dqr.models import DqrRefund, DqrMachines
+from app.todo.models import Task, Notification
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -108,6 +110,7 @@ admin.add_sub_category(name="Leave management", parent_name="Leave management")
 admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Refund - DQR", parent_name="Refund DQR")
+admin.add_sub_category(name="TODO", parent_name="TODO")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Users", parent_name="Users")
 
@@ -541,6 +544,10 @@ admin.add_view(
         DqrMachines, db.session, endpoint="refund_dqr_machines", category="Refund DQR"
     )
 )
+# todo
+admin.add_view(ModelView(Task, db.session, endpoint="task_", category="Todo"))
+admin.add_view(ModelView(Notification, db.session, endpoint="notif_", category="Todo"))
+
 
 # tickets
 admin.add_view(

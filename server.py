@@ -2,12 +2,13 @@
 from logging.config import dictConfig
 
 
-from flask import Flask, request, current_app
+from flask import Flask, request, current_app, g
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.portal_admin.admin_routes import admin_check
 from app.users.user_model import User
+from app.todo.models import Notification
 from config import Config, TestConfig
 from extensions import admin, db, lm, migrate, toolbar
 
@@ -31,6 +32,7 @@ from app.budget import budget_bp
 from app.pg_tieup import pg_tieup_bp
 from app.lien import lien_bp
 from app.escalation_matrix import em_bp
+from app.todo import todo_bp
 
 from app.leave_management import leave_mgmt_bp
 from app.employee_leave_balance import leave_balance_bp
@@ -131,6 +133,24 @@ def create_app(config_class=Config):
                 f"Args: {request.args.to_dict()}"
             )
 
+    @app.before_request
+    def load_notifications():
+        if current_user.is_authenticated:
+            g.notifications = db.session.scalars(
+                db.select(Notification)
+                .where(
+                    Notification.user_id == current_user.id,
+                    # Notification.is_read.is_(False),
+                )
+                .order_by(Notification.created_on.desc())
+                .limit(15)
+            ).all()
+
+            g.unread_count = sum(1 for n in g.notifications if not n.is_read)
+        else:
+            g.notifications = []
+            g.unread_count = 0
+
     @app.errorhandler(Exception)
     def handle_exception(e):
         log = current_app.logger
@@ -227,6 +247,7 @@ def create_app(config_class=Config):
     app.register_blueprint(correspondence_bp, url_prefix="/correspondence")
     app.register_blueprint(refund_dqr_bp, url_prefix="/refund_dqr")
     app.register_blueprint(ri_page_bp, url_prefix="/ri")
+    app.register_blueprint(todo_bp, url_prefix="/todo")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")

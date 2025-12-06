@@ -7,8 +7,21 @@
                 <a class="button is-link" href="{{ url_for('users.login_page') }}">Login</a>
                 {% else %}
                 <a class="button"> {{ current_user.username.upper() }} </a>
-                <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
-                {% endif %}
+                {% if current_user.user_type == "admin" %}
+                <div class="navbar-item has-dropdown is-hoverable"> <a class="navbar-link"> 🔔 Notifications ({{
+                        g.unread_count }})
+                    </a>
+                    <div class="navbar-dropdown is-right"> {% for n in g.notifications %} <a
+                            class="navbar-item {% if not n.is_read %}has-background-warning-light{% endif %}"
+                            href="{{ url_for('todo.read', id=n.id) }}"> {{ n.message }} <br /> <small>{{
+                                n.created_on.strftime('%d %b
+                                %Y %H:%M') }}</small> </a> {% else %} <div class="navbar-item">No notifications</div> {%
+                        endfor %}
+                    </div>
+                    {% endif %}
+                    <a class="button is-link" href="{{ url_for('users.logout_page') }}">Log out</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

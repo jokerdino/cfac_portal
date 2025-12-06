@@ -1,0 +1,46 @@
+{% extends "task_layout.html" %}
+{% block content %}
+
+<a class="button is-primary mb-4" href="{{ url_for('.task_add') }}">
+    Add Task
+</a>
+
+<table id="task_table" class="table table-bordered table-striped table-hoverable is-fullwidth">
+    <thead>
+        <tr>
+            <th class="text-center">Title</th>
+            <th class="text-center">Priority</th>
+            <th class="text-center">Status</th>
+            <th class="text-center">Created</th>
+            <th class="text-center">Due</th>
+            <th class="text-center">Assigned To</th>
+            <th class="text-center">Edit</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for t in tasks %}
+        <tr>
+            <td>{{ t.Task.title }}</td>
+            <td>{{ t.Task.get_priority_display }}</td>
+            <td>{{ t.Task.get_status_display }}</td>
+            <td>{{ t.Task.created_on.date() }}</td>
+            <td>{{ t.Task.due_date if t.Task.due_date else "" }}</td>
+            <td>{{ t.display_name or "Unassigned" }}</td>
+
+            <td>
+                <a class="button is-small is-info" href="{{ url_for('.task_edit', id=t.Task.id) }}">Edit</a>
+
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        new DataTable("#task_table");
+    });
+</script>
+
+{% endblock content %}

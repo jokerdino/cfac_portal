@@ -10,7 +10,7 @@ class UserView(DefaultModelView):
         "password",
     ]
     form_excluded_columns = ["password"]
-    column_editable_list = ["reset_password", "oo_code", "username"]
+    column_editable_list = ["reset_password", "oo_code", "username", "display_name"]
     can_export = True
     column_filters = ["user_type"]
 

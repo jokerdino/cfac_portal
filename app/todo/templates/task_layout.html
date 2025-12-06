@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | {% block title %}TODO{% endblock title %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap_helpers.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
+    <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-icons-1.13.1/bootstrap-icons.min.css') }}" />
+
+    <script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='Sortable.min.js') }}"></script>
+
+</head>
+
+<body>
+    <header>
+
+        <nav class="navbar bg-info-subtle navbar-expand-lg fw-semibold">
+            <div class="container-fluid">
+
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="nav-link" href="{{ url_for('todo.board') }}">Task board</a>
+                </div>
+
+                {% include "partials/bootstrap_user_details.html" %}
+            </div>
+        </nav>
+    </header>
+
+    <div class="container-fluid mt-5">
+
+        {% if current_user.is_authenticated %}
+        {% block content %}{% endblock content %}
+        {% endif %}
+    </div>
+
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.js') }}"></script>
+
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

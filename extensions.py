@@ -29,6 +29,9 @@ UpdatedBy = Annotated[
 ]
 UpdatedOn = Annotated[Optional[datetime], mapped_column(onupdate=datetime.now)]
 
+CreatedById = Annotated[Optional[int], mapped_column(default=lambda: current_user.id)]
+UpdatedById = Annotated[Optional[int], mapped_column(onupdate=lambda: current_user.id)]
+
 
 class Base(DeclarativeBase):
     metadata = MetaData(

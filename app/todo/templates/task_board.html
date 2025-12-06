@@ -1,0 +1,171 @@
+{% extends "task_layout.html" %}
+{% block content %}
+
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h1 class="h2 fw-bold mb-0">Task Board</h1>
+    </div>
+    <div class="col-md-4">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search"></i> </span>
+            <input type="text" id="taskSearchInput" class="form-control border-start-0"
+                placeholder="Search by title, assignee..." />
+        </div>
+    </div>
+    <div class="col-md-2 text-end">
+        <button class="btn btn-primary w-75" data-bs-toggle="modal" data-bs-target="#taskAddModal">
+            + Add Task
+        </button>
+    </div>
+</div>
+
+<div class="row">
+
+    {% for status, items in grouped.items() %}
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header text-center fw-bold">
+                {{ status.replace('-', ' ').title() }}
+            </div>
+            <div id="{{ status }}" class="kanban-column card-body min-h-200">
+                {% for t in items %}
+                <div class="kanban-item card mb-2" data-id="{{ t.Task.id }}">
+                    <div class="card-body p-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="fw-semibold">{{ t.Task.title }} <span
+                                    class="badge {{ t.Task.priority_badge_class }}">{{
+                                    t.Task.get_priority_display }}</span>
+
+                            </div>
+                            <div class="text-end"> {% if t.Task.due_date %}
+
+                                Due: {{ t.Task.due_date.strftime("%d/%m/%Y") }}
+
+                                {% endif %}
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {{ t.display_name if t.Task.assigned_to_id else '' }}
+                        </small>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="taskAddModal" tabindex="-1" aria-labelledby="taskAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                {% include "partials/task_edit.html" %}
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="taskEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="taskEditModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    ["pending", "in-progress", "done"].forEach(column => {
+        new Sortable(document.getElementById(column), {
+            group: "kanban",
+            animation: 150,
+            onEnd: function (evt) {
+                fetch("{{ url_for('.update_task_status') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        task_id: evt.item.dataset.id,
+                        new_status: evt.to.id
+                    })
+                });
+            }
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const editModalEl = document.getElementById('taskEditModal');
+        const editModal = new bootstrap.Modal(editModalEl);
+        const modalBody = document.getElementById('taskEditModalBody');
+
+        // Add click event to all cards
+        document.querySelectorAll('.kanban-item').forEach(card => {
+            card.addEventListener('click', function (e) {
+                // Prevent opening if we are selecting text or dragging
+                if (window.getSelection().toString().length > 0) return;
+
+                const taskId = this.dataset.id;
+
+                // 1. Show Spinner
+                modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
+                editModal.show();
+
+                // 2. Fetch Form
+                fetch(`{{ url_for('todo.task_edit', id='0') }}`.replace('0', taskId), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => response.text())
+                    .then(html => {
+                        modalBody.innerHTML = html;
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        modalBody.innerHTML = '<p class="text-danger">Error loading task details.</p>';
+                    });
+            });
+        });
+    });
+
+    // // Optional: Add CSS to show the card is clickable
+    // const style = document.createElement('style');
+    // style.innerHTML = '.kanban-item { cursor: pointer; transition: transform 0.1s; } .kanban-item:hover { transform: scale(1.02); }';
+    // document.head.appendChild(style);
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById('taskSearchInput');
+
+        searchInput.addEventListener('keyup', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.kanban-item');
+
+            cards.forEach(card => {
+                // Get the text content of the card (Title, Date, Assignee, Priority)
+                const cardText = card.innerText.toLowerCase();
+
+                // If text matches, show it. If not, hide it.
+                if (cardText.includes(searchTerm)) {
+                    card.style.display = ""; // Reset to default (block)
+                } else {
+                    card.style.display = "none"; // Hide element
+                }
+            });
+        });
+    });
+</script>
+{% endblock content %}
