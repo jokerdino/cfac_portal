@@ -44,6 +44,8 @@ from app.correspondence import correspondence_bp
 from app.refund_dqr import refund_dqr_bp
 from app.ri_page import ri_page_bp
 
+from app.ci_changes import ci_bp
+
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
 
@@ -248,6 +250,7 @@ def create_app(config_class=Config):
     app.register_blueprint(refund_dqr_bp, url_prefix="/refund_dqr")
     app.register_blueprint(ri_page_bp, url_prefix="/ri")
     app.register_blueprint(todo_bp, url_prefix="/todo")
+    app.register_blueprint(ci_bp, url_prefix="/ci")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")

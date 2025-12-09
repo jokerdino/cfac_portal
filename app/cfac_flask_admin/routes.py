@@ -93,6 +93,9 @@ from app.brs_centralised_cheque.models import (
 from app.refund_dqr.models import DqrRefund, DqrMachines
 from app.todo.models import Task, Notification
 
+
+from app.ci_changes.models import ChangeInstruction
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -211,6 +214,11 @@ admin.add_view(
     )
 )
 
+admin.add_view(
+    ModelView(
+        ChangeInstruction, db.session, endpoint="ci_", category="Change Instruction"
+    )
+)
 # coinsurance
 admin.add_view(
     ModelView(Coinsurance, db.session, endpoint="coinsurance_", category="Coinsurance")

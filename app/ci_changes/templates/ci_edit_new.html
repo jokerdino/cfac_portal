@@ -1,0 +1,46 @@
+{% extends "ci_layout.html" %}
+{% block content %}
+
+{% from "bootstrap_macros.html" import render_field_horizontal %}
+
+<div class="container">
+    <h1 class="title mb-3">{{ title }}</h1>
+    <form method="post" class="form-horizontal" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+
+        {# --- CUSTOM LOGIC FOR FILE FIELD --- #}
+        {% if field.type == 'FileField' and field.data %}
+        {# Assuming 'field.data' holds the URL/filename from the existing object #}
+        {{ render_field_horizontal(field) }}
+
+        <div class="row mb-3">
+            <div class="col-sm-9 offset-sm-3">
+                <small class="form-text text-muted">
+                    Current File: <a class="btn btn-outline-primary btn-sm" href="{{ field.data }}"
+                        target="_blank">Download document</a>
+                    <br />
+                    Leave blank to keep current file. Upload a new file to replace it.
+                </small>
+            </div>
+        </div>
+        {% else %}
+        {# Render all other fields (including FileField when no data exists) normally #}
+        {{ render_field_horizontal(field) }}
+        {% endif %}
+        {# --------------------------------- #}
+
+        {% endfor %}
+        <div class="row mb-3">
+            <div class="col-sm-9 offset-sm-3">
+                <a href="{{ url_for('.ci_list') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+                <button type="submit" class="btn btn-success">Submit</button>
+                <button type="reset" class="btn btn-secondary">Cancel</button>
+
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock content %}

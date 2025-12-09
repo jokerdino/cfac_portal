@@ -1,0 +1,57 @@
+{% extends "ci_layout.html" %}
+{% block content %}
+<h1 class="title">List of CIs</h1>
+<table class="table table-bordered" id="ci_table">
+    <thead>
+        <tr>{% for col in column_headers %}
+            <th class="text-center">{{ col | upper | replace("_", " ") }}</th>
+            {% endfor %}
+            <th>View</th>
+            <th>Edit</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in ci_list %}
+        <tr>{% for col in column_headers %}
+            {% if col == "ci_document" and item[col] %}
+            <td class="text-center">
+                <a href="{{ url_for('.download_ci_document', id=item.id, document_type='ci_document') }}"
+                    class="btn btn-outline-primary btn-sm">Download</a>
+
+            </td>
+            {% elif col == "approach_note_document" and item[col] %}
+            <td class="text-center"><a
+                    href="{{ url_for('.download_ci_document', id=item.id, document_type='approach_note_document') }}"
+                    class="btn btn-outline-primary btn-sm">Download</a></td>
+
+            {% else %}
+            <td>{{ item[col] or "" }}</td>
+            {% endif %}
+            {% endfor %}
+            <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('.ci_view', id=item.id) }}">View</a></td>
+            <td><a class="btn btn-outline-primary btn-sm" href="{{ url_for('.ci_edit', id=item.id) }}">Edit</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock content %}
+{% block scripts %}
+
+<script>
+    new DataTable('#ci_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
+        order: [[0, 'desc']],
+        pageLength: 50,
+    });
+</script>
+
+{% endblock scripts %}

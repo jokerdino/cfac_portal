@@ -10,23 +10,29 @@ input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
     -webkit-appearance: none;
-    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+    margin: 0;
+    /* <-- Apparently some margin are still there even though it's hidden */
 }
 
 input[type=number] {
-    -moz-appearance:textfield; /* Firefox */
+    -moz-appearance: textfield;
+    /* Firefox */
 }
 
 td.word-wrap {
-    white-space:pre-wrap;
+    white-space: pre-wrap;
+}
+
+dd.word-wrap {
+    white-space: pre-wrap;
 }
 
 summary {
     align-items: center;
-    background-color: hsl(var(--bulma-message-h),var(--bulma-message-s),var(--bulma-message-header-background-l));
+    background-color: hsl(var(--bulma-message-h), var(--bulma-message-s), var(--bulma-message-header-background-l));
     border-start-end-radius: var(--bulma-message-header-radius);
     border-start-start-radius: var(--bulma-message-header-radius);
-    color: hsl(var(--bulma-message-h),var(--bulma-message-s),var(--bulma-message-header-color-l));
+    color: hsl(var(--bulma-message-h), var(--bulma-message-s), var(--bulma-message-header-color-l));
     /* display: flex;  */
     font-weight: var(--bulma-message-header-weight);
     justify-content: space-between;
@@ -46,25 +52,34 @@ summary {
     cursor: not-allowed;
     width: 160px;
 }
+
 .input-like:focus {
-    background-color: #fff;  /* On focus, change the background */
-    border-color: #888;      /* Change the border color when focused */
+    background-color: #fff;
+    /* On focus, change the background */
+    border-color: #888;
+    /* Change the border color when focused */
 }
+
 body {
     zoom: 80%;
 }
 
 .col-25 {
-        width: 25%;
-    }
+    width: 25%;
+}
+
 .navbar-custom {
-    background-color:  #ca8cdf;   /* custom blue */
-  }
+    background-color: #ca8cdf;
+    /* custom blue */
+}
 
 .is-large-checkbox {
-        transform: scale(1.5); /* Example scale */
-        margin: 8px; /* Example margin */
-    }
+    transform: scale(1.5);
+    /* Example scale */
+    margin: 8px;
+    /* Example margin */
+}
+
 fieldset.box {
     border: 1px solid #dbdbdb;
     padding: 1rem;
