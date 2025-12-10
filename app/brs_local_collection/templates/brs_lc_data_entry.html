@@ -1,0 +1,151 @@
+{% extends "brs_lc_layout.html" %}
+{% block body_attrs %} "onload=calculateSum(); calculateClosingBalance();" {% endblock body_attrs %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+{% from "bootstrap_macros.html" import render_field_horizontal %}
+{% block content %}
+<div class="container mb-5">
+    <h1 class="title">BRS</h1>
+    <form action="" method="post" enctype="multipart/form-data"
+        onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-bordered is-hoverable">
+            <tr>
+                <th>Regional Office code</th>
+                <th>Operating Office Code</th>
+                <th>Month</th>
+                <th>BRS type</th>
+                <th>BRS bank</th>
+            </tr>
+            <tr>
+                <td>{{ brs.regional_office_code }}</td>
+                <td>{{ brs.operating_office_code }}</td>
+                <td>{{ brs.month }}</td>
+                <td>Centralised cheque BRS</td>
+                <td>{{ brs.centralised_cheque_bank }}</td>
+            </tr>
+        </table>
+        {% for field in form %}
+        {% if field.errors %}
+        <div class="notification is-danger">
+            {% for error in field.errors %}
+            {{ error }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <div class="notification is-danger">
+            <p>{{ message }}</p>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+
+        {{ render_field_horizontal(field) }}
+
+        {% endfor %}
+        <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
+
+
+
+        </table>
+
+        <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
+
+
+        </table>
+
+        <div class="buttons is-centered mt-5">
+
+            <button class="button is-primary is-big">Submit</button>
+        </div>
+</div>
+</form>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+
+    // const formatter = new Intl.NumberFormat('en-IN', {
+    //     style: 'currency',
+    //     currency: 'INR',
+    //     minimumFractionDigits: 2,
+    //     maximumFractionDigits: 2,
+    //     trailingZeroDisplay: 'stripIfInteger'
+    // });
+    $(document).ready(function () {
+        calculateSum();
+        calculateClosingBalance();
+    });
+
+    function calculateSum() {
+        var opening_balance_unencashed = parseFloat(document.getElementById("opening_balance_unencashed").value === "" ? 0 : document.getElementById("opening_balance_unencashed").value);
+        var cheques_issued = parseFloat(document.getElementById("cheques_issued").value === "" ? 0 : document.getElementById("cheques_issued").value);
+        var cheques_reissued_unencashed = parseFloat(document.getElementById("cheques_reissued_unencashed").value === "" ? 0 : document.getElementById("cheques_reissued_unencashed").value);
+
+        var opening_balance_stale = parseFloat(document.getElementById("opening_balance_stale").value === "" ? 0 : document.getElementById("opening_balance_stale").value);
+        var cheques_cleared = parseFloat(document.getElementById("cheques_cleared").value === "" ? 0 : document.getElementById("cheques_cleared").value);
+        var cheques_cancelled = parseFloat(document.getElementById("cheques_cancelled").value === "" ? 0 : document.getElementById("cheques_cancelled").value);
+        centralised_cheque_amount = opening_balance_unencashed + opening_balance_stale + cheques_issued - cheques_cleared - cheques_cancelled
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+        document.getElementById("cheques_reissued_stale").value = cheques_reissued_unencashed;
+        document.getElementById("closing_balance_unencashed").placeholder = centralised_cheque_amount;
+        return centralised_cheque_amount;
+    }
+    function calculateClosingBalance() {
+
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+
+        var closing_balance_unencashed = parseFloat(document.getElementById("closing_balance_unencashed").value === "" ? 0 : document.getElementById("closing_balance_unencashed").value);
+        var closing_balance_stale = parseFloat(document.getElementById("closing_balance_stale").value === "" ? 0 : document.getElementById("closing_balance_stale").value);
+
+        if (closing_balance_unencashed > 0) {
+            document.getElementById("unencashed_cheques_file").disabled = false;
+        }
+        else {
+            document.getElementById("unencashed_cheques_file").disabled = true;
+        }
+
+        if (closing_balance_stale > 0) {
+
+            document.getElementById("stale_cheques_file").disabled = false;
+        }
+        else {
+
+            document.getElementById("stale_cheques_file").disabled = true;
+        }
+        var closing_balance_breakup = closing_balance_unencashed + closing_balance_stale;
+
+        return closing_balance_breakup;
+    }
+    function validateForm() {
+        const threshold = 0.001
+        let closing_balance_gl = calculateSum();
+        let closing_balance_breakup = calculateClosingBalance();
+        if (Math.abs(closing_balance_gl - closing_balance_breakup) > threshold) {
+            alert(`Closing balance ${closing_balance_gl} and closing balance breakup ${closing_balance_breakup} is not tallying.`)
+            return false;
+        }
+    }
+
+</script>
+{% endblock scripts %}

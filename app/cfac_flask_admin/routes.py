@@ -96,6 +96,14 @@ from app.todo.models import Task, Notification
 
 from app.ci_changes.models import ChangeInstruction
 
+from app.brs_local_collection.models import (
+    BankReconLocalCollectionSummary,
+    BankReconLocalCollectionDetails,
+    BankReconLocalCollectionOutstanding,
+    BankReconLocalCollectionShortCredit,
+    BankReconLocalCollectionExcessCredit,
+    BankReconLocalCollectionDelete,
+)
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -103,6 +111,7 @@ admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="BRS_CC", parent_name="BRS_CC")
+admin.add_sub_category(name="BRS_LC", parent_name="BRS_LC")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
@@ -192,6 +201,56 @@ admin.add_view(
         db.session,
         endpoint="cc_delete",
         category="BRS_CC",
+    )
+)
+
+# brs_lc
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionSummary,
+        db.session,
+        endpoint="lc_summary",
+        category="BRS_LC",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionDetails,
+        db.session,
+        endpoint="lc_details",
+        category="BRS_LC",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionOutstanding,
+        db.session,
+        endpoint="lc_os",
+        category="BRS_LC",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionShortCredit,
+        db.session,
+        endpoint="lc_sc",
+        category="BRS_LC",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionExcessCredit,
+        db.session,
+        endpoint="lc_ec",
+        category="BRS_LC",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconLocalCollectionDelete,
+        db.session,
+        endpoint="lc_delete",
+        category="BRS_LC",
     )
 )
 
