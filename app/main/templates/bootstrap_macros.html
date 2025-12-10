@@ -59,3 +59,39 @@ show_errors=True) %}
     </div>
 </div>
 {% endmacro %}
+
+{% macro render_dashboard_dropdown(form) %}
+
+{{ form.csrf_token }}
+
+<div class="row align-items-center">
+
+    {% for field in form if field.type == "SelectField" %}
+
+    <div class="col-auto">
+        <label class="form-label" for="{{ field.id }}">{{ field.label }}</label>
+    </div>
+
+    <div class="col-md-3 col-lg-2">
+        <p class="control">
+            {{ field(class="form-select") }}
+            {% if field.errors %}
+            {% for error in field.errors %}
+        <div class="invalid-feedback d-block">{{ error }}</div>
+        {% endfor %}
+        {% endif %}
+        </p>
+    </div>
+
+    {% for submit_field in form if submit_field.type == "SubmitField" %}
+    <div class="col-auto">
+        <p class="control">
+            {{ submit_field(class="btn btn-primary") }}
+        </p>
+    </div>
+    {% endfor %}
+
+    {% endfor %}
+
+</div>
+{% endmacro %}

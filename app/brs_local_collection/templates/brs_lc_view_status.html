@@ -1,0 +1,70 @@
+{% extends "brs_lc_layout.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1 class="mb-4 title">BRS Details</h1>
+
+    <form method="post">
+        {{ form.csrf_token }}
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Regional Office Code</div>
+                    <div class="col-md-4">{{ brs.regional_office }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Operating Office Code</div>
+                    <div class="col-md-4">{{ brs.operating_office }}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4 fw-bold">Month</div>
+                    <div class="col-md-4">{{ brs.month }}</div>
+                </div>
+
+                {% if brs.local_collection_bank_name %}
+
+                <div class="row align-items-center">
+                    <div class="col-md-4 fw-bold">
+                        Local collection BRS
+                    </div>
+
+                    <div class="col-md-4">
+                        {% if brs.local_collection_brs_month_id %}
+                        <a class="btn btn-success"
+                            href='{{ url_for(".view_brs", brs_key=brs.local_collection_brs_month_id) }}'>
+                            View Local collection BRS
+                        </a>
+                        {% else %}
+                        <a class="btn btn-danger" href='{{ url_for(".brs_lc_data_entry", key=brs.id) }}'>
+                            Enter Local collection BRS
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-3 text-start">
+                        {% if brs.local_collection_brs_month_id and delete_button %}
+                        {{ form.delete_brs }} {{ form.delete_brs.label }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% endif %}
+            </div>
+
+            {% if brs.local_collection_brs_month_id and delete_button %}
+            <div class="card-footer text-center">
+                <button class="btn btn-danger">Delete</button>
+            </div>
+            {% endif %}
+        </div>
+    </form>
+
+    {% include "partials/bootstrap_alerts.html" %}
+</div>
+
+{% endblock content %}
