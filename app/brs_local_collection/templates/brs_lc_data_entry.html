@@ -3,47 +3,16 @@
 {% from "form_field_helpers_macro.html" import render_field_table %}
 
 {% from "bootstrap_macros.html" import render_field_horizontal %}
+{% from "brs_lc_macros.html" import render_brs_summary_table %}
 {% block content %}
 <div class="container mb-5">
     <h1 class="title">BRS</h1>
     <form action="" method="post" enctype="multipart/form-data"
         onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
         {{ form.csrf_token }}
-        <table class="table is-fullwidth is-bordered is-hoverable">
-            <tr>
-                <th>Regional Office code</th>
-                <th>Operating Office Code</th>
-                <th>Month</th>
-                <th>BRS type</th>
-                <th>BRS bank</th>
-            </tr>
-            <tr>
-                <td>{{ brs.regional_office_code }}</td>
-                <td>{{ brs.operating_office_code }}</td>
-                <td>{{ brs.month }}</td>
-                <td>Centralised cheque BRS</td>
-                <td>{{ brs.centralised_cheque_bank }}</td>
-            </tr>
-        </table>
-        {% for field in form %}
-        {% if field.errors %}
-        <div class="notification is-danger">
-            {% for error in field.errors %}
-            {{ error }}
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endfor %}
+        {{ render_brs_summary_table(brs) }}
 
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="notification is-danger">
-            <p>{{ message }}</p>
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
+        {% include "partials/bootstrap_alerts.html" %}
 
         {{ form.csrf_token }}
         {% for field in form if field.widget.input_type != "hidden" %}
@@ -53,18 +22,14 @@
         {% endfor %}
         <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
 
-
-
         </table>
 
         <table class="table is-bordered is-fullwidth is-hoverable is-narrow">
-
-
         </table>
 
-        <div class="buttons is-centered mt-5">
+        <div class="text-center">
 
-            <button class="button is-primary is-big">Submit</button>
+            <button class="btn btn-success">Submit</button>
         </div>
 </div>
 </form>

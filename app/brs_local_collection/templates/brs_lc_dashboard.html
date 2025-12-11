@@ -29,7 +29,7 @@
             <tr>
                 <td> {{ entry[0] }} </td>
                 <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }} </td>
-                <td><a
+                <td class="text-center"><a class="btn btn-sm btn-outline-primary"
                         href="{{ url_for('.brs_lc_homepage',month=entry.month, ro_code=entry.regional_office) }}">View</a>
                 </td>
                 <td class="has-text-right">{{ entry[2] }} </td>

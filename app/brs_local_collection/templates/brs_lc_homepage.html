@@ -6,12 +6,16 @@
 
     <table class="table table-bordered" id="brs_table">
         <thead>
-            <tr>
-                <th class="text-center">Regional Code</th>
-                <th class="text-center">Operating Office</th>
-                <th class="text-center">Period</th>
-                <th class="text-center">Local collection BRS status</th>
-                <th class="text-center"></th>
+            <tr class="text-center">
+                <th>Regional Code</th>
+                <th>Operating Office</th>
+                <th>Period</th>
+                <th>Purpose of bank account</th>
+                <th>Bank name</th>
+                <th>Branch name</th>
+                <th>Account number</th>
+                <th>Local collection BRS status</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -20,6 +24,11 @@
                 <td>{{ entry.regional_office }}</td>
                 <td>{{ entry.operating_office }}</td>
                 <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}"> {{ entry.month }}</td>
+                <td>{{ entry.purpose_of_bank_account }}</td>
+                <td>{{ entry.local_collection_bank_name }}</td>
+                <td>{{ entry.local_collection_bank_branch_name }}</td>
+                <td>{{ entry.local_collection_bank_account_number }}</td>
+
                 <td>{{ "Completed" if entry.centralised_cheque_brs_id else "Pending" }}</td>
                 <td><a class="btn btn-sm btn-outline-primary"
                         href="{{ url_for('.brs_lc_view_status', key = entry.id) }}">Open</a></td>

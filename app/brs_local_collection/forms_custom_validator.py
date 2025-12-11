@@ -25,7 +25,12 @@ class ExcelFileValidator:
         file = field.data
         if not file:
             raise ValidationError("Please upload a file.")
-        required_columns = {"instrument_amount": float, "instrument_number": str}
+        required_columns = {
+            "instrument_amount": float,
+            "instrument_number": str,
+            "mode_of_collection": str,
+            "remarks": str,
+        }
         date_columns = ["date_of_collection", "date_of_instrument"]
         # if form.brs_type.data != "cash":
         #     required_columns["instrument_number"] = str

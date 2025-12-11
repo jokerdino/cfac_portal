@@ -6,7 +6,7 @@
     <h1 class="title">BRS details</h1>
     <form method="post">
         {{ form.csrf_token }}
-        <table class="table is-fullwidth is-hoverable">
+        <table class="table is-fullwidth table-hover">
 
             <tr>
                 <th>Regional Office code</th>
@@ -29,17 +29,17 @@
                 <th>Centralised cheque BRS</th>
                 <td>
 
-                    {% if brs.centralised_cheque_brs_id %}
-                    <a class="button is-success"
-                        href='{{ url_for(".brs_lc_view_entry", key = brs.centralised_cheque_brs_id) }}'>View
+                    {% if brs.local_collection_brs_month_id %}
+                    <a class="btn btn-success"
+                        href='{{ url_for(".view_brs", brs_key = brs.local_collection_brs_month_id) }}'>View
                         Centralised cheque BRS</a>
                 <td class="is-vcentered">
                     {% if delete_button %}
-                    {{ form.delete_cc_brs }} {{ form.delete_cc_brs.label }}
+                    {{ form.delete_brs }} {{ form.delete_brs.label }}
                     {% endif %}
                 </td>
                 {% else %}
-                <a class="button is-danger" href='{{ url_for(".brs_lc_data_entry", key = brs.id) }}'>
+                <a class="btn btn-danger" href='{{ url_for(".brs_lc_data_entry", key = brs.id) }}'>
                     Enter Centralised cheque BRS</a>
                 </td>
                 <td></td>
@@ -49,32 +49,16 @@
             {% endif %}
         </table>
 
-        <div class="has-text-centered">
+        <div class="text-center">
 
-            {% if brs.centralised_cheque_brs_id and delete_button %}
-            <button class="button is-danger is-big">Delete</button>
+            {% if brs.local_collection_brs_month_id and delete_button %}
+            <button class="btn btn-danger">Delete</button>
             {% endif %}
         </div>
 
     </form>
 
-    <div class="mt-5">
-        {% for field, errors in form.errors.items() %}
-        <div class="notification is-danger">
-            {{ field }} {{ ', '.join(errors) }}
-        </div>
-        {% endfor %}
-
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-        {% for message in messages %}
-        <div class="notification is-danger">
-            <p>{{ message }}</p>
-        </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
-    </div>
+    {% include "partials/bootstrap_alerts.html" %}
 </div>
 
 {% endblock content %}

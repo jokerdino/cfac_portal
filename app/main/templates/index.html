@@ -41,12 +41,6 @@
         <p class="menu-label">General</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('coinsurance.home_page') }}">Coinsurance</a></li>
-          {% if current_user.user_type != "coinsurance_hub_user" %}
-          <li><a href="{{ url_for('brs.brs_home_page') }}">BRS</a></li>
-          {% if current_user.user_type in ["admin", "ro_user"] %}
-          <li><a href="{{ url_for('brs_cc.brs_cc_dashboard') }}">BRS - Centralised cheque</a></li>
-          {% endif %}
-          {% endif %}
           <li><a href="{{ url_for('tickets.filter_by_status', status='Pending for CFAC approval') }}">Tickets</a>
           </li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
@@ -57,6 +51,14 @@
         </ul>
         {% endif %}
         {% if current_user.user_type in ["admin", "ro_user", "oo_user"] %}
+        <p class="menu-label">Bank reconciliation</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('brs.brs_home_page') }}">BRS - General</a></li>
+          <li><a href="{{ url_for('brs_local.brs_local_collection_dashboard') }}">BRS - Local collection</a></li>
+          {% if current_user.user_type in ["admin", "ro_user"] %}
+          <li><a href="{{ url_for('brs_cc.brs_cc_dashboard') }}">BRS - Centralised cheque</a></li>
+          {% endif %}
+        </ul>
         <p class="menu-label">Refund tracker</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('refund_dqr.dqr_refund_list') }}">DQR Refunds<div

@@ -77,6 +77,7 @@ class BankReconLocalCollectionDetails(db.Model):
     excess_credited: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
     balance_as_per_bank: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
 
+    bank_statement: Mapped[Optional[str]]
     remarks: Mapped[Optional[str]] = mapped_column(db.Text)
     prepared_by_employee_name: Mapped[str]
     prepared_by_employee_number: Mapped[str]
@@ -95,6 +96,16 @@ class BankReconLocalCollectionDetails(db.Model):
     created_on: Mapped[CreatedOn]
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
+
+    @property
+    def balance_before_fund_transfer(self):
+        amount = (
+            self.opening_balance
+            + self.opening_on_hand
+            + self.transactions
+            - self.cancellations
+        )
+        return amount
 
 
 class BankReconLocalCollectionOutstanding(db.Model):

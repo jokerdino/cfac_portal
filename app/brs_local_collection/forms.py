@@ -33,18 +33,30 @@ class BankReconEntryForm(FlaskForm):
         validators=[NumberRange(min=10000, max=99999), DataRequired()],
     )
     opening_balance = DecimalField("Opening balance as per GL", validators=[Optional()])
-    opening_on_hand = DecimalField(validators=[Optional()])
-    transactions = DecimalField(validators=[Optional()])
-    cancellations = DecimalField(validators=[Optional()])
-    fund_transfer = DecimalField(validators=[Optional()])
-    bank_charges = DecimalField(validators=[Optional()])
-    closing_on_hand = DecimalField(validators=[Optional()])
+    opening_on_hand = DecimalField(
+        "Add: Opening cash/cheques on hand", validators=[Optional()]
+    )
+    transactions = DecimalField(
+        "Add: Collections during the month", validators=[Optional()]
+    )
+    cancellations = DecimalField(
+        "Less: Cancellations / dishonours during the month", validators=[Optional()]
+    )
+    fund_transfer = DecimalField("Less: Fund transfer", validators=[Optional()])
+    bank_charges = DecimalField("Less: Bank charges", validators=[Optional()])
+    closing_on_hand = DecimalField(
+        "Less: Closing cash/cheques on hand", validators=[Optional()]
+    )
     # closing_balance = DecimalField(validators=[Optional()])
 
-    deposited_not_credited = DecimalField(validators=[Optional()])
-    short_credited = DecimalField(validators=[Optional()])
-    excess_credited = DecimalField(validators=[Optional()])
-    balance_as_per_bank = DecimalField(validators=[Optional()])
+    deposited_not_credited = DecimalField(
+        "Less: Deposited but not credited", validators=[Optional()]
+    )
+    short_credited = DecimalField("Less: Short credit", validators=[Optional()])
+    excess_credited = DecimalField("Add: Excess credit", validators=[Optional()])
+    balance_as_per_bank = DecimalField(
+        "Add: Closing balance as per bank statement", validators=[Optional()]
+    )
 
     remarks = TextAreaField()
 
@@ -85,6 +97,10 @@ class BankReconEntryForm(FlaskForm):
                 compare_field_name="Excess credit",
             ),
         ],
+    )
+
+    file_bank_statement = FileField(
+        "Upload bank statement", validators=[FileRequired()]
     )
 
     def validate_deposited_not_credited(form, field):
