@@ -371,7 +371,7 @@ def dqr_machines_list():
         ],
     )
 
-    return render_template("dqr_refund_list.html", table=table, title="DQR machines")
+    return render_template("dqr_machines_list.html", table=table, title="DQR machines")
 
 
 @refund_dqr_bp.route("/dqr_machines/upload", methods=["GET", "POST"])
