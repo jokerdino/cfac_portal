@@ -40,7 +40,7 @@ def dqr_refund_add():
         form = DQRRefundEditForm()
 
         form.ro_code.choices = [current_user.ro_code]
-        form.office_code.choices = office_list
+        form.office_code.choices = ["Select Operating office"] + office_list
         form.ro_code.data = current_user.ro_code
 
     elif user_type == "admin":
@@ -51,7 +51,7 @@ def dqr_refund_add():
         ).all()
 
         form = DQRRefundEditForm()
-        form.ro_code.choices = ro_list
+        form.ro_code.choices = ["Select Regional office"] + ro_list
         if request.method == "POST":
             ro_code = request.form.get("ro_code")
             office_list = db.session.scalars(
@@ -59,7 +59,7 @@ def dqr_refund_add():
                 .where(DqrMachines.ro_code == ro_code)
                 .order_by(DqrMachines.office_code)
             ).all()
-            form.office_code.choices = office_list
+            form.office_code.choices = ["Select Operating office"] + office_list
 
     if form.validate_on_submit():
         dqr_refund = DqrRefund()
