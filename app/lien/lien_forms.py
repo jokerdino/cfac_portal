@@ -9,7 +9,7 @@ from wtforms import (
     SubmitField,
 )
 from wtforms.validators import Optional, ValidationError
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
 
 
 ALLOWED_RO_CODES = {
@@ -52,6 +52,7 @@ ALLOWED_RO_CODES = {
 }
 
 ro_choices = sorted(ALLOWED_RO_CODES)
+MAX_UPLOAD_SIZE = 10 * 1024 * 1024
 
 
 class BaseLienForm(FlaskForm):
@@ -62,7 +63,15 @@ class BaseLienForm(FlaskForm):
     ro_code = SelectField("RO Code", choices=ro_choices)
     lien_date = DateField(validators=[Optional()])
     lien_amount = IntegerField(validators=[Optional()])
-    court_order_lien_file = FileField("Upload court order - lien")
+    court_order_lien_file = FileField(
+        "Upload court order - lien",
+        validators=[
+            FileSize(
+                MAX_UPLOAD_SIZE,
+                message=f"File size must be less than {MAX_UPLOAD_SIZE // (1024 * 1024)}MB.",
+            )
+        ],
+    )
 
     dd_amount = IntegerField("DD Amount", validators=[Optional()])
     dd_date = DateField("DD Date", validators=[Optional()])
