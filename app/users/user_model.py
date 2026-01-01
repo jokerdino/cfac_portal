@@ -70,3 +70,22 @@ class LogUser(db.Model):
 
     type_of_action: Mapped[str]
     time_of_action: Mapped[datetime]
+
+
+class MailConfig(db.Model):
+    id: Mapped[IntPK]
+
+    smtp_server: Mapped[str]
+    smtp_port: Mapped[int] = mapped_column(nullable=False, default=587)
+    use_tls: Mapped[bool] = mapped_column(default=True)
+    use_ssl: Mapped[bool] = mapped_column(default=False)
+
+    username: Mapped[Optional[str]]
+    password: Mapped[Optional[str]]
+
+    default_sender: Mapped[str]
+
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]

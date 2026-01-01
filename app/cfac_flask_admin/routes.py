@@ -66,7 +66,7 @@ from app.pool_credits.pool_credits_model import (
     PoolCreditsJournalVoucher,
 )
 from app.tickets.tickets_model import TicketRemarks, Tickets
-from app.users.user_model import LogUser, User
+from app.users.user_model import LogUser, User, MailConfig
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
 
@@ -654,4 +654,7 @@ admin.add_view(
 admin.add_view(UserView(User, db.session, endpoint="user_", category="Users"))
 admin.add_view(
     DefaultModelView(LogUser, db.session, endpoint="log_user_", category="Users")
+)
+admin.add_view(
+    DefaultModelView(MailConfig, db.session, endpoint="mail_config_", category="Users")
 )
