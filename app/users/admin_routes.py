@@ -7,15 +7,15 @@ from flask_login import current_user, login_required
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash
 
-from app.portal_admin import admin_bp
-from app.portal_admin.admin_forms import UpdateUserForm, UserAddForm
-from app.users.user_model import LogUser, User
+from . import user_bp
+from .admin_forms import UpdateUserForm, UserAddForm
+from .user_model import LogUser, User
 
 from extensions import db
 from set_view_permissions import admin_required, ro_user_only
 
 
-@admin_bp.route("/user/upload/", methods=["POST", "GET"])
+@user_bp.route("/user/upload/", methods=["POST", "GET"])
 @login_required
 @admin_required
 def upload_users():
@@ -47,7 +47,7 @@ def upload_users():
     return render_template("upload.html")
 
 
-@admin_bp.route("/user/<int:user_key>/", methods=["POST", "GET"])
+@user_bp.route("/user/<int:user_key>/", methods=["POST", "GET"])
 @login_required
 @ro_user_only
 def view_user_page(user_key):
@@ -78,7 +78,7 @@ def view_user_page(user_key):
     )
 
 
-@admin_bp.route("/home")
+@user_bp.route("/home")
 @login_required
 @ro_user_only
 def view_list_users():
@@ -94,7 +94,7 @@ def view_list_users():
     )
 
 
-@admin_bp.route("/user/add", methods=["POST", "GET"])
+@user_bp.route("/user/add", methods=["POST", "GET"])
 @login_required
 @admin_required
 def user_add():

@@ -129,7 +129,7 @@
         {% if current_user.user_type in ["admin","ro_user"] %}
         <p class="menu-label">Admin</p>
         <ul class="menu-list">
-          <li><a href="{{ url_for('portal_admin.view_list_users') }}">Reset password</a></li>
+          <li><a href="{{ url_for('users.view_list_users') }}">Reset password</a></li>
         </ul>
         {% endif %}
       </aside>

@@ -20,12 +20,12 @@
                 <div class="navbar-start">
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="navbar-item" href="{{ url_for('portal_admin.view_list_users') }}">Admin
+                    <a class="navbar-item" href="{{ url_for('.view_list_users') }}">Admin
                         home</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('portal_admin.upload_users') }}">Bulk upload
+                    <a class="navbar-item" href="{{ url_for('.upload_users') }}">Bulk upload
                         users</a>
-                    <a class="navbar-item" href="{{ url_for('portal_admin.user_add') }}">Add new user</a>
+                    <a class="navbar-item" href="{{ url_for('.user_add') }}">Add new user</a>
                     {% endif %}
 
                 </div>

@@ -33,7 +33,7 @@
                 {% else %}
                 <td> {{ user.time_last_login }} </td>
                 {% endif %}
-                <td> <a href="{{ url_for('portal_admin.view_user_page', user_key=user.id) }}">Edit</a> </td>
+                <td> <a href="{{ url_for('.view_user_page', user_key=user.id) }}">Edit</a> </td>
             </tr>
 
             {% endfor %}

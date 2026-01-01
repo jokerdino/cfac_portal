@@ -6,7 +6,7 @@ from flask import Flask, request, current_app, g
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from app.portal_admin.admin_routes import admin_check
+from app.users.admin_routes import admin_check
 from app.users.user_model import User
 from app.todo.models import Notification
 from config import Config, TestConfig
@@ -14,7 +14,6 @@ from extensions import admin, db, lm, migrate, toolbar
 
 from app.main import main_bp
 from app.users import user_bp
-from app.portal_admin import admin_bp
 from app.coinsurance import coinsurance_bp
 from app.brs import brs_bp
 from app.contracts import contracts_bp
@@ -224,7 +223,6 @@ def create_app(config_class=Config):
     app.register_blueprint(main_bp, url_prefix="/")
 
     app.register_blueprint(user_bp, url_prefix="/user")
-    app.register_blueprint(admin_bp, url_prefix="/portal_admin")
     app.register_blueprint(coinsurance_bp, url_prefix="/coinsurance")
     app.register_blueprint(brs_bp, url_prefix="/brs")
     app.register_blueprint(contracts_bp, url_prefix="/contracts")
