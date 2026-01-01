@@ -1,6 +1,8 @@
 from datetime import datetime
 import os
 import re
+from pathlib import Path
+import threading
 
 
 import pandas as pd
@@ -38,6 +40,8 @@ from .lien_forms import (
 )
 
 from app.users.user_model import User
+
+from app.users.mail_utils import send_email_async
 
 
 def prepare_upload_document(lien, form) -> None:
@@ -91,8 +95,44 @@ def lien_add():
         prepare_upload_document(lien, form)
         db.session.add(lien)
         db.session.commit()
+        send_lien_email(lien)
         return redirect(url_for("lien.lien_view", lien_id=lien.id))
     return render_template("lien_edit.html", form=form, title="Add new lien")
+
+
+def send_lien_email(lien):
+    attachments = []
+    if lien.court_order_lien:
+        file_path = (
+            Path(current_app.config["UPLOAD_FOLDER"])
+            / "lien"
+            / "court_order_lien"
+            / lien.court_order_lien
+        )
+
+        if file_path.exists():
+            attachments.append(file_path)
+        else:
+            raise RuntimeError(f"File not found: {file_path}")
+    html_body = render_template(
+        "partials/lien_email_template.html",
+        lien=lien,
+    )
+    app = current_app._get_current_object()
+
+    thread = threading.Thread(
+        target=send_email_async,
+        args=(
+            app,
+            "Lien",
+            ["recipient_email@example.com"],
+            "Please view this email in HTML.",
+            html_body,
+            attachments,
+        ),
+        daemon=True,
+    )
+    thread.start()
 
 
 @lien_bp.route("/view/<int:lien_id>/", methods=["GET", "POST"])
