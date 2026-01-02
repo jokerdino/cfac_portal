@@ -101,6 +101,35 @@ def lien_add():
     return render_template("lien_edit.html", form=form, title="Add new lien")
 
 
+@lien_bp.route("/email_address_upload", methods=["GET", "POST"])
+@login_required
+@admin_required
+def lien_email_upload():
+    form = LienUploadForm()
+    if form.validate_on_submit():
+        lien_file = form.lien_file.data
+
+        try:
+            df = pd.read_excel(lien_file, dtype={"ro_code": str, "case_number": str})
+            df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
+
+            # Insert valid rows
+            records = df.to_dict(orient="records")
+
+            db.session.add_all(LienRegionalOfficeEmailAddress(**row) for row in records)
+            db.session.commit()
+
+            flash(f"Successfully uploaded {len(df)} liens.", "success")
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Upload failed. Error: {str(e)}", "danger")
+
+        return redirect(url_for("lien.lien_email_upload"))
+
+    return render_template("lien_bulk_upload.html", title="Upload Liens", form=form)
+
+
 def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
     regional_accountants = db.session.scalars(
         db.select(Contacts.email_address).where(
