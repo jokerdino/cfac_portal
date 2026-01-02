@@ -95,4 +95,19 @@ class Lien(db.Model):
             abort(404)
 
 
+class LienRegionalOfficeEmailAddress(db.Model):
+    id: Mapped[IntPK]
+
+    ro_code: Mapped[Optional[str]]
+    ro_name: Mapped[Optional[str]]
+
+    ro_email_address: Mapped[Optional[str]]
+
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
+
+
 db.configure_mappers()

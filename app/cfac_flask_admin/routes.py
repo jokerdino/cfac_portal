@@ -79,7 +79,7 @@ from app.leave_management.leave_model import (
     LeaveSubmissionData,
     PublicHoliday,
 )
-from app.lien.lien_model import Lien
+from app.lien.lien_model import Lien, LienRegionalOfficeEmailAddress
 
 from app.employee_leave_balance.model import PrivilegeLeaveBalance, SickLeaveBalance
 from app.brs_centralised_cheque.models import (
@@ -126,6 +126,7 @@ admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="Leave management", parent_name="Leave management")
 admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
+admin.add_sub_category(name="Lien", parent_name="Lien")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Refund - DQR", parent_name="Refund DQR")
 admin.add_sub_category(name="TODO", parent_name="TODO")
@@ -581,6 +582,15 @@ admin.add_view(
         Lien,
         db.session,
         endpoint="lien_",
+        category="Lien",
+    )
+)
+admin.add_view(
+    LienView(
+        LienRegionalOfficeEmailAddress,
+        db.session,
+        endpoint="lien_email",
+        category="Lien",
     )
 )
 

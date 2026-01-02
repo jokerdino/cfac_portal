@@ -20,6 +20,8 @@ def load_mail_config():
 def send_email(
     subject: str,
     recipients: list[str],
+    cc: list[str],
+    bcc: list[str],
     body: str,
     html: str | None = None,
     attachments: list[str | Path] | None = None,
@@ -30,6 +32,8 @@ def send_email(
     msg["Subject"] = subject
     msg["From"] = config.default_sender or config.username
     msg["To"] = ", ".join(recipients)
+    msg["Cc"] = cc
+    msg["bcc"] = bcc
 
     if html:
         msg.add_alternative(html, subtype="html")
@@ -56,40 +60,17 @@ def send_email(
                     subtype=subtype,
                     filename=path.name,
                 )
-
-    # -------------------------
-    # SMTP send
-    # -------------------------
-    if config.use_ssl:
-        server = smtplib.SMTP_SSL(
-            config.smtp_server,
-            config.smtp_port,
-            timeout=30,
-        )
-    else:
-        server = smtplib.SMTP(
-            config.smtp_server,
-            config.smtp_port,
-            timeout=30,
-        )
-
-    try:
-        if config.use_tls and not config.use_ssl:
-            server.starttls()
-
-        if config.username and config.password:
-            server.login(config.username, config.password)
-
+    with smtplib.SMTP(config.smtp_server, config.smtp_port, timeout=30) as server:
+        server.ehlo()
         server.send_message(msg)
-
-    finally:
-        server.quit()
 
 
 def send_email_async(
     app,
     subject: str,
     recipients: list[str],
+    cc: list[str],
+    bcc: list[str],
     body: str,
     html: str | None = None,
     attachments: list[str] | None = None,
@@ -98,6 +79,8 @@ def send_email_async(
         send_email(
             subject=subject,
             recipients=recipients,
+            cc=cc,
+            bcc=bcc,
             body=body,
             html=html,
             attachments=attachments,

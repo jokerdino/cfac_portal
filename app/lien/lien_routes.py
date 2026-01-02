@@ -29,7 +29,7 @@ from extensions import db
 from set_view_permissions import admin_required
 
 from . import lien_bp
-from .lien_model import Lien
+from .lien_model import Lien, LienRegionalOfficeEmailAddress
 from .lien_forms import (
     LienFormCFAC,
     LienFormRO,
@@ -40,6 +40,7 @@ from .lien_forms import (
 )
 
 from app.users.user_model import User
+from app.contacts.contacts_model import Contacts
 
 from app.users.mail_utils import send_email_async
 
@@ -100,7 +101,35 @@ def lien_add():
     return render_template("lien_edit.html", form=form, title="Add new lien")
 
 
+def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
+    regional_accountants = db.session.scalars(
+        db.select(Contacts.email_address).where(
+            Contacts.office_code == ro_code,
+            Contacts.role.in_(
+                [
+                    "Regional Accountant",
+                    "Second Officer",
+                ]
+            ),
+        )
+    )
+    tp_email_address = db.session.scalar(
+        db.select(LienRegionalOfficeEmailAddress.ro_email_address).where(
+            LienRegionalOfficeEmailAddress.ro_code == ro_code
+        )
+    )
+
+    recipients = [*regional_accountants, tp_email_address]
+
+    return recipients
+
+
 def send_lien_email(lien):
+    recipients: list[str] = fetch_recipient_email_addresses(lien.ro_code)
+
+    # TODO: Comment out below code when live
+    recipients = ["44515"]
+
     attachments = []
     if lien.court_order_lien:
         file_path = (
@@ -122,14 +151,16 @@ def send_lien_email(lien):
 
     thread = threading.Thread(
         target=send_email_async,
-        args=(
-            app,
-            "Lien",
-            ["recipient_email@example.com"],
-            "Please view this email in HTML.",
-            html_body,
-            attachments,
-        ),
+        kwargs={
+            "app": app,
+            "subject": "Lien",
+            "recipients": recipients,
+            "cc": ["44515"],
+            "bcc": ["barneedhar@uiic.co.in"],
+            "body": "Please view this email in HTML.",
+            "html": html_body,
+            "attachments": attachments,
+        },
         daemon=True,
     )
     thread.start()
