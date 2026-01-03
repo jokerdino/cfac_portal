@@ -3,6 +3,7 @@
     <a class="nav-link" href="{{ url_for('users.login_page') }}">Login</a>
     {% else %}
     <div class="nav-link" tabindex="-1" href="">{{ current_user.username.upper() }}</div>
+    {% if current_user.user_type == "admin" %}
     <!-- Notifications dropdown -->
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -27,6 +28,7 @@
             {% endif %}
         </ul>
     </li>
+    {% endif %}
     <a class="nav-link ms-3" href="{{ url_for('users.logout_page') }}">Log out</a>
     {% endif %}
 </div>
