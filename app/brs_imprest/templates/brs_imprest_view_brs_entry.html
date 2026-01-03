@@ -1,0 +1,67 @@
+{% extends "brs_imprest_layout.html" %}
+
+{% block content %}
+
+{% from "brs_imprest_macros.html" import render_brs_table, render_brs_summary_table %}
+<div class="container">
+    <h1 class="title">View BRS</h1>
+
+    {{ render_brs_summary_table(brs_entry.summary) }}
+
+    <strong>Summary of General Ledger</strong>
+    <table class="mt-3 table table-bordered table-hover">
+
+        {% for key, (label, extra, bold) in gl_column_labels.items() %}
+
+        <tr {% if bold %} class="fw-bold" {% endif %}>
+
+            <td width="75%" class="ps-3">{{ label }}</td>
+            <td width="10%">{{ extra }}</td>
+            <td class="text-end">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
+        </tr>
+
+        {% endfor %}
+    </table>
+    <strong> Bank reconciliation statement</strong>
+
+    <table class="mt-3 table table-bordered table-hover">
+
+        {% for key, (label, extra, bold) in bank_recon_column_labels.items() %}
+
+        <tr {% if bold %} class=" fw-bold" {% endif %}>
+
+            <td width="75%" class="ps-3">{{ label }}</td>
+            <td width="10%">{{ extra }}</td>
+            <td class="text-end">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
+        </tr>
+
+        {% endfor %}
+        <tr>
+            <th class="ps-3">Bank statement</th>
+            <td></td>
+            <td class="text-center">{% if brs_entry.bank_statement %}<a class="btn btn-info btn-sm"
+                    href="{{ url_for('.download_bank_statement', id=brs_entry.id) }}">Download</a>
+                {% else %}
+                Not uploaded
+                {% endif %}</td>
+        </tr>
+    </table>
+    {{ render_brs_table(
+    brs_entry.cheques_unencashed,
+    "Cheques issued but not yet encashed",
+    brs_entry.unencashed_cheques
+    ) }}
+
+    <div class="pb-5">
+        Prepared by {{ brs_entry.prepared_by_employee_name }} (Employee Number:
+        {{ brs_entry.prepared_by_employee_number }}) on {{
+        brs_entry.created_on.strftime("%d/%m/%Y %H:%M") }}.
+    </div>
+
+    <a class="btn btn-primary no-print mb-5"
+        href="{{ url_for('.brs_imprest_view_status', key = brs_entry.summary_id) }}">Go
+        back</a>
+
+</div>
+
+{% endblock content %}

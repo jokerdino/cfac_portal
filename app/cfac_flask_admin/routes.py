@@ -103,6 +103,12 @@ from app.brs_local_collection.models import (
     BankReconLocalCollectionShortCredit,
     BankReconLocalCollectionExcessCredit,
 )
+
+from app.brs_imprest.models import (
+    BankReconImprestSummary,
+    BankReconImprestDetails,
+    BankReconImprestUnencashedDetails,
+)
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -110,6 +116,7 @@ admin.add_link(MenuLink(name="Go to main app", category="", url="/"))
 
 admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="BRS_CC", parent_name="BRS_CC")
+admin.add_sub_category(name="BRS_Imprest", parent_name="BRS_Imprest")
 admin.add_sub_category(name="BRS_LC", parent_name="BRS_LC")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
@@ -203,6 +210,31 @@ admin.add_view(
     )
 )
 
+# brs_imprest
+admin.add_view(
+    ModelView(
+        BankReconImprestSummary,
+        db.session,
+        endpoint="imprest_summary",
+        category="BRS_Imprest",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconImprestDetails,
+        db.session,
+        endpoint="imprest_details",
+        category="BRS_Imprest",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconImprestUnencashedDetails,
+        db.session,
+        endpoint="imprest_unencashed_details",
+        category="BRS_Imprest",
+    )
+)
 # brs_lc
 admin.add_view(
     ModelView(

@@ -55,6 +55,7 @@
         <ul class="menu-list">
           <li><a href="{{ url_for('brs.brs_home_page') }}">BRS - General</a></li>
           <li><a href="{{ url_for('brs_local.brs_local_collection_dashboard') }}">BRS - Local collection</a></li>
+          <li><a href="{{ url_for('brs_imprest.brs_imprest_dashboard') }}">BRS - Imprest</a></li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
           <li><a href="{{ url_for('brs_cc.brs_cc_dashboard') }}">BRS - Centralised cheque</a></li>
           {% endif %}

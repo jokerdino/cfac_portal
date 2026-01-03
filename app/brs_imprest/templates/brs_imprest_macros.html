@@ -1,0 +1,65 @@
+{% macro render_brs_table(condition, title, items_list) %}
+{% if condition != 0 %}
+<h3 class="title is-size-6">{{ title }}</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr class="text-center">
+            <th>Payee name</th>
+            <th>Date of instrument</th>
+            <th>Instrument number</th>
+            <th>Instrument amount</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items_list %}
+        <tr>
+            <td class="text-center">{{ item.payee_name }}</td>
+            <td class="text-center">{{ item.instrument_date.strftime("%d/%m/%Y") }}</td>
+            <td class="text-center">{{ item.instrument_number }}</td>
+            <td class="text-end">{{ item.instrument_amount | indian_number_format }}</td>
+            <td>{{ item.remarks }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td class="text-center fw-bold" colspan="3">Total</td>
+            <td class="text-end fw-bold">
+                {{ (items_list | sum(attribute="instrument_amount")) | indian_number_format }}
+            </td>
+            <td></td>
+
+        </tr>
+    </tfoot>
+</table>
+{% endif %}
+{% endmacro %}
+
+{% macro render_brs_summary_table(brs) %}
+<table class="table table-bordered table-hover">
+    <tr class="text-center">
+        <th>Regional office code</th>
+        <th>Operating office code</th>
+
+        <th>Month</th>
+        <th>Purpose of bank account</th>
+        <th>Bank name</th>
+        <th>Bank branch name</th>
+
+        <th>Account number</th>
+        <th>IFSC code</th>
+    </tr>
+    <tr class="text-center">
+        <td>{{ brs.regional_office }}</td>
+        <td>{{ brs.operating_office }}</td>
+        <td>{{ brs.month }}</td>
+        <td>{{ brs.purpose_of_bank_account }}</td>
+        <td>{{ brs.imprest_bank_name }}</td>
+        <td>{{ brs.imprest_bank_branch_name }}</td>
+
+        <td>{{ brs.imprest_bank_account_number }}</td>
+        <td>{{ brs.imprest_bank_ifsc_code }}</td>
+    </tr>
+</table>
+{% endmacro %}
