@@ -1,0 +1,62 @@
+{% extends "brs_tieup_layout.html" %}
+{% block content %}
+
+<div class="container">
+    {% if query %}
+
+    <table class="table table-bordered" id="brs_table">
+        <thead>
+            <tr class="text-center">
+                <th>Regional Code</th>
+                <th>Operating Office</th>
+                <th>Period</th>
+                <th>Tieup partner name</th>
+                <th>Tieup BRS status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in query %}
+            <tr>
+                <td>{{ entry.regional_office }}</td>
+                <td>{{ entry.operating_office }}</td>
+                <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}"> {{ entry.month }}</td>
+                <td>{{ entry.tieup_partner_name }}</td>
+                <td>{{ "Completed" if entry.tieup_brs_month_id else "Pending" }}</td>
+                <td><a class="btn btn-sm btn-outline-primary"
+                        href="{{ url_for('.brs_tieup_view_status', key = entry.id) }}">Open</a></td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% endif %}
+</div>
+{% block scripts %}
+<script>
+
+    new DataTable('#brs_table', {
+        // dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+
+        fixedHeader: true,
+        pageLength: 50,
+        scrollY: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [
+            [50, 100, 150, 200, -1],
+            [50, 100, 150, 200, 'All'],]
+    });
+</script>
+
+{% endblock scripts %}
+
+{% endblock content %}

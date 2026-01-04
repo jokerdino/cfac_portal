@@ -1,0 +1,64 @@
+{% extends "brs_tieup_layout.html" %}
+{% block content %}
+{% if result %}
+<h1 class="title">List of {{ title }} entries</h1>
+<table class="table table-bordered table-hover" id="outstanding">
+    <thead>
+        <tr>
+            <th>Regional office</th>
+            <th>Operating office</th>
+            <th>Month</th>
+            <th>Purpose of bank account</th>
+            <th>Local collection bank name</th>
+            <th>Local collection bank account number</th>
+            <th>Mode of collection</th>
+            <th>Instrument number</th>
+            <th>Instrument amount</th>
+            <th>Date of instrument</th>
+            <th>Date of collection</th>
+            <th>Remarks</th>
+            <th>View BRS</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entries in result %}
+        <tr>
+            <td>{{ entries.details.summary.regional_office or "" }}</td>
+            <td>{{ entries.details.summary.operating_office or "" }}</td>
+            <td>{{ entries.details.summary.month or "" }}</td>
+            <td>{{ entries.details.summary.purpose_of_bank_account or "" }}</td>
+            <td>{{ entries.details.summary.local_collection_bank_name }}</td>
+            <td>{{ entries.details.summary.local_collection_bank_account_number }}</td>
+            <td>{{ entries.mode_of_collection }}</td>
+            <td>{{ entries.instrument_number }}</td>
+            <td class="has-text-right">{{ entries.instrument_amount }}</td>
+            <td>{{ entries.date_of_instrument }}</td>
+            <td>{{ entries.date_of_collection }}</td>
+            <td>{{ entries.remarks or "" }}</td>
+            <td><a href="{{ url_for('.view_brs', brs_key = entries.details.id) }}">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% block scripts %}
+<script>
+    new DataTable('#outstanding', {
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+        scrollY: true,
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[1, 'asc']],
+        pagingType: 'full_numbers',
+
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+</script>
+{% endblock scripts %}
+
+{% endblock content %}

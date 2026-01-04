@@ -110,6 +110,15 @@ from app.brs_imprest.models import (
     BankReconImprestDetails,
     BankReconImprestUnencashedDetails,
 )
+
+from app.brs_tieups.models import (
+    BankReconTieupSummary,
+    BankReconTieupDetails,
+    BankReconTieupOutstanding,
+    BankReconTieupExcessCredit,
+    BankReconTieupShortCredit,
+)
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -119,6 +128,7 @@ admin.add_sub_category(name="BRS", parent_name="BRS")
 admin.add_sub_category(name="BRS_CC", parent_name="BRS_CC")
 admin.add_sub_category(name="BRS_Imprest", parent_name="BRS_Imprest")
 admin.add_sub_category(name="BRS_LC", parent_name="BRS_LC")
+admin.add_sub_category(name="BRS_Tieup", parent_name="BRS_Tieup")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
@@ -276,6 +286,48 @@ admin.add_view(
         db.session,
         endpoint="lc_ec",
         category="BRS_LC",
+    )
+)
+
+# brs_tieups
+admin.add_view(
+    ModelView(
+        BankReconTieupSummary,
+        db.session,
+        endpoint="tieup_summary",
+        category="BRS_tieup",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconTieupDetails,
+        db.session,
+        endpoint="tieup_details",
+        category="BRS_tieup",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconTieupOutstanding,
+        db.session,
+        endpoint="tieup_os",
+        category="BRS_tieup",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconTieupShortCredit,
+        db.session,
+        endpoint="tieup_sc",
+        category="BRS_tieup",
+    )
+)
+admin.add_view(
+    ModelView(
+        BankReconTieupExcessCredit,
+        db.session,
+        endpoint="tieup_ec",
+        category="BRS_tieup",
     )
 )
 

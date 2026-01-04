@@ -1,0 +1,263 @@
+{% extends "brs_tieup_layout.html" %}
+{% block body_attrs %} "onload=calculateSum(); calculateClosingBalance();" {% endblock body_attrs %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+{% from "bootstrap_macros.html" import render_field_horizontal %}
+{% from "brs_lc_macros.html" import render_brs_summary_table %}
+{% block content %}
+
+<div class="container mb-5">
+    {% include "partials/bootstrap_alerts.html" %}
+    {% include "partials/bootstrap_errors.html" %}
+    <h1 class="title">BRS - Tieup</h1>
+    {{ render_brs_summary_table(brs_entry) }}
+    <form action="" method="post" enctype="multipart/form-data"
+        onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
+        {{ form.csrf_token }}
+
+        {% include "partials/bootstrap_alerts.html" %}
+
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr class="text-center">
+                    <th class="align-middle" width="50%;">Particulars</th>
+                    <th class="align-middle" width="25%;">Month/Period</th>
+                    <th class="align-middle" width="25%;">Amount (Rs.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {# Prepared By #}
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.prepared_by_employee_name.label }}</th>
+                    <td></td>
+                    <td>{{ form.prepared_by_employee_name(class="form-control form-control-sm") }}</td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.prepared_by_employee_number.label }}</th>
+                    <td></td>
+                    <td>{{ form.prepared_by_employee_number(class="form-control form-control-sm") }}</td>
+                </tr>
+                {# GL Entries #}
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.opening_balance.label }}</th>
+                    <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
+                    <td>{{ form.opening_balance(class='form-control form-control-sm text-right',
+                        onfocus="calculateSum()", onkeyup="calculateSum()") }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">Opening On Hand ({{ form.opening_on_hand.label }})</th>
+                    <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
+                    <td>{{ form.opening_on_hand(class='form-control form-control-sm text-right',
+                        onfocus="calculateSum()", onkeyup="calculateSum()") }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.transactions.label }}</th>
+                    <td class="align-middle">{{ brs_entry.month }}</td>
+                    <td>{{ form.transactions(class='form-control form-control-sm text-right', onfocus="calculateSum()",
+                        onkeyup="calculateSum()") }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.cancellations.label }}</th>
+                    <td class="align-middle">{{ brs_entry.month }}</td>
+                    <td>{{ form.cancellations(class='form-control form-control-sm text-right', onfocus="calculateSum()",
+                        onkeyup="calculateSum()") }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle font-weight-bold text-primary">Balance before fund transfer</th>
+                    <td class="align-middle text-primary">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}
+                    </td>
+                    <td class="ps-3 text-right text-primary font-weight-bold"><label
+                            id="cal_balance_before_fund_transfer">0.00</label></td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.fund_transfer.label }}</th>
+                    <td class="align-middle">{{ brs_entry.month }}</td>
+                    <td>{{ form.fund_transfer(class='form-control form-control-sm text-right', onfocus="calculateSum()",
+                        onkeyup="calculateSum()")
+                        }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">{{ form.bank_charges.label }}</th>
+                    <td class="align-middle">{{ brs_entry.month }}</td>
+                    <td>{{ form.bank_charges(class='form-control form-control-sm text-right', onfocus="calculateSum()",
+                        onkeyup="calculateSum()") }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">Closing On Hand ({{ form.closing_on_hand.label }})</th>
+                    <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}</td>
+                    <td>{{ form.closing_on_hand(class='form-control form-control-sm text-right',
+                        onfocus="calculateSum()", onkeyup="calculateSum()")
+                        }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle font-weight-bold text-success">Closing balance as per GL</th>
+                    <td class="align-middle text-success">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}
+                    </td>
+                    <td class="text-right text-success font-weight-bold"><label id="cal_closing_balance">0.00</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ps-3 align-middle">Remarks</th>
+                    <td colspan="2">{{ form.remarks(class='form-control', rows=3) }}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div id="closing_balance_breakup" class="mt-4">
+            <h4 class="title is-size-5 text-center my-3">Provide Breakup of Closing Balance (Reconciliation Items)</h4>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr class="text-center">
+                        <th class="align-middle" width="40%">Particulars</th>
+                        <th class="align-middle" width="20%">Upload Format</th>
+                        <th class="align-middle" width="20%">Amount (Rs.)</th>
+                        <th class=" align-middle" width="20%">Supporting Document</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th class="ps-3 align-middle">{{ form.deposited_not_credited.label }}</th>
+                        <td class="align-middle"><a href="{{ url_for('.download_format') }}"
+                                class="btn btn-sm btn-outline-info">Download Format</a></td>
+                        <td>{{ form.deposited_not_credited(class="form-control form-control-sm text-right",
+                            onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
+                        </td>
+                        <td class="align-middle">{{ form.file_outstanding_entries(class="form-control form-control-sm",
+                            disabled=disabled,
+                            accept=".xlsx") }}
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="ps-3 align-middle">{{ form.short_credited.label }}</th>
+                        <td class="align-middle"><a href="{{ url_for('.download_format') }}"
+                                class="btn btn-sm btn-outline-info">Download Format</a></td>
+                        <td>{{ form.short_credited(class="form-control form-control-sm text-right",
+                            onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
+                        </td>
+                        <td class="align-middle">{{ form.file_short_credit_entries(class="form-control form-control-sm",
+                            disabled=disabled,
+                            accept=".xlsx") }}
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="ps-3 align-middle">{{ form.excess_credited.label }} (Deduction)</th>
+                        <td class="align-middle"><a href="{{ url_for('.download_format') }}"
+                                class="btn btn-sm btn-outline-info">Download Format</a></td>
+                        <td>{{ form.excess_credited(class="form-control form-control-sm text-right",
+                            onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
+                        </td>
+                        <td class="align-middle">{{ form.file_excess_credit_entries(class="form-control
+                            form-control-sm", disabled=disabled,
+                            accept=".xlsx") }}
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="ps-3 align-middle">{{ form.balance_as_per_bank.label }}</th>
+                        <td class="align-middle"></td>
+                        <td>
+
+                            {{ form.balance_as_per_bank(class="form-control text-right",
+                            onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
+
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <th colspan="2" class="ps-3 font-weight-bold text-success">Total (Must Tally with GL Closing
+                            Balance)
+                        </th>
+                        <td class="text-right text-success font-weight-bold"><label
+                                id="cal_closing_bal_breakup">0.00</label></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="text-center">
+
+            <button class="btn btn-success">Submit</button>
+        </div>
+</div>
+</form>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        calculateSum();
+        calculateClosingBalance();
+    });
+
+    function calculateSum() {
+        var opening_balance = parseFloat(document.getElementById("opening_balance").value === "" ? 0 : document.getElementById("opening_balance").value);
+        var opening_on_hand = parseFloat(document.getElementById("opening_on_hand").value === "" ? 0 : document.getElementById("opening_on_hand").value);
+        var transactions = parseFloat(document.getElementById("transactions").value === "" ? 0 : document.getElementById("transactions").value);
+        var cancellations = parseFloat(document.getElementById("cancellations").value === "" ? 0 : document.getElementById("cancellations").value);
+        var fund_transfer = parseFloat(document.getElementById("fund_transfer").value === "" ? 0 : document.getElementById("fund_transfer").value);
+        var bank_charges = parseFloat(document.getElementById("bank_charges").value === "" ? 0 : document.getElementById("bank_charges").value);
+        var closing_on_hand = parseFloat(document.getElementById("closing_on_hand").value === "" ? 0 : document.getElementById("closing_on_hand").value);
+        closing_balance = opening_balance + opening_on_hand + transactions - cancellations - fund_transfer - bank_charges - closing_on_hand;
+        balance_before_fund_transfer = opening_balance + opening_on_hand + transactions - cancellations
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+        document.getElementById("cal_closing_balance").innerText = formatter.format(closing_balance);
+        document.getElementById("cal_balance_before_fund_transfer").innerText = formatter.format(balance_before_fund_transfer);
+
+        return closing_balance;
+
+    }
+    function calculateClosingBalance() {
+
+        const formatter = new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+            trailingZeroDisplay: 'stripIfInteger'
+        });
+
+        var not_credited = parseFloat(document.getElementById("deposited_not_credited").value === "" ? 0 : document.getElementById("deposited_not_credited").value);
+        var short_credited = parseFloat(document.getElementById("short_credited").value === "" ? 0 : document.getElementById("short_credited").value);
+        var excess_credited = parseFloat(document.getElementById("excess_credited").value === "" ? 0 : document.getElementById("excess_credited").value);
+        var closing_balance_bank_statement = parseFloat(document.getElementById("balance_as_per_bank").value === "" ? 0 : document.getElementById("balance_as_per_bank").value);
+
+
+        document.getElementById("file_outstanding_entries").disabled = (not_credited <= 0);
+        document.getElementById("file_excess_credit_entries").disabled = (excess_credited <= 0);
+        document.getElementById("file_short_credit_entries").disabled = (short_credited <= 0);
+
+        // document.getElementById("file_bank_statement").disabled = (closing_balance_bank_statement <= 0);
+
+        var closing_balance_breakup = not_credited + short_credited - excess_credited + closing_balance_bank_statement;
+
+        document.getElementById("cal_closing_bal_breakup").innerText = formatter.format(closing_balance_breakup);
+        return closing_balance_breakup;
+    }
+    function validateForm() {
+        const threshold = 0.001
+        closing_balance_gl = calculateSum();
+        closing_balance_breakup = calculateClosingBalance();
+        if (Math.abs(closing_balance_gl - closing_balance_breakup) > threshold) {
+            alert(`Closing balance ${closing_balance_gl} and closing balance breakup ${closing_balance_breakup} is not tallying.`)
+            return false;
+        }
+    }
+
+</script>
+{% endblock scripts %}

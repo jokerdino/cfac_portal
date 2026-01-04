@@ -1,0 +1,101 @@
+{% extends "brs_tieup_layout.html" %}
+{% block content %}
+
+<div class="table-container">
+        <table class="table table-bordered table-hover" id="brs_table">
+                <thead>
+                        <tr class="has-text-centered">
+                                <th class="is-vcentered">Regional Code</th>
+                                <th class="is-vcentered">Operating Office</th>
+                                <th class="is-vcentered">Financial year</th>
+                                <th class="is-vcentered">Period</th>
+                                <th class="is-vcentered">BRS type</th>
+                                <th class="is-vcentered">Bank</th>
+                                <th class="is-vcentered">Opening balance</th>
+                                <th class="is-vcentered">On hand</th>
+                                <th class="is-vcentered">Collections</th>
+                                <th class="is-vcentered">Cancellations</th>
+                                <th class="is-vcentered">Fund transfer</th>
+
+                                <th class="is-vcentered">Bank charges</th>
+                                <th class="is-vcentered">On hand</th>
+                                <th class="is-vcentered">Closing balance</th>
+                                <th class="is-vcentered">Outstanding</th>
+                                <th class="is-vcentered">Short credit</th>
+                                <th class="is-vcentered">Excess credit</th>
+                                <th class="is-vcentered">Closing balance as per bank statement</th>
+                                <th class="is-vcentered">Bank statement</th>
+
+                                <th class="is-vcentered">Remarks</th>
+                                <th class="is-vcentered">Time stamp</th>
+                                <th class="is-vcentered">Status</th>
+
+                        </tr>
+                </thead>
+                <tbody>
+                        {% for entry in brs_entries %}
+                        <tr>
+                                <td class="has-text-centered">{{ entry.summary.regional_office }}</td>
+                                <td class="has-text-centered">{{ entry.summary.operating_office }}</td>
+                                <td class="has-text-left"
+                                        data-sort='{{ entry.summary.month|datetime_format("%B-%Y") }}'>{{
+                                        entry.summary.month }}</td>
+                                <td>{{ entry.summary.purpose_of_bank_account or "" }}</td>
+                                <td>{{ entry.summary.local_collection_bank_name }}</td>
+                                <td>{{ entry.summary.local_collection_bank_account_number }}</td>
+
+                                <td class="has-text-right">{{ entry.opening_balance }}</td>
+                                <td class="has-text-right">{{ entry.opening_on_hand }}</td>
+                                <td class="has-text-right">{{ entry.transactions }}</td>
+                                <td class="has-text-right">{{ entry.cancellations }}</td>
+                                <td class="has-text-right">{{ entry.fund_transfer }}</td>
+                                <td class="has-text-right">{{ entry.bank_charges }}</td>
+                                <td class="has-text-right">{{ entry.closing_on_hand }}</td>
+                                <td class="has-text-right">{{ entry.closing_balance }}</td>
+                                <td class="has-text-right">{{ entry.deposited_not_credited }}</td>
+                                <td class="has-text-right">{{ entry.short_credited }}</td>
+                                <td class="has-text-right">{{ entry.excess_credited }}</td>
+                                <td class="has-text-right">{{ entry.balance_as_per_bank }}</td>
+                                <td>{% if entry.bank_statement %}<a class="btn btn-primary btn-sm"
+                                                href="{{ url_for('.download_bank_statement', id=entry.id) }}">Download</a>
+                                        {% else %}
+                                        Not uploaded
+                                        {% endif %}
+                                </td>
+                                <td>{{ entry.remarks or "" }}</td>
+                                <td data-sort="{{ entry.created_on }}"><a title="{{ entry.created_on }}"
+                                                href="{{ url_for('.view_brs', brs_key = entry.id) }}">{{
+                                                entry.created_on | humanize_datetime }}</a></td>
+                                <td>{{ entry.status or "Submitted" }}</td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                </tbody>
+        </table>
+</div>
+
+{% block scripts %}
+<script>
+        new DataTable('#brs_table', {
+                //dom: 'lfBrtip',
+                layout: { top1Start: 'pageLength', topStart: 'buttons' },
+                scrollY: true,
+                fixedHeader: true,
+                buttons: [
+                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+                order: [[19, 'desc']],
+                pagingType: 'full_numbers',
+                lengthMenu: [
+                        [10, 25, 50, 100, -1],
+                        [10, 25, 50, 100, 'All'],]
+        });
+
+</script>
+
+{% endblock scripts %}
+
+{% endblock content %}

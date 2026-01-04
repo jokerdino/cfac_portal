@@ -1,0 +1,72 @@
+{% extends "brs_tieup_layout.html" %}
+{% block content %}
+{% from "bootstrap_macros.html" import render_dashboard_dropdown %}
+{% if current_user.user_type in ["admin","ro_user"] %}
+<div class="container">
+    <form class="mb-5" method="post">
+
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
+
+    <table class="table table-bordered" id="brs_table">
+        <thead>
+            <tr>
+                <th class="text-center" rowspan="2">Regional office</th>
+                <th class="text-center" rowspan="2">Month</th>
+                <th class="text-center" rowspan="2"></th>
+                <th colspan="3" class="text-center">Local collection</th>
+            </tr>
+            <tr>
+                <th class="text-center">Total</th>
+                <th class="text-center">Completed</th>
+                <th class="text-center">Pending</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in query %}
+            <tr>
+                <td> {{ entry[0] }} </td>
+                <td data-sort="{{ entry.month|datetime_format('%B-%Y') }}">{{ entry[1] }} </td>
+                <td class="text-center"><a class="btn btn-sm btn-outline-primary"
+                        href="{{ url_for('.brs_tieup_homepage',month=entry.month, ro_code=entry.regional_office) }}">View</a>
+                </td>
+                <td class="has-text-right">{{ entry[2] }} </td>
+                <td class="has-text-right">{{ entry[3] }} </td>
+                <td class="has-text-right">{{ entry[2] - entry[3] }} </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% block scripts %}
+<script>
+    new DataTable('#brs_table', {
+        // dom: 'lfBrtip',
+        layout: { top1Start: 'pageLength', topStart: 'buttons' },
+        //       scrollY: true,
+        //     fixedHeader: true,
+        fixedHeader: true,
+        pageLength: 36,
+        scrollY: true,
+        scrollX: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[1, 'desc'], [0, 'asc']],
+        pagingType: 'full_numbers',
+        lengthMenu: [
+            [36, 72, 108, 144, -1],
+            [36, 72, 108, 144, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}
+
+{% endblock content %}
