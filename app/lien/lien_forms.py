@@ -59,7 +59,11 @@ class BaseLienForm(FlaskForm):
     bank_name = StringField(filters=[lambda x: x.strip().upper() if x else None])
     account_number = StringField(filters=[lambda x: x.strip() if x else None])
 
-    ro_name = StringField("RO Name", validators=[InputRequired()])
+    ro_name = StringField(
+        "RO Name",
+        validators=[InputRequired()],
+        filters=[lambda x: x.strip().upper() if x else None],
+    )
     ro_code = SelectField("RO Code", choices=ro_choices)
     lien_date = DateField(validators=[Optional()])
     lien_amount = IntegerField(validators=[DataRequired()])

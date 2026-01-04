@@ -17,7 +17,7 @@ from flask import (
     url_for,
     send_from_directory,
 )
-from sqlalchemy import func, case, event, and_, or_
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 from flask_login import login_required, current_user
@@ -43,6 +43,9 @@ from app.users.user_model import User
 from app.contacts.contacts_model import Contacts
 
 from app.users.mail_utils import send_email_async
+
+
+VIEW_ALL = "View all"
 
 
 def prepare_upload_document(lien, form) -> None:
@@ -340,7 +343,7 @@ def lien_list():
 
     if form.validate_on_submit():
         status = form.lien_status.data
-        if status != "View all":
+        if status != VIEW_ALL:
             query = query.where(Lien.lien_status == status)
 
     liens = db.session.scalars(query)
@@ -350,14 +353,17 @@ def lien_list():
     )
 
 
-def populate_status(stmt, form):
+def populate_status(stmt, form, view_all=True):
     subq = stmt.subquery()
 
     status_list = db.session.scalars(
         db.select(db.distinct(subq.c.lien_status)).order_by(subq.c.lien_status)
     ).all()
 
-    form.lien_status.choices = ["View all"] + status_list
+    if view_all:
+        form.lien_status.choices = [VIEW_ALL] + status_list
+    else:
+        form.lien_status.choices = status_list
 
 
 @lien_bp.route("/review", methods=["POST", "GET"])
@@ -365,12 +371,12 @@ def populate_status(stmt, form):
 @admin_required
 def lien_list_review():
     review_query = db.select(Lien).where(
-        or_(
-            and_(
+        db.or_(
+            db.and_(
                 Lien.lien_status == "Lien exists",
                 Lien.court_order_lien_reversal.is_not(None),
             ),
-            and_(
+            db.and_(
                 Lien.lien_status == "DD issued",
                 Lien.court_order_dd_reversal.is_not(None),
             ),
@@ -558,11 +564,11 @@ def lien_dashboard():
         safe_status = sanitize_status(status)
         status_labels[status] = safe_status
 
-        col_count = func.count(case((Lien.lien_status == status, 1))).label(
+        col_count = db.func.count(db.case((Lien.lien_status == status, 1))).label(
             f"count_{safe_status}"
         )
-        col_sum = func.sum(
-            case((Lien.lien_status == status, Lien.lien_amount), else_=0)
+        col_sum = db.func.sum(
+            db.case((Lien.lien_status == status, Lien.lien_amount), else_=0)
         ).label(f"sum_{safe_status}")
         status_columns.extend([col_count, col_sum])
 
@@ -573,8 +579,8 @@ def lien_dashboard():
             Lien.bank_name,
             Lien.account_number,
             *status_columns,
-            func.count(Lien.id).label("total_count"),
-            func.sum(Lien.lien_amount).label("total_amount"),
+            db.func.count(Lien.id).label("total_count"),
+            db.func.sum(Lien.lien_amount).label("total_amount"),
         )
         .group_by(Lien.ro_code, Lien.bank_name, Lien.account_number)
         .order_by(Lien.ro_code, Lien.bank_name, Lien.account_number)
@@ -592,6 +598,60 @@ def lien_dashboard():
     )
 
 
+@lien_bp.route("/reports", methods=["GET", "POST"])
+@login_required
+@admin_required
+def lien_reports():
+    form = LienStatusFilterForm()
+    query = db.select(Lien)
+    populate_status(query, form, view_all=False)
+
+    status = form.lien_status.data if form.validate_on_submit() else "DD issued"
+
+    query = query.where(Lien.lien_status == status)
+
+    subq = query.subquery()
+    bank_names = db.session.scalars(
+        db.select(db.distinct(subq.c.bank_name)).order_by(subq.c.bank_name)
+    ).all()
+
+    bank_columns = []
+    bank_labels = {}  # mapping from original -> sanitized
+    for bank in bank_names:
+        safe_bank = sanitize_status(bank)
+        bank_labels[bank] = safe_bank
+
+        col_count = db.func.count(db.case((subq.c.bank_name == bank, 1))).label(
+            f"count_{safe_bank}"
+        )
+        col_sum = db.func.sum(
+            db.case((subq.c.bank_name == bank, subq.c.lien_amount), else_=0)
+        ).label(f"sum_{safe_bank}")
+        bank_columns.extend([col_count, col_sum])
+
+    report_query = (
+        db.select(
+            subq.c.ro_code,
+            subq.c.ro_name,
+            *bank_columns,
+            db.func.count(subq.c.id).label("total_count"),
+            db.func.sum(subq.c.lien_amount).label("total_amount"),
+        )
+        .group_by(subq.c.ro_name, subq.c.ro_code)
+        .order_by(subq.c.ro_code)
+    )
+
+    lien_query = db.session.execute(report_query).all()
+    return render_template(
+        "lien_reports.html",
+        lien_data=lien_query,
+        bank_names=bank_names,
+        bank_labels=bank_labels,
+        form=form,
+        status=status,
+    )
+
+
 def sanitize_status(status: str) -> str:
     """Make status safe for SQLAlchemy labels (replace spaces, special chars)."""
     if status:
@@ -603,7 +663,7 @@ def sanitize_status(status: str) -> str:
 @lien_bp.context_processor
 def get_duplicate_count():
     duplicate_count = db.session.scalar(
-        db.select(func.count()).select_from(Lien).where(Lien.is_duplicate)
+        db.select(db.func.count()).select_from(Lien).where(Lien.is_duplicate)
     )
     lien_query = db.select(Lien).where(
         (Lien.lien_status == "Lien exists")
@@ -615,7 +675,7 @@ def get_duplicate_count():
     union_query = db.union_all(lien_query, dd_query)
 
     review_count = db.session.scalar(
-        db.select(func.count()).select_from(union_query.subquery())
+        db.select(db.func.count()).select_from(union_query.subquery())
     )
 
     return dict(duplicate_count=duplicate_count, review_count=review_count)

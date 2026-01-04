@@ -23,6 +23,7 @@
                     <a class="navbar-item" href="{{ url_for('.lien_dashboard') }}">Dashboard</a>
                     <a class="navbar-item" href="{{ url_for('.lien_list') }}">Lien entries</a>
                     {%- if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('.lien_reports') }}">Reports</a>
                     <a class="navbar-item" href="{{ url_for('.lien_add') }}">Add lien</a>
                     <a class="navbar-item" href="{{ url_for('.lien_bulk_upload') }}">Bulk upload lien
                         entries</a>
