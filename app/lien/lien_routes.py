@@ -185,7 +185,7 @@ def send_lien_email(lien):
             "subject": "Lien",
             "recipients": recipients,
             "cc": ["44515"],
-            "bcc": ["barneedhar@uiic.co.in"],
+            "bcc": ["44515"],
             "body": "Please view this email in HTML.",
             "html": html_body,
             "attachments": attachments,

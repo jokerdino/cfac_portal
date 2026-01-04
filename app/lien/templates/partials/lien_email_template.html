@@ -35,14 +35,28 @@
 
 <body>
 
-    <p class="header">
-        A new lien has been created. Details are below:
+    <p>
+        With reference to the attached court order, the banker has lien marked our account for an amount of Rs. {{
+        lien.lien_amount }}. Kindly take it up with the concerned office to confirm the current status of the case
+        and provide appeal, stay or lien reversal order availed, if any, in this regard on priority.
+
+        All the case-related details have been uploaded on the CFAC portal. You may refer to Lien ID #{{ lien.id }} to
+        view
+        the case information. Kindly take necessary steps and update the status in CFAC portal.
     </p>
 
     <table>
         <tr>
-            <th>Lien Number</th>
+            <th>Lien ID</th>
             <td>{{ lien.lien_number }}</td>
+        </tr>
+        <tr>
+            <th>RO code</th>
+            <td>{{ lien.lien_number }}</td>
+        </tr>
+        <tr>
+            <th>RO name</th>
+            <td>{{ lien.ro_name }}</td>
         </tr>
         <tr>
             <th>Lien Amount</th>
@@ -65,12 +79,11 @@
     </table>
 
     {% if lien.court_order_lien %}
-
     <p>
-        Please find the relevant court order attached.
+        Please find attached the relevant court order.
     </p>
-
     {% endif %}
+
 </body>
 
 </html>
