@@ -12,6 +12,8 @@ class Config:
 
     FLASK_ADMIN_FLUID_LAYOUT = True
     FLASK_ADMIN_SWATCH = "united"
+    SERVER_NAME = "cfac.uiic.in"
+    PREFERRED_URL_SCHEME = "https"
 
 
 class TestConfig:
@@ -27,3 +29,5 @@ class TestConfig:
     FLASK_ADMIN_SWATCH = "united"
     SQLALCHEMY_RECORD_QUERIES = True
     DEBUG_TB_INTERCEPT_REDIRECTS = False
+    SERVER_NAME = "cfac.uiic.in"
+    PREFERRED_URL_SCHEME = "https"
