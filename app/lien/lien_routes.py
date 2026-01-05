@@ -156,9 +156,6 @@ def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
 def send_lien_email(lien):
     recipients: list[str] = fetch_recipient_email_addresses(lien.ro_code)
 
-    # TODO: Comment out below code when live
-    recipients = ["44515"]
-
     attachments = []
     if lien.court_order_lien:
         file_path = (
@@ -177,14 +174,17 @@ def send_lien_email(lien):
         lien=lien,
     )
     app = current_app._get_current_object()
+    subject = (
+        f"Lien #{lien.id}: RO {lien.ro_code} - Lien marked for Rs. {lien.lien_amount}"
+    )
 
     thread = threading.Thread(
         target=send_email_async,
         kwargs={
             "app": app,
-            "subject": "Lien",
+            "subject": subject,
             "recipients": recipients,
-            "cc": ["44515"],
+            "cc": ["27629", "28156", "60722"],
             "bcc": ["44515"],
             "body": "Please view this email in HTML.",
             "html": html_body,

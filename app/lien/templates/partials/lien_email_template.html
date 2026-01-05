@@ -9,26 +9,20 @@
     <meta name="description" content="Lien" />
     <title>Lien</title>
     <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        }
-
         th,
         td {
-            border: 1px solid #dddddd;
+            border: 1px solid black;
             padding: 8px;
             text-align: left;
         }
 
-        th {
-            background-color: #f2f2f2;
-        }
-
         .header {
             margin-bottom: 15px;
+        }
+
+        body {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: small;
         }
     </style>
 </head>
@@ -36,23 +30,34 @@
 <body>
 
     <p>
-        With reference to the attached court order, the banker has lien marked our account for an amount of Rs. {{
+        Dear Sir/Madam,
+
+    </p>
+
+    <p>
+        {% if lien.court_order_lien %}
+        With reference to the attached court order, the
+
+        {% else %}
+        The
+        {% endif %}banker has lien marked our account for an amount of Rs. {{
         lien.lien_amount }}. Kindly take it up with the concerned office to confirm the current status of the case
         and provide appeal, stay or lien reversal order availed, if any, in this regard on priority.
 
-        All the case-related details have been uploaded on the CFAC portal. You may refer to Lien ID #{{ lien.id }} to
-        view
-        the case information. Kindly take necessary steps and update the status in CFAC portal.
+        All the case-related details have been uploaded on the CFAC portal. You may refer to <a
+            href="{{ url_for('lien.lien_view', lien_id=lien.id, _external=True) }}">
+            Lien ID #{{ lien.id }}</a> to view the case information. Kindly take necessary steps and update the status
+        in CFAC portal.
     </p>
 
-    <table>
+    <table border="1" cellpadding="4" cellspacing="0" width="50%">
         <tr>
-            <th>Lien ID</th>
-            <td>{{ lien.lien_number }}</td>
+            <th width="20%">Lien ID</th>
+            <td>{{ lien.id }}</td>
         </tr>
         <tr>
             <th>RO code</th>
-            <td>{{ lien.lien_number }}</td>
+            <td>{{ lien.ro_code }}</td>
         </tr>
         <tr>
             <th>RO name</th>
@@ -68,13 +73,15 @@
             <td>{{ lien.lien_date.strftime("%d-%m-%Y") }}</td>
         </tr>
         {% endif %}
+        {% if lien.court_name %}
         <tr>
             <th>Court Name</th>
             <td>{{ lien.court_name }}</td>
         </tr>
+        {% endif %}
         <tr>
-            <th>Status</th>
-            <td>{{ lien.status }}</td>
+            <th>Current Status</th>
+            <td>{{ lien.lien_status }}</td>
         </tr>
     </table>
 

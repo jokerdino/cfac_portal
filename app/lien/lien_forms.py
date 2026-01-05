@@ -8,7 +8,7 @@ from wtforms import (
     RadioField,
     SubmitField,
 )
-from wtforms.validators import Optional, ValidationError
+from wtforms.validators import Optional, ValidationError, DataRequired, InputRequired
 from flask_wtf.file import FileField, FileAllowed, FileRequired, FileSize
 
 
@@ -59,10 +59,10 @@ class BaseLienForm(FlaskForm):
     bank_name = StringField(filters=[lambda x: x.strip().upper() if x else None])
     account_number = StringField(filters=[lambda x: x.strip() if x else None])
 
-    ro_name = StringField("RO Name")
+    ro_name = StringField("RO Name", validators=[InputRequired()])
     ro_code = SelectField("RO Code", choices=ro_choices)
     lien_date = DateField(validators=[Optional()])
-    lien_amount = IntegerField(validators=[Optional()])
+    lien_amount = IntegerField(validators=[DataRequired()])
     court_order_lien_file = FileField(
         "Upload court order - lien",
         validators=[
