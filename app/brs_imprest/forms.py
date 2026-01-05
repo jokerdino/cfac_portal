@@ -66,7 +66,7 @@ class BankReconEntryForm(FlaskForm):
                 date_columns=["instrument_date", "voucher_date"],
                 sum_column="instrument_amount",
                 compare_field="cheques_unencashed",
-                compare_field_name="Add: Unencashed cheques",
+                compare_field_name="Less: Unencashed cheques",
             ),
         ],
     )

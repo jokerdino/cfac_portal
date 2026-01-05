@@ -52,10 +52,9 @@ def add_brs_details_item():
         db.session.add(brs)
         db.session.commit()
         flash("BRS details for imprest successfully added.")
-        # return redirect(url_for("brs"))
 
     return render_template(
-        "brs_imprest_form.html", form=form, title="Add BRS details item"
+        "brs_imprest_form.html", form=form, title="Add BRS imprest details item"
     )
 
 
@@ -461,9 +460,11 @@ def bulk_upload_brs():
             if_exists="append",
             index=False,
         )
-        flash("BRS local collection records have been uploaded to database")
+        flash("BRS imprest records have been uploaded to database")
 
-    return render_template("brs_imprest_form.html", form=form)
+    return render_template(
+        "brs_imprest_form.html", form=form, title="Bulk upload imprest accounts"
+    )
 
 
 @brs_imprest_bp.route("/download_format/")
