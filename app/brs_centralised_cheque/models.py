@@ -50,15 +50,21 @@ class CentralisedChequeDetails(db.Model):
     summary_id: Mapped[int] = mapped_column(
         db.ForeignKey("centralised_cheque_summary.id")
     )
-    opening_balance_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_issued: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_reissued_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    opening_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_reissued_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_cleared: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_cancelled: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    closing_balance_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    closing_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    opening_balance_unencashed: Mapped[float] = mapped_column(
+        db.Numeric(15, 2), default=0
+    )
+    cheques_issued: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_reissued_unencashed: Mapped[float] = mapped_column(
+        db.Numeric(15, 2), default=0
+    )
+    opening_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_reissued_stale: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_cleared: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_cancelled: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    closing_balance_unencashed: Mapped[float] = mapped_column(
+        db.Numeric(15, 2), default=0
+    )
+    closing_balance_stale: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
 
     remarks: Mapped[str] = mapped_column(db.Text)
 
