@@ -27,7 +27,9 @@ class BankReconEntryForm(FlaskForm):
     last_date_of_month = HiddenField()
     closing_balance = HiddenField()
 
-    prepared_by_employee_name = StringField("Prepared by - Employee name")
+    prepared_by_employee_name = StringField(
+        "Prepared by - Employee name", validators=[DataRequired()]
+    )
     prepared_by_employee_number = IntegerField(
         "Prepared by - Employee number",
         validators=[NumberRange(min=10000, max=99999), DataRequired()],

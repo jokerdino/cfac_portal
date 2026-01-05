@@ -56,7 +56,9 @@ def add_brs_details_item():
         flash("BRS details for local collection successfully added.")
         # return redirect(url_for("brs"))
 
-    return render_template("brs_lc_form.html", form=form, title="Add BRS details item")
+    return render_template(
+        "brs_lc_form.html", form=form, title="Add BRS local collection details item"
+    )
 
 
 def populate_month_choices(form, Summary):
@@ -494,7 +496,9 @@ def bulk_upload_brs():
         )
         flash("BRS local collection records have been uploaded to database")
 
-    return render_template("brs_lc_form.html", form=form)
+    return render_template(
+        "brs_lc_form.html", form=form, title="Bulk upload local collection items"
+    )
 
 
 @brs_local_collection.route("/download_format/")
