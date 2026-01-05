@@ -62,16 +62,16 @@ class BankReconImprestDetails(db.Model):
     summary_id: Mapped[int] = mapped_column(
         db.ForeignKey("bank_recon_imprest_summary.id")
     )
-    opening_balance: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    fund_transfer: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    opening_balance: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    fund_transfer: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
 
-    cheques_issued: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_cancelled: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    bank_charges: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    cheques_issued: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_cancelled: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    bank_charges: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
 
-    closing_balance_gl: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    cheques_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2))
-    closing_balance_bank: Mapped[float] = mapped_column(db.Numeric(15, 2))
+    closing_balance_gl: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    cheques_unencashed: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
+    closing_balance_bank: Mapped[float] = mapped_column(db.Numeric(15, 2), default=0)
 
     remarks: Mapped[str] = mapped_column(db.Text)
 
