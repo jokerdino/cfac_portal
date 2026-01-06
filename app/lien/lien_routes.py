@@ -679,3 +679,25 @@ def get_duplicate_count():
     )
 
     return dict(duplicate_count=duplicate_count, review_count=review_count)
+
+
+@lien_bp.get("/fetch-ro-name")
+@login_required
+def fetch_ro_name():
+    office_code = request.args.get("office_code")
+
+    if office_code == "Select RO Code":
+        return {"ro_name": ""}
+    ro_name = (
+        (
+            db.session.execute(
+                db.select(LienRegionalOfficeEmailAddress.ro_name).where(
+                    LienRegionalOfficeEmailAddress.ro_code == office_code
+                )
+            )
+        )
+        .mappings()
+        .first()
+    )
+
+    return dict(ro_name)

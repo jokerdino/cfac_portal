@@ -188,4 +188,28 @@
     }
 
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const roSelect = document.getElementById("ro_code");
+        const roName = document.getElementById("ro_name");
+
+        const fetchRoNameUrl = "{{ url_for('.fetch_ro_name') }}";
+
+        roSelect.addEventListener("change", function () {
+            const roCode = roSelect.value;
+
+            if (!roCode) return;
+
+            const url = `${fetchRoNameUrl}?office_code=${encodeURIComponent(roCode)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    roName.value = data.ro_name || "";
+                })
+                .catch(err => console.error("Error fetching RO name:", err));
+        });
+    });
+</script>
 {% endblock scripts %}

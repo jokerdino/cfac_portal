@@ -64,7 +64,7 @@ class BaseLienForm(FlaskForm):
         validators=[InputRequired()],
         filters=[lambda x: x.strip().upper() if x else None],
     )
-    ro_code = SelectField("RO Code", choices=ro_choices)
+    ro_code = SelectField("RO Code", choices=["Select RO Code"] + ro_choices)
     lien_date = DateField(validators=[Optional()])
     lien_amount = IntegerField(validators=[DataRequired()])
     court_order_lien_file = FileField(
