@@ -26,6 +26,9 @@ td.word-wrap {
 dd.word-wrap {
     white-space: pre-wrap;
 }
+div.word-wrap {
+    white-space: pre-wrap;
+}
 
 summary {
     align-items: center;

@@ -36,3 +36,56 @@
 </td>
 
 {% endmacro %}
+{% macro view_row(label, value) %}
+<div class="columns is-mobile is-multiline mb-0">
+    <div class="column is-3 has-text-weight-semibold">
+        {{ label }}
+    </div>
+    <div class="column is-9">
+        {{ value or "-" }}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro view_row_long(label, value) %}
+<div class="columns is-mobile is-multiline mb-0">
+    <div class="column is-3 has-text-weight-semibold">
+        {{ label }}
+    </div>
+    <div class="column is-9 word-wrap">
+        {{ value or "-" }}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro view_download(label, file, lien_id, field) %}
+
+<div class="columns is-mobile is-multiline mb-0">
+    <div class="column is-3 has-text-weight-semibold">{{ label }}
+    </div>
+    <div class="column is-9">
+        {% if file %}
+        <a class="button is-small is-link is-outlined"
+            href="{{ url_for('lien.download_document', lien_id=lien_id,  document_type=field) }}">
+            Download
+        </a>
+        {% else %}
+        <p class="is-static">-</p>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro view_tag(label, value) %}
+<div class="columns is-mobile is-multiline mb-0">
+    <div class="column is-3 has-text-weight-semibold">
+        {{ label }}
+    </div>
+    <div class="column is-9">
+        <div
+            class="tag is-rounded is-medium {% if value in ['Lien exists', 'DD issued'] %}is-warning{% elif value in ['Lien reversed','DD reversed'] %}is-success{% endif %}">
+            {{ value or "-" }}
+        </div>
+    </div>
+</div>
+{% endmacro %}
