@@ -8,16 +8,21 @@
     <form method="post">
         {{ render_dashboard_dropdown(form) }}
     </form>
-    <div class="tabs is-boxed">
+    <div class="tabs is-toggle">
         <ul>
-            <li id="sum_tab" class="is-active"><a onclick="show_sum()">Sum</a></li>
-            <li id="count_tab"><a onclick="show_count()">Count</a></li>
+            <li id="sum_tab" class="is-active">
+                <a onclick="show_sum()">Sum</a>
+            </li>
+            <li id="count_tab">
+                <a onclick="show_count()">Count</a>
+            </li>
         </ul>
     </div>
     <div id="sum_table" class="container is-fluid">
         <table class="table is-bordered is-striped is-hoverable" id="lien_sum">
             <thead>
                 <tr>
+                    <th class="is-vcentered has-text-centered">RO code</th>
                     <th class="is-vcentered has-text-centered">RO name</th>
                     {% for bank in bank_names %}
                     <th class="is-vcentered has-text-centered">{{ bank }}</th>
@@ -28,6 +33,7 @@
             <tbody>
                 {% for row in lien_data %}
                 <tr>
+                    <td>{{ row.ro_code }}</td>
                     <td>{{ row.ro_name }}</td>
 
                     {% for bank in bank_names %}
@@ -45,6 +51,7 @@
         <table class="table is-bordered is-striped is-hoverable" id="lien_count">
             <thead>
                 <tr>
+                    <th class="is-vcentered has-text-centered">RO code</th>
                     <th class="is-vcentered has-text-centered">RO name</th>
                     {% for bank in bank_names %}
                     <th class="is-vcentered has-text-centered">{{ bank }}</th>
@@ -55,11 +62,12 @@
             <tbody>
                 {% for row in lien_data %}
                 <tr>
+                    <td>{{ row.ro_code }}</td>
                     <td>{{ row.ro_name }}</td>
 
                     {% for bank in bank_names %}
                     {% set safe_bank = bank_labels[bank] %}
-                    <td class="has-text-right">{{ (row['count_' ~ safe_bank] or 0)  }}</td>
+                    <td class="has-text-right">{{ (row['count_' ~ safe_bank] or 0) }}</td>
                     {% endfor %}
                     <td class="has-text-right">{{ (row.total_count or 0 ) }}</td>
                 </tr>
@@ -72,34 +80,39 @@
 {% endblock content %}
 
 {% block scripts %}
+
 <script>
-
     function show_count() {
-        // remove active of summary
-        // add is-hidden class to summary
-
+        // Toggle Tables
         document.getElementById("sum_table").classList.add("is-hidden");
-        document.getElementById("sum_tab").classList.remove("is-active");
-
         document.getElementById("count_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("sum_tab").classList.remove("is-active");
         document.getElementById("count_tab").classList.add("is-active");
 
-
+        // Important: Recalculate columns for the hidden table
+        if ($.fn.DataTable.isDataTable('#lien_count')) {
+            $('#lien_count').DataTable().columns.adjust().draw();
+        }
     }
-    function show_sum() {
-        // remove active of balances
-        // add is-hidden class to balances
 
+    function show_sum() {
+        // Toggle Tables
+        document.getElementById("count_table").classList.add("is-hidden");
         document.getElementById("sum_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("count_tab").classList.remove("is-active");
         document.getElementById("sum_tab").classList.add("is-active");
 
-        document.getElementById("count_table").classList.add("is-hidden");
-        document.getElementById("count_tab").classList.remove("is-active");
-
+        if ($.fn.DataTable.isDataTable('#lien_sum')) {
+            $('#lien_sum').DataTable().columns.adjust().draw();
+        }
     }
-</script>
-<script>
-    new DataTable('#lien_sum', {
+
+    // DataTable Configuration
+    const dtConfig = {
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
@@ -107,34 +120,19 @@
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
         order: [[0, 'asc']],
         pagingType: 'full_numbers',
         pageLength: 50,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],]
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']]
+    };
 
-    })
+    // Initialize both tables
+    $(document).ready(function () {
+        new DataTable('#lien_sum', dtConfig);
+        new DataTable('#lien_count', dtConfig);
+    });
 </script>
 
-<script>
-    new DataTable('#lien_count', {
-        layout: {
-            top1start: 'pageLength',
-            topStart: 'buttons',
-        },
-        buttons: [
-            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-        order: [[0, 'asc']],
-        pagingType: 'full_numbers',
-        pageLength: 50,
-        lengthMenu: [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, 'All'],]
-
-    })
-</script>
 {% endblock scripts %}
