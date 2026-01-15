@@ -78,7 +78,6 @@ def brs_auto_upload_prev_month():
         BRS.pg_bank,
         BRS.bbps_bank,
         BRS.dqr_bank,
-        BRS.local_collection_bank,
     ).where(BRS.month == prev_month.strftime("%B-%Y"))
 
     insert_stmt = db.insert(BRS).from_select(
@@ -93,7 +92,6 @@ def brs_auto_upload_prev_month():
             BRS.pg_bank,
             BRS.bbps_bank,
             BRS.dqr_bank,
-            BRS.local_collection_bank,
         ],
         stmt,
     )
