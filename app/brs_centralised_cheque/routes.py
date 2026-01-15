@@ -144,8 +144,7 @@ def brs_cc_view_status(key):
 
     form = DeleteMonthForm()
     if form.validate_on_submit():
-        brs.centralised_cheque_brs_id = None
-        brs.details.brs_status = "Deleted"
+        brs.mark_deleted()
         db.session.commit()
         flash("BRS entry has been deleted.")
         return redirect(url_for(".brs_cc_view_status", key=key))

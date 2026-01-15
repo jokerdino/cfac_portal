@@ -44,6 +44,11 @@ class CentralisedChequeSummary(db.Model):
         if not self.has_access(user):
             abort(404)
 
+    def mark_deleted(self):
+        self.centralised_cheque_brs_id = None
+        for detail in self.details:
+            detail.brs_status = "Deleted"
+
 
 class CentralisedChequeDetails(db.Model):
     id: Mapped[IntPK]
