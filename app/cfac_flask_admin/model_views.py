@@ -31,6 +31,11 @@ class BRSView(DefaultModelView):
     form_excluded_columns = ("brs_month", "timestamp")
 
 
+class BRSCCDetailView(DefaultModelView):
+    column_editable_list = ["brs_status"]
+    form_excluded_columns = ("unencashed_cheques", "stale_cheques")
+
+
 class OSView(DefaultModelView):
     column_searchable_list = ["str_operating_office_code"]
     column_filters = ["str_operating_office_code"]

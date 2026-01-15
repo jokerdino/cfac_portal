@@ -22,6 +22,7 @@ from app.cfac_flask_admin.model_views import (
     BudgetAllocationView,
     BudgetUtilizationView,
     LienView,
+    BRSCCDetailView,
 )
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
@@ -182,7 +183,7 @@ admin.add_view(
     )
 )
 admin.add_view(
-    ModelView(
+    BRSCCDetailView(
         CentralisedChequeDetails, db.session, endpoint="cc_details", category="BRS_CC"
     )
 )
