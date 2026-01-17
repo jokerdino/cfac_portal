@@ -17,7 +17,8 @@ from sqlalchemy import (
     or_,
     and_,
 )
-from sqlalchemy.dialects.postgresql import insert
+
+# from sqlalchemy.dialects.postgresql import insert
 
 
 from app.funds import funds_bp
@@ -51,45 +52,45 @@ from extensions import db
 
 from set_view_permissions import fund_managers
 
-outflow_labels_old = [
-    "CITI HEALTH",
-    "AXIS HEALTH",
-    "MRO1 HEALTH",
-    "AXIS NEFT",
-    "CITI NEFT",
-    "TNCMCHIS",
-    "AXIS CENTRALISED CHEQUE",
-    "AXIS CENTRALISED CHEQUE 521",
-    "AXIS TDS RO",
-    "PENSION PAYMENT",
-    "GRATUITY",
-    "GRATUITY IDFC FIRST",
-    "AXIS GST",
-    "RO NAGPUR CROP",
-    "CITI OMP",
-    "HDFC Lien",
-    "Other payments",
-]
+# outflow_labels_old = [
+#     "CITI HEALTH",
+#     "AXIS HEALTH",
+#     "MRO1 HEALTH",
+#     "AXIS NEFT",
+#     "CITI NEFT",
+#     "TNCMCHIS",
+#     "AXIS CENTRALISED CHEQUE",
+#     "AXIS CENTRALISED CHEQUE 521",
+#     "AXIS TDS RO",
+#     "PENSION PAYMENT",
+#     "GRATUITY",
+#     "GRATUITY IDFC FIRST",
+#     "AXIS GST",
+#     "RO NAGPUR CROP",
+#     "CITI OMP",
+#     "HDFC Lien",
+#     "Other payments",
+# ]
 # outflow_amounts = [
 #     f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
 # ]
 
 
-@funds_bp.route("/outflow/labels")
-@login_required
-@fund_managers
-def populate_outflow_model():
-    insert_stmt = (
-        insert(FundOutflowLabel)
-        .values([{"outflow_label": label} for label in outflow_labels_old])
-        .on_conflict_do_nothing(index_elements=["outflow_label"])
-    )
-    result = db.session.execute(insert_stmt)
-    db.session.commit()
+# @funds_bp.route("/outflow/labels")
+# @login_required
+# @fund_managers
+# def populate_outflow_model():
+#     insert_stmt = (
+#         insert(FundOutflowLabel)
+#         .values([{"outflow_label": label} for label in outflow_labels_old])
+#         .on_conflict_do_nothing(index_elements=["outflow_label"])
+#     )
+#     result = db.session.execute(insert_stmt)
+#     db.session.commit()
 
-    rows_inserted = result.rowcount
+#     rows_inserted = result.rowcount
 
-    return f"{rows_inserted} rows inserted"
+#     return f"{rows_inserted} rows inserted"
 
 
 def get_inflow(input_date, inflow_description=None):
