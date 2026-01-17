@@ -12,3 +12,4 @@ python-packages/*
 *.sql
 download_data/*
 upload_formats/*
+.env

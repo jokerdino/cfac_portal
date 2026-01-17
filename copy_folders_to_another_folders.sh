@@ -1,1 +1,1 @@
-cp -r "$1"/{migrations} -t "$2"
+cp -r "$1"/{migrations, .env} -t "$2"
