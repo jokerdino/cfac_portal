@@ -26,7 +26,9 @@
                     <th class="has-text-centered is-vcentered">Value date</th>
                     <th class="has-text-centered is-vcentered">Reference number</th>
                     <th class="has-text-centered is-vcentered">Confirmed by</th>
+                    {% if status != "jv_passed" %}
                     <th class="has-text-centered is-vcentered">Edit</th>
+                    {% endif %}
                 </tr>
             </thead>
 
@@ -37,6 +39,19 @@
     data-show-checkbox="{{ 'true' if status == 'confirmed' and current_user.user_type == 'admin' else 'false' }}"
     data-edit-url="{{ url_for('pool_credits.update_pool_credit', id=0) }}">
 </div>
+<div class="modal" id="edit-modal">
+    <div class="modal-background" onclick="closeModal()"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title">Edit Pool Credit</p>
+            <button class="delete" onclick="closeModal()"></button>
+        </header>
+        <section class="modal-card-body" id="modal-content">
+            <!-- AJAX content -->
+        </section>
+    </div>
+</div>
+{% endblock content %}
 
 {% block scripts %}
 <script>
@@ -72,13 +87,20 @@
             { data: "credit", className: "dt-body-right" },
             { data: "value_date", className: "dt-body-center" },
             { data: "reference_no" },
-            { data: "str_regional_office_code" },
-            {
+            { data: "str_regional_office_code" },);
+
+        // ONLY ADD THE EDIT COLUMN IF NOT JV_PASSED
+        if ("{{ status }}" !== "jv_passed") {
+            columns.push({
                 data: "id",
-                render: (data) =>
-                    `<a class="button is-small is-link is-outlined" href="${editUrlTemplate.replace('0', data)}">Edit</a>`,
-            },
-        );
+                orderable: false, // Usually don't want to sort by the button column
+                render: (id) =>
+                    `<button type="button" class="button is-small is-link is-outlined"
+            onclick="openEditModal(${id})">
+            Edit
+        </button>`,
+            });
+        }
 
         new DataTable(tableEl, {
             ajax: ajaxUrl,
@@ -101,17 +123,55 @@
 </script>
 <script>
     function select_all() {
+        const masterCheckbox = document.getElementById('select_all_button');
+        const checkboxes = document.querySelectorAll('input[name="pool_keys"]');
 
-        var checkbox = document.getElementsByName('pool_keys');
+        checkboxes.forEach(cb => {
+            cb.checked = masterCheckbox.checked;
+        });
+    }
+</script>
 
-        for (var i = 0; i < checkbox.length; i++) {
-            if (checkbox[i].type == 'checkbox')
+<script>
+    const editUrlTemplate = document.getElementById("datatable-config").dataset.editUrl;
+    function openEditModal(id) {
 
-                checkbox[i].checked = document.getElementById('select_all_button').checked;
-        }
+        const url = editUrlTemplate.replace('0', id);
+        fetch(url, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById("modal-content").innerHTML = html;
+                document.getElementById("edit-modal").classList.add("is-active");
+
+                const form = document.getElementById("edit-pool-credit-form");
+                form.addEventListener("submit", function (e) {
+                    e.preventDefault();
+                    submitEditForm(form, id);
+                });
+            });
     }
 
-</script>
-{% endblock scripts %}
+    function submitEditForm(form, id) {
+        const url = editUrlTemplate.replace('0', id);
+        fetch(url, {
+            method: "POST",
+            body: new FormData(form),
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    closeModal();
+                    $('#pool_credits_table').DataTable().ajax.reload(null, false);
+                }
+            });
+    }
 
-{% endblock content %}
+    function closeModal() {
+        document.getElementById("edit-modal").classList.remove("is-active");
+    }
+</script>
+
+{% endblock scripts %}

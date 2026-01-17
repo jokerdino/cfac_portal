@@ -294,9 +294,19 @@ def update_pool_credit(id):
     elif form.validate_on_submit():
         form.populate_obj(entry)
         db.session.commit()
+        # AJAX success response
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return {"success": True}
+
         return redirect(url_for("pool_credits.view_pool_credit", id=id))
 
-    return render_template("pool_credits_edit.html", entry=entry, form=form)
+    template = (
+        "_edit_modal_form.html"
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        else "pool_credits_edit.html"
+    )
+
+    return render_template(template, entry=entry, form=form)
 
 
 @pool_credits_bp.route("/view/<int:id>/")

@@ -1,0 +1,31 @@
+{% from "form_field_helpers_macro.html" import render_field_table %}
+<form method="post" id="edit-pool-credit-form">
+    {{ form.csrf_token }}
+
+    <table class="table is-fullwidth">
+        <tr>
+            <th>Book date</th>
+            <td>{{ entry.book_date.strftime("%d/%m/%Y") }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ entry.description }}</td>
+        </tr>
+        <tr>
+            <th>Credit</th>
+            <td>{{ entry.credit | indian_number_format }}</td>
+        </tr>
+        <tr>
+            <th>Value date</th>
+            <td>{{ entry.value_date.strftime("%d/%m/%Y") }}</td>
+        </tr>
+
+        {{ render_field_table(form.str_regional_office_code) }}
+        {{ render_field_table(form.text_remarks) }}
+    </table>
+
+    <div class="has-text-right">
+        <button class="button is-success">Save</button>
+        <button type="button" class="button is-light" onclick="closeModal()">Cancel</button>
+    </div>
+</form>
