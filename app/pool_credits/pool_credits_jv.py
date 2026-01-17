@@ -3,7 +3,6 @@ from io import BytesIO
 
 import pandas as pd
 from flask import (
-    #   current_app,
     flash,
     redirect,
     render_template,
@@ -12,12 +11,7 @@ from flask import (
 )
 from flask_login import current_user, login_required
 
-from sqlalchemy import (
-    #    func,
-    #   literal,
-    union_all,
-    #    create_engine,
-)
+
 from sqlalchemy.exc import IntegrityError
 
 from extensions import db
@@ -99,69 +93,69 @@ def jv_bulk_upload():
     return render_template("jv_bulk_upload.html", form=form)
 
 
-@pool_credits_bp.route("/download_jv/")
-@login_required
-@admin_required
-def download_jv_confirmed_entries():
-    """Obsolete function"""
-    query = (
-        db.select(
-            db.literal("000100").label("Office Location"),
-            PoolCreditsJournalVoucher.gl_code.label("GL Code"),
-            PoolCreditsJournalVoucher.sl_code.label("SL Code"),
-            db.literal("CR").label("DR/CR"),
-            db.func.sum(PoolCredits.credit).label("Amount"),
-            PoolCredits.month_string.label("Month"),
-            PoolCredits.str_regional_office_code,
-        )
-        .outerjoin(
-            PoolCreditsJournalVoucher,
-            PoolCreditsJournalVoucher.str_regional_office_code
-            == PoolCredits.str_regional_office_code,
-        )
-        .where(
-            (PoolCredits.str_regional_office_code.is_not(None))
-            & (PoolCredits.bool_jv_passed.is_(False))
-        )
-        .group_by(
-            PoolCredits.month_string,
-            PoolCredits.str_regional_office_code,
-            PoolCreditsJournalVoucher.gl_code,
-            PoolCreditsJournalVoucher.sl_code,
-        )
-    )
-    START_DATE = datetime(2024, 10, 1)
-    query = query.where(PoolCredits.value_date >= START_DATE)
+# @pool_credits_bp.route("/download_jv/")
+# @login_required
+# @admin_required
+# def download_jv_confirmed_entries():
+#     """Obsolete function"""
+#     query = (
+#         db.select(
+#             db.literal("000100").label("Office Location"),
+#             PoolCreditsJournalVoucher.gl_code.label("GL Code"),
+#             PoolCreditsJournalVoucher.sl_code.label("SL Code"),
+#             db.literal("CR").label("DR/CR"),
+#             db.func.sum(PoolCredits.credit).label("Amount"),
+#             PoolCredits.month_string.label("Month"),
+#             PoolCredits.str_regional_office_code,
+#         )
+#         .outerjoin(
+#             PoolCreditsJournalVoucher,
+#             PoolCreditsJournalVoucher.str_regional_office_code
+#             == PoolCredits.str_regional_office_code,
+#         )
+#         .where(
+#             (PoolCredits.str_regional_office_code.is_not(None))
+#             & (PoolCredits.bool_jv_passed.is_(False))
+#         )
+#         .group_by(
+#             PoolCredits.month_string,
+#             PoolCredits.str_regional_office_code,
+#             PoolCreditsJournalVoucher.gl_code,
+#             PoolCreditsJournalVoucher.sl_code,
+#         )
+#     )
+#     START_DATE = datetime(2024, 10, 1)
+#     query = query.where(PoolCredits.value_date >= START_DATE)
 
-    with db.engine.connect() as conn:
-        df_confirmed_entries = pd.read_sql(query, conn)
+#     with db.engine.connect() as conn:
+#         df_confirmed_entries = pd.read_sql(query, conn)
 
-    df_confirmed_entries["Remarks"] = (
-        "HDFC Pool account - "
-        + df_confirmed_entries["Month"]
-        + " - "
-        + df_confirmed_entries["str_regional_office_code"]
-    )
-    df_confirmed_entries_copy = df_confirmed_entries.copy()
-    df_confirmed_entries_copy["DR/CR"] = "DR"
-    df_confirmed_entries_copy["GL Code"] = 5131405950
-    df_confirmed_entries_copy["SL Code"] = 0
+#     df_confirmed_entries["Remarks"] = (
+#         "HDFC Pool account - "
+#         + df_confirmed_entries["Month"]
+#         + " - "
+#         + df_confirmed_entries["str_regional_office_code"]
+#     )
+#     df_confirmed_entries_copy = df_confirmed_entries.copy()
+#     df_confirmed_entries_copy["DR/CR"] = "DR"
+#     df_confirmed_entries_copy["GL Code"] = 5131405950
+#     df_confirmed_entries_copy["SL Code"] = 0
 
-    df_concat = pd.concat([df_confirmed_entries, df_confirmed_entries_copy])
-    df_concat["Office Location"] = "000100"
-    df_concat = df_concat[
-        ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
-    ]
-    output = BytesIO()
+#     df_concat = pd.concat([df_confirmed_entries, df_confirmed_entries_copy])
+#     df_concat["Office Location"] = "000100"
+#     df_concat = df_concat[
+#         ["Office Location", "GL Code", "SL Code", "DR/CR", "Amount", "Remarks"]
+#     ]
+#     output = BytesIO()
 
-    df_concat.to_excel(output, index=False)
+#     df_concat.to_excel(output, index=False)
 
-    # Set the buffer position to the beginning
-    output.seek(0)
+#     # Set the buffer position to the beginning
+#     output.seek(0)
 
-    filename = f"pool_credits_jv_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+#     filename = f"pool_credits_jv_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
 
-    return send_file(output, as_attachment=True, download_name=filename)
+#     return send_file(output, as_attachment=True, download_name=filename)
 
 
 @pool_credits_bp.route("/download_jv_v2/")
@@ -225,7 +219,7 @@ def download_jv_confirmed_entries_v2():
     )
     debit_query = debit_query.where(PoolCredits.value_date >= START_DATE)
 
-    union_query = union_all(credit_query, debit_query)
+    union_query = db.union_all(credit_query, debit_query)
 
     with db.engine.connect() as conn:
         df_concat = pd.read_sql(union_query, conn)
