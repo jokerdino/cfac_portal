@@ -114,13 +114,11 @@ def funds_reports():
         if not all_queries:
             flash("Please select at least one report type.")
             return render_template(
-                "jv_download_jv_macro.html", form=form, title="Funds - Reports"
+                "funds_form.html", form=form, title="Funds - Reports"
             )
 
         query_set = db.union_all(*all_queries)
         query = db.session.execute(query_set)
         return render_template("reports_output.html", query=query)
 
-    return render_template(
-        "jv_download_jv_macro.html", form=form, title="Funds - Reports"
-    )
+    return render_template("funds_form.html", form=form, title="Funds - Reports")

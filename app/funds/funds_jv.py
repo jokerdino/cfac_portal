@@ -180,7 +180,7 @@ from extensions import db
 #             return "no data"
 
 #     return render_template(
-#         "jv_download_jv_macro.html",
+#         "funds_form.html",
 #         form=form,
 #         title="Enter dates for downloading funds JV",
 #     )
@@ -240,7 +240,7 @@ def download_jv2():
             return "no data"
 
     return render_template(
-        "jv_download_jv_macro.html",
+        "funds_form.html",
         form=form,
         title="Enter dates for downloading funds JV",
     )
@@ -655,7 +655,7 @@ def add_jv_flag():
         form = JVFlagAddForm()
 
     return render_template(
-        "jv_download_jv_macro.html",
+        "funds_form.html",
         form=form,
         title="Add new JV pattern",
     )
@@ -680,7 +680,7 @@ def edit_jv_flag(jv_id):
         form = JVFlagAddForm(obj=jv)
 
     return render_template(
-        "jv_download_jv_macro.html",
+        "funds_form.html",
         form=form,
         title="Edit JV pattern",
     )

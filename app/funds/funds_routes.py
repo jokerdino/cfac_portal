@@ -309,7 +309,7 @@ def upload_bank_statement():
 
     if not form.validate_on_submit():
         return render_template(
-            "jv_download_jv_macro.html",
+            "funds_form.html",
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
@@ -321,7 +321,7 @@ def upload_bank_statement():
 
         if not verify_closing_balance(df):
             return render_template(
-                "jv_download_jv_macro.html",
+                "funds_form.html",
                 form=form,
                 title="Upload bank statement (in .xlsx file format)",
             )
@@ -337,7 +337,7 @@ def upload_bank_statement():
     except Exception as e:
         flash(f"Error processing bank statement: {str(e)}")
         return render_template(
-            "jv_download_jv_macro.html",
+            "funds_form.html",
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
@@ -542,9 +542,7 @@ def add_flag_entry():
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    return render_template(
-        "jv_download_jv_macro.html", form=form, title="Add flag entry"
-    )
+    return render_template("funds_form.html", form=form, title="Add flag entry")
 
 
 @funds_bp.route("/flags/edit/<int:flag_id>", methods=["POST", "GET"])
@@ -558,9 +556,7 @@ def edit_flag_entry(flag_id):
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    return render_template(
-        "jv_download_jv_macro.html", form=form, title="Edit flag entry"
-    )
+    return render_template("funds_form.html", form=form, title="Edit flag entry")
 
 
 @funds_bp.route("/outflow/edit/<string:date_string>/", methods=["GET", "POST"])
@@ -1108,9 +1104,7 @@ def add_major_outgo():
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    return render_template(
-        "jv_download_jv_macro.html", form=form, title="Add new outgo"
-    )
+    return render_template("funds_form.html", form=form, title="Add new outgo")
 
 
 @funds_bp.route("/outgo/edit/<int:outgo_id>/", methods=["POST", "GET"])
@@ -1124,7 +1118,7 @@ def edit_major_outgo(outgo_id):
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    return render_template("jv_download_jv_macro.html", form=form, title="Edit outgo")
+    return render_template("funds_form.html", form=form, title="Edit outgo")
 
 
 @funds_bp.route("/outgo/", methods=["GET"])
@@ -1151,7 +1145,7 @@ def add_amount_given_to_investment():
         return redirect(url_for("funds.list_amount_given_to_investment"))
 
     return render_template(
-        "jv_download_jv_macro.html", form=form, title="Enter investment amount"
+        "funds_form.html", form=form, title="Enter investment amount"
     )
 
 
@@ -1166,9 +1160,7 @@ def edit_amount_given_to_investment(investment_id):
         form.populate_obj(investment)
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
-    return render_template(
-        "jv_download_jv_macro.html", form=form, title="Edit investment amount"
-    )
+    return render_template("funds_form.html", form=form, title="Edit investment amount")
 
 
 @funds_bp.route("/investment/")
@@ -1216,7 +1208,7 @@ def modify_dates():
 
         flash(f"Dates have been changed from {old_date} to {new_date}.")
 
-    return render_template("jv_download_jv_macro.html", form=form, title="Modify dates")
+    return render_template("funds_form.html", form=form, title="Modify dates")
 
 
 @funds_bp.route("/delete_date", methods=["POST", "GET"])
@@ -1258,7 +1250,7 @@ def delete_date():
         db.session.commit()
         flash(f"{delete_date} has been deleted.")
 
-    return render_template("jv_download_jv_macro.html", form=form, title="Delete dates")
+    return render_template("funds_form.html", form=form, title="Delete dates")
 
 
 @funds_bp.context_processor
