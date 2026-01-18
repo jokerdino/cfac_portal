@@ -161,7 +161,7 @@ def send_lien_email(lien):
     attachments = []
     if lien.court_order_lien:
         file_path = (
-            Path(current_app.config["UPLOAD_FOLDER"])
+            (current_app.config["UPLOAD_FOLDER_PATH"])
             / "lien"
             / "court_order_lien"
             / lien.court_order_lien
