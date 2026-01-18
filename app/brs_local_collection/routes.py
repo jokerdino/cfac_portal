@@ -253,26 +253,24 @@ def view_brs(brs_key):
 
 
 def upload_document_to_folder(brs_lc_obj, model_attribute, form, field, folder_name):
-    base_path = Path(current_app.config.get("UPLOAD_FOLDER"))
+    base_path = current_app.config.get("UPLOAD_FOLDER_PATH")
     folder_path = base_path / "brs_lc" / folder_name
 
     # Create folders if missing
     folder_path.mkdir(parents=True, exist_ok=True)
 
     # Check if file exists in the form
-    if form.data[field]:
-        filename = secure_filename(form.data[field].filename)
+    file = form.data.get(field)
+    if file:
+        filename = secure_filename(file.filename)
 
-        file_extension = filename.rsplit(".", 1)[1]
+        file_extension = Path(filename).suffix
         document_filename = (
-            f"{folder_name}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
+            f"{folder_name}_{datetime.now().strftime('%d%m%Y %H%M%S')}{file_extension}"
         )
 
-        # Path to final file
-        file_path = folder_path / document_filename
-
         # Save file
-        form.data[field].save(file_path)
+        file.save(folder_path / document_filename)
 
         # Assign filename to model attribute
         setattr(brs_lc_obj, model_attribute, document_filename)
@@ -282,7 +280,7 @@ def upload_document_to_folder(brs_lc_obj, model_attribute, form, field, folder_n
 @login_required
 def download_bank_statement(id):
     brs_lc = db.get_or_404(BankReconLocalCollectionDetails, id)
-    base_path = Path(current_app.config.get("UPLOAD_FOLDER"))
+    base_path = current_app.config.get("UPLOAD_FOLDER_PATH")
     folder_path = base_path / "brs_lc" / "brs_local_collection_bank_statement"
 
     filename = brs_lc.bank_statement
@@ -291,11 +289,12 @@ def download_bank_statement(id):
     if not file_path.exists():
         abort(404)
 
-    file_extension = filename.rsplit(".", 1)[-1]
-    download_name = f"bank_statement_{brs_lc.summary.operating_office}_{brs_lc.summary.local_collection_bank_name}_{brs_lc.summary.local_collection_bank_account_number}_{brs_lc.summary.month}.{file_extension}"
+    stored_path = Path(filename)
+    file_extension = stored_path.suffix
+    download_name = f"bank_statement_{brs_lc.summary.operating_office}_{brs_lc.summary.local_collection_bank_name}_{brs_lc.summary.local_collection_bank_account_number}_{brs_lc.summary.month}{file_extension}"
     return send_from_directory(
-        directory=str(folder_path),
-        path=filename,
+        directory=folder_path,
+        path=stored_path.name,
         as_attachment=True,
         download_name=download_name,
     )
