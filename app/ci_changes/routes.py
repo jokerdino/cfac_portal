@@ -21,26 +21,24 @@ from extensions import db
 
 
 def upload_document_to_folder(ci_obj, model_attribute, form, field, folder_name):
-    base_path = Path(current_app.config.get("UPLOAD_FOLDER"))
+    base_path = current_app.config.get("UPLOAD_FOLDER_PATH")
     folder_path = base_path / "ci" / folder_name
 
     # Create folders if missing
     folder_path.mkdir(parents=True, exist_ok=True)
 
     # Check if file exists in the form
-    if form.data[field]:
-        filename = secure_filename(form.data[field].filename)
+    file = form.data.get(field)
+    if file:
+        filename = secure_filename(file.filename)
 
-        file_extension = filename.rsplit(".", 1)[1]
+        file_extension = Path(filename).suffix
         document_filename = (
-            f"{folder_name}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
+            f"{folder_name}_{datetime.now().strftime('%d%m%Y %H%M%S')}{file_extension}"
         )
 
-        # Path to final file
-        file_path = folder_path / document_filename
-
         # Save file
-        form.data[field].save(file_path)
+        file.save(folder_path / document_filename)
 
         # Assign filename to model attribute
         setattr(ci_obj, model_attribute, document_filename)
@@ -61,7 +59,7 @@ def ci_add():
         )
         upload_document_to_folder(
             ci,
-            "approach_note",
+            "approach_note_document",
             form,
             "approach_note_document_file",
             "approach_note_document",
@@ -121,7 +119,7 @@ def ci_view(id):
 @admin_required
 def download_ci_document(id, document_type):
     ci = db.get_or_404(ChangeInstruction, id)
-    base_path = Path(current_app.config.get("UPLOAD_FOLDER"))
+    base_path = current_app.config.get("UPLOAD_FOLDER_PATH")
     folder_path = base_path / "ci" / document_type
 
     if document_type == "ci_document":
@@ -132,15 +130,18 @@ def download_ci_document(id, document_type):
         abort(404)
     if not filename:
         abort(404)
+
     file_path = folder_path / filename
     if not file_path.exists():
         abort(404)
 
-    file_extension = filename.rsplit(".", 1)[-1]
-    download_name = f"{document_type}_{ci.title}.{file_extension}"
+    stored_path = Path(filename)
+    file_extension = stored_path.suffix
+    download_name = f"{document_type}_{ci.title}{file_extension}"
+
     return send_from_directory(
-        directory=str(folder_path),
-        path=filename,
+        directory=folder_path,
+        path=stored_path.name,
         as_attachment=True,
         download_name=download_name,
     )
