@@ -1,4 +1,4 @@
-from datetime import datetime
+from pathlib import Path
 import re
 
 from flask import (
@@ -8,7 +8,7 @@ from flask import (
     url_for,
     current_app,
     send_from_directory,
-)  # , Markup
+)
 from flask_login import login_required
 from markupsafe import Markup
 
@@ -146,11 +146,13 @@ def download_document(document_type, document_id):
     model, field = model_dict[document_type]
     model_obj = db.get_or_404(model, document_id)
 
-    path = model_obj.upload_document
-    if not path:
+    stored_filename = model_obj.upload_document
+    if not stored_filename:
         abort(404)
 
-    file_extension = path.rsplit(".", 1)[-1]
+    stored_path = Path(stored_filename)
+
+    file_extension = stored_path.suffix
 
     def clean_filename(name: str) -> str:
         # Remove newlines (causes send_file header break)
@@ -160,12 +162,16 @@ def download_document(document_type, document_id):
         return re.sub(r'[\\/:*?"<>|]', "", name).strip()
 
     file_title = clean_filename(getattr(model_obj, field))
-    filename = f"{model_obj.reference_number}_{file_title}.{file_extension}"
+    download_name = f"{model_obj.reference_number}_{file_title}{file_extension}"
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "correspondence" / document_type
+    )
+
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}correspondence/{document_type}/",
-        path=path,
+        directory=base_directory,
+        path=stored_path.name,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name,
     )
 
 
