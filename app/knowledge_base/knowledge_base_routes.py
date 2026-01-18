@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 
 from flask import (
     current_app,
@@ -96,27 +97,34 @@ def knowledge_base_home_page():
 def download_kb_document(kb_id):
     kb = db.get_or_404(KnowledgeBase, kb_id)
     kb.require_access(current_user)
-    filename_extension: str = kb.knowledge_base_document.rsplit(".", 1)[1]
-    filename: str = f"{kb.topic}_{kb.title}.{filename_extension}"
+    stored_filename = kb.knowledge_base_document
+    stored_path = Path(stored_filename)
+
+    filename_extension: str = stored_path.suffix
+    download_name: str = f"{kb.topic}_{kb.title}{filename_extension}"
+    base_directory = current_app.config.get("UPLOAD_FOLDER_PATH") / "knowledge_base"
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}knowledge_base/",
-        path=kb.knowledge_base_document,
+        directory=base_directory,
+        path=stored_path.name,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name,
     )
 
 
 def upload_kb_document(form, form_field, model_obj, model_field):
-    if form.data[form_field]:
-        kb_filename_data: str = secure_filename(form.data[form_field].filename)
-        kb_file_extension: str = kb_filename_data.rsplit(".", 1)[1]
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "knowledge_base"
+    folder_path.mkdir(parents=True, exist_ok=True)
+
+    file = form.data.get(form_field)
+
+    if file:
+        filename: str = secure_filename(file.filename)
+        kb_file_extension: str = Path(filename).suffix
         kb_filename: str = (
             "knowledge_base"
             + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
             + kb_file_extension
         )
-        form.data[form_field].save(
-            f"{current_app.config.get('UPLOAD_FOLDER')}knowledge_base/" + kb_filename
-        )
+        file.save(folder_path / kb_filename)
         setattr(model_obj, model_field, kb_filename)
