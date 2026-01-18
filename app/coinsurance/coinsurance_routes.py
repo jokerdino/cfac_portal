@@ -1,7 +1,7 @@
-import os
 import re
 from datetime import datetime, timedelta
 from io import BytesIO
+from pathlib import Path
 
 import pandas as pd
 import requests
@@ -276,21 +276,20 @@ def upload_document(model_object, form, field, document_type, folder_name):
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
     :param folder_name: The folder to save the document in
     """
-    folder_path = os.path.join(
-        current_app.config.get("UPLOAD_FOLDER"), "coinsurance", folder_name
-    )
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "coinsurance" / folder_name
 
-    filename = secure_filename(form.data[field].filename)
-    file_extension = filename.rsplit(".", 1)[1]
-    document_filename = (
-        f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
-    )
+    folder_path.mkdir(parents=True, exist_ok=True)
+    file = form.data.get(field)
 
-    form.data[field].save(os.path.join(folder_path, document_filename))
+    if file:
+        filename = secure_filename(file.filename)
+        file_extension = Path(filename).suffix
+        document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}{file_extension}"
 
-    setattr(model_object, document_type, document_filename)
+        file.save(folder_path / document_filename)
+
+        setattr(model_object, document_type, document_filename)
 
 
 @coinsurance_bp.route("/add_entry", methods=["POST", "GET"])
@@ -406,26 +405,30 @@ def download_document(requirement, coinsurance_id):
     coinsurance = db.get_or_404(Coinsurance, coinsurance_id)
     coinsurance.require_access(current_user)
     if requirement == "confirmation":
-        file_extension = coinsurance.confirmation.rsplit(".", 1)[1]
-        path = coinsurance.confirmation
+        stored_filename = coinsurance.confirmation
     elif requirement == "statement":
-        file_extension = coinsurance.statement.rsplit(".", 1)[1]
-        path = coinsurance.statement
+        stored_filename = coinsurance.statement
     elif requirement == "ri_confirmation":
-        file_extension = coinsurance.ri_confirmation.rsplit(".", 1)[1]
-        path = coinsurance.ri_confirmation
+        stored_filename = coinsurance.ri_confirmation
     else:
         return "No such requirement"
+    stored_path = Path(stored_filename)
+    file_extension = stored_path.suffix
     if coinsurance.net_amount < 0:
         amount_string = f"receivable {coinsurance.net_amount * -1}"
     else:
         amount_string = f"payable {coinsurance.net_amount}"
-    filename = f"{coinsurance.type_of_transaction} {requirement} - {coinsurance.uiic_office_code} - {coinsurance.follower_company_name} {amount_string}.{file_extension}"
+    download_name = f"{coinsurance.type_of_transaction} {requirement} - {coinsurance.uiic_office_code} - {coinsurance.follower_company_name} {amount_string}{file_extension}"
+
+    folder_name = f"{requirement}s"
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "coinsurance" / folder_name
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/{requirement}s/",
-        path=path,
+        directory=base_directory,
+        path=stored_path.name,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name,
     )
 
 
@@ -437,8 +440,11 @@ def download_settlements(settlement_id):
     file_extension = settlement.file_settlement_file.rsplit(".", 1)[1]
     path = settlement.file_settlement_file
     filename = f"{settlement.name_of_company} - {settlement.type_of_transaction} - {settlement.utr_number}.{file_extension}"
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "coinsurance" / "settlements"
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/settlements/",
+        directory=base_directory,
         path=path,
         as_attachment=True,
         download_name=filename,
@@ -1080,8 +1086,11 @@ def edit_bank_mandate(key):
 @login_required
 def download_bank_mandate(key):
     bank_mandate = db.get_or_404(CoinsuranceBankMandate, key)
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "coinsurance" / "bank_mandates"
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/bank_mandates/",
+        directory=base_directory,
         path=bank_mandate.bank_mandate,
         download_name=f"{bank_mandate.company_name}_{bank_mandate.office_code}_{bank_mandate.bank_name}_{bank_mandate.bank_account_number[-5:]}.pdf",
         as_attachment=True,
@@ -1252,8 +1261,13 @@ def mark_token_ids_completed():
 @admin_required
 def download_token_id_document(key):
     token_id = db.get_or_404(CoinsuranceTokenRequestId, key)
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH")
+        / "coinsurance"
+        / "token_request_id"
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}coinsurance/token_request_id/",
+        directory=base_directory,
         path=token_id.upload_document,
         download_name=f"{token_id.company_name}_{token_id.type_of_amount}_{token_id.amount}.pdf",
         as_attachment=True,
