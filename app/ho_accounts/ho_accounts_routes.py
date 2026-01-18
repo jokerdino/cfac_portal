@@ -1,6 +1,6 @@
-# from dataclasses import asdict
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from pathlib import Path
 
 import pandas as pd
 
@@ -325,19 +325,18 @@ def edit_mis(id):
 
 
 def upload_mis_documents(form, field_name, model_obj, model_field, folder_name):
-    if form.data[field_name]:
-        brs_filename_data = secure_filename(form.data[field_name].filename)
-        brs_file_extension = brs_filename_data.rsplit(".", 1)[1]
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "ho_accounts" / folder_name
+    folder_path.mkdir(parents=True, exist_ok=True)
+    file = form.data.get(field_name)
+
+    if file:
+        brs_filename_data = secure_filename(file.filename)
+        brs_file_extension = Path(brs_filename_data).suffix
         brs_filename = (
-            folder_name
-            + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
-            + brs_file_extension
+            folder_name + datetime.now().strftime("%d%m%Y %H%M%S") + brs_file_extension
         )
-        form.data[field_name].save(
-            f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/{folder_name}/"
-            + brs_filename
-        )
+        file.save(folder_path / brs_filename)
         setattr(model_obj, model_field, brs_filename)
 
 
@@ -347,18 +346,21 @@ def upload_mis_documents(form, field_name, model_obj, model_field, folder_name):
 def download_mis_documents(requirement, id):
     mis = db.get_or_404(HeadOfficeBankReconTracker, id)
     if requirement == "bank_confirmation":
-        file_extension = mis.str_bank_confirmation_file_upload.rsplit(".", 1)[1]
-        path = mis.str_bank_confirmation_file_upload
+        stored_filename = mis.str_bank_confirmation_file_upload
     elif requirement == "brs":
-        file_extension = mis.str_brs_file_upload.rsplit(".", 1)[1]
-        path = mis.str_brs_file_upload
+        stored_filename = mis.str_brs_file_upload
     else:
         abort(404)
-    filename = f"{mis.str_period}-{requirement}_{mis.str_name_of_bank}_{mis.str_gl_code}_{mis.str_sl_code}.{file_extension}"
+    stored_path = Path(stored_filename)
+    file_extension = stored_path.suffix
+    download_name = f"{mis.str_period}-{requirement}_{mis.str_name_of_bank}_{mis.str_gl_code}_{mis.str_sl_code}{file_extension}"
 
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "ho_accounts" / requirement
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}ho_accounts/{requirement}/",
-        path=path,
+        directory=base_directory,
+        path=stored_path.name,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name,
     )
