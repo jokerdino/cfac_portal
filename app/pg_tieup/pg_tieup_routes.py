@@ -1,5 +1,7 @@
 from datetime import datetime
-import os
+from pathlib import Path
+
+
 import pandas as pd
 from flask import (
     current_app,
@@ -143,8 +145,11 @@ def bulk_upload_pg_tieup():
 @admin_required
 def download_bank_mandate(id):
     pg_tieup = db.get_or_404(PaymentGatewayTieup, id)
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "pg_tieup" / "bank_mandate"
+    )
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}/pg_tieup/bank_mandate/",
+        directory=base_directory,
         path=pg_tieup.bank_mandate_file,
         download_name=f"{pg_tieup.name_of_tieup_partner}.pdf",
         as_attachment=True,
@@ -164,17 +169,17 @@ def upload_document(
     :param document_type: The type of document being uploaded (e.g. "statement", "confirmation")
     :param folder_name: The folder to save the document in
     """
-    folder_path = os.path.join(
-        current_app.config.get("UPLOAD_FOLDER"), "pg_tieup", folder_name
-    )
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "pg_tieup" / folder_name
 
-    if form.data[field]:
-        filename = secure_filename(form.data[field].filename)
-        file_extension = filename.rsplit(".", 1)[1]
-        document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
+    folder_path.mkdir(parents=True, exist_ok=True)
+    file = form.data.get(field)
 
-        form.data[field].save(os.path.join(folder_path, document_filename))
+    if file:
+        filename = secure_filename(file.filename)
+        file_extension = Path(filename).suffix
+        document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}{file_extension}"
+
+        file.save(folder_path / document_filename)
 
         setattr(model_object, model_attribute, document_filename)
