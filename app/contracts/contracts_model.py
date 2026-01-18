@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from typing import Optional
 from datetime import date, datetime
 
@@ -40,16 +40,16 @@ class Contracts(db.Model):
             return f"Expired {humanize.naturaldelta(self.end_date - today)} ago."
 
     @property
-    def file_extension(self):
-        return self.contract_file.rsplit(".", 1)[1] if "." in self.contract_file else ""
-
-    @property
-    def download_filename(self):
-        """Generate a human-friendly download filename."""
-        return f"{self.id}_{self.vendor}_{self.purpose}.{self.file_extension}"
-
-    @property
-    def file_path(self):
+    def file_path(self) -> Path:
         """Return the absolute file path on disk."""
-        base = current_app.config.get("UPLOAD_FOLDER")
-        return os.path.join(base, "contracts", self.contract_file)
+        return (
+            current_app.config["UPLOAD_FOLDER_PATH"] / "contracts" / self.contract_file
+        )
+
+    @property
+    def file_extension(self) -> str:
+        return Path(self.contract_file).suffix
+
+    @property
+    def download_filename(self) -> str:
+        return f"{self.id}_{self.vendor}_{self.purpose}{self.file_extension}"

@@ -1,11 +1,13 @@
 from datetime import datetime
-import os
+from pathlib import Path
+
 
 from flask import (
+    abort,
     current_app,
     redirect,
     render_template,
-    send_from_directory,
+    send_file,
     url_for,
 )
 from flask_login import login_required
@@ -45,10 +47,12 @@ def add_contract_entry():
 @admin_required
 def download_contract_document(contract_id):
     contract = db.get_or_404(Contracts, contract_id)
+    file_path = contract.file_path
+    if not file_path.is_file():
+        abort(404)
 
-    return send_from_directory(
-        directory=os.path.dirname(contract.file_path),
-        path=os.path.basename(contract.file_path),
+    return send_file(
+        file_path,
         as_attachment=True,
         download_name=contract.download_filename,
     )
@@ -67,18 +71,20 @@ def view_contract(contract_id):
 
 
 def upload_contract_file(form, form_field_name, model, model_field):
-    if form.data[form_field_name]:
-        contract_filename_data = secure_filename(form.data[form_field_name].filename)
-        contract_file_extension = contract_filename_data.rsplit(".", 1)[1]
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "contracts"
+    folder_path.mkdir(parents=True, exist_ok=True)
+    file = form.data.get(form_field_name)
+
+    if file:
+        contract_filename_data = secure_filename(file.filename)
+        contract_file_extension = Path(contract_filename_data).suffix
         contract_filename = (
             "contract"
             + datetime.now().strftime("%d%m%Y %H%M%S")
-            + "."
             + contract_file_extension
         )
-        form.upload_contract_file.data.save(
-            f"{current_app.config.get('UPLOAD_FOLDER')}contracts/" + contract_filename
-        )
+        file.save(folder_path / contract_filename)
         setattr(model, model_field, contract_filename)
 
 
