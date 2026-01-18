@@ -7,7 +7,6 @@ import pandas as pd
 from flask import (
     render_template,
     send_file,
-    flash,
     request,
     redirect,
     url_for,
@@ -17,7 +16,7 @@ from flask_login import login_required, current_user
 
 
 from . import funds_bp
-from .funds_form import FundsJVForm, UploadFileForm, JVFlagAddForm
+from .funds_form import FundsJVForm, JVFlagAddForm
 from .funds_model import (
     FundBankStatement,
     FundDailyOutflow,
@@ -602,39 +601,39 @@ def view_jv_flags():
     return render_template("jv_view_flags.html", list=list, column_names=column_names)
 
 
-@funds_bp.route("/jv_flags/upload", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def upload_jv_flags():
-    form = UploadFileForm()
+# @funds_bp.route("/jv_flags/upload", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def upload_jv_flags():
+#     form = UploadFileForm()
 
-    if form.validate_on_submit():
-        jv_flag_sheet = form.data["file_upload"]
-        df_jv_flag_sheet = pd.read_excel(
-            jv_flag_sheet,
-            dtype={
-                "txt_description": str,
-                "txt_flag": str,
-                "txt_gl_code": str,
-                "txt_sl_code": str,
-            },
-        )
+#     if form.validate_on_submit():
+#         jv_flag_sheet = form.data["file_upload"]
+#         df_jv_flag_sheet = pd.read_excel(
+#             jv_flag_sheet,
+#             dtype={
+#                 "txt_description": str,
+#                 "txt_flag": str,
+#                 "txt_gl_code": str,
+#                 "txt_sl_code": str,
+#             },
+#         )
 
-        df_jv_flag_sheet["date_created_date"] = datetime.now()
-        df_jv_flag_sheet["created_by"] = current_user.username
+#         df_jv_flag_sheet["date_created_date"] = datetime.now()
+#         df_jv_flag_sheet["created_by"] = current_user.username
 
-        df_jv_flag_sheet.to_sql(
-            "fund_journal_voucher_flag_sheet",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Flags for Journal voucher have been uploaded successfully.")
-    return render_template(
-        "upload_file_template.html",
-        form=form,
-        title="Upload flags for journal voucher",
-    )
+#         df_jv_flag_sheet.to_sql(
+#             "fund_journal_voucher_flag_sheet",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Flags for Journal voucher have been uploaded successfully.")
+#     return render_template(
+#         "upload_file_template.html",
+#         form=form,
+#         title="Upload flags for journal voucher",
+#     )
 
 
 @funds_bp.route("/jv_flags/add", methods=["POST", "GET"])
@@ -656,7 +655,7 @@ def add_jv_flag():
         form = JVFlagAddForm()
 
     return render_template(
-        "jv_pattern_add.html",
+        "jv_download_jv_macro.html",
         form=form,
         title="Add new JV pattern",
     )
@@ -681,7 +680,7 @@ def edit_jv_flag(jv_id):
         form = JVFlagAddForm(obj=jv)
 
     return render_template(
-        "jv_pattern_add.html",
+        "jv_download_jv_macro.html",
         form=form,
         title="Edit JV pattern",
     )

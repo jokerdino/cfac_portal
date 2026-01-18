@@ -55,7 +55,9 @@ class FundsJVForm(FlaskForm):
 
 class UploadFileForm(FlaskForm):
     file_upload = FileField(
-        "Upload document", validators=[FileRequired(), FileAllowed(["xlsx"])]
+        "Upload document",
+        validators=[FileRequired(), FileAllowed(["xlsx"])],
+        render_kw={"class": "file", "accept": ".xlsx"},
     )
     upload_document = SubmitField("Upload")
 

@@ -26,7 +26,8 @@
                     <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">Flags</a>
                         <div class="navbar-dropdown">
-                            <a class="navbar-item" href="{{ url_for('funds.upload_flag_sheet') }}">Upload flag sheet</a>
+                            {# <a class="navbar-item" href="{{ url_for('funds.upload_flag_sheet') }}">Upload flag
+                                sheet</a> #}
                             <a class="navbar-item" href="{{ url_for('funds.view_flag_sheet') }}">View flag sheet</a>
                             <a class="navbar-item" href="{{ url_for('funds.add_flag_entry') }}">Add new flag</a>
 
@@ -37,11 +38,9 @@
                         <a class="navbar-link">Investment</a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{{ url_for('funds.add_amount_given_to_investment') }}">Add
-                                amount given to
-                                investment</a>
+                                amount given to investment</a>
                             <a class="navbar-item" href="{{ url_for('funds.list_amount_given_to_investment') }}">List of
-                                amounts given
-                                to investment</a>
+                                amounts given to investment</a>
 
                         </div>
                     </div>
@@ -61,7 +60,8 @@
                         <a class="navbar-link">Journal vouchers</a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{{ url_for('funds.view_jv_flags') }}">View Flags for JV</a>
-                            <a class="navbar-item" href="{{ url_for('funds.upload_jv_flags') }}">Upload Flags for JV</a>
+                            {# <a class="navbar-item" href="{{ url_for('funds.upload_jv_flags') }}">Upload Flags for
+                                JV</a> #}
                             <a class="navbar-item" href="{{ url_for('funds.add_jv_flag') }}">Add new JV Flag</a>
                             <hr class="navbar-divider" />
                             {# <a class="navbar-item" href="{{ url_for('funds.download_jv') }}">Download JV</a> #}

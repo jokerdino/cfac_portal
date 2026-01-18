@@ -309,7 +309,7 @@ def upload_bank_statement():
 
     if not form.validate_on_submit():
         return render_template(
-            "upload_file_template.html",
+            "jv_download_jv_macro.html",
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
@@ -321,7 +321,7 @@ def upload_bank_statement():
 
         if not verify_closing_balance(df):
             return render_template(
-                "upload_file_template.html",
+                "jv_download_jv_macro.html",
                 form=form,
                 title="Upload bank statement (in .xlsx file format)",
             )
@@ -337,7 +337,7 @@ def upload_bank_statement():
     except Exception as e:
         flash(f"Error processing bank statement: {str(e)}")
         return render_template(
-            "upload_file_template.html",
+            "jv_download_jv_macro.html",
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
@@ -542,7 +542,9 @@ def add_flag_entry():
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    return render_template("jv_pattern_add.html", form=form, title="Add flag entry")
+    return render_template(
+        "jv_download_jv_macro.html", form=form, title="Add flag entry"
+    )
 
 
 @funds_bp.route("/flags/edit/<int:flag_id>", methods=["POST", "GET"])
@@ -556,7 +558,9 @@ def edit_flag_entry(flag_id):
         db.session.commit()
         return redirect(url_for("funds.view_flag_sheet"))
 
-    return render_template("jv_pattern_add.html", form=form, title="Edit flag entry")
+    return render_template(
+        "jv_download_jv_macro.html", form=form, title="Edit flag entry"
+    )
 
 
 @funds_bp.route("/outflow/edit/<string:date_string>/", methods=["GET", "POST"])
@@ -1009,87 +1013,87 @@ def daily_summary(date_string, pdf="False"):
     )
 
 
-@funds_bp.route("/flags/upload", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def upload_flag_sheet():
-    # uploading preconfigured flag sheet from CSV file
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        flag_sheet = form.data["file_upload"]
-        df_flag_sheet = pd.read_excel(flag_sheet)
+# @funds_bp.route("/flags/upload", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def upload_flag_sheet():
+#     # uploading preconfigured flag sheet from CSV file
+#     form = UploadFileForm()
+#     if form.validate_on_submit():
+#         flag_sheet = form.data["file_upload"]
+#         df_flag_sheet = pd.read_excel(flag_sheet)
 
-        df_flag_sheet["date_created_date"] = datetime.datetime.now()
-        df_flag_sheet["created_by"] = current_user.username
-        # try:
-        df_flag_sheet.to_sql(
-            "fund_flag_sheet",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Flag sheet has been uploaded successfully.")
-    return render_template(
-        "upload_file_template.html", form=form, title="Upload flag sheet"
-    )
-
-
-@funds_bp.route("/upload_investment_balance", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def upload_investment_balance():
-    # uploading closing balance of previous year for reference
-    form = UploadFileForm()
-
-    if form.validate_on_submit():
-        investment_balance = form.data["file_upload"]
-        df_investment = pd.read_excel(investment_balance)
-
-        df_investment["date_created_date"] = datetime.datetime.now()
-        df_investment["created_by"] = current_user.username
-        # try:
-        df_investment.to_sql(
-            "fund_daily_sheet",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Closing balance of investment has been uploaded successfully.")
-    return render_template(
-        "upload_file_template.html",
-        form=form,
-        title="Upload closing balance of investment",
-    )
+#         df_flag_sheet["date_created_date"] = datetime.datetime.now()
+#         df_flag_sheet["created_by"] = current_user.username
+#         # try:
+#         df_flag_sheet.to_sql(
+#             "fund_flag_sheet",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Flag sheet has been uploaded successfully.")
+#     return render_template(
+#         "upload_file_template.html", form=form, title="Upload flag sheet"
+#     )
 
 
-@funds_bp.route("/upload_bank_account_number", methods=["GET", "POST"])
-@login_required
-@fund_managers
-def upload_bank_account_number():
-    # uploading closing balance of previous year for reference
-    form = UploadFileForm()
+# @funds_bp.route("/upload_investment_balance", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def upload_investment_balance():
+#     # uploading closing balance of previous year for reference
+#     form = UploadFileForm()
 
-    if form.validate_on_submit():
-        bank_account_number = form.data["file_upload"]
-        df_bank_account = pd.read_excel(
-            bank_account_number, dtype={"bank_account_number": str}
-        )
+#     if form.validate_on_submit():
+#         investment_balance = form.data["file_upload"]
+#         df_investment = pd.read_excel(investment_balance)
 
-        df_bank_account["date_created_date"] = datetime.datetime.now()
-        df_bank_account["created_by"] = current_user.username
+#         df_investment["date_created_date"] = datetime.datetime.now()
+#         df_investment["created_by"] = current_user.username
+#         # try:
+#         df_investment.to_sql(
+#             "fund_daily_sheet",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Closing balance of investment has been uploaded successfully.")
+#     return render_template(
+#         "upload_file_template.html",
+#         form=form,
+#         title="Upload closing balance of investment",
+#     )
 
-        df_bank_account.to_sql(
-            "fund_bank_account_numbers",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Bank account numbers have been uploaded successfully.")
-    return render_template(
-        "upload_file_template.html",
-        form=form,
-        title="Upload bank account numbers",
-    )
+
+# @funds_bp.route("/upload_bank_account_number", methods=["GET", "POST"])
+# @login_required
+# @fund_managers
+# def upload_bank_account_number():
+#     # uploading closing balance of previous year for reference
+#     form = UploadFileForm()
+
+#     if form.validate_on_submit():
+#         bank_account_number = form.data["file_upload"]
+#         df_bank_account = pd.read_excel(
+#             bank_account_number, dtype={"bank_account_number": str}
+#         )
+
+#         df_bank_account["date_created_date"] = datetime.datetime.now()
+#         df_bank_account["created_by"] = current_user.username
+
+#         df_bank_account.to_sql(
+#             "fund_bank_account_numbers",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Bank account numbers have been uploaded successfully.")
+#     return render_template(
+#         "upload_file_template.html",
+#         form=form,
+#         title="Upload bank account numbers",
+#     )
 
 
 @funds_bp.route("/outgo/add", methods=["POST", "GET"])
@@ -1104,7 +1108,9 @@ def add_major_outgo():
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    return render_template("jv_pattern_add.html", form=form, title="Add new outgo")
+    return render_template(
+        "jv_download_jv_macro.html", form=form, title="Add new outgo"
+    )
 
 
 @funds_bp.route("/outgo/edit/<int:outgo_id>/", methods=["POST", "GET"])
@@ -1118,7 +1124,7 @@ def edit_major_outgo(outgo_id):
         db.session.commit()
         return redirect(url_for("funds.list_outgo"))
 
-    return render_template("jv_pattern_add.html", form=form, title="Edit outgo")
+    return render_template("jv_download_jv_macro.html", form=form, title="Edit outgo")
 
 
 @funds_bp.route("/outgo/", methods=["GET"])
@@ -1145,7 +1151,7 @@ def add_amount_given_to_investment():
         return redirect(url_for("funds.list_amount_given_to_investment"))
 
     return render_template(
-        "jv_pattern_add.html", form=form, title="Enter investment amount"
+        "jv_download_jv_macro.html", form=form, title="Enter investment amount"
     )
 
 
@@ -1161,7 +1167,7 @@ def edit_amount_given_to_investment(investment_id):
         db.session.commit()
         return redirect(url_for("funds.list_amount_given_to_investment"))
     return render_template(
-        "jv_pattern_add.html", form=form, title="Edit investment amount"
+        "jv_download_jv_macro.html", form=form, title="Edit investment amount"
     )
 
 
