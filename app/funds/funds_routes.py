@@ -46,8 +46,6 @@ from app.funds.funds_model import (
 from app.coinsurance.coinsurance_model import CoinsuranceReceipts
 from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 
-from app.pool_credits.pool_credits_portal import prepare_dataframe
-from .funds_jv import filter_unidentified_credits
 from extensions import db
 
 from set_view_permissions import fund_managers
@@ -405,7 +403,27 @@ def verify_closing_balance(df: pd.DataFrame) -> bool:
 
 def save_bank_statement_and_credits(df: pd.DataFrame):
     # Save full bank statement
-    df.to_sql("fund_bank_statement", db.engine, if_exists="append", index=False)
+    # Parse date columns
+    date_cols = ["value_date", "book_date"]
+
+    for col in date_cols:
+        df[col] = pd.to_datetime(
+            df[col],
+            format="%d/%m/%Y",
+            errors="coerce",
+        ).dt.date
+
+    cols = ["ledger_balance", "credit", "debit"]
+    existing = [c for c in cols if c in df.columns]
+
+    df[existing] = df[existing].fillna(0)
+
+    # Replace NaN/NaT with None for SQLAlchemy
+    df = df.where(pd.notnull(df), None)
+    db.session.execute(db.insert(FundBankStatement), df.to_dict(orient="records"))
+    db.session.commit()
+
+    #    df.to_sql("fund_bank_statement", db.engine, if_exists="append", index=False)
 
     batch_id = df["batch_id"].iloc[0]
 
@@ -423,19 +441,55 @@ def save_bank_statement_and_credits(df: pd.DataFrame):
 
     db.session.execute(stmt)
     db.session.commit()
-
-    # Filter and process "Other Receipts"
-    other_receipts = df[df["flag_description"] == "OTHER RECEIPTS"]
-    unidentified_credits = filter_unidentified_credits(other_receipts)
-
-    # Upload unidentified credits
-    unidentified_credits.to_sql(
-        "pool_credits", db.engine, if_exists="append", index=False
+    unidentified_stmt = db.select(
+        FundBankStatement.book_date,
+        FundBankStatement.description,
+        FundBankStatement.ledger_balance,
+        FundBankStatement.credit,
+        FundBankStatement.debit,
+        FundBankStatement.value_date,
+        FundBankStatement.reference_no,
+        FundBankStatement.transaction_branch,
+        FundBankStatement.date_uploaded_date,
+        FundBankStatement.batch_id,
+        FundBankStatement.flag_description,
+    ).where(
+        FundBankStatement.batch_id == batch_id,
+        FundBankStatement.flag_description == "OTHER RECEIPTS",
+        FundBankStatement.flag_id.is_(None),
     )
 
-    # Upload to pool credits portal
-    df_portal = prepare_dataframe(unidentified_credits)
-    df_portal.to_sql("pool_credits_portal", db.engine, if_exists="append", index=False)
+    insert_stmt = db.insert(PoolCredits).from_select(
+        [
+            PoolCredits.book_date,
+            PoolCredits.description,
+            PoolCredits.ledger_balance,
+            PoolCredits.credit,
+            PoolCredits.debit,
+            PoolCredits.value_date,
+            PoolCredits.reference_no,
+            PoolCredits.transaction_branch,
+            PoolCredits.date_uploaded_date,
+            PoolCredits.batch_id,
+            PoolCredits.flag_description,
+        ],
+        unidentified_stmt,
+    )
+    db.session.execute(insert_stmt)
+    db.session.commit()
+
+    # Filter and process "Other Receipts"
+    # other_receipts = df[df["flag_description"] == "OTHER RECEIPTS"]
+    # unidentified_credits = filter_unidentified_credits(other_receipts)
+
+    # Upload unidentified credits
+    # unidentified_credits.to_sql(
+    #     "pool_credits", db.engine, if_exists="append", index=False
+    # )
+
+    # # Upload to pool credits portal
+    # df_portal = prepare_dataframe(unidentified_credits)
+    # df_portal.to_sql("pool_credits_portal", db.engine, if_exists="append", index=False)
 
     # Update daily sheet
     closing_balance = df.loc[
