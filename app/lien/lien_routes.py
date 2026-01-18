@@ -1,5 +1,4 @@
 from datetime import datetime
-import os
 import re
 from pathlib import Path
 import threading
@@ -315,18 +314,25 @@ def download_document(document_type, lien_id):
     lien = db.get_or_404(Lien, lien_id)
     lien.require_access(current_user)
 
-    path = get_document_path(lien, document_type)
-    if not path:
+    stored_filename = get_document_path(lien, document_type)
+    if not stored_filename:
         abort(404)
 
-    file_extension = path.rsplit(".", 1)[-1]
+    stored_path = Path(stored_filename)
+    file_extension = stored_path.suffix
 
-    filename = f"{document_type}_{lien.bank_name}_{lien.lien_amount}.{file_extension}"
+    download_name = (
+        f"{document_type}_{lien.bank_name}_{lien.lien_amount}{file_extension}"
+    )
+    base_directory = (
+        current_app.config.get("UPLOAD_FOLDER_PATH") / "lien" / document_type
+    )
+
     return send_from_directory(
-        directory=f"{current_app.config.get('UPLOAD_FOLDER')}lien/{document_type}/",
-        path=path,
+        directory=base_directory,
+        path=stored_path.name,
         as_attachment=True,
-        download_name=filename,
+        download_name=download_name,
     )
 
 
@@ -533,18 +539,18 @@ def upload_document(
     :param model_attribute: The name of the attribute in the object to save the filename to
     :param folder_name: The folder to save the document in
     """
-    folder_path = os.path.join(
-        current_app.config.get("UPLOAD_FOLDER"), "lien", folder_name
-    )
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
+    upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
+    folder_path = upload_root / "lien" / folder_name
 
-    if form.data[field]:
-        filename = secure_filename(form.data[field].filename)
-        file_extension = filename.rsplit(".", 1)[1]
-        document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}.{file_extension}"
+    folder_path.mkdir(parents=True, exist_ok=True)
+    file = form.data.get(field)
 
-        form.data[field].save(os.path.join(folder_path, document_filename))
+    if file:
+        filename = secure_filename(file.filename)
+        file_extension = Path(filename).suffix
+        document_filename = f"{document_type}_{datetime.now().strftime('%d%m%Y %H%M%S')}{file_extension}"
+
+        file.save(folder_path / document_filename)
 
         setattr(model_object, model_attribute, document_filename)
 
