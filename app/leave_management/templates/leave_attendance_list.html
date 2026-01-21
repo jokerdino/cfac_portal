@@ -19,49 +19,138 @@
         </div>
         {% endif %}
         <h1 class="title">Daily attendance summary</h1>
-        <table class="table is-fullwidth is-bordered mt-5">
-            <thead>
-                <tr>
-                    {% if current_user.role and "leave_admin" in current_user.role %}
-                    <th class="has-text-centered">Select</th>
-                    {% endif %}
-                    <th class="has-text-centered">Date</th>
-                    <th class="has-text-centered">Week day</th>
-                    <th class="has-text-centered">Present</th>
-                    <th class="has-text-centered">On leave</th>
-                    <th class="has-text-centered">On leave-half day</th>
-                    <th class="has-text-centered">On duty</th>
-                    <th class="has-text-centered">On tour</th>
-                    <th class="has-text-centered">Total on roll</th>
-                    <th class="has-text-centered">Edit</th>
-
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in list %}
-                <tr>
-                    {% if current_user.role and "leave_admin" in current_user.role %}
-                    <td class="has-text-centered">
-                        <label class="checkbox">
-                            <input type="checkbox" name="date_keys" value="{{ item[0] }}" />
-                        </label>
-                    </td>
-                    {% endif %}
-                    <td class="has-text-centered">{{ item[0].strftime(" %d/%m/%Y") }}</td>
-                    <td>{{ item[0].strftime("%A") }}</td>
-                    <td class="has-text-right">{{ item[1] }}</td>
-                    <td class="has-text-right">{{ item[2] }}</td>
-                    <td class="has-text-right">{{ item[3] }}</td>
-                    <td class="has-text-right">{{ item[4] }}</td>
-                    <td class="has-text-right">{{ item[5] }}</td>
-                    <td class="has-text-right">{{ item[6] }}</td>
-                    <td><a class="button is-small is-link" target="_blank"
-                            href="{{ url_for('.edit_attendance', date_string=item[0].strftime('%d%m%Y')) }}">Edit</a>
-                    </td>
-                </tr>
+        <div class="tabs is-boxed">
+            <ul>
+                {% for year in grouped_data.keys() %}
+                <li class="mt-1 {% if loop.first %}is-active{% endif %}" data-tab="year-{{ year }}">
+                    <a>{{ year }}</a>
+                </li>
                 {% endfor %}
-            </tbody>
-        </table>
+            </ul>
+        </div>
+
+        {% for year, months in grouped_data.items() %}
+        <div class="tab-content {% if not loop.first %}is-hidden{% endif %}" id="year-{{ year }}">
+
+            <div class="tabs is-toggle">
+                <ul>
+                    {% for month in months.keys() %}
+                    <li class="{% if loop.first %}is-active{% endif %}" data-tab="month-{{ year }}-{{ loop.index }}">
+                        <a>{{ month }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            {% for month, rows in months.items() %}
+            <div class="mb-5 month-content {% if not loop.first %}is-hidden{% endif %}"
+                id="month-{{ year }}-{{ loop.index }}">
+                <table class="table is-fullwidth is-bordered mt-5">
+                    <thead>
+                        <tr>
+                            {% if current_user.role and "leave_admin" in current_user.role %}
+                            <th class="has-text-centered">Select</th>
+                            {% endif %}
+                            <th class="has-text-centered">Date</th>
+                            <th class="has-text-centered">Week day</th>
+                            <th class="has-text-centered">Present</th>
+                            <th class="has-text-centered">On leave</th>
+                            <th class="has-text-centered">On leave-half day</th>
+                            <th class="has-text-centered">On duty</th>
+                            <th class="has-text-centered">On tour</th>
+                            <th class="has-text-centered">Total on roll</th>
+                            <th class="has-text-centered">Edit</th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in rows %}
+                        <tr>
+                            {% if current_user.role and "leave_admin" in current_user.role %}
+                            <td class="has-text-centered">
+                                <label class="checkbox">
+                                    <input type="checkbox" name="date_keys" value="{{ item[0] }}" />
+                                </label>
+                            </td>
+                            {% endif %}
+                            <td class="has-text-centered">{{ item[0].strftime(" %d/%m/%Y") }}</td>
+                            <td>{{ item[0].strftime("%A") }}</td>
+                            <td class="has-text-right">{{ item[1] }}</td>
+                            <td class="has-text-right">{{ item[2] }}</td>
+                            <td class="has-text-right">{{ item[3] }}</td>
+                            <td class="has-text-right">{{ item[4] }}</td>
+                            <td class="has-text-right">{{ item[5] }}</td>
+                            <td class="has-text-right">{{ item[6] }}</td>
+                            <td><a class="button is-small is-link" target="_blank"
+                                    href="{{ url_for('.edit_attendance', date_string=item[0].strftime('%d%m%Y')) }}">Edit</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
     </form>
 </div>
 {% endblock content %}
+{% block scripts %}
+<script>
+    /* YEAR TABS */
+    document.querySelectorAll('.tabs.is-boxed li').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.dataset.tab;
+
+            // Activate selected year tab
+            tab.parentElement.querySelectorAll('li')
+                .forEach(li => li.classList.remove('is-active'));
+            tab.classList.add('is-active');
+
+            // Hide all year contents
+            document.querySelectorAll('.tab-content')
+                .forEach(c => c.classList.add('is-hidden'));
+
+            // Show selected year
+            const yearPane = document.getElementById(target);
+            yearPane.classList.remove('is-hidden');
+
+            // Reset month tabs inside this year
+            const monthTabs = yearPane.querySelectorAll('.tabs.is-toggle li');
+            const monthContents = yearPane.querySelectorAll('.month-content');
+
+            monthTabs.forEach((li, idx) => {
+                li.classList.toggle('is-active', idx === 0);
+            });
+
+            monthContents.forEach((c, idx) => {
+                c.classList.toggle('is-hidden', idx !== 0);
+            });
+        });
+    });
+
+
+    /* MONTH TABS (scoped to year) */
+    document.querySelectorAll('.tabs.is-toggle').forEach(monthTabGroup => {
+        monthTabGroup.querySelectorAll('li').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                const yearPane = tab.closest('.tab-content');
+
+                // Activate selected month tab
+                monthTabGroup.querySelectorAll('li')
+                    .forEach(li => li.classList.remove('is-active'));
+                tab.classList.add('is-active');
+
+                // Hide only month contents inside this year
+                yearPane.querySelectorAll('.month-content')
+                    .forEach(c => c.classList.add('is-hidden'));
+
+                document.getElementById(target).classList.remove('is-hidden');
+            });
+        });
+    });
+</script>
+
+{% endblock scripts %}

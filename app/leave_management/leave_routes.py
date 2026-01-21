@@ -1,4 +1,4 @@
-# from dataclasses import asdict
+from collections import defaultdict
 from datetime import datetime, date, timedelta
 from math import floor
 import decimal
@@ -124,7 +124,15 @@ def leave_attendance_list():
         )
         .group_by(AttendanceRegister.date_of_attendance)
         .order_by(AttendanceRegister.date_of_attendance.desc())
-    )
+    ).all()
+
+    grouped_data = defaultdict(lambda: defaultdict(list))
+
+    for row in attendance_list:
+        date = row[0]
+        year = date.year
+        month = date.strftime("%B")  # January, February, etc.
+        grouped_data[year][month].append(row)
 
     if request.method == "POST":
         list_date_keys = request.form.getlist("date_keys")
@@ -142,7 +150,10 @@ def leave_attendance_list():
         )
 
         return redirect(url_for(".leave_attendance_list"))
-    return render_template("leave_attendance_list.html", list=attendance_list)
+    return render_template(
+        "leave_attendance_list.html",
+        grouped_data=grouped_data,
+    )
 
 
 @leave_mgmt_bp.route("/attendance/<string:date_string>/", methods=["GET", "POST"])
