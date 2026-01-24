@@ -1,5 +1,5 @@
 # from dataclasses import asdict
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 
 # from dateutil.relativedelta import relativedelta
 # from math import fabs
@@ -45,7 +45,7 @@ def upload_brs_cc_summary():
     form = BulkUploadCentralisedChequeSummary()
     if form.validate_on_submit():
         file = form.data["file_upload"]
-        df_brs_cc_summary = pd.read_excel(
+        df = pd.read_excel(
             file,
             dtype={
                 "regional_office_code": str,
@@ -53,15 +53,19 @@ def upload_brs_cc_summary():
             },
         )
 
-        df_brs_cc_summary["created_on"] = datetime.now()
-        df_brs_cc_summary["created_by"] = current_user.username
+        # df["created_on"] = datetime.now()
+        # df["created_by"] = current_user.username
 
-        df_brs_cc_summary.to_sql(
-            "centralised_cheque_summary",
-            db.engine,
-            if_exists="append",
-            index=False,
+        db.session.execute(
+            db.insert(CentralisedChequeSummary), df.to_dict(orient="records")
         )
+        db.session.commit()
+        # df.to_sql(
+        #     "centralised_cheque_summary",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
         flash("BRS Centralised cheque details have been uploaded successfully.")
     return render_template(
         "brs_cc_upload_file_template.html",
