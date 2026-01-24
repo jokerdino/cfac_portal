@@ -21,8 +21,8 @@
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <a class="navbar-item" href="{{ url_for('mis.view_mis_tracker') }}">View MIS tracker</a>
                     {% if current_user.user_type == "admin" %}
-                    <a class="navbar-item" href="{{ url_for('mis.bulk_upload_mis_tracker') }}">Bulk Upload MIS
-                        tracker</a>
+                    {# <a class="navbar-item" href="{{ url_for('mis.bulk_upload_mis_tracker') }}">Bulk Upload MIS
+                        tracker</a>#}
                     {% endif %}
                 </div>
             </div>

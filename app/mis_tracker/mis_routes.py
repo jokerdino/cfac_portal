@@ -1,17 +1,15 @@
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
-import pandas as pd
-from flask import redirect, render_template, url_for, flash
+from flask import redirect, render_template, url_for
 
 from flask_login import current_user, login_required
 
 
 from . import mis_bp
 from .mis_model import MisTracker
-from .mis_form import MISTrackerForm, FileUploadForm, FilterMonthForm
+from .mis_form import MISTrackerForm, FilterMonthForm
 
-from .mis_helper_functions import upload_mis_file
 from extensions import db
 from set_view_permissions import admin_required
 
@@ -44,21 +42,21 @@ def upload_previous_month():
     return "Success"
 
 
-@mis_bp.route("/bulk_upload", methods=["POST", "GET"])
-@login_required
-@admin_required
-def bulk_upload_mis_tracker():
-    form = FileUploadForm()
-    if form.validate_on_submit():
-        df_mis_tracker = pd.read_csv(form.data["file_upload"])
+# @mis_bp.route("/bulk_upload", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def bulk_upload_mis_tracker():
+#     form = FileUploadForm()
+#     if form.validate_on_submit():
+#         df_mis_tracker = pd.read_csv(form.data["file_upload"])
 
-        upload_mis_file(df_mis_tracker, db.engine, current_user.username)
+#         upload_mis_file(df_mis_tracker, db.engine, current_user.username)
 
-        flash("MIS tracker has been uploaded successfully.")
+#         flash("MIS tracker has been uploaded successfully.")
 
-    return render_template(
-        "upload_mis_tracker.html", form=form, title="Bulk Upload MIS tracker entries"
-    )
+#     return render_template(
+#         "upload_mis_tracker.html", form=form, title="Bulk Upload MIS tracker entries"
+#     )
 
 
 @mis_bp.route("/", methods=["GET", "POST"])
