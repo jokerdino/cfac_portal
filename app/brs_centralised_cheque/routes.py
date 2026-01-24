@@ -205,14 +205,14 @@ def brs_cc_data_entry(key):
         # Upload unencashed cheques
         process_cheque_file(
             form.data.get("unencashed_cheques_file"),
-            "centralised_cheque_instrument_unencashed_details",
+            CentralisedChequeInstrumentUnencashedDetails,
             brs_entry.id,
         )
 
         # Upload stale cheques
         process_cheque_file(
             form.data.get("stale_cheques_file"),
-            "centralised_cheque_instrument_stale_details",
+            CentralisedChequeInstrumentStaleDetails,
             brs_entry.id,
         )
         return redirect(url_for(".brs_cc_view_status", key=brs.id))
@@ -261,7 +261,9 @@ def process_cheque_file(file, table_name, brs_entry_id):
     df["centralised_cheque_details_id"] = brs_entry_id
 
     # Save to database
-    df.to_sql(table_name, db.engine, if_exists="append", index=False)
+    db.session.execute(db.insert(table_name), df.to_dict(orient="records"))
+    db.session.commit()
+    # df.to_sql(table_name, db.engine, if_exists="append", index=False)
 
 
 @brs_cc_bp.route("/view/<int:key>/", methods=["POST", "GET"])
