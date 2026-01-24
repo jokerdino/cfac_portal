@@ -331,21 +331,21 @@ def brs_lc_data_entry(key):
         # Upload outstanding cheques
         process_cheque_file(
             form.data.get("file_outstanding_entries"),
-            "bank_recon_local_collection_outstanding",
+            BankReconLocalCollectionOutstanding,
             brs_entry.id,
         )
 
         # Upload short_credit cheques
         process_cheque_file(
             form.data.get("file_short_credit_entries"),
-            "bank_recon_local_collection_short_credit",
+            BankReconLocalCollectionShortCredit,
             brs_entry.id,
         )
 
         # Upload excess_credit cheques
         process_cheque_file(
             form.data.get("file_excess_credit_entries"),
-            "bank_recon_local_collection_excess_credit",
+            BankReconLocalCollectionExcessCredit,
             brs_entry.id,
         )
 
@@ -387,7 +387,10 @@ def process_cheque_file(file, table_name, brs_entry_id):
     df["brs_details_id"] = brs_entry_id
 
     # Save to database
-    df.to_sql(table_name, db.engine, if_exists="append", index=False)
+    db.session.execute(db.insert(table_name), df.to_dict(orient="records"))
+    db.session.commit()
+
+    # df.to_sql(table_name, db.engine, if_exists="append", index=False)
 
 
 def get_prev_month_closing_balance(brs_id):
