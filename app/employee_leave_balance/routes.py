@@ -18,6 +18,8 @@ from . import leave_balance_bp
 from .form import UploadFileForm, PrivilegeLeaveBulkUpdateForm, SickLeaveBulkUpdateForm
 from .model import PrivilegeLeaveBalance, SickLeaveBalance
 
+CURRENT_CALENDAR_YEAR = 2025
+
 
 @leave_balance_bp.route("/upload/", methods=["GET", "POST"])
 @login_required
@@ -66,7 +68,10 @@ def update_pl(oo_code):
     case_designation = order_by_designation(PrivilegeLeaveBalance)
     pl_data = db.session.scalars(
         db.select(PrivilegeLeaveBalance)
-        .where(PrivilegeLeaveBalance.employee_oo_code == oo_code)
+        .where(
+            PrivilegeLeaveBalance.employee_oo_code == oo_code,
+            PrivilegeLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+        )
         .order_by(
             case_designation.asc(),
             PrivilegeLeaveBalance.employee_number.asc(),
@@ -93,7 +98,10 @@ def update_sl(oo_code):
     case_designation = order_by_designation(SickLeaveBalance)
     sl_data = db.session.scalars(
         db.select(SickLeaveBalance)
-        .where(SickLeaveBalance.employee_oo_code == oo_code)
+        .where(
+            SickLeaveBalance.employee_oo_code == oo_code,
+            SickLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+        )
         .order_by(
             case_designation.asc(),
             SickLeaveBalance.employee_number.asc(),
@@ -138,7 +146,11 @@ def view_ro_dashboard(ro_code):
             SickLeaveBalance,
             SickLeaveBalance.employee_number == PrivilegeLeaveBalance.employee_number,
         )
-        .where(PrivilegeLeaveBalance.employee_ro_code == ro_code)
+        .where(
+            PrivilegeLeaveBalance.employee_ro_code == ro_code,
+            PrivilegeLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+            SickLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+        )
         .group_by(
             PrivilegeLeaveBalance.employee_ro_code,
             PrivilegeLeaveBalance.employee_oo_code,
@@ -173,6 +185,10 @@ def view_ho_dashboard():
             SickLeaveBalance,
             SickLeaveBalance.employee_number == PrivilegeLeaveBalance.employee_number,
         )
+        .where(
+            PrivilegeLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+            SickLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR,
+        )
         .group_by(
             PrivilegeLeaveBalance.employee_ro_code,
         )
@@ -189,42 +205,50 @@ def view_ho_dashboard():
 @login_required
 @admin_required
 def download_data():
-    pl_query = db.select(
-        PrivilegeLeaveBalance.calendar_year,
-        PrivilegeLeaveBalance.employee_ro_code,
-        PrivilegeLeaveBalance.employee_oo_code,
-        PrivilegeLeaveBalance.employee_name,
-        PrivilegeLeaveBalance.employee_designation,
-        PrivilegeLeaveBalance.employee_number,
-        PrivilegeLeaveBalance.opening_balance,
-        PrivilegeLeaveBalance.leave_accrued,
-        PrivilegeLeaveBalance.leave_availed,
-        PrivilegeLeaveBalance.leave_encashed,
-        PrivilegeLeaveBalance.leave_lapsed,
-        PrivilegeLeaveBalance.closing_balance,
-    ).order_by(
-        PrivilegeLeaveBalance.calendar_year,
-        PrivilegeLeaveBalance.employee_ro_code,
-        PrivilegeLeaveBalance.employee_oo_code,
-        PrivilegeLeaveBalance.employee_designation,
+    pl_query = (
+        db.select(
+            PrivilegeLeaveBalance.calendar_year,
+            PrivilegeLeaveBalance.employee_ro_code,
+            PrivilegeLeaveBalance.employee_oo_code,
+            PrivilegeLeaveBalance.employee_name,
+            PrivilegeLeaveBalance.employee_designation,
+            PrivilegeLeaveBalance.employee_number,
+            PrivilegeLeaveBalance.opening_balance,
+            PrivilegeLeaveBalance.leave_accrued,
+            PrivilegeLeaveBalance.leave_availed,
+            PrivilegeLeaveBalance.leave_encashed,
+            PrivilegeLeaveBalance.leave_lapsed,
+            PrivilegeLeaveBalance.closing_balance,
+        )
+        .where(PrivilegeLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR)
+        .order_by(
+            PrivilegeLeaveBalance.calendar_year,
+            PrivilegeLeaveBalance.employee_ro_code,
+            PrivilegeLeaveBalance.employee_oo_code,
+            PrivilegeLeaveBalance.employee_designation,
+        )
     )
-    sl_query = db.select(
-        SickLeaveBalance.calendar_year,
-        SickLeaveBalance.employee_ro_code,
-        SickLeaveBalance.employee_oo_code,
-        SickLeaveBalance.employee_name,
-        SickLeaveBalance.employee_designation,
-        SickLeaveBalance.employee_number,
-        SickLeaveBalance.opening_balance,
-        SickLeaveBalance.leave_accrued,
-        SickLeaveBalance.leave_availed,
-        SickLeaveBalance.leave_lapsed,
-        SickLeaveBalance.closing_balance,
-    ).order_by(
-        SickLeaveBalance.calendar_year,
-        SickLeaveBalance.employee_ro_code,
-        SickLeaveBalance.employee_oo_code,
-        SickLeaveBalance.employee_designation,
+    sl_query = (
+        db.select(
+            SickLeaveBalance.calendar_year,
+            SickLeaveBalance.employee_ro_code,
+            SickLeaveBalance.employee_oo_code,
+            SickLeaveBalance.employee_name,
+            SickLeaveBalance.employee_designation,
+            SickLeaveBalance.employee_number,
+            SickLeaveBalance.opening_balance,
+            SickLeaveBalance.leave_accrued,
+            SickLeaveBalance.leave_availed,
+            SickLeaveBalance.leave_lapsed,
+            SickLeaveBalance.closing_balance,
+        )
+        .where(SickLeaveBalance.calendar_year == CURRENT_CALENDAR_YEAR)
+        .order_by(
+            SickLeaveBalance.calendar_year,
+            SickLeaveBalance.employee_ro_code,
+            SickLeaveBalance.employee_oo_code,
+            SickLeaveBalance.employee_designation,
+        )
     )
     with db.engine.connect() as conn:
         df_pl = pd.read_sql(pl_query, conn)
