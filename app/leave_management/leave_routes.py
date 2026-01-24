@@ -615,18 +615,20 @@ def holiday_list_upload():
     form = UploadFileForm()
     if form.validate_on_submit():
         holiday_list = form.data["file_upload"]
-        df_holiday_list = pd.read_excel(holiday_list)
+        df = pd.read_excel(holiday_list)
+        db.session.execute(db.insert(PublicHoliday), df.to_dict(orient="records"))
+        db.session.commit()
         # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
-        df_holiday_list["created_on"] = datetime.now()
-        df_holiday_list["created_by"] = current_user.username
+        # df["created_on"] = datetime.now()
+        # df["created_by"] = current_user.username
 
-        df_holiday_list.to_sql(
-            "public_holiday",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+        # df.to_sql(
+        #     "public_holiday",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
         flash("Public holiday list has been uploaded successfully.")
 
     return render_template(
