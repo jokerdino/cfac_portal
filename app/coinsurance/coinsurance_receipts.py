@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from io import BytesIO
 
 import pandas as pd
-from flask import flash, redirect, render_template, send_file, url_for
-from flask_login import current_user, login_required
+from flask import redirect, render_template, send_file, url_for
+from flask_login import login_required
 
 from extensions import db
 from set_view_permissions import admin_required
@@ -23,33 +23,33 @@ from .coinsurance_model import (
 )
 
 
-@coinsurance_bp.route("/receipts/jv/bulk_upload/", methods=["GET", "POST"])
-@login_required
-@admin_required
-def jv_bulk_upload():
-    form = UploadFileForm()
+# @coinsurance_bp.route("/receipts/jv/bulk_upload/", methods=["GET", "POST"])
+# @login_required
+# @admin_required
+# def jv_bulk_upload():
+#     form = UploadFileForm()
 
-    if form.validate_on_submit():
-        jv_file = form.file_upload.data
-        df_jv = pd.read_excel(
-            jv_file,
-        )
-        df_jv["created_on"] = datetime.now()
-        df_jv["created_by"] = current_user.username
+#     if form.validate_on_submit():
+#         jv_file = form.file_upload.data
+#         df_jv = pd.read_excel(
+#             jv_file,
+#         )
+#         df_jv["created_on"] = datetime.now()
+#         df_jv["created_by"] = current_user.username
 
-        df_jv.to_sql(
-            "coinsurance_receipts_journal_voucher",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Uploaded JV file.")
+#         df_jv.to_sql(
+#             "coinsurance_receipts_journal_voucher",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Uploaded JV file.")
 
-    return render_template(
-        "coinsurance_upload_file_template.html",
-        form=form,
-        title="Upload coinsurance receipts JV pattern",
-    )
+#     return render_template(
+#         "coinsurance_upload_file_template.html",
+#         form=form,
+#         title="Upload coinsurance receipts JV pattern",
+#     )
 
 
 @coinsurance_bp.route("/receipts/jv/download/", methods=["POST", "GET"])

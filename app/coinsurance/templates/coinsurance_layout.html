@@ -73,8 +73,9 @@
                             <a class="navbar-item" href="{{ url_for('coinsurance.add_cash_call') }}">Add new cash
                                 call</a>
                             {% if current_user.user_type == "admin" %}
-                            <a class="navbar-item" href="{{ url_for('coinsurance.bulk_upload_cash_call') }}">Bulk upload
-                                cash calls</a>
+                            {# <a class="navbar-item" href="{{ url_for('coinsurance.bulk_upload_cash_call') }}">Bulk
+                                upload
+                                cash calls</a> #}
                             {% endif %}
 
                         </div>
@@ -99,7 +100,8 @@
                                 href="{{ url_for('coinsurance.list_coinsurance_receipts') }}">Receipts
                                 tracker</a>
                             <hr class="navbar-divider" />
-                            <a class="navbar-item" href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV pattern</a>
+                            {# <a class="navbar-item" href="{{ url_for('.jv_bulk_upload') }}">Bulk upload JV
+                                pattern</a>#}
                             <a class="navbar-item"
                                 href="{{ url_for('.coinsurance_receipts_jv_download_monthly') }}">Download HO receipts
                                 JV</a>

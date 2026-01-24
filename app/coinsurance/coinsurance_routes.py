@@ -958,29 +958,29 @@ def edit_cash_call(cash_call_key):
     )
 
 
-# bulk upload cash calls
-@coinsurance_bp.route("/cash_call/bulk_upload", methods=["POST", "GET"])
-@login_required
-def bulk_upload_cash_call():
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        df = pd.read_excel(form.data["file_upload"])
+# # bulk upload cash calls
+# @coinsurance_bp.route("/cash_call/bulk_upload", methods=["POST", "GET"])
+# @login_required
+# def bulk_upload_cash_call():
+#     form = UploadFileForm()
+#     if form.validate_on_submit():
+#         df = pd.read_excel(form.data["file_upload"])
 
-        df["created_on"] = datetime.now()
-        df["created_by"] = current_user.username
+#         df["created_on"] = datetime.now()
+#         df["created_by"] = current_user.username
 
-        df.to_sql(
-            "coinsurance_cash_call",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Coinsurance cash call details have been uploaded successfully.")
-    return render_template(
-        "coinsurance_upload_file_template.html",
-        form=form,
-        title="Bulk upload cash call details",
-    )
+#         df.to_sql(
+#             "coinsurance_cash_call",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Coinsurance cash call details have been uploaded successfully.")
+#     return render_template(
+#         "coinsurance_upload_file_template.html",
+#         form=form,
+#         title="Bulk upload cash call details",
+#     )
 
 
 # bulk upload settlements

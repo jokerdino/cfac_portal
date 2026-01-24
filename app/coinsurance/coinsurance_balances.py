@@ -14,7 +14,6 @@ from .coinsurance_form import (
     CoinsuranceBalanceForm,
     CoinsuranceBalanceQueryForm,
     FilterMonthForm,
-    UploadFileForm,
 )
 from .coinsurance_model import CoinsuranceBalances
 
@@ -391,44 +390,44 @@ def upload_coinsurance_balance_refactored(df):
 #     return render_template("coinsurance_balance_upload.html")
 
 
-@coinsurance_bp.route("/coinsurance_balance/gl_code/upload/", methods=["POST", "GET"])
-@login_required
-@admin_required
-def gl_code_flag_sheet_upload():
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        df = pd.read_excel(form.data["file_upload"])
-        df.to_sql(
-            "coinsurance_balance_general_ledger_code_flag_sheet",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Successfully uploaded.")
-    return render_template(
-        "coinsurance_upload_file_template.html",
-        form=form,
-        title="Upload GL code flag sheet",
-    )
+# @coinsurance_bp.route("/coinsurance_balance/gl_code/upload/", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def gl_code_flag_sheet_upload():
+#     form = UploadFileForm()
+#     if form.validate_on_submit():
+#         df = pd.read_excel(form.data["file_upload"])
+#         df.to_sql(
+#             "coinsurance_balance_general_ledger_code_flag_sheet",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Successfully uploaded.")
+#     return render_template(
+#         "coinsurance_upload_file_template.html",
+#         form=form,
+#         title="Upload GL code flag sheet",
+#     )
 
 
-@coinsurance_bp.route("/coinsurance_balance/zones/upload/", methods=["POST", "GET"])
-@login_required
-@admin_required
-def zone_flag_sheet_upload():
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        df = pd.read_excel(form.data["file_upload"], dtype={"regional_code": str})
-        df.to_sql(
-            "coinsurance_balance_zone_flag_sheet",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("Successfully uploaded.")
+# @coinsurance_bp.route("/coinsurance_balance/zones/upload/", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def zone_flag_sheet_upload():
+#     form = UploadFileForm()
+#     if form.validate_on_submit():
+#         df = pd.read_excel(form.data["file_upload"], dtype={"regional_code": str})
+#         df.to_sql(
+#             "coinsurance_balance_zone_flag_sheet",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("Successfully uploaded.")
 
-    return render_template(
-        "coinsurance_upload_file_template.html",
-        form=form,
-        title="Upload Zone flag sheet",
-    )
+#     return render_template(
+#         "coinsurance_upload_file_template.html",
+#         form=form,
+#         title="Upload Zone flag sheet",
+#     )
