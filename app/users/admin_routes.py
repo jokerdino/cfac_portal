@@ -37,9 +37,13 @@ def upload_users():
             df_user_upload["reset_password"] = True
 
             try:
-                df_user_upload.to_sql(
-                    "user", db.engine, if_exists="append", index=False
+                db.session.execute(
+                    db.insert(User), df_user_upload.to_dict(orient="records")
                 )
+                db.session.commit()
+                # df_user_upload.to_sql(
+                #     "user", db.engine, if_exists="append", index=False
+                # )
                 flash("User details have been uploaded to database.")
             except IntegrityError:
                 flash("Upload unique username only.")
