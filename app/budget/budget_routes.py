@@ -1,4 +1,3 @@
-from datetime import datetime
 import pandas as pd
 
 from flask import (
@@ -6,7 +5,7 @@ from flask import (
     flash,
 )
 
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 from sqlalchemy import case, func, and_
 
@@ -29,8 +28,8 @@ def upload_allocation():
     form = BudgetAllocationForm()
     if form.validate_on_submit():
         file_budget_allocation = form.data["str_budget_allocation"]
-        df_budget_allocation = pd.read_excel(file_budget_allocation)
-        df_budget_allocation.rename(
+        df = pd.read_excel(file_budget_allocation)
+        df.rename(
             columns={
                 "Description": "str_expense_head",
                 "ro_code": "str_ro_code",
@@ -38,19 +37,19 @@ def upload_allocation():
             },
             inplace=True,
         )
-        df_budget_allocation["str_ro_code"] = (
-            df_budget_allocation["str_ro_code"].astype(str).str.zfill(6)
-        )
-        df_budget_allocation["str_financial_year"] = form.data["str_financial_year"]
-        df_budget_allocation["str_type"] = form.data["str_type"]
+        df["str_ro_code"] = df["str_ro_code"].astype(str).str.zfill(6)
+        df["str_financial_year"] = form.data["str_financial_year"]
+        df["str_type"] = form.data["str_type"]
 
-        df_budget_allocation["created_by"] = current_user.username
-        df_budget_allocation["date_created_date"] = datetime.now()
+        # df["created_by"] = current_user.username
+        # df["date_created_date"] = datetime.now()
 
+        db.session.execute(db.insert(BudgetAllocation), df.to_dict(orient="records"))
+        db.session.commit()
         #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_budget_allocation.to_sql(
-            "budget_allocation", db.engine, if_exists="append", index=False
-        )
+        # df.to_sql(
+        #     "budget_allocation", db.engine, if_exists="append", index=False
+        # )
         flash("Budget allocation has been successfully uploaded.")
 
     return render_template(
@@ -65,8 +64,8 @@ def upload_utilization():
     form = BudgetUtilizationForm()
     if form.validate_on_submit():
         file_budget_utilization = form.data["str_budget_utilization"]
-        df_budget_utilization = pd.read_excel(file_budget_utilization)
-        df_budget_utilization.rename(
+        df = pd.read_excel(file_budget_utilization)
+        df.rename(
             columns={
                 "Description": "str_expense_head",
                 "ro_code": "str_ro_code",
@@ -74,20 +73,21 @@ def upload_utilization():
             },
             inplace=True,
         )
-        df_budget_utilization["str_ro_code"] = (
-            df_budget_utilization["str_ro_code"].astype(str).str.zfill(6)
-        )
-        df_budget_utilization["str_financial_year"] = form.data["str_financial_year"]
-        df_budget_utilization["str_quarter"] = form.data["str_quarter"]
+        df["str_ro_code"] = df["str_ro_code"].astype(str).str.zfill(6)
+        df["str_financial_year"] = form.data["str_financial_year"]
+        df["str_quarter"] = form.data["str_quarter"]
 
-        df_budget_utilization["created_by"] = current_user.username
-        df_budget_utilization["date_created_date"] = datetime.now()
+        db.session.execute(db.insert(BudgetUtilization), df.to_dict(orient="records"))
+        db.session.commit()
 
-        #        engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        df_budget_utilization.to_sql(
-            "budget_utilization", db.engine, if_exists="append", index=False
-        )
-        flash("Budget allocation has been successfully uploaded.")
+        # df_budget_utilization["created_by"] = current_user.username
+        # df_budget_utilization["date_created_date"] = datetime.now()
+
+        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+        # df_budget_utilization.to_sql(
+        #     "budget_utilization", db.engine, if_exists="append", index=False
+        # )
+        flash("Budget utilization has been successfully uploaded.")
 
     return render_template(
         "document_upload.html", form=form, title="Upload budget utilization"
