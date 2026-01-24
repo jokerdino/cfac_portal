@@ -453,12 +453,16 @@ def bulk_upload_brs():
         df = pd.read_excel(
             file, dtype={"regional_office": str, "operating_office": str}
         )
-        df.to_sql(
-            "bank_recon_imprest_summary",
-            db.engine,
-            if_exists="append",
-            index=False,
+        db.session.execute(
+            db.insert(BankReconImprestSummary), df.to_dict(orient="records")
         )
+        db.session.commit()
+        # df.to_sql(
+        #     "bank_recon_imprest_summary",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
         flash("BRS imprest records have been uploaded to database")
 
     return render_template(
