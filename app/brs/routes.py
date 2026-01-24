@@ -43,13 +43,15 @@ from set_view_permissions import admin_required, ro_user_only
 from extensions import db
 
 
-def get_financial_year(input_date):
-    if input_date.strftime("%m") in ["01", "02", "03"]:
-        prev_year = input_date - relativedelta(years=1)
-        return f"{prev_year.strftime('%y')}-{input_date.strftime('%y')}"
-    else:
-        next_year = input_date - relativedelta(years=-1)
-        return f"{input_date.strftime('%y')}-{next_year.strftime('%y')}"
+def get_financial_year(input_date: date) -> str:
+    """
+    Returns financial year string in YY-YY format.
+    Financial year starts on 1st April.
+    """
+    start_year = input_date.year - 1 if input_date.month <= 3 else input_date.year
+    end_year = start_year + 1
+
+    return f"{start_year % 100:02d}-{end_year % 100:02d}"
 
 
 @brs_bp.route("/upload_previous_month/")
@@ -66,8 +68,9 @@ def brs_auto_upload_prev_month():
         string: "Success" is returned as response
     """
 
+    today = date.today()
     # current_month refers to month that just ended
-    current_month = date.today() - relativedelta(months=1)
+    current_month = today - relativedelta(months=1)
 
     # prev_month is the month before current_month
     prev_month = current_month - relativedelta(months=1)
