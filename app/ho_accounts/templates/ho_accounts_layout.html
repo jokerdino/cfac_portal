@@ -22,8 +22,8 @@
                     <a class="navbar-item" href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Checklist
                         home</a>
                     {% if current_user.role and "chief_manager" in current_user.role %}
-                    <a class="navbar-item" href="{{ url_for('ho_accounts.bulk_upload_trackers') }}">Bulk upload
-                        trackers</a>
+                    {# <a class="navbar-item" href="{{ url_for('ho_accounts.bulk_upload_trackers') }}">Bulk upload
+                        trackers</a> #}
                     <a class="navbar-item" href="{{ url_for('ho_accounts.add_bank_account') }}">Add bank account</a>
                     <a class="navbar-item" href="{{ url_for('ho_accounts.add_work') }}">Add general item</a>
                     {% endif %}

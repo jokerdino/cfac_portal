@@ -2,18 +2,16 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from pathlib import Path
 
-import pandas as pd
 
 from flask import (
     abort,
     current_app,
-    flash,
     redirect,
     render_template,
     send_from_directory,
     url_for,
 )
-from flask_login import current_user, login_required
+from flask_login import login_required
 from werkzeug.utils import secure_filename
 
 
@@ -21,7 +19,6 @@ from . import ho_accounts_bp
 from .ho_accounts_form import (
     BRSTrackerForm,
     AccountsTrackerForm,
-    BulkUploadFileForm,
     FilterPeriodForm,
     BRSAddForm,
     WorkAddForm,
@@ -101,52 +98,52 @@ def upload_previous_month():
     return "Success"
 
 
-@ho_accounts_bp.route("/bulk_upload_trackers", methods=["POST", "GET"])
-@login_required
-@admin_required
-def bulk_upload_trackers():
-    form = BulkUploadFileForm()
+# @ho_accounts_bp.route("/bulk_upload_trackers", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def bulk_upload_trackers():
+#     form = BulkUploadFileForm()
 
-    if form.validate_on_submit():
-        # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
-        if form.data["mis_tracker_file_upload"]:
-            mis_tracker = form.data["mis_tracker_file_upload"]
+#     if form.validate_on_submit():
+#         # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+#         if form.data["mis_tracker_file_upload"]:
+#             mis_tracker = form.data["mis_tracker_file_upload"]
 
-            # TODO: define python data types at the time of reading
-            df_mis_tracker = pd.read_excel(
-                mis_tracker,
-                dtype={"str_gl_code": str, "str_sl_code": str, "str_customer_id": str},
-            )
+#             # TODO: define python data types at the time of reading
+#             df_mis_tracker = pd.read_excel(
+#                 mis_tracker,
+#                 dtype={"str_gl_code": str, "str_sl_code": str, "str_customer_id": str},
+#             )
 
-            df_mis_tracker["date_created_date"] = datetime.now()
-            df_mis_tracker["created_by"] = current_user.username
-            # try:
-            df_mis_tracker.to_sql(
-                "head_office_bank_recon_tracker",  # "head_office_accounts_tracker",
-                db.engine,
-                if_exists="append",
-                index=False,
-            )
+#             df_mis_tracker["date_created_date"] = datetime.now()
+#             df_mis_tracker["created_by"] = current_user.username
+#             # try:
+#             df_mis_tracker.to_sql(
+#                 "head_office_bank_recon_tracker",  # "head_office_accounts_tracker",
+#                 db.engine,
+#                 if_exists="append",
+#                 index=False,
+#             )
 
-        if form.data["accounts_tracker_file_upload"]:
-            accounts_tracker = form.data["accounts_tracker_file_upload"]
-            # TODO: define python data types at the time of reading
-            df_accounts_tracker = pd.read_excel(accounts_tracker)
-            # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
+#         if form.data["accounts_tracker_file_upload"]:
+#             accounts_tracker = form.data["accounts_tracker_file_upload"]
+#             # TODO: define python data types at the time of reading
+#             df_accounts_tracker = pd.read_excel(accounts_tracker)
+#             # engine = create_engine(current_app.config.get("SQLALCHEMY_DATABASE_URI"))
 
-            df_accounts_tracker["date_created_date"] = datetime.now()
-            df_accounts_tracker["created_by"] = current_user.username
-            # try:
-            df_accounts_tracker.to_sql(
-                "head_office_accounts_tracker",
-                db.engine,
-                if_exists="append",
-                index=False,
-            )
+#             df_accounts_tracker["date_created_date"] = datetime.now()
+#             df_accounts_tracker["created_by"] = current_user.username
+#             # try:
+#             df_accounts_tracker.to_sql(
+#                 "head_office_accounts_tracker",
+#                 db.engine,
+#                 if_exists="append",
+#                 index=False,
+#             )
 
-        flash("Accounts Tracker and MIS tracker have been uploaded successfully.")
+#         flash("Accounts Tracker and MIS tracker have been uploaded successfully.")
 
-    return render_template("ho_accounts_bulk_upload.html", form=form)
+#     return render_template("ho_accounts_bulk_upload.html", form=form)
 
 
 def mask_account_number(account_number: str) -> str:
