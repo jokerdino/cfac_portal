@@ -42,14 +42,14 @@
                     <th class="ps-3 align-middle">{{ form.opening_balance.label }}</th>
                     <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
                     <td>{{ form.opening_balance(class='form-control form-control-sm text-right',
-                        onfocus="calculateSum()", onkeyup="calculateSum()") }}
+                        onfocus="calculateSum()", onkeyup="calculateSum()", readonly="readonly") }}
                     </td>
                 </tr>
                 <tr>
                     <th class="ps-3 align-middle">{{ form.opening_on_hand.label }}</th>
                     <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
                     <td>{{ form.opening_on_hand(class='form-control form-control-sm text-right',
-                        onfocus="calculateSum()", onkeyup="calculateSum()") }}
+                        onfocus="calculateSum()", onkeyup="calculateSum()", readonly="readonly") }}
                     </td>
                 </tr>
                 <tr>
