@@ -38,9 +38,18 @@ from app.brs.models import (
 )
 from set_view_permissions import admin_required, ro_user_only
 
-from .brs_helper_functions import get_financial_year, upload_brs_file
+# from .brs_helper_functions import get_financial_year, upload_brs_file
 
 from extensions import db
+
+
+def get_financial_year(input_date):
+    if input_date.strftime("%m") in ["01", "02", "03"]:
+        prev_year = input_date - relativedelta(years=1)
+        return f"{prev_year.strftime('%y')}-{input_date.strftime('%y')}"
+    else:
+        next_year = input_date - relativedelta(years=-1)
+        return f"{input_date.strftime('%y')}-{next_year.strftime('%y')}"
 
 
 @brs_bp.route("/upload_previous_month/")
@@ -226,19 +235,19 @@ def brs_dashboard():
     return render_template("brs_dashboard.html", query=query, form=form)
 
 
-@brs_bp.route("/bulk_upload", methods=["POST", "GET"])
-@login_required
-@admin_required
-def bulk_upload_brs():
-    if request.method == "POST":
-        upload_file = request.files.get("file")
-        df_brs_upload = pd.read_csv(
-            upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
-        )
-        upload_brs_file(df_brs_upload, db.engine, current_user.username)
-        flash("BRS records have been uploaded to database.")
+# @brs_bp.route("/bulk_upload", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def bulk_upload_brs():
+#     if request.method == "POST":
+#         upload_file = request.files.get("file")
+#         df_brs_upload = pd.read_csv(
+#             upload_file, dtype={"uiic_regional_code": str, "uiic_office_code": str}
+#         )
+#         upload_brs_file(df_brs_upload, db.engine, current_user.username)
+#         flash("BRS records have been uploaded to database.")
 
-    return render_template("bulk_brs_upload.html")
+#     return render_template("bulk_brs_upload.html")
 
 
 # add month
