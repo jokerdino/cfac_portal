@@ -2,21 +2,19 @@ from datetime import datetime
 from pathlib import Path
 
 
-import pandas as pd
 from flask import (
     current_app,
-    flash,
     redirect,
     render_template,
     url_for,
     send_from_directory,
 )
-from flask_login import current_user, login_required
+from flask_login import login_required
 
 from werkzeug.utils import secure_filename
 
 from . import pg_tieup_bp
-from .pg_tieup_form import PaymentGatewayTieupAddForm, UploadFileForm
+from .pg_tieup_form import PaymentGatewayTieupAddForm
 from .pg_tieup_model import PaymentGatewayTieup
 from set_view_permissions import admin_required
 
@@ -44,7 +42,7 @@ def add_pg_tieup():
         db.session.commit()
 
         return redirect(url_for("pg_tieup.view_pg_tieup", key=pg_tieup.id))
-    return render_template("add_pg_tieup.html", form=form)
+    return render_template("pg_tieup_form.html", form=form, title="Add PG tieup")
 
 
 @pg_tieup_bp.route("/edit/<int:key>/", methods=["POST", "GET"])
@@ -68,7 +66,7 @@ def edit_pg_tieup(key):
         db.session.commit()
         return redirect(url_for("pg_tieup.view_pg_tieup", key=pg_tieup.id))
 
-    return render_template("add_pg_tieup.html", form=form)
+    return render_template("pg_tieup_form.html", form=form, title="Edit PG tieup")
 
 
 @pg_tieup_bp.route("/view/<int:key>/")
@@ -116,28 +114,30 @@ def list_pg_tieup():
     return render_template("list_pg_tieup.html", query=query, column_names=column_names)
 
 
-@pg_tieup_bp.route("/bulk_upload", methods=["POST", "GET"])
-@login_required
-@admin_required
-def bulk_upload_pg_tieup():
-    form = UploadFileForm()
-    if form.validate_on_submit():
-        df_cash_call = pd.read_excel(form.data["file_upload"])
+# @pg_tieup_bp.route("/bulk_upload", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def bulk_upload_pg_tieup():
+#     form = UploadFileForm()
+#     if form.validate_on_submit():
+#         df = pd.read_excel(form.data["file_upload"])
 
-        df_cash_call.columns = df_cash_call.columns.str.lower()
+#         df.columns = df.columns.str.lower()
 
-        df_cash_call["date_created_date"] = datetime.now()
-        df_cash_call["created_by"] = current_user.username
+#         df["date_created_date"] = datetime.now()
+#         df["created_by"] = current_user.username
 
-        df_cash_call.to_sql(
-            "payment_gateway_tieup",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
-        flash("PG tieup details have been uploaded successfully.")
+#         df.to_sql(
+#             "payment_gateway_tieup",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
+#         flash("PG tieup details have been uploaded successfully.")
 
-    return render_template("bulk_upload_pg_tieup.html", form=form)
+#     return render_template(
+#         "pg_tieup_form.html", form=form, title="Bulk upload PG tieups"
+#     )
 
 
 @pg_tieup_bp.route("/bank_mandate/<int:id>/")

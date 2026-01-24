@@ -1,0 +1,24 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<div class="container">
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+    <h1 class="title is-size-4">{{ title }}</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <table class="table">
+            {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
+            {{ render_field_table(field) }}
+
+            {% endfor %}
+        </table>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}
