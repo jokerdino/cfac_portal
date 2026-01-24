@@ -1,5 +1,4 @@
-import pandas as pd
-from flask import flash, redirect, render_template, request, url_for
+from flask import redirect, render_template, url_for
 from flask_login import current_user, login_required
 
 
@@ -63,41 +62,41 @@ def contacts_homepage():
     )
 
 
-@contacts_bp.route("/bulk_upload", methods=["POST", "GET"])
-@login_required
-@admin_required
-def bulk_upload():
-    if request.method == "POST":
-        upload_file = request.files.get("file")
-        df_contact_upload = pd.read_csv(
-            upload_file,
-            dtype={
-                "office_code": str,
-                "name": str,
-                "zone": str,
-                "mobile_number": str,
-                "email_address": str,
-                "employee_number": int,
-                "designation": str,
-                "role": str,
-                "office_name": str,
-            },
-        )
+# @contacts_bp.route("/bulk_upload", methods=["POST", "GET"])
+# @login_required
+# @admin_required
+# def bulk_upload():
+#     if request.method == "POST":
+#         upload_file = request.files.get("file")
+#         df_contact_upload = pd.read_csv(
+#             upload_file,
+#             dtype={
+#                 "office_code": str,
+#                 "name": str,
+#                 "zone": str,
+#                 "mobile_number": str,
+#                 "email_address": str,
+#                 "employee_number": int,
+#                 "designation": str,
+#                 "role": str,
+#                 "office_name": str,
+#             },
+#         )
 
-        # db.session.query(Contacts).delete()
-        # db.session.commit()
+#         # db.session.query(Contacts).delete()
+#         # db.session.commit()
 
-        # try:
-        df_contact_upload.to_sql(
-            "contacts",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+#         # try:
+#         df_contact_upload.to_sql(
+#             "contacts",
+#             db.engine,
+#             if_exists="append",
+#             index=False,
+#         )
 
-        flash("Contact details have been uploaded to database.")
+#         flash("Contact details have been uploaded to database.")
 
-    return render_template("bulk_upload_contacts.html")
+#     return render_template("bulk_upload_contacts.html")
 
 
 def order_based_on_role(role) -> int:

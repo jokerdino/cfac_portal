@@ -22,7 +22,7 @@
                     <a class="navbar-item" href="{{ url_for('contacts.contacts_homepage') }}">Contacts home</a>
                     {% if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('contacts.add_contact') }}">Add new contact</a>
-                    <a class="navbar-item" href="{{ url_for('contacts.bulk_upload') }}">Bulk upload</a>
+                    {# <a class="navbar-item" href="{{ url_for('contacts.bulk_upload') }}">Bulk upload</a> #}
                     {% endif %}
                 </div>
             </div>
