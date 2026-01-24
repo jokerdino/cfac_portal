@@ -407,23 +407,25 @@ def upload_summary_template():
 
     if form.validate_on_submit():
         summary_template = form.data["file_upload"]
-        df_summary_template = pd.read_excel(
+        df = pd.read_excel(
             summary_template,
             dtype={
                 "str_period": str,
                 "str_regional_office_code": str,
             },
         )
+        db.session.execute(db.insert(ReconSummary), df.to_dict(orient="records"))
+        db.session.commit()
 
-        df_summary_template["date_created_date"] = datetime.now()
-        df_summary_template["created_by"] = current_user.username
+        # df["date_created_date"] = datetime.now()
+        # df["created_by"] = current_user.username
 
-        df_summary_template.to_sql(
-            "recon_summary",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+        # df.to_sql(
+        #     "recon_summary",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
         flash("HO RO recon summary has been uploaded successfully.")
     return render_template(
         "ho_ro_upload_file_template.html",
@@ -442,7 +444,7 @@ def upload_new_ho_balance_summary():
         db.session.execute(delete_stmt)
         db.session.commit()
         summary_template = form.data["file_upload"]
-        df_summary_template = pd.read_excel(
+        df = pd.read_excel(
             summary_template,
             dtype={
                 "str_period": str,
@@ -450,12 +452,15 @@ def upload_new_ho_balance_summary():
             },
         )
 
-        df_summary_template.to_sql(
-            "recon_update_balance",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+        db.session.execute(db.insert(ReconUpdateBalance), df.to_dict(orient="records"))
+        db.session.commit()
+
+        # df.to_sql(
+        #     "recon_update_balance",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
 
         update_stmt = (
             db.update(ReconSummary)
@@ -471,8 +476,6 @@ def upload_new_ho_balance_summary():
                 input_ro_balance_dr_cr=ReconUpdateBalance.ro_dr_cr,
                 input_float_ho_balance=ReconUpdateBalance.ho_balance,
                 input_ho_balance_dr_cr=ReconUpdateBalance.ho_dr_cr,
-                updated_by=current_user.username,
-                date_updated_date=datetime.now(),
             )
         )
         db.session.execute(update_stmt)
