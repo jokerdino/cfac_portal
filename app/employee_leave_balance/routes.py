@@ -1,7 +1,6 @@
 from datetime import datetime
 from io import BytesIO
 from flask import (
-    abort,
     flash,
     redirect,
     render_template,
@@ -27,29 +26,31 @@ def employee_list_upload():
     form = UploadFileForm()
     if form.validate_on_submit():
         employee_list = form.data["file_upload"]
-        df_employee_list = pd.read_excel(employee_list)
+        df = pd.read_excel(employee_list)
 
-        df_employee_list["employee_ro_code"] = (
-            df_employee_list["employee_ro_code"].astype(str).str.zfill(6)
-        )
-        df_employee_list["employee_oo_code"] = (
-            df_employee_list["employee_oo_code"].astype(str).str.zfill(6)
-        )
-        df_employee_list["created_on"] = datetime.now()
-        df_employee_list["created_by"] = current_user.username
+        df["employee_ro_code"] = df["employee_ro_code"].astype(str).str.zfill(6)
+        df["employee_oo_code"] = df["employee_oo_code"].astype(str).str.zfill(6)
+        # df["created_on"] = datetime.now()
+        # df["created_by"] = current_user.username
 
-        df_employee_list.to_sql(
-            "privilege_leave_balance",
-            db.engine,
-            if_exists="append",
-            index=False,
+        db.session.execute(
+            db.insert(PrivilegeLeaveBalance), df.to_dict(orient="records")
         )
-        df_employee_list.to_sql(
-            "sick_leave_balance",
-            db.engine,
-            if_exists="append",
-            index=False,
-        )
+
+        db.session.execute(db.insert(SickLeaveBalance), df.to_dict(orient="records"))
+        db.session.commit()
+        # df.to_sql(
+        #     "privilege_leave_balance",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
+        # df.to_sql(
+        #     "sick_leave_balance",
+        #     db.engine,
+        #     if_exists="append",
+        #     index=False,
+        # )
         flash("Employee list has been uploaded successfully.")
 
     return render_template(
