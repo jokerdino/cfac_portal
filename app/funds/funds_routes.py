@@ -409,7 +409,6 @@ def save_bank_statement_and_credits(df: pd.DataFrame):
     for col in date_cols:
         df[col] = pd.to_datetime(
             df[col],
-            format="%d/%m/%Y",
             errors="coerce",
         ).dt.date
 
