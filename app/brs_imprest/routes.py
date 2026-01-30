@@ -424,7 +424,7 @@ def brs_auto_upload_prev_month():
         Summary.imprest_bank_ifsc_code,
     ).where(Summary.month == prev_month.strftime("%B-%Y"))
 
-    insert_stmt = db.insert(Summary).from_select(
+    insert_stmt = db.insert(BankReconImprestSummary).from_select(
         [
             Summary.regional_office,
             Summary.operating_office,
