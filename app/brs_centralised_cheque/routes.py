@@ -322,14 +322,12 @@ def brs_auto_upload_prev_month():
     # prev_month is the month before current_month
     prev_month = current_month.replace(day=1) - timedelta(days=1)
 
-    current_month_string = current_month.strftime("%Y-%m-%d")
-
     #    fresh_entries = []
     stmt = db.select(
         CentralisedChequeSummary.regional_office_code,
         CentralisedChequeSummary.operating_office_code,
         CentralisedChequeSummary.centralised_cheque_bank,
-        db.literal(current_month_string).label("date_of_month"),
+        db.literal(current_month).label("date_of_month"),
         db.literal("AUTOUPLOAD").label("created_by"),
     ).where(CentralisedChequeSummary.date_of_month == prev_month)
 
