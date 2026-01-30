@@ -190,6 +190,7 @@ def get_coinsurance_receipts():
     def apply_filters(stmt, created_after=None, search=None):
         stmt = stmt.where(FundBankStatement.flag_description == "COINSURANCE")
         if created_after:
+            created_after = datetime.fromisoformat(created_after)
             stmt = stmt.where(FundBankStatement.date_created_date > created_after)
 
         if search:
