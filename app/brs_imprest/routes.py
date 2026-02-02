@@ -422,6 +422,7 @@ def brs_auto_upload_prev_month():
         Summary.imprest_bank_account_type,
         Summary.imprest_bank_account_number,
         Summary.imprest_bank_ifsc_code,
+        db.literal("AUTOUPLOAD").label("created_by"),
     ).where(Summary.month == prev_month.strftime("%B-%Y"))
 
     insert_stmt = db.insert(BankReconImprestSummary).from_select(
@@ -436,6 +437,7 @@ def brs_auto_upload_prev_month():
             Summary.imprest_bank_account_type,
             Summary.imprest_bank_account_number,
             Summary.imprest_bank_ifsc_code,
+            Summary.created_by,
         ],
         stmt,
     )
