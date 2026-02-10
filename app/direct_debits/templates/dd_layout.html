@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | {% block title %}DD debits{% endblock title %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar has-background-info-light" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
+
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="navbar-item" href="{{ url_for('.direct_debit_list') }}">DD debits</a>
+                    {%- if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('.direct_debit_jv_pending') }}">DD debits JV pending</a>
+                    <a class="navbar-item" href="{{ url_for('.direct_debit_bulk_upload') }}">Bulk upload</a>
+                    <a class="navbar-item" href="{{ url_for('.direct_debit_download_jv') }}">Download JV</a>
+                    {% endif -%}
+
+                </div>
+
+            </div>
+
+            {% include "partials/navbar_user_details.html" %}
+        </nav>
+    </header>
+
+    <div class="container is-fluid is-max-desktop mt-5 mb-5">
+
+        {% block content %}{% endblock content %}
+
+    </div>
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

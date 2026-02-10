@@ -62,15 +62,16 @@
         </ul>
         <p class="menu-label">Refund tracker</p>
         <ul class="menu-list">
-          <li><a href="{{ url_for('refund_dqr.dqr_refund_list') }}">DQR Refunds<div
-                class="ml-2 tag is-warning is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('refund_dqr.dqr_refund_list') }}">DQR Refunds</a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type in ["admin", "ro_user","ro_motor_tp","ho_motor_tp"] %}
         <p class="menu-label">Lien</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('lien.lien_dashboard') }}">Lien</a></li>
+          <li><a href="{{ url_for('direct_debit.direct_debit_list') }}">DD debits<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type in ["ri_tech", "ho_technical","ri_accounts", "coinsurance_hub_user"] %}
@@ -103,10 +104,8 @@
         {% if current_user.user_type in ["admin"] %}
         <p class="menu-label">Head Office only</p>
         <ul class="menu-list">
-          <li><a href="{{ url_for('todo.board') }}">TODO list <div class="ml-2 tag is-success is-rounded">
-                New</div></a></li>
-          <li><a href="{{ url_for('ci.ci_list') }}">CI Tracker<div class="ml-2 tag is-success is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('todo.board') }}">TODO list </a></li>
+          <li><a href="{{ url_for('ci.ci_list') }}">CI Tracker</a></li>
           <li><a href="{{ url_for('leave_management.leave_home') }}">Leave management</a></li>
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
               checklist</a></li>

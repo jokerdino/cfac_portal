@@ -1,0 +1,49 @@
+{% extends "dd_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<section class="section">
+    <div class="container">
+        {% include "partials/errors.html" %}
+        {% include "partials/messages.html" %}
+        <div class="level">
+            <div class="level-left">
+                <h1 class="title">DD Debit Details</h1>
+            </div>
+
+            <div class="level-right">
+                <a href="{{ url_for('.direct_debit_list') }}" class="button is-light">
+                    Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="box">
+
+            {% include "partials/dd_detail.html" %}
+
+            <h2 class="subtitle">RO Entry Details</h2>
+            <form method="post">
+                {{ form.csrf_token }}
+                <table class="table is-fullwidth">{% for field in form if field.widget.input_type != "hidden" %}
+                    {{ render_field_table(field) }}
+                    {% endfor %}
+
+                </table>
+
+                <div class="buttons is-centered">
+                    {% if dd.has_access(current_user) %}
+                    <button class="button is-success">Submit</button>
+                    {% endif %}
+
+                    <a href="{{ url_for('.direct_debit_list') }}" class="button is-light">
+                        Back to list
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</section>
+
+{% endblock content %}

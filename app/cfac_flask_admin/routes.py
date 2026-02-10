@@ -110,6 +110,8 @@ from app.brs_imprest.models import (
     BankReconImprestDetails,
     BankReconImprestUnencashedDetails,
 )
+
+from app.direct_debits.model import DirectDebit
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -122,6 +124,7 @@ admin.add_sub_category(name="BRS_LC", parent_name="BRS_LC")
 admin.add_sub_category(name="Budget", parent_name="Budget")
 admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
+admin.add_sub_category(name="DD debits", parent_name="DD debits")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
@@ -405,6 +408,9 @@ admin.add_view(
         OutwardDocument, db.session, endpoint="outward_", category="Correspondence"
     )
 )
+
+# dd debits
+admin.add_view(ModelView(DirectDebit, db.session, endpoint="dd_debits_"))
 # escalation matrix
 admin.add_view(ModelView(EscalationMatrix, db.session, endpoint="em_"))
 # funds

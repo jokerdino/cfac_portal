@@ -1,0 +1,116 @@
+{% extends "dd_layout.html" %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+{% block content %}
+<div class="container is-fluid">
+    <h1 class="title">List of DD debits</h1>
+
+    {% if show_checkbox %}
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+    <form method="post" action="{{ url_for('.mark_jv_passed') }}">
+        {{ form.csrf_token }}
+        <div class="columns is-centered">
+            <div class="column is-half box">
+                {% for field in form if field.widget.input_type != "hidden" %}
+                {{ render_field_div_horizontal(field) }}
+                {% endfor %}
+                <div class="has-text-centered">
+                    <button class="button is-success">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+        <table class="table is-fullwidth is-bordered" id="dd_table">
+            <thead>
+                <tr>
+                    {% if show_checkbox %}
+                    <th class="has-text-centered is-vcentered">
+                        <input type="checkbox" id="select_all" onclick="toggleAll(this)" />
+                    </th>
+                    {% endif %}
+
+                    {% for col in required_columns %}
+                    <th class="has-text-centered is-vcentered">{{ col | replace("_"," ")| upper }}</th>
+
+                    {% endfor %}<th class="has-text-centered is-vcentered">VIEW</th>
+                    <th class="has-text-centered is-vcentered">EDIT</th>
+
+                </tr>
+            </thead>
+            <tbody>{% for item in direct_debits %}
+                <tr>
+                    {% if show_checkbox %}
+                    <td class="has-text-centered"><input type="checkbox" name="selected_ids" value="{{ item['id'] }}" />
+                    </td>
+                    {% endif %}
+                    <td>{{ item['ro_code'] }}</td>
+                    <td>{{ item['ro_name'] }}</td>
+                    <td>{{ item['transaction_date'] }}</td>
+                    <td>{{ item['particulars'] }}</td>
+                    <td>{{ item['debit'] }}</td>
+                    <td>{{ item['ho_iot_jv_number'] or "" }}</td>
+                    <td>{{ item['ho_iot_jv_date'] or "" }}</td>
+                    <td>{{ item['ro_jv_number'] or "" }}</td>
+                    <td>{{ item['ro_jv_date'] or "" }}</td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('.direct_debit_view', dd_id=item.id) }}">View</a>
+                    </td>
+                    <td><a class="button is-link is-outlined is-small"
+                            href="{{ url_for('.direct_debit_edit', dd_id=item.id) }}">Edit</a>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if show_checkbox %}
+    </form>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% set first_sort_column = 1 if show_checkbox else 0 %}
+{% set disable_first_column = 'true' if show_checkbox else 'false' %}
+{% block scripts %}
+<script>
+    const disableFirstColumn = {{ disable_first_column | tojson }};
+    const firstSortColumn = {{ first_sort_column | tojson }};
+    const options = {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
+        order: [[firstSortColumn, 'asc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All']
+        ]
+    };
+
+    if (disableFirstColumn) {
+        options.columnDefs = [
+            { orderable: false, targets: 0 }
+        ];
+    }
+
+    new DataTable('#dd_table', options);
+</script>
+
+<script>
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('input[name="selected_ids"]');
+        for (const cb of checkboxes) {
+            cb.checked = source.checked;
+        }
+    }
+</script>
+{% endblock scripts %}

@@ -1,0 +1,46 @@
+<h2 class="subtitle">Basic Information</h2>
+
+<table class="table is-fullwidth">
+    <tr>
+        <th width="25%">RO Name</th>
+        <td>{{ dd.ro_name }}</td>
+    </tr>
+
+    <tr>
+        <th>RO Code</th>
+        <td>{{ dd.ro_code }}</td>
+    </tr>
+
+    <tr>
+        <th>Transaction Date</th>
+        <td>{{ dd.transaction_date }}</td>
+    </tr>
+
+    <tr>
+        <th>Particulars</th>
+        <td>{{ dd.particulars }}</td>
+    </tr>
+
+    <tr>
+        <th>Debit Amount</th>
+        <td>{{ "%.2f"|format(dd.debit or 0) }}</td>
+    </tr>
+</table>
+
+<hr>
+
+<h2 class="subtitle">HO IOT JV Details</h2>
+
+<table class="table is-fullwidth">
+    <tr>
+        <th width="25%">HO IOT JV Number</th>
+        <td>{{ dd.ho_iot_jv_number or "-" }}</td>
+    </tr>
+
+    <tr>
+        <th>HO IOT JV Date</th>
+        <td>{{ dd.ho_iot_jv_date or "-" }}</td>
+    </tr>
+</table>
+
+<hr>

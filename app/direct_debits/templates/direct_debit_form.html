@@ -1,0 +1,20 @@
+{% extends "dd_layout.html" %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
+{% block content %}
+<div class="container">
+    <h1 class="title">{{ title }}</h1>
+
+    <form class="mb-5" method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+        {{ render_field_div_horizontal(field) }}
+        {% endfor %}
+
+        <div class="has-text-centered"><button class="button is-success">Submit</button></div>
+
+    </form>
+
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+</div>
+{% endblock content %}
