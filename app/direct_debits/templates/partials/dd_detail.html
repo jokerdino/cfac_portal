@@ -25,6 +25,16 @@
         <th>Debit Amount</th>
         <td>{{ "%.2f"|format(dd.debit or 0) }}</td>
     </tr>
+    <tr>
+        <th>Current status</th>
+        <td>{{ dd.status }}</td>
+    </tr>
+    {% if dd.dd_reversal_date %}
+    <tr>
+        <th>DD reversal date</th>
+        <td>{{ dd.dd_reversal_date }}</td>
+    </tr>
+    {% endif  %}
 </table>
 
 <hr>

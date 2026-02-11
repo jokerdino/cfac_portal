@@ -10,13 +10,18 @@ from extensions import db
 from set_view_permissions import admin_required
 
 from . import direct_debits_bp
-from .model import DirectDebit
+from .model import DirectDebit, Status
+
 from .form import (
     RegionalOfficeForm,
     BulkDirectDebitForm,
     JournalVoucherUpdateForm,
     JournalVoucerRemarksForm,
+    MonthFilterForm,
+    HeadOfficeForm,
 )
+
+VIEW_ALL = "View all"
 
 
 @direct_debits_bp.route("/upload", methods=["GET", "POST"])
@@ -30,6 +35,7 @@ def direct_debit_bulk_upload():
         df = pd.read_excel(dd_file, dtype={"ro_code": str})
         df.columns = df.columns.str.lower().str.replace(" ", "_")
         df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
+        df["status"] = Status.DEBITED
 
         db.session.execute(db.insert(DirectDebit), df.to_dict(orient="records"))
 
@@ -43,13 +49,20 @@ def direct_debit_bulk_upload():
     )
 
 
-@direct_debits_bp.route("/")
+@direct_debits_bp.route("/", methods=["GET", "POST"])
 @login_required
 def direct_debit_list():
+    filter_form = MonthFilterForm()
     query = db.select(DirectDebit)
     if current_user.user_type in ["ro_motor_tp", "ro_user"]:
         query = query.where(DirectDebit.ro_code == current_user.ro_code)
 
+    populate_month(query, filter_form)
+
+    if filter_form.validate_on_submit():
+        month = filter_form.month.data
+        if month != VIEW_ALL:
+            query = query.where(DirectDebit.month_string == month)
     direct_debits = db.session.scalars(query)
 
     required_columns = [
@@ -58,16 +71,20 @@ def direct_debit_list():
         "transaction_date",
         "particulars",
         "debit",
+        "status",
+        "dd_reversal_date",
         "ho_iot_jv_number",
         "ho_iot_jv_date",
         "ro_jv_number",
         "ro_jv_date",
+        "remarks",
     ]
 
     return render_template(
         "direct_debit_list.html",
         direct_debits=direct_debits,
         required_columns=required_columns,
+        filter_form=filter_form,
     )
 
 
@@ -77,7 +94,11 @@ def direct_debit_edit(dd_id):
     dd = db.get_or_404(DirectDebit, dd_id)
     dd.require_access(current_user)
 
-    form = RegionalOfficeForm(obj=dd)
+    if current_user.user_type == "admin":
+        form = HeadOfficeForm(obj=dd)
+        form.status.choices = [(e, e.value) for e in Status]
+    else:
+        form = RegionalOfficeForm(obj=dd)
 
     if form.validate_on_submit():
         form.populate_obj(dd)
@@ -96,12 +117,20 @@ def direct_debit_view(dd_id):
     return render_template("direct_debit_view.html", dd=dd)
 
 
-@direct_debits_bp.route("/jv_pending")
+@direct_debits_bp.route("/jv_pending", methods=["POST", "GET"])
 @login_required
 @admin_required
 def direct_debit_jv_pending():
+    filter_form = MonthFilterForm()
+
     form = JournalVoucherUpdateForm()
     query = db.select(DirectDebit).where(DirectDebit.bool_jv_passed.is_(False))
+    populate_month(query, filter_form)
+
+    if filter_form.validate_on_submit():
+        month = filter_form.month.data
+        if month != VIEW_ALL:
+            query = query.where(DirectDebit.month_string == month)
 
     show_checkbox = True if current_user.user_type in ["admin"] else False
     direct_debits = db.session.scalars(query)
@@ -112,10 +141,13 @@ def direct_debit_jv_pending():
         "transaction_date",
         "particulars",
         "debit",
+        "status",
+        "dd_reversal_date",
         "ho_iot_jv_number",
         "ho_iot_jv_date",
         "ro_jv_number",
         "ro_jv_date",
+        "remarks",
     ]
 
     return render_template(
@@ -124,6 +156,7 @@ def direct_debit_jv_pending():
         required_columns=required_columns,
         show_checkbox=show_checkbox,
         form=form,
+        filter_form=filter_form,
     )
 
 
@@ -200,3 +233,21 @@ def direct_debit_download_jv():
         return send_file(output, as_attachment=True, download_name=filename)
 
     return render_template("direct_debit_form.html", form=form, title="Download JV")
+
+
+def populate_month(stmt, form, view_all=True):
+    subq = stmt.subquery()
+
+    rows = db.session.execute(
+        db.select(
+            db.distinct(subq.c.month).label("month"),
+            subq.c.month_string.label("month_string"),
+        ).order_by(subq.c.month)
+    ).all()
+
+    month_choices = [r.month_string for r in rows]
+
+    if view_all:
+        form.month.choices = [VIEW_ALL] + month_choices
+    else:
+        form.month.choices = month_choices

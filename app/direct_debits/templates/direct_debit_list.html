@@ -1,13 +1,18 @@
 {% extends "dd_layout.html" %}
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
 {% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 {% block content %}
 <div class="container is-fluid">
     <h1 class="title">List of DD debits</h1>
 
+    <form method="post">
+        {{ render_dashboard_dropdown(filter_form) }}
+    </form>
+
     {% if show_checkbox %}
     {% include "partials/errors.html" %}
     {% include "partials/messages.html" %}
-    <form method="post" action="{{ url_for('.mark_jv_passed') }}">
+    <form method="post" class="mt-5" action="{{ url_for('.mark_jv_passed') }}">
         {{ form.csrf_token }}
         <div class="columns is-centered">
             <div class="column is-half box">
@@ -49,10 +54,13 @@
                     <td>{{ item['transaction_date'] }}</td>
                     <td>{{ item['particulars'] }}</td>
                     <td>{{ item['debit'] }}</td>
+                    <td>{{ item['status'] }}</td>
+                    <td>{{ item['dd_reversal_date'] or "" }}</td>
                     <td>{{ item['ho_iot_jv_number'] or "" }}</td>
                     <td>{{ item['ho_iot_jv_date'] or "" }}</td>
                     <td>{{ item['ro_jv_number'] or "" }}</td>
                     <td>{{ item['ro_jv_date'] or "" }}</td>
+                    <td>{{ item['remarks'] or "" }}</td>
                     <td><a class="button is-link is-outlined is-small"
                             href="{{ url_for('.direct_debit_view', dd_id=item.id) }}">View</a>
                     </td>
