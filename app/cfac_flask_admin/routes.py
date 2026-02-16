@@ -112,6 +112,8 @@ from app.brs_imprest.models import (
 )
 
 from app.direct_debits.model import DirectDebit
+from app.auditor_certificate.model import AuditorCertificate
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -137,6 +139,9 @@ admin.add_sub_category(name="TODO", parent_name="TODO")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Users", parent_name="Users")
 
+
+# audit certificate
+admin.add_view(ModelView(AuditorCertificate, db.session, endpoint="ac_"))
 
 # announcements
 admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))

@@ -1,0 +1,74 @@
+{% extends "ac_layout.html" %}
+{% block content %}
+<div class="container">
+
+    <h1 class="title">View audit certificate request details</h1>
+    <table class="table is-fullwidth is-bordered">
+
+        <tr>
+            <th>RO Code</th>
+            <td>{{ ac.ro_code }}</td>
+        </tr>
+        <tr>
+            <th>RO Name</th>
+            <td>{{ ac.ro_name }}</td>
+        </tr>
+        <tr>
+            <th>Purpose</th>
+            <td>{{ ac.purpose }}</td>
+        </tr>
+        <tr>
+            <th>Date of Request</th>
+            <td>{{ ac.date_of_request }}</td>
+        </tr>
+        <tr>
+            <th>Bid Closing Date</th>
+            <td>{{ ac.bid_closing_date or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Certificate Issued Date</th>
+            <td>{{ ac.certificate_issued_date or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Invoice Received Date</th>
+            <td>{{ ac.invoice_received_date or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Invoice Date</th>
+            <td>{{ ac.invoice_date or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Remarks</th>
+            <td>{{ ac.remarks or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Disbursement Date</th>
+            <td>{{ ac.disbursement_date or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Request ID</th>
+            <td>{{ ac.request_id or "-" }}</td>
+        </tr>
+        <tr>
+            <th>Date of Payment</th>
+            <td>{{ ac.date_of_payment or "-" }}</td>
+        </tr>
+        <tr>
+            <th>UTR Number</th>
+            <td>{{ ac.utr_number or "-" }}</td>
+        </tr>
+
+    </table>
+
+    <div class="container has-text-centered">
+        <a class="button is-link" href="{{ url_for('.auditor_certificate_list') }}">
+            Back to list
+        </a>
+        <a class="button is-link" href="{{ url_for('.auditor_certificate_edit', id=ac.id) }}">
+            Edit
+        </a>
+
+    </div>
+
+</div>
+{% endblock content %}

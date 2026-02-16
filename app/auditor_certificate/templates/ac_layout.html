@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | Audit certificate request details</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar is-info has-shadow" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="navbar-item" href="{{ url_for('.auditor_certificate_list') }}">List of requests</a>
+                    {% if current_user.user_type == "admin" %}
+                    <a class="navbar-item" href="{{ url_for('.auditor_certificate_add') }}">Add new audit certificate
+                        request</a>
+
+                    {% endif %}
+                </div>
+            </div>
+
+            {% include "partials/navbar_user_details.html" %}
+        </nav>
+    </header>
+
+    <div class="container is-fluid mt-5">
+
+        {% if current_user.is_authenticated %}
+        {% block content %}{% endblock content %}
+        {% endif %}
+    </div>
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

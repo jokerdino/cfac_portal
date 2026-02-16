@@ -1,0 +1,59 @@
+{% extends "ac_layout.html" %}
+{% block content %}
+
+<table class="table is-fullwidth is-hoverable is-bordered" id="ac_table">
+    <thead>
+        <tr>
+            {% for col in column_names %}
+            <th class="has-text-centered is-vcentered">{{ col | upper | replace("_", " ") }}</th>
+            {% endfor %}
+            <th class="has-text-centered is-vcentered">VIEW</th>
+            <th class="has-text-centered is-vcentered">EDIT</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in ac_list %}
+
+        <tr>
+            {% for col in column_names %}
+            <td>{{ item[col] }}</td>
+
+            {% endfor %}
+            <td>
+                <a class="button is-link is-small"
+                    href="{{ url_for('.auditor_certificate_view', id=item.id) }}">View</a>
+
+            </td>
+            <td>
+                <a class="button is-link is-small"
+                    href="{{ url_for('.auditor_certificate_edit', id=item.id) }}">Edit</a>
+
+            </td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}
+{% block scripts %}
+<script>
+
+    new DataTable('#ac_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        paging: false,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[3, 'asc']],
+        pagingType: 'full_numbers',
+
+    });
+
+</script>
+{% endblock scripts %}
