@@ -1,6 +1,6 @@
 {% extends "ac_layout.html" %}
 {% block content %}
-
+<h1 class="title">List of audit Certificates requests</h1>
 <table class="table is-fullwidth is-hoverable is-bordered" id="ac_table">
     <thead>
         <tr>
@@ -17,7 +17,7 @@
 
         <tr>
             {% for col in column_names %}
-            <td>{{ item[col] }}</td>
+            <td>{{ item[col] or "" }}</td>
 
             {% endfor %}
             <td>
