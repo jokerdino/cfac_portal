@@ -1,9 +1,7 @@
 import datetime
-from math import fabs
-import uuid
-
-import pandas as pd
 from dateutil.relativedelta import relativedelta
+
+
 from flask import (
     flash,
     redirect,
@@ -14,7 +12,6 @@ from flask import (
 from flask_login import current_user, login_required
 from sqlalchemy import (
     func,
-    or_,
     and_,
 )
 
@@ -39,10 +36,27 @@ from app.funds.funds_model import (
     FundDailyOutflow,
     FundDailySheet,
     FundFlagSheet,
-    FundJournalVoucherFlagSheet,
     FundMajorOutgo,
-    FundOutflowLabel,
 )
+
+from .funds_utils import (
+    get_daily_sheet,
+    get_outflow_data,
+    get_inflow,
+    get_previous_day_closing_balance_refactored,
+    get_outflow,
+    get_inflow_total,
+    get_daily_summary_refactored,
+    get_ibt_details,
+    populate_outflow_form_data,
+    handle_outflow_form_submission,
+    enable_update,
+    fetch_inflow,
+    fetch_outflow_labels,
+    fetch_prev_daily_sheet,
+)
+from .funds_services import BankStatementService
+
 from app.coinsurance.coinsurance_model import CoinsuranceReceipts
 from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
 
@@ -89,94 +103,6 @@ from set_view_permissions import fund_managers
 #     rows_inserted = result.rowcount
 
 #     return f"{rows_inserted} rows inserted"
-
-
-def get_inflow(input_date, inflow_description=None):
-    query = db.select(
-        db.func.sum(FundBankStatement.credit),
-        db.func.sum(FundBankStatement.debit),
-        db.func.sum(FundBankStatement.ledger_balance),
-    ).where(FundBankStatement.date_uploaded_date == input_date)
-
-    if inflow_description:
-        query = query.where(FundBankStatement.flag_description == inflow_description)
-
-    results = db.session.execute(query).first()
-    total_credit, total_debit, total_ledger = results
-
-    # Special handling for balances
-    if inflow_description in ("HDFC OPENING BAL", "HDFC CLOSING BAL"):
-        return total_ledger or 0
-
-    return total_credit or 0
-
-
-def get_outflow(date, description=None):
-    query = db.select(db.func.sum(FundDailyOutflow.outflow_amount)).where(
-        FundDailyOutflow.outflow_date == date
-    )
-
-    if description:
-        query = query.where(FundDailyOutflow.outflow_description == description)
-
-    total_outflow = db.session.scalar(query)
-    return total_outflow or 0
-
-
-def get_previous_day_closing_balance_refactored(input_date, requirement):
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet)
-        .where(FundDailySheet.date_current_date < input_date)
-        .order_by(FundDailySheet.date_current_date.desc())
-    )
-    if not daily_sheet:
-        return 0
-
-    return get_requirement(daily_sheet, requirement)
-
-
-def get_daily_summary_refactored(input_date, requirement):
-    daily_sheet = get_daily_sheet(input_date)
-    if not daily_sheet:
-        return 0
-
-    return get_requirement(daily_sheet, requirement)
-
-
-def get_requirement(daily_sheet, requirement):
-    requirement_dict = {
-        "net_investment": daily_sheet.get_net_investment,
-        "hdfc_closing_balance": daily_sheet.float_amount_hdfc_closing_balance or 0,
-        "investment_closing_balance": daily_sheet.float_amount_investment_closing_balance
-        or 0,
-        "investment_given": daily_sheet.float_amount_given_to_investments or 0,
-        "investment_taken": daily_sheet.float_amount_taken_from_investments or 0,
-    }
-
-    return requirement_dict.get(requirement, 0)
-
-
-def get_inflow_total(date):
-    inflow_total = (
-        (get_inflow(date) or 0)
-        + (
-            get_previous_day_closing_balance_refactored(date, "hdfc_closing_balance")
-            or 0
-        )
-        - (get_daily_summary_refactored(date, "investment_taken"))
-    )
-
-    return inflow_total or 0
-
-
-def get_ibt_details(outflow_description):
-    outflow = db.session.scalar(
-        db.select(FundBankAccountNumbers).where(
-            FundBankAccountNumbers.outflow_description == outflow_description
-        )
-    )
-
-    return outflow
 
 
 @funds_bp.route("/api/v2/data/funds", methods=["GET"])
@@ -311,20 +237,12 @@ def upload_bank_statement():
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
-
+    service = BankStatementService(db.session)
     try:
-        df = parse_bank_statement(form.data["file_upload"])
-        df = normalize_bank_statement(df)
-        df = add_flag(df)
-
-        if not verify_closing_balance(df):
-            return render_template(
-                "funds_form.html",
-                form=form,
-                title="Upload bank statement (in .xlsx file format)",
-            )
-
-        save_bank_statement_and_credits(df)
+        service.process(
+            form.data["file_upload"],
+            current_user,
+        )
 
         return redirect(
             url_for(
@@ -332,6 +250,7 @@ def upload_bank_statement():
                 date_string=datetime.date.today().strftime("%d%m%Y"),
             )
         )
+
     except Exception as e:
         flash(f"Error processing bank statement: {str(e)}")
         return render_template(
@@ -339,204 +258,6 @@ def upload_bank_statement():
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
-
-
-def parse_bank_statement(file) -> pd.DataFrame:
-    return pd.read_excel(
-        file,
-        parse_dates=["Book Date", "Value Date"],
-        date_format="dd-mm-yyyy",
-        dtype={
-            "Description": str,
-            "Ledger Balance": float,
-            "Credit": float,
-            "Debit": float,
-            "Reference No": str,
-            "Transaction Branch": str,
-        },
-    )
-
-
-def normalize_bank_statement(df: pd.DataFrame) -> pd.DataFrame:
-    df.columns = df.columns.str.lower().str.replace(" ", "_")
-    df["date_uploaded_date"] = datetime.date.today()
-    df["date_created_date"] = datetime.datetime.now()
-    df["created_by"] = current_user.username
-
-    # assign same batch_id to all rows in this upload
-    df["batch_id"] = str(uuid.uuid4())
-
-    # Move debit values to credit, nullify debit
-    mask = df["debit"].notnull()
-    df.loc[mask, "credit"] = df.loc[mask, "debit"]
-    df.loc[mask, "debit"] = None
-
-    return df
-
-
-def verify_closing_balance(df: pd.DataFrame) -> bool:
-    closing_balance_prev = get_previous_day_closing_balance_refactored(
-        datetime.date.today() + relativedelta(days=1), "hdfc_closing_balance"
-    )
-
-    sum_credits = df["credit"].sum()
-    sum_debits = df["debit"].sum()
-
-    try:
-        closing_balance_stmt = df.loc[
-            df["flag_description"] == "HDFC CLOSING BAL", "ledger_balance"
-        ].item()
-    except ValueError:
-        flash("Closing balance entry not found in the uploaded statement.")
-        return False
-
-    expected_closing = float(closing_balance_prev) + sum_credits - sum_debits
-
-    if fabs(expected_closing - closing_balance_stmt) > 0.001:
-        flash(
-            f"Mismatch in closing balance. Uploaded: {closing_balance_stmt}, Expected: {expected_closing}"
-        )
-        return False
-
-    return True
-
-
-def save_bank_statement_and_credits(df: pd.DataFrame):
-    # Save full bank statement
-    # Parse date columns
-    date_cols = ["value_date", "book_date"]
-
-    for col in date_cols:
-        df[col] = pd.to_datetime(
-            df[col],
-            errors="coerce",
-        ).dt.date
-
-    cols = ["ledger_balance", "credit", "debit"]
-    existing = [c for c in cols if c in df.columns]
-
-    df[existing] = df[existing].fillna(0)
-
-    # Replace NaN/NaT with None for SQLAlchemy
-    df = df.where(pd.notnull(df), None)
-    db.session.execute(db.insert(FundBankStatement), df.to_dict(orient="records"))
-    db.session.commit()
-
-    #    df.to_sql("fund_bank_statement", db.engine, if_exists="append", index=False)
-
-    batch_id = df["batch_id"].iloc[0]
-
-    stmt = (
-        db.update(FundBankStatement)
-        .values(flag_id=FundJournalVoucherFlagSheet.id)
-        .where(
-            FundBankStatement.flag_id.is_(None),
-            FundBankStatement.batch_id == batch_id,
-            FundBankStatement.description.contains(
-                FundJournalVoucherFlagSheet.txt_description
-            ),
-        )
-    )
-
-    db.session.execute(stmt)
-    db.session.commit()
-    unidentified_stmt = db.select(
-        FundBankStatement.book_date,
-        FundBankStatement.description,
-        FundBankStatement.ledger_balance,
-        FundBankStatement.credit,
-        FundBankStatement.debit,
-        FundBankStatement.value_date,
-        FundBankStatement.reference_no,
-        FundBankStatement.transaction_branch,
-        FundBankStatement.date_uploaded_date,
-        FundBankStatement.batch_id,
-        FundBankStatement.flag_description,
-    ).where(
-        FundBankStatement.batch_id == batch_id,
-        FundBankStatement.flag_description == "OTHER RECEIPTS",
-        FundBankStatement.flag_id.is_(None),
-    )
-
-    insert_stmt = db.insert(PoolCredits).from_select(
-        [
-            PoolCredits.book_date,
-            PoolCredits.description,
-            PoolCredits.ledger_balance,
-            PoolCredits.credit,
-            PoolCredits.debit,
-            PoolCredits.value_date,
-            PoolCredits.reference_no,
-            PoolCredits.transaction_branch,
-            PoolCredits.date_uploaded_date,
-            PoolCredits.batch_id,
-            PoolCredits.flag_description,
-        ],
-        unidentified_stmt,
-    )
-    db.session.execute(insert_stmt)
-    db.session.commit()
-
-    # Filter and process "Other Receipts"
-    # other_receipts = df[df["flag_description"] == "OTHER RECEIPTS"]
-    # unidentified_credits = filter_unidentified_credits(other_receipts)
-
-    # Upload unidentified credits
-    # unidentified_credits.to_sql(
-    #     "pool_credits", db.engine, if_exists="append", index=False
-    # )
-
-    # # Upload to pool credits portal
-    # df_portal = prepare_dataframe(unidentified_credits)
-    # df_portal.to_sql("pool_credits_portal", db.engine, if_exists="append", index=False)
-
-    # Update daily sheet
-    closing_balance = df.loc[
-        df["flag_description"] == "HDFC CLOSING BAL", "ledger_balance"
-    ].item()
-    create_or_update_daily_sheet(closing_balance)
-
-
-def create_or_update_daily_sheet(closing_balance_statement):
-    daily_sheet = get_daily_sheet(datetime.date.today())
-    # if there is no daily sheet created for the day, initiate blank daily sheet
-
-    if not daily_sheet:
-        daily_sheet = FundDailySheet()
-        db.session.add(daily_sheet)
-
-    daily_sheet.float_amount_hdfc_closing_balance = closing_balance_statement
-
-    db.session.commit()
-
-
-def add_flag(df_bank_statement):
-    # obtain flag from database and store it as pandas dataframe
-    df_flag_sheet = pd.read_sql("fund_flag_sheet", db.engine)
-    df_flag_sheet = df_flag_sheet[["flag_description", "flag_reg_exp"]]
-
-    # extract regular expression column into list
-    reg_exp = df_flag_sheet["flag_reg_exp"].unique().tolist()
-
-    # add new column flag_reg_exp wherever the description matches the regular_expression
-    df_bank_statement["flag_reg_exp"] = df_bank_statement["description"].apply(
-        lambda x: "".join([part for part in reg_exp if part in str(x)])
-    )
-
-    # use the newly created column to merge with uploaded bank_statement
-    df_bank_statement = df_bank_statement.merge(
-        df_flag_sheet, on="flag_reg_exp", how="left"
-    )
-
-    # Unidentified inflows to be marked as "Other receipts"
-    df_bank_statement["flag_description"] = df_bank_statement[
-        "flag_description"
-    ].fillna("OTHER RECEIPTS")
-
-    # drop the temporarily created column
-    df_bank_statement = df_bank_statement.drop("flag_reg_exp", axis=1)
-
-    return df_bank_statement
 
 
 @funds_bp.route("/bank_statement/view/<string:date_string>/", methods=["GET"])
@@ -617,34 +338,12 @@ def edit_flag_entry(flag_id):
 @fund_managers
 def enter_outflow(date_string):
     param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
-    flags = db.select(
-        FundFlagSheet.flag_description.distinct().label("flag_description")
-    ).subquery()
-    inflow = db.session.execute(
-        db.select(
-            flags.c.flag_description.label("flag_description"),
-            db.func.sum(db.func.coalesce(FundBankStatement.credit, 0)).label("amount"),
-        )
-        .select_from(flags)
-        .outerjoin(
-            FundBankStatement,
-            and_(
-                flags.c.flag_description == FundBankStatement.flag_description,
-                FundBankStatement.date_uploaded_date == param_date,
-            ),
-        )
-        .where(
-            flags.c.flag_description.not_in(["HDFC CLOSING BAL", "HDFC OPENING BAL"]),
-        )
-        .group_by(flags.c.flag_description)
-    ).all()
+
+    inflow = fetch_inflow(param_date)
     daily_sheet, investment_list, list_outgo = get_outflow_data(param_date)
-    prev_daily_sheet = db.session.scalar(
-        db.select(FundDailySheet)
-        .where(FundDailySheet.date_current_date < param_date)
-        .order_by(FundDailySheet.date_current_date.desc())
-    )
-    outflow_labels = db.session.scalars(db.select(FundOutflowLabel.outflow_label)).all()
+    prev_daily_sheet = fetch_prev_daily_sheet(param_date)
+    outflow_labels = fetch_outflow_labels()
+
     DynamicOutflowForm = generate_outflow_form(outflow_labels)
     form = DynamicOutflowForm()
 
@@ -664,170 +363,6 @@ def enter_outflow(date_string):
         inflow=inflow,
         prev_daily_sheet=prev_daily_sheet,
     )
-
-
-def date_or_pending_filter(date_field, status_field, target_date):
-    return or_(
-        date_field == target_date,
-        and_(status_field == "Pending", date_field < target_date),
-    )
-
-
-def get_daily_sheet(input_date):
-    daily_sheet = db.session.scalar(
-        db.select(FundDailySheet).where(FundDailySheet.date_current_date == input_date)
-    )
-    return daily_sheet
-
-
-def get_outflow_data(param_date):
-    daily_sheet = get_daily_sheet(param_date)
-
-    investment_list = db.session.scalars(
-        db.select(FundAmountGivenToInvestment).where(
-            date_or_pending_filter(
-                FundAmountGivenToInvestment.date_expected_date_of_return,
-                FundAmountGivenToInvestment.current_status,
-                param_date,
-            )
-        )
-    ).all()
-
-    list_outgo = db.session.scalars(
-        db.select(FundMajorOutgo).where(
-            date_or_pending_filter(
-                FundMajorOutgo.date_of_outgo, FundMajorOutgo.current_status, param_date
-            )
-        )
-    ).all()
-
-    return daily_sheet, investment_list, list_outgo
-
-
-def handle_outflow_form_submission(form, param_date, daily_sheet):
-    for key, amount in form.data.items():
-        if ("amount" in key) and (amount is not None):
-            create_or_update_outflow(param_date, key, amount)
-
-    amount_given = form.data.get("given_to_investment", 0)
-    expected_date = form.data.get("expected_date_of_return")
-
-    if amount_given > 0 and expected_date:
-        update_given_to_investment_entry(param_date, amount_given, expected_date)
-
-    update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given)
-    db.session.commit()
-
-
-def update_given_to_investment_entry(param_date, amount, expected_date):
-    entry = db.session.scalar(
-        db.select(FundAmountGivenToInvestment)
-        .where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
-        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-    )
-
-    total_investment = db.session.scalar(
-        db.select(
-            db.func.coalesce(
-                db.func.sum(
-                    FundAmountGivenToInvestment.float_amount_given_to_investment
-                ),
-                0,
-            )
-        ).where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
-    )
-
-    if not entry:
-        new_entry = FundAmountGivenToInvestment(
-            date_given_to_investment=param_date,
-            float_amount_given_to_investment=amount,
-            text_remarks=f"From daily sheet {param_date.strftime('%d/%m/%Y')}",
-            date_expected_date_of_return=expected_date,
-            current_status="Pending",
-        )
-        db.session.add(new_entry)
-    elif total_investment != amount:
-        entry.date_expected_date_of_return = expected_date
-        entry.float_amount_given_to_investment += amount - total_investment
-
-
-def update_daily_sheet_with_outflow(daily_sheet, param_date, amount_given):
-    daily_sheet.float_amount_given_to_investments = amount_given
-    drawn_amount = get_inflow(param_date, "Drawn from investment")
-    daily_sheet.float_amount_taken_from_investments = drawn_amount
-
-    daily_sheet.float_amount_investment_closing_balance = (
-        get_previous_day_closing_balance_refactored(
-            param_date, "investment_closing_balance"
-        )
-        + amount_given
-        - drawn_amount
-    )
-
-    daily_sheet.float_amount_hdfc_closing_balance = (
-        get_previous_day_closing_balance_refactored(param_date, "hdfc_closing_balance")
-        + get_inflow(param_date)
-        - get_outflow(param_date)
-        - amount_given
-    )
-
-
-def populate_outflow_form_data(form, param_date, daily_sheet):
-    # Fetch all outflows for the given date in one query
-    outflow_entries = db.session.scalars(
-        db.select(FundDailyOutflow).where(FundDailyOutflow.outflow_date == param_date)
-    )
-
-    # Build lookup dict: { "item_name": amount }
-    outflow_map = {
-        entry.outflow_description: entry.outflow_amount for entry in outflow_entries
-    }
-
-    outflow_labels = db.session.scalars(db.select(FundOutflowLabel.outflow_label)).all()
-    outflow_amounts = [
-        f"amount_{field.lower().replace(' ', '_')}" for field in outflow_labels
-    ]
-
-    # Populate form from the dict (no more DB hits)
-    for item in outflow_amounts:
-        form[item].data = outflow_map.get(item, 0)
-
-    # form.given_to_investment.data = daily_sheet.float_amount_given_to_investments or 0
-    form.given_to_investment.data = (
-        getattr(daily_sheet, "float_amount_given_to_investments", 0) or 0
-    )
-
-    entry = db.session.scalar(
-        db.select(FundAmountGivenToInvestment)
-        .where(FundAmountGivenToInvestment.date_given_to_investment == param_date)
-        .order_by(FundAmountGivenToInvestment.date_expected_date_of_return)
-    )
-
-    if entry:
-        form.expected_date_of_return.data = entry.date_expected_date_of_return
-
-
-def enable_update(date):
-    return datetime.date.today() == date.date()
-
-
-def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):
-    outflow = db.session.scalar(
-        db.select(FundDailyOutflow).where(
-            (FundDailyOutflow.outflow_date == outflow_date)
-            & (FundDailyOutflow.outflow_description == outflow_description)
-        )
-    )
-
-    if not outflow:
-        outflow = FundDailyOutflow(
-            outflow_date=outflow_date,
-            outflow_description=outflow_description,
-        )
-
-        db.session.add(outflow)
-    outflow.outflow_amount = outflow_amount
-    db.session.commit()
 
 
 @funds_bp.route("/remarks/edit/<string:date_string>/", methods=["GET", "POST"])
