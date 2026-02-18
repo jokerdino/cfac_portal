@@ -683,6 +683,7 @@ def list_brs_entries():
 
 @brs_bp.route("/dashboard/view_raw_data/exceptions")
 @login_required
+@admin_required
 def list_brs_entries_exceptions():
     """Function to return exceptions - BRS monthly records for the following conditions
     1. The BRS monthly record is deleted OR
@@ -803,67 +804,67 @@ def get_bank_account_detail(requirement: str, bank_name: str) -> str:
     return bank.str_bank_account_number, bank.str_ifsc_code
 
 
+# @brs_bp.route("/api/v1/brs/<string:office_code>/<string:month>/")
+# def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
+#     """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
+#     Function for entering BBC schedule in E formats
+#     Input: Office code and month
+#     Output: dictionary containing office code, month, each BRS type,
+#     name of bank, ifsc code, account number, closing balance and bank balance
+#     """
+#     # TODO: Candidate for refactoring
+
+#     filtered_brs = BRS.query.filter(
+#         (BRS.uiic_office_code == office_code) & (BRS.month == month)
+#     ).first()
+
+#     # return all existing brs types for the office code
+#     # if brs type exists, return bank name
+#     # and closing balance
+#     json_dict = {f"{office_code}": {"month": month}}
+#     if not filtered_brs:
+#         return json_dict
+#     brs_types = {
+#         "cash": (filtered_brs.cash_bank, filtered_brs.cash_brs_id),
+#         "cheque": (filtered_brs.cheque_bank, filtered_brs.cheque_brs_id),
+#         "pg": (filtered_brs.pg_bank, filtered_brs.pg_brs_id),
+#         "bbps": (filtered_brs.bbps_bank, filtered_brs.bbps_brs_id),
+#         "dqr": (filtered_brs.dqr_bank, filtered_brs.dqr_brs_id),
+#         "pos": (filtered_brs.pos_bank, filtered_brs.pos_brs_id),
+#     }
+
+#     # Helper function to fetch details and update the JSON
+#     def add_brs_details(brs_type, bank_name, brs_id):
+#         if not bank_name:
+#             return
+#         account_number, ifsc_code = get_bank_account_detail(brs_type, bank_name)
+#         details = {
+#             "bank": bank_name.upper(),
+#             "account_number": account_number,
+#             "ifsc_code": ifsc_code,
+#         }
+#         if brs_id:
+#             brs_entry = BRSMonth.query.get(brs_id)
+#             details.update(
+#                 {
+#                     "closing_balance": (
+#                         brs_entry.int_closing_balance if brs_entry else 0
+#                     ),
+#                     "bank_balance": (
+#                         brs_entry.int_balance_as_per_bank if brs_entry else 0
+#                     ),
+#                 }
+#             )
+#         json_dict[office_code][brs_type] = details
+
+#     # Process each BRS type
+#     for brs_type, (bank_name, brs_id) in brs_types.items():
+#         add_brs_details(brs_type, bank_name, brs_id)
+
+#     return json_dict
+
+
 @brs_bp.route("/api/v1/brs/<string:office_code>/<string:month>/")
-def get_schedule_bbc_updated(office_code: str, month: str) -> dict:
-    """Sample URL: http://0.0.0.0:8080/brs/api/v1/brs/500200/January-2024/
-    Function for entering BBC schedule in E formats
-    Input: Office code and month
-    Output: dictionary containing office code, month, each BRS type,
-    name of bank, ifsc code, account number, closing balance and bank balance
-    """
-    # TODO: Candidate for refactoring
-
-    filtered_brs = BRS.query.filter(
-        (BRS.uiic_office_code == office_code) & (BRS.month == month)
-    ).first()
-
-    # return all existing brs types for the office code
-    # if brs type exists, return bank name
-    # and closing balance
-    json_dict = {f"{office_code}": {"month": month}}
-    if not filtered_brs:
-        return json_dict
-    brs_types = {
-        "cash": (filtered_brs.cash_bank, filtered_brs.cash_brs_id),
-        "cheque": (filtered_brs.cheque_bank, filtered_brs.cheque_brs_id),
-        "pg": (filtered_brs.pg_bank, filtered_brs.pg_brs_id),
-        "bbps": (filtered_brs.bbps_bank, filtered_brs.bbps_brs_id),
-        "dqr": (filtered_brs.dqr_bank, filtered_brs.dqr_brs_id),
-        "pos": (filtered_brs.pos_bank, filtered_brs.pos_brs_id),
-    }
-
-    # Helper function to fetch details and update the JSON
-    def add_brs_details(brs_type, bank_name, brs_id):
-        if not bank_name:
-            return
-        account_number, ifsc_code = get_bank_account_detail(brs_type, bank_name)
-        details = {
-            "bank": bank_name.upper(),
-            "account_number": account_number,
-            "ifsc_code": ifsc_code,
-        }
-        if brs_id:
-            brs_entry = BRSMonth.query.get(brs_id)
-            details.update(
-                {
-                    "closing_balance": (
-                        brs_entry.int_closing_balance if brs_entry else 0
-                    ),
-                    "bank_balance": (
-                        brs_entry.int_balance_as_per_bank if brs_entry else 0
-                    ),
-                }
-            )
-        json_dict[office_code][brs_type] = details
-
-    # Process each BRS type
-    for brs_type, (bank_name, brs_id) in brs_types.items():
-        add_brs_details(brs_type, bank_name, brs_id)
-
-    return json_dict
-
-
-@brs_bp.route("/api/v2/brs/<string:office_code>/<string:month>/")
 def get_schedule_bbc_updated_v2(office_code: str, month: str) -> dict:
     """Sample URL: http://0.0.0.0:8080/brs/api/v2/brs/500200/January-2024/
     Function for entering BBC schedule in E formats
