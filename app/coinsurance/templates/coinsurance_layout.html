@@ -92,6 +92,9 @@
                     </div>
                     <a class="navbar-item" href="{{ url_for('coinsurance.query_coinsurance_entries') }}">Filter
                         confirmations</a>
+                    <a class="navbar-item"
+                        href="{{ url_for('coinsurance.company_wise_to_be_settled_summary') }}">Company wise to be
+                        settled summary</a>
                     {% endif %}
                     {% if current_user.user_type in ["admin"] %}
                     <div class="navbar-item has-dropdown is-hoverable"><a class="navbar-link">Receipts</a>

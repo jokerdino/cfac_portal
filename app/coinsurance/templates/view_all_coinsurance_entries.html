@@ -1,6 +1,7 @@
 {% extends "coinsurance_layout.html" %}
 {% block content %}
 <h1 class="title"> {{ title }}{{ status }}</h1>
+{% include "partials/messages.html" %}
 
 {% if coinsurance_entries %}
 

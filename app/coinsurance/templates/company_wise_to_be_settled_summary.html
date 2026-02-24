@@ -1,0 +1,64 @@
+{% extends "coinsurance_layout.html" %}
+{% block content %}
+
+<div class="container">
+    <h1 class="title">Company-wise "to be settled" summary</h1>
+    <table class="table is-bordered" id="summary_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">Company name</th>
+                <th class="has-text-centered is-vcentered">Payable amount</th>
+                <th class="has-text-centered is-vcentered">Receivable amount</th>
+                <th class="has-text-centered is-vcentered">Reinsurance payable amount</th>
+                <th class="has-text-centered is-vcentered">Reinsurance receivable amount</th>
+                <th class="has-text-centered is-vcentered">Net amount (payable)</th>
+                <th class="has-text-centered is-vcentered">Net amount (receivable)</th>
+                <th>View entries</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in result %}
+            <tr>
+                <td>{{ entry.follower_company_name  }}</td>
+                <td>{{ entry.payable_amount | indian_number_format }}</td>
+                <td>{{ entry.receivable_amount | indian_number_format }}</td>
+                <td>{{ entry.ri_payable_amount | indian_number_format }}</td>
+                <td>{{ entry.ri_receivable_amount | indian_number_format }}</td>
+                <td>{{ entry.net_payable | indian_number_format }}</td>
+                <td>{{ entry.net_receivable | indian_number_format }}</td>
+                <td><a
+                        href=" {{ url_for('coinsurance.to_be_settled_company_wise_details', company=entry.follower_company_name )}} ">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+
+    new DataTable('#summary_table', {
+
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        fixedHeader: true,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[9, 'desc']],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [
+            [10, 25, 50, 100, -1],
+            [10, 25, 50, 100, 'All'],]
+    });
+
+</script>
+
+{% endblock scripts %}

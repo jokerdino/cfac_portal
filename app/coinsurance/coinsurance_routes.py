@@ -1273,3 +1273,119 @@ def download_token_id_document(key):
         download_name=f"{token_id.company_name}_{token_id.type_of_amount}_{token_id.amount}.pdf",
         as_attachment=True,
     )
+
+
+@coinsurance_bp.route("/to_be_settled/summary/")
+@login_required
+def company_wise_to_be_settled_summary():
+    START_DATE = datetime(2026, 3, 1)
+    net_expr = db.func.sum(
+        db.func.coalesce(Coinsurance.payable_amount, 0)
+        + db.func.coalesce(Coinsurance.int_ri_payable_amount, 0)
+        - db.func.coalesce(Coinsurance.receivable_amount, 0)
+        - db.func.coalesce(Coinsurance.int_ri_receivable_amount, 0)
+    )
+    query = (
+        db.select(
+            Coinsurance.follower_company_name,
+            db.func.sum(db.func.coalesce(Coinsurance.payable_amount, 0)).label(
+                "payable_amount"
+            ),
+            db.func.sum(db.func.coalesce(Coinsurance.receivable_amount, 0)).label(
+                "receivable_amount"
+            ),
+            db.func.sum(db.func.coalesce(Coinsurance.int_ri_payable_amount, 0)).label(
+                "ri_payable_amount"
+            ),
+            db.func.sum(
+                db.func.coalesce(Coinsurance.int_ri_receivable_amount, 0)
+            ).label("ri_receivable_amount"),
+            db.case((net_expr > 0, net_expr), else_=0).label("net_payable"),
+            db.case((net_expr < 0, db.func.abs(net_expr)), else_=0).label(
+                "net_receivable"
+            ),
+        )
+        .where(
+            Coinsurance.date_created_date >= START_DATE,
+            Coinsurance.current_status == "To be settled",
+        )
+        .group_by(Coinsurance.follower_company_name)
+    )
+    result = db.session.execute(query).mappings().all()
+
+    return render_template("company_wise_to_be_settled_summary.html", result=result)
+
+
+@coinsurance_bp.route(
+    "/to_be_settled/company/<string:company>/", methods=["POST", "GET"]
+)
+@login_required
+def to_be_settled_company_wise_details(company):
+    START_DATE = datetime(2026, 3, 1)
+    form_select_coinsurer = CoinsurerSelectForm()
+    settlement_form = SettlementUTRForm()
+    utr_list = db.session.scalars(
+        db.select(Settlement).where(
+            Settlement.name_of_company == company,
+            Settlement.date_of_settlement >= START_DATE,
+        )
+    )
+    settlement_form.utr_number.choices = [
+        (utr.utr_number, str(utr)) for utr in utr_list
+    ]
+
+    query = (
+        db.select(Coinsurance)
+        .where(
+            Coinsurance.follower_company_name == company,
+            Coinsurance.date_created_date >= START_DATE,
+            Coinsurance.current_status == "To be settled",
+        )
+        .order_by(Coinsurance.date_created_date)
+    )
+    result = db.session.execute(query).scalars().all()
+    select_coinsurers_v2(query, form_select_coinsurer)
+
+    if settlement_form.validate_on_submit() and settlement_form.update_settlement.data:
+        selected_ids = request.form.getlist("coinsurance_keys")
+        selected_ids = [int(i) for i in selected_ids]
+        if not selected_ids:
+            flash("No entries selected.", "warning")
+            return redirect(
+                url_for(
+                    "coinsurance.to_be_settled_company_wise_details", company=company
+                )
+            )
+        form_utr_number = settlement_form.utr_number.data
+        if not form_utr_number:
+            flash("No UTR numbers selected.", "warning")
+            return redirect(
+                url_for(
+                    "coinsurance.to_be_settled_company_wise_details", company=company
+                )
+            )
+        update_stmt = (
+            db.update(Coinsurance)
+            .where(Coinsurance.id.in_(selected_ids))
+            .values(
+                {
+                    Coinsurance.current_status: "Settled",
+                    Coinsurance.utr_number: form_utr_number,
+                }
+            )
+        )
+        db.session.execute(update_stmt)
+        db.session.commit()
+        flash(f"{len(selected_ids)} entries marked as settled.", "success")
+        return redirect(
+            url_for("coinsurance.to_be_settled_company_wise_details", company=company)
+        )
+    return render_template(
+        "view_all_coinsurance_entries.html",
+        coinsurance_entries=result,
+        update_settlement=True,
+        form_select_coinsurer=form_select_coinsurer,
+        form=settlement_form,
+        status="To be settled",
+        title="List of coinsurance confirmations - ",
+    )
