@@ -610,6 +610,7 @@ def lien_dashboard():
 def lien_reports():
     form = LienStatusFilterForm()
     query = db.select(Lien)
+    ROUND_OFF = 100_000
     populate_status(query, form, view_all=False)
 
     status = form.lien_status.data if form.validate_on_submit() else "DD issued"
@@ -627,11 +628,15 @@ def lien_reports():
         safe_bank = sanitize_status(bank)
         bank_labels[bank] = safe_bank
 
-        col_count = db.func.count(db.case((subq.c.bank_name == bank, 1))).label(
+        col_count = db.func.sum(db.case((subq.c.bank_name == bank, 1), else_=0)).label(
             f"count_{safe_bank}"
         )
-        col_sum = db.func.sum(
-            db.case((subq.c.bank_name == bank, subq.c.lien_amount), else_=0)
+
+        col_sum = (
+            db.func.sum(
+                db.case((subq.c.bank_name == bank, subq.c.lien_amount), else_=0)
+            )
+            / ROUND_OFF
         ).label(f"sum_{safe_bank}")
         bank_columns.extend([col_count, col_sum])
 
@@ -641,7 +646,7 @@ def lien_reports():
             subq.c.ro_name,
             *bank_columns,
             db.func.count(subq.c.id).label("total_count"),
-            db.func.sum(subq.c.lien_amount).label("total_amount"),
+            (db.func.sum(subq.c.lien_amount) / ROUND_OFF).label("total_amount"),
         )
         .group_by(subq.c.ro_name, subq.c.ro_code)
         .order_by(subq.c.ro_code)

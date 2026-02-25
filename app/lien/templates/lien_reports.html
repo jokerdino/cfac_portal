@@ -16,8 +16,12 @@
             <li id="count_tab">
                 <a onclick="show_count()">Count</a>
             </li>
+            <li id="consol_tab">
+                <a onclick="show_consol()">Consol</a>
+            </li>
         </ul>
     </div>
+    <div class="has-text-right has-text-weight-bold">Amounts are presented in lakhs</div>
     <div id="sum_table" class="container is-fluid">
         <table class="table is-bordered is-striped is-hoverable" id="lien_sum">
             <thead>
@@ -75,6 +79,38 @@
             </tbody>
         </table>
     </div>
+    <div class="is-hidden container is-fluid" id="consol_table">
+        <table class="table is-bordered is-striped is-hoverable" id="lien_consol">
+            <thead>
+                <tr>
+                    <th class="is-vcentered has-text-centered">RO code</th>
+                    <th class="is-vcentered has-text-centered">RO name</th>
+                    {% for bank in bank_names %}
+                    <th class="is-vcentered has-text-centered">Amount - {{ bank }}</th>
+                    <th class="is-vcentered has-text-centered">Count - {{ bank }}</th>
+                    {% endfor %}
+                    <th class="is-vcentered has-text-centered">Total Amount</th>
+                    <th class="is-vcentered has-text-centered">Total Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in lien_data %}
+                <tr>
+                    <td>{{ row.ro_code }}</td>
+                    <td>{{ row.ro_name }}</td>
+
+                    {% for bank in bank_names %}
+                    {% set safe_bank = bank_labels[bank] %}
+                    <td class="has-text-right">{{ (row['sum_' ~ safe_bank] or 0) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (row['count_' ~ safe_bank] or 0) }}</td>
+                    {% endfor %}
+                    <td class="has-text-right">{{ (row.total_amount or 0 )| indian_number_format }}</td>
+                    <td class="has-text-right">{{ (row.total_count or 0 ) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
 </div>
 {% endblock content %}
@@ -85,10 +121,12 @@
     function show_count() {
         // Toggle Tables
         document.getElementById("sum_table").classList.add("is-hidden");
+        document.getElementById("consol_table").classList.add("is-hidden");
         document.getElementById("count_table").classList.remove("is-hidden");
 
         // Toggle Tabs
         document.getElementById("sum_tab").classList.remove("is-active");
+        document.getElementById("consol_tab").classList.remove("is-active");
         document.getElementById("count_tab").classList.add("is-active");
 
         // Important: Recalculate columns for the hidden table
@@ -100,14 +138,32 @@
     function show_sum() {
         // Toggle Tables
         document.getElementById("count_table").classList.add("is-hidden");
+        document.getElementById("consol_table").classList.add("is-hidden");
         document.getElementById("sum_table").classList.remove("is-hidden");
 
         // Toggle Tabs
         document.getElementById("count_tab").classList.remove("is-active");
+        document.getElementById("consol_tab").classList.remove("is-active");
         document.getElementById("sum_tab").classList.add("is-active");
 
         if ($.fn.DataTable.isDataTable('#lien_sum')) {
             $('#lien_sum').DataTable().columns.adjust().draw();
+        }
+    }
+
+    function show_consol() {
+        // Toggle Tables
+        document.getElementById("count_table").classList.add("is-hidden");
+        document.getElementById("sum_table").classList.add("is-hidden");
+        document.getElementById("consol_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("count_tab").classList.remove("is-active");
+        document.getElementById("sum_tab").classList.remove("is-active");
+        document.getElementById("consol_tab").classList.add("is-active");
+
+        if ($.fn.DataTable.isDataTable('#lien_consol')) {
+            $('#lien_consol').DataTable().columns.adjust().draw();
         }
     }
 
@@ -132,6 +188,7 @@
     $(document).ready(function () {
         new DataTable('#lien_sum', dtConfig);
         new DataTable('#lien_count', dtConfig);
+        new DataTable('#lien_consol', dtConfig);
     });
 </script>
 
