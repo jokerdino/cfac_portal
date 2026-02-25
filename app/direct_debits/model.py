@@ -45,7 +45,7 @@ class DirectDebit(db.Model):
 
     # to be entered by RO accounts or RO TP department
     ro_jv_number: Mapped[Optional[str]]
-    ro_jv_date: Mapped[Optional[str]]
+    ro_jv_date: Mapped[Optional[date]]
 
     remarks: Mapped[Optional[str]] = mapped_column(db.Text)
 
