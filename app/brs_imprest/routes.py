@@ -379,6 +379,7 @@ def get_prev_month_closing_balance(brs_id):
             Summary.month == prev_month_str,
             Summary.imprest_bank_account_number
             == brs_summary.imprest_bank_account_number,
+            Details.status == "Active",
         )
     )
     if previous_month_brs:
