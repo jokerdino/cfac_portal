@@ -1,8 +1,6 @@
 {% extends "brs_layout.html" %}
 {% block content %}
 
-{% if current_user.user_type in ["admin","ro_user"] %}
-{% if brs_entries %}
 <div class="table-container">
         <table class="table is-bordered is-hoverable" id="brs_table">
                 <thead>
@@ -69,8 +67,6 @@
         </table>
 </div>
 
-{% endif %}
-{% endif %}
 {% block scripts %}
 <script>
         new DataTable('#brs_table', {

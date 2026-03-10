@@ -624,60 +624,58 @@ def enter_brs(requirement, brs_id):
 @login_required
 @ro_user_only
 def list_brs_entries():
-    """Function to return genuine BRS entries to be considered for passing JV
-    a. Entries which are not deleted AND
-    b. Entries which have no closing balance AND
-    c. Entries which have closing balance and corresponding outstanding/short_credit/excess_credit entries.
-    """
     form = RawDataForm()
 
+    # Get distinct months for the dropdown
     month_choices = db.session.scalars(db.select(BRS.month).distinct())
-
-    list_period = [datetime.strptime(item, "%B-%Y") for item in month_choices]
-
-    # sorting the items of list_period in reverse order
-    # newer months will be above
-    list_period.sort(reverse=True)
-    # list_period is now dynamically added as dropdown choice list to the SelectField
+    list_period = sorted(
+        [datetime.strptime(item, "%B-%Y") for item in month_choices], reverse=True
+    )
     form.month.choices = [item.strftime("%B-%Y") for item in list_period]
 
     if form.validate_on_submit():
         month = form.data["month"]
         brs_type = form.data["brs_type"]
 
+        # 1. Base query with joinedload for the parent BRS record
         stmt = (
             db.select(BRSMonth)
             .options(joinedload(BRSMonth.brs))
             .join(BRS, BRS.id == BRSMonth.brs_id)
-            .where((BRSMonth.status.is_(None)), (BRS.month == month))
+            # 2. Left Outer Joins to the three "child" tables
+            .outerjoin(Outstanding, Outstanding.brs_month_id == BRSMonth.id)
+            .outerjoin(
+                BankReconExcessCredit, BankReconExcessCredit.brs_month_id == BRSMonth.id
+            )
+            .outerjoin(
+                BankReconShortCredit, BankReconShortCredit.brs_month_id == BRSMonth.id
+            )
+            .where(BRSMonth.status.is_(None), BRS.month == month)
         )
 
+        # 3. Apply BRS Type filter
         if brs_type != "View all":
             stmt = stmt.where(BRSMonth.brs_type == brs_type)
 
-        subquery_os = db.select(Outstanding.brs_month_id).distinct()
-        subquery_excess = db.select(BankReconExcessCredit.brs_month_id).distinct()
-        subquery_short = db.select(BankReconShortCredit.brs_month_id).distinct()
-
-        unioned_ids = db.union_all(
-            subquery_os, subquery_excess, subquery_short
-        ).subquery()
-
-        stmt = stmt.where(
-            (BRSMonth.int_closing_balance == 0)
-            | (
-                (BRSMonth.int_closing_balance != 0)
-                & BRSMonth.id.in_(db.select(unioned_ids.c.brs_month_id))
-            )
-        )
-
+        # 4. Filter by Regional Code if applicable
         if current_user.user_type == "ro_user":
             stmt = stmt.where(BRS.uiic_regional_code == current_user.ro_code)
-        results = db.session.scalars(stmt)
-        return render_template(
-            "view_brs_raw_data.html",
-            brs_entries=results,
-        )
+
+        # 5. Core Logic: (Balance is 0) OR (Record exists in any of the 3 child tables)
+        # We check if the ID from the outer join is not NULL
+        stmt = stmt.where(
+            db.or_(
+                BRSMonth.int_closing_balance == 0,
+                Outstanding.id.is_not(None),
+                BankReconExcessCredit.id.is_not(None),
+                BankReconShortCredit.id.is_not(None),
+            )
+        ).distinct()  # Distinct is crucial here to prevent duplicate rows from joins
+
+        results = db.session.scalars(stmt).all()
+
+        return render_template("view_brs_raw_data.html", brs_entries=results)
+
     return render_template("brs_raw_data_form.html", form=form)
 
 
