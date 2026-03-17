@@ -70,7 +70,7 @@ def direct_debit_list():
         "ro_name",
         "transaction_date",
         "particulars",
-        "debit",
+        "amount",
         "status",
         "dd_reversal_date",
         "ho_iot_jv_number",

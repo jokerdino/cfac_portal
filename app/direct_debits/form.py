@@ -18,7 +18,7 @@ class HeadOfficeForm(FlaskForm):
     ro_code = StringField("RO Code")
     transaction_date = DateField()
     particulars = StringField()
-    debit = DecimalField()
+    debit = DecimalField("Amount")
     status = SelectField(coerce=Status)
     dd_reversal_date = DateField("DD reversal date", validators=[Optional()])
     ho_iot_jv_number = StringField("HO IOT JV number", validators=[Optional()])
