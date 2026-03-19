@@ -52,6 +52,7 @@ from app.funds.funds_model import (
     FundJournalVoucherFlagSheet,
     FundMajorOutgo,
     FundOutflowLabel,
+    FundSignatory,
 )
 from app.ho_accounts.ho_accounts_model import (
     HeadOfficeAccountsTracker,
@@ -474,6 +475,15 @@ admin.add_view(
         FundOutflowLabel,
         db.session,
         endpoint="funds_outflow_label",
+        category="Funds",
+    )
+)
+
+admin.add_view(
+    ModelView(
+        FundSignatory,
+        db.session,
+        endpoint="funds_signatory",
         category="Funds",
     )
 )

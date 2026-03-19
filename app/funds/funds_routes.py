@@ -37,6 +37,8 @@ from app.funds.funds_model import (
     FundDailySheet,
     FundFlagSheet,
     FundMajorOutgo,
+    FundSignatory,
+    Designation,
 )
 
 from .funds_utils import (
@@ -406,6 +408,7 @@ def add_remarks(date_string):
         .order_by(FundDailySheet.date_current_date.desc())
     )
     form = DailySummaryForm(obj=daily_sheet)
+    form.populate_signatories()
     if form.validate_on_submit():
         form.populate_obj(daily_sheet)
         db.session.commit()
@@ -854,3 +857,42 @@ def funds_context():
         timedelta=datetime.timedelta,
         relativedelta=relativedelta,
     )
+
+
+@funds_bp.route("/remarks/signatories")
+@login_required
+@fund_managers
+def seed_signatories():
+    initial_data = [
+        {
+            "name": "P Sudha Venkateswari",
+            "designation": Designation.ASSISTANT_MANAGER,
+            "position": 1,
+        },
+        {
+            "name": "Nanditha Rao",
+            "designation": Designation.ASSISTANT_MANAGER,
+            "position": 1,
+        },
+        {
+            "name": "G Suganya Priya",
+            "designation": Designation.ADMIN_OFFICER,
+            "position": 1,
+        },
+        {"name": "A P Usha", "designation": Designation.CHIEF_MANAGER, "position": 2},
+        {
+            "name": "Gaddam Janakiram",
+            "designation": Designation.CHIEF_MANAGER,
+            "position": 2,
+        },
+        {"name": "S Hemamalini", "designation": Designation.DGM_CFO, "position": 3},
+        {
+            "name": "C M Manoharan",
+            "designation": Designation.GENERAL_MANAGER,
+            "position": 4,
+        },
+    ]
+    for entry in initial_data:
+        if not FundSignatory.query.filter_by(name=entry["name"]).first():
+            db.session.add(FundSignatory(**entry))
+    db.session.commit()

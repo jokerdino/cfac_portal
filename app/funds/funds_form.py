@@ -17,7 +17,9 @@ from wtforms.validators import DataRequired, Optional, ValidationError
 from wtforms_sqlalchemy.orm import model_form
 
 
-from .funds_model import FundJournalVoucherFlagSheet
+from .funds_model import FundJournalVoucherFlagSheet, FundSignatory
+
+from extensions import db
 
 
 def verify_months(start_date, end_date):
@@ -87,25 +89,35 @@ class DailySummaryForm(FlaskForm):
 
     text_person1_name = SelectField(
         "Enter name of person 1",
-        choices=["P Sudha Venkateswari", "Nanditha Rao", "G Suganya Priya"],
+        choices=[],
     )
-    text_person1_designation = SelectField(
-        "Enter designation of person 1", choices=["Assistant Manager", "Admin. Officer"]
-    )
-    text_person2_name = SelectField(
-        "Enter name of person 2", choices=["A P Usha", "Gaddam Janakiram"]
-    )
-    text_person2_designation = SelectField(
-        "Enter designation of person 2", choices=["Chief Manager"]
-    )
-    text_person3_name = SelectField("Enter name of person 3", choices=["S Hemamalini"])
-    text_person3_designation = SelectField(
-        "Enter designation of person 3", choices=["DGM & CFO"]
-    )
-    text_person4_name = SelectField("Enter name of person 4", choices=["C M Manoharan"])
-    text_person4_designation = SelectField(
-        "Enter designation of person 4", choices=["General Manager"]
-    )
+    text_person1_designation = SelectField("Enter designation of person 1", choices=[])
+    text_person2_name = SelectField("Enter name of person 2", choices=[])
+    text_person2_designation = SelectField("Enter designation of person 2", choices=[])
+    text_person3_name = SelectField("Enter name of person 3", choices=[])
+    text_person3_designation = SelectField("Enter designation of person 3", choices=[])
+    text_person4_name = SelectField("Enter name of person 4", choices=[])
+    text_person4_designation = SelectField("Enter designation of person 4", choices=[])
+
+    def populate_signatories(self):
+        for position in range(1, 5):
+            signatories = db.session.scalars(
+                db.select(FundSignatory)
+                .where(
+                    FundSignatory.position == position,
+                    FundSignatory.is_active.is_(True),
+                )
+                .order_by(FundSignatory.name),
+            ).all()
+            name_choices = [(s.name, s.name) for s in signatories]
+            designation_choices = list(
+                {(s.designation, s.designation) for s in signatories}
+            )
+
+            getattr(self, f"text_person{position}_name").choices = name_choices
+            getattr(
+                self, f"text_person{position}_designation"
+            ).choices = designation_choices
 
 
 class MajorOutgoForm(FlaskForm):

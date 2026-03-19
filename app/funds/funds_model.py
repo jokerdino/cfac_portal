@@ -3,12 +3,26 @@ from datetime import datetime, date
 # from dataclasses import dataclass
 import uuid
 from typing import Optional
+from enum import StrEnum
 
 from sqlalchemy import Uuid
 from sqlalchemy.orm import column_property, mapped_column, Mapped, relationship
 from sqlalchemy.dialects.postgresql import UUID
 
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
+
+
+class Designation(StrEnum):
+    ADMIN_OFFICER = "Admin. Officer"
+    ASSISTANT_MANAGER = "Assistant Manager"
+    DEPUTY_MANAGER = "Deputy Manager"
+    MANAGER = "Manager"
+    CHIEF_MANAGER = "Chief Manager"
+    DGM = "DGM"
+    DGM_CFO = "DGM & CFO"
+    GENERAL_MANAGER = "General Manager"
+    ED = "ED"
+    CMD = "CMD"
 
 
 # @dataclass
@@ -228,4 +242,28 @@ class FundOutflowLabel(db.Model):
     date_updated_date: Mapped[UpdatedOn]
 
     created_by: Mapped[CreatedBy]
+    updated_by: Mapped[UpdatedBy]
+
+
+class FundSignatory(db.Model):
+    id: Mapped[IntPK]
+
+    name: Mapped[str]
+
+    designation: Mapped[Designation] = mapped_column(
+        db.Enum(
+            Designation,
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+            default=Designation.ADMIN_OFFICER,
+        ),
+        nullable=False,
+    )
+    position: Mapped[int]
+    is_active: Mapped[bool] = mapped_column(default=True)
+
+    created_on: Mapped[CreatedOn]
+    created_by: Mapped[CreatedBy]
+
+    updated_on: Mapped[UpdatedOn]
     updated_by: Mapped[UpdatedBy]
