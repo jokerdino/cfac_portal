@@ -37,8 +37,6 @@ from app.funds.funds_model import (
     FundDailySheet,
     FundFlagSheet,
     FundMajorOutgo,
-    FundSignatory,
-    Designation,
 )
 
 from .funds_utils import (
@@ -859,40 +857,40 @@ def funds_context():
     )
 
 
-@funds_bp.route("/remarks/signatories")
-@login_required
-@fund_managers
-def seed_signatories():
-    initial_data = [
-        {
-            "name": "P Sudha Venkateswari",
-            "designation": Designation.ASSISTANT_MANAGER,
-            "position": 1,
-        },
-        {
-            "name": "Nanditha Rao",
-            "designation": Designation.ASSISTANT_MANAGER,
-            "position": 1,
-        },
-        {
-            "name": "G Suganya Priya",
-            "designation": Designation.ADMIN_OFFICER,
-            "position": 1,
-        },
-        {"name": "A P Usha", "designation": Designation.CHIEF_MANAGER, "position": 2},
-        {
-            "name": "Gaddam Janakiram",
-            "designation": Designation.CHIEF_MANAGER,
-            "position": 2,
-        },
-        {"name": "S Hemamalini", "designation": Designation.DGM_CFO, "position": 3},
-        {
-            "name": "C M Manoharan",
-            "designation": Designation.GENERAL_MANAGER,
-            "position": 4,
-        },
-    ]
-    for entry in initial_data:
-        if not FundSignatory.query.filter_by(name=entry["name"]).first():
-            db.session.add(FundSignatory(**entry))
-    db.session.commit()
+# @funds_bp.route("/remarks/signatories")
+# @login_required
+# @fund_managers
+# def seed_signatories():
+#     initial_data = [
+#         {
+#             "name": "P Sudha Venkateswari",
+#             "designation": Designation.ASSISTANT_MANAGER,
+#             "position": 1,
+#         },
+#         {
+#             "name": "Nanditha Rao",
+#             "designation": Designation.ASSISTANT_MANAGER,
+#             "position": 1,
+#         },
+#         {
+#             "name": "G Suganya Priya",
+#             "designation": Designation.ADMIN_OFFICER,
+#             "position": 1,
+#         },
+#         {"name": "A P Usha", "designation": Designation.CHIEF_MANAGER, "position": 2},
+#         {
+#             "name": "Gaddam Janakiram",
+#             "designation": Designation.CHIEF_MANAGER,
+#             "position": 2,
+#         },
+#         {"name": "S Hemamalini", "designation": Designation.DGM_CFO, "position": 3},
+#         {
+#             "name": "C M Manoharan",
+#             "designation": Designation.GENERAL_MANAGER,
+#             "position": 4,
+#         },
+#     ]
+#     for entry in initial_data:
+#         if not FundSignatory.query.filter_by(name=entry["name"]).first():
+#             db.session.add(FundSignatory(**entry))
+#     db.session.commit()
