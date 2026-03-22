@@ -1,0 +1,179 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+
+{% set sections = [
+{
+"id": "sec-request",
+"num": "1",
+"title": "Request Details",
+"hint": "Basic information about the tie-up request from the head office department.",
+"fields": [
+"name_of_head_office_department",
+"date_of_request_from_head_office_department",
+"name_of_tieup_partner",
+"similar_request_from_other_department",
+"mou_validity_date"
+]
+},
+{
+"id": "sec-nodal",
+"num": "2",
+"title": "Nodal Office",
+"hint": "Regional and nodal office identifiers and their agreement status.",
+"fields": [
+"ro_code",
+"nodal_office_code",
+"nodal_office_name",
+"nodal_office_gst_address",
+"nodal_office_agree_for_pg_vender"
+]
+},
+{
+"id": "sec-bank-mandate",
+"num": "3",
+"title": "Bank Mandate",
+"hint": "Lifecycle of the bank mandate from issuance to sharing with the PG vendor.",
+"fields": [
+"tieup_partner_id_for_bank_mandate",
+"date_informed_to_bank_for_bank_mandate",
+"date_of_receipt_of_bank_mandate_with_bank_seal",
+"date_bank_mandate_shared_with_pg_vendor"
+]
+},
+{
+"id": "sec-pg-vendor",
+"num": "4",
+"title": "PG Vendor Setup",
+"hint": "Merchant IDs and related configuration assigned by the payment gateway vendor.",
+"fields": [
+"mid_or_similar_id_as_per_pg_vendor",
+"old_mid_name"
+]
+},
+{
+"id": "sec-staging-prod",
+"num": "5",
+"title": "Staging & Production",
+"hint": "Dates and details for staging and production environment handovers.",
+"fields": [
+"date_of_receipt_of_staging_details",
+"date_of_sharing_staging_details_to_head_office_dept",
+"staging_details",
+"date_of_receipt_of_production_details",
+"production_details"
+]
+},
+{
+"id": "sec-bank-account",
+"num": "6",
+"title": "Bank Account & BRS",
+"hint": "Settlement account details, T+1 transfer status, and reconciliation tracking.",
+"fields": [
+"bank_name",
+"bank_account_number",
+"bank_account_details_where_credit_is_expected",
+"whether_t_plus_one_transfer_happening",
+"brs_done_upto",
+"date_of_bank_charges_jv_passed_to_nodal_office"
+]
+},
+{
+"id": "sec-spoc",
+"num": "7",
+"title": "SPOC Details",
+"hint": "Single Point of Contact for the Regional Office and Nodal Office.",
+"fields": [
+"spoc_name",
+"spoc_employee_number",
+"ro_spoc_email_address",
+"nodal_office_spoc_email_address"
+]
+}
+] %}
+
+<div class="container">
+  {% include "partials/errors.html" %}
+  {% include "partials/messages.html" %}
+
+  <div class="block mt-5">
+    <h1 class="title is-4">{{ title }}</h1>
+  </div>
+
+  <div class="columns is-variable is-4">
+
+    <!-- ── Main content ── -->
+    <div class="column">
+
+      {% for sec in sections %}
+      <div id="{{ sec.id }}" class="card mb-5">
+        <header class="card-header">
+          <p class="card-header-title">
+            <span class="tag is-dark mr-2">{{ sec.num }}</span>
+            {{ sec.title }}
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="notification is-warning is-light py-2 px-3 mb-4">
+            <small>{{ sec.hint }}</small>
+          </div>
+          <table class="table is-fullwidth is-striped is-hoverable">
+            {% for field in sec.fields %}
+            {% if field in column_names %}
+            <tr>
+              <th class="has-text-grey">
+                {{ field | replace("_", " ") | upper }}
+              </th>
+              <td>{{ pg_tieup[field] or "—" }}</td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- 8 · Documents -->
+      <div id="sec-docs" class="card mb-5">
+        <header class="card-header">
+          <p class="card-header-title">
+            <span class="tag is-dark mr-2">8</span>
+            Documents
+          </p>
+        </header>
+        <div class="card-content">
+          <div class="notification is-warning is-light py-2 px-3 mb-4">
+            <small>Uploaded supporting files.</small>
+          </div>
+          <table class="table is-fullwidth is-striped is-hoverable">
+            <tr>
+              <th class="has-text-grey">Bank Mandate</th>
+              <td>
+                {% if pg_tieup['bank_mandate_file'] %}
+                <a class="button is-link is-outlined is-small"
+                  href="{{ url_for('pg_tieup.download_bank_mandate', id=pg_tieup.id) }}">
+                  <span>Download</span>
+                </a>
+                {% else %}
+                <span class="has-text-grey-light">Not uploaded</span>
+                {% endif %}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="has-text-centered">
+
+        <a class="button is-link" href="{{ url_for('pg_tieup.edit_pg_tieup', key=pg_tieup.id) }}">
+
+          <span>Edit</span>
+        </a>
+
+      </div>
+
+    </div><!-- /.column -->
+  </div><!-- /.columns -->
+</div>
+
+{% endblock content %}

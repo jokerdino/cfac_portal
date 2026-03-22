@@ -92,7 +92,7 @@ def view_pg_tieup(key):
     column_names = [col for col in column_names if col not in meta_columns]
 
     return render_template(
-        "view_pg_tieup.html", pg_tieup=pg_tieup, column_names=column_names
+        "view_pg_tieup_redesign.html", pg_tieup=pg_tieup, column_names=column_names
     )
 
 
