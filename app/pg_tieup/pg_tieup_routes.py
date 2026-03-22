@@ -42,7 +42,9 @@ def add_pg_tieup():
         db.session.commit()
 
         return redirect(url_for("pg_tieup.view_pg_tieup", key=pg_tieup.id))
-    return render_template("pg_tieup_form.html", form=form, title="Add PG tieup")
+    return render_template(
+        "pg_tieup_form_redesign.html", form=form, title="Add PG tieup"
+    )
 
 
 @pg_tieup_bp.route("/edit/<int:key>/", methods=["POST", "GET"])
@@ -66,7 +68,9 @@ def edit_pg_tieup(key):
         db.session.commit()
         return redirect(url_for("pg_tieup.view_pg_tieup", key=pg_tieup.id))
 
-    return render_template("pg_tieup_form.html", form=form, title="Edit PG tieup")
+    return render_template(
+        "pg_tieup_form_redesign.html", form=form, title="Edit PG tieup"
+    )
 
 
 @pg_tieup_bp.route("/view/<int:key>/")

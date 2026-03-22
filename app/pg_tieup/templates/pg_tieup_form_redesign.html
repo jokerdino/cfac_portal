@@ -1,0 +1,241 @@
+{% extends "pg_tieup_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<div class="container">
+  {% include "partials/errors.html" %}
+  {% include "partials/messages.html" %}
+
+  <div class="block mt-5">
+    <h1 class="title is-4">{{ title }}</h1>
+
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    <div class="columns is-variable is-4">
+
+      <!-- ── Main form content ── -->
+      <div class="column">
+
+        <!-- 1 · Request Details -->
+        <div id="sec-request" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">1</span>
+              Request Details
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Basic information about the tie-up request from the head office department.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.name_of_head_office_department) }}
+              {{ render_field_table(form.date_of_request_from_head_office_department) }}
+              {{ render_field_table(form.name_of_tieup_partner) }}
+              {{ render_field_table(form.similar_request_from_other_department) }}
+              {{ render_field_table(form.mou_validity_date) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 2 · Nodal Office -->
+        <div id="sec-nodal" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">2</span>
+              Nodal Office
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Regional and nodal office identifiers and their agreement status.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.ro_code) }}
+              {{ render_field_table(form.nodal_office_code) }}
+              {{ render_field_table(form.nodal_office_name) }}
+              {{ render_field_table(form.nodal_office_gst_address) }}
+              {{ render_field_table(form.nodal_office_agree_for_pg_vender) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 3 · Bank Mandate -->
+        <div id="sec-bank-mandate" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">3</span>
+              Bank Mandate
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Track the lifecycle of the bank mandate from issuance to sharing with the PG vendor.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.tieup_partner_id_for_bank_mandate) }}
+              {{ render_field_table(form.date_informed_to_bank_for_bank_mandate) }}
+              {{ render_field_table(form.date_of_receipt_of_bank_mandate_with_bank_seal) }}
+              {{ render_field_table(form.date_bank_mandate_shared_with_pg_vendor) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 4 · PG Vendor Setup -->
+        <div id="sec-pg-vendor" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">4</span>
+              PG Vendor Setup
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Merchant IDs and related configuration assigned by the payment gateway vendor.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.mid_or_similar_id_as_per_pg_vendor) }}
+              {{ render_field_table(form.old_mid_name) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 5 · Staging & Production -->
+        <div id="sec-staging-prod" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">5</span>
+              Staging &amp; Production
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Dates and details for staging and production environment handovers.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.date_of_receipt_of_staging_details) }}
+              {{ render_field_table(form.date_of_sharing_staging_details_to_head_office_dept) }}
+              {{ render_field_table(form.staging_details) }}
+              {{ render_field_table(form.date_of_receipt_of_production_details) }}
+              {{ render_field_table(form.production_details) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 6 · Bank Account & BRS -->
+        <div id="sec-bank-account" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">6</span>
+              Bank Account &amp; BRS
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Settlement account details, T+1 transfer status, and reconciliation tracking.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.bank_name) }}
+              {{ render_field_table(form.bank_account_number) }}
+              {{ render_field_table(form.bank_account_details_where_credit_is_expected) }}
+              {{ render_field_table(form.whether_t_plus_one_transfer_happening) }}
+              {{ render_field_table(form.brs_done_upto) }}
+              {{ render_field_table(form.date_of_bank_charges_jv_passed_to_nodal_office) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 7 · SPOC Details -->
+        <div id="sec-spoc" class="card mb-5">
+          <header class="card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">7</span>
+              SPOC Details
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Single Point of Contact for the Regional Office and Nodal Office.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.spoc_name) }}
+              {{ render_field_table(form.spoc_employee_number) }}
+              {{ render_field_table(form.ro_spoc_email_address) }}
+              {{ render_field_table(form.nodal_office_spoc_email_address) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- 8 · Documents -->
+        <div id="sec-docs" class="card mb-5">
+          <header class=" card-header">
+            <p class="card-header-title">
+              <span class="tag is-dark mr-2">8</span>
+              Documents
+            </p>
+            <button type="button" class="card-header-icon toggle-section" aria-label="toggle">
+              <span class="icon"><i class="bi bi-chevron-up"></i></span>
+            </button>
+          </header>
+          <div class="card-content">
+            <div class="notification is-warning is-light py-2 px-3 mb-4">
+              <small>Upload supporting files. Accepted formats: PDF, JPG, PNG.</small>
+            </div>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              {{ render_field_table(form.bank_mandate_file_string) }}
+            </table>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="has-text-centered">
+
+          <button type=" submit" class="button is-success is-medium">
+
+            <span>Submit</span>
+          </button>
+        </div>
+
+      </div><!-- /.column -->
+    </div><!-- /.columns -->
+  </form>
+</div>
+
+<script>
+  /* Collapse / expand cards */
+  document.querySelectorAll('.toggle-section').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const content = btn.closest('.card').querySelector('.card-content');
+      const icon = btn.querySelector('.bi');
+      const hidden = content.style.display === 'none';
+      content.style.display = hidden ? '' : 'none';
+      icon.classList.toggle('bi-chevron-up', hidden);
+      icon.classList.toggle('bi-chevron-down', !hidden);
+    });
+  });
+</script>
+{% endblock content %}
