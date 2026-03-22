@@ -1,7 +1,11 @@
 {% macro render_field_table(field, disabled=False) %}
 {% if field.widget.input_type != "hidden" %}
 <tr>
-    <th class="is-vcentered">{{ field.label }} </th>
+    <th class="is-vcentered">{{ field.label }}
+        {% if field.flags.required %}
+        <span class="has-text-danger">*</span>
+        {% endif %}
+    </th>
 
     <td>
         {% if field.type == "TextAreaField" %}
@@ -31,7 +35,11 @@
 {% macro render_field_table_lien(field, lien=None) %}
 {% if field.widget.input_type != "hidden" %}
 <tr>
-    <th class="is-vcentered">{{ field.label }}</th>
+    <th class="is-vcentered">{{ field.label }}
+        {% if field.flags.required %}
+        <span class="has-text-danger">*</span>
+        {% endif %}
+    </th>
     <td>
         {% if field.type == "TextAreaField" %}
         {{ field(class="textarea", **kwargs) }}
@@ -68,7 +76,11 @@
 {% macro render_field_div(field) %}
 
 <div class="field">
-    <label class="label">{{ field.label }}</label>
+    <label class="label">{{ field.label }}
+        {% if field.flags.required %}
+        <span class="has-text-danger">*</span>
+        {% endif %}
+    </label>
     <div class="control">
 
         {% if field.type == "TextAreaField" %}
@@ -100,7 +112,11 @@
 
 <div class="field is-horizontal">
     <div class="field-label is-normal">
-        <label class="label">{{ field.label }}</label>
+        <label class="label">{{ field.label }}
+            {% if field.flags.required %}
+            <span class="has-text-danger">*</span>
+            {% endif %}
+        </label>
     </div>
     <div class="field-body">
         <div class="field {% if is_narrow %} is-narrow {% endif %}">
