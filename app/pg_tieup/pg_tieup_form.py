@@ -9,7 +9,7 @@ class PaymentGatewayTieupAddForm(FlaskForm):
         "Name of head office department", validators=[DataRequired()]
     )
     date_of_request_from_head_office_department = DateField(
-        "Date of request from Head Office department", validators=[Optional()]
+        "Date of request from Head Office department", validators=[DataRequired()]
     )
     name_of_tieup_partner = StringField(
         "Name of tieup partner", validators=[DataRequired()]
@@ -21,9 +21,9 @@ class PaymentGatewayTieupAddForm(FlaskForm):
         "Whether nodal office agreeable for UIIC PG vendor"
     )
     mou_validity_date = DateField("MOU Validity date", validators=[Optional()])
-    ro_code = StringField("RO Code", validators=[Optional()])
-    nodal_office_code = StringField("Nodal office code", validators=[Optional()])
-    nodal_office_name = StringField("Nodal office name", validators=[Optional()])
+    ro_code = StringField("RO Code", validators=[DataRequired()])
+    nodal_office_code = StringField("Nodal office code", validators=[DataRequired()])
+    nodal_office_name = StringField("Nodal office name", validators=[DataRequired()])
     tieup_partner_id_for_bank_mandate = StringField(
         "Tieup partner ID/VA for bank mandate", validators=[Optional()]
     )
@@ -60,16 +60,18 @@ class PaymentGatewayTieupAddForm(FlaskForm):
         "Whether T+1 transfer is happening"
     )
     brs_done_upto = DateField("BRS done", validators=[Optional()])
-    spoc_name = StringField("SPOC Name", validators=[Optional()])
-    spoc_employee_number = StringField("SPOC employee number", validators=[Optional()])
+    spoc_name = StringField("SPOC Name", validators=[DataRequired()])
+    spoc_employee_number = StringField(
+        "SPOC employee number", validators=[DataRequired()]
+    )
     ro_spoc_email_address = StringField(
-        "RO SPOC email address", validators=[Optional()]
+        "RO SPOC email address", validators=[DataRequired()]
     )
     nodal_office_spoc_email_address = StringField(
-        "Nodal office SPOC email address", validators=[Optional()]
+        "Nodal office SPOC email address", validators=[DataRequired()]
     )
     nodal_office_gst_address = StringField(
-        "Nodal Office GST address", validators=[Optional()]
+        "Nodal Office GST address", validators=[DataRequired()]
     )
     date_of_bank_charges_jv_passed_to_nodal_office = DateField(
         "Date of bank charges JV passed to nodal office", validators=[Optional()]
