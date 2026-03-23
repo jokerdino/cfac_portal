@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="DD Debits" />
+    <meta name="description" content="DD Debits" />
+    <title>DD Debits</title>
+    <style>
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .header {
+            margin-bottom: 15px;
+        }
+
+        body {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: small;
+        }
+
+        .td_amount {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <p>
+        Dear Sir/Madam,
+    </p>
+
+    <p>
+        This is to inform you that the below DD debit details have not yet been updated in the CFAC portal.
+    </p>
+    <p>
+        Kindly update the same at the earliest. If you are facing any issues, please coordinate with the concerned
+        domain department to resolve them.
+    </p>
+
+    <table border="1" cellpadding="4" cellspacing="0" width="50%">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>RO CODE</th>
+                <th>RO NAME</th>
+                <th>TRANSACTION DATE</th>
+                <th>PARTICULARS</th>
+                <th>AMOUNT</th>
+                <th>NO OF DAYS PENDING</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in dd_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.ro_code }}</td>
+                <td>{{ item.ro_name }}</td>
+                <td>{{ item.transaction_date }}</td>
+                <td>{{ item.particulars }}</td>
+                <td class="td_amount">{{ item.debit }}</td>
+                <td>{{ item.no_of_days_pending }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>Regards,</p>
+    <p>Team CFAC.</p>
+
+    <p><strong>##Please note that this is a system-generated alert email. Any follow-ups should be carried out
+            separately from your end. Delays in updating the details may hamper the timely closing of accounts.</strong>
+    </p>
+</body>
+
+</html>

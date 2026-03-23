@@ -35,6 +35,7 @@ def direct_debit_bulk_upload():
         df = pd.read_excel(dd_file, dtype={"ro_code": str})
         df.columns = df.columns.str.lower().str.replace(" ", "_")
         df["ro_code"] = df["ro_code"].astype(str).str.zfill(6)
+        df["ro_name"] = df["ro_name"].astype(str).str.strip()
         df["status"] = Status.DEBITED
 
         db.session.execute(db.insert(DirectDebit), df.to_dict(orient="records"))
