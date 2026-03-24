@@ -21,6 +21,7 @@
 
                     <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
                     <a class="navbar-item" href="{{ url_for('.direct_debit_list') }}">DD debits</a>
+                    <a class="navbar-item" href="{{ url_for('.dd_reports_summary') }}">Summary</a>
                     {%- if current_user.user_type == "admin" %}
                     <a class="navbar-item" href="{{ url_for('.direct_debit_jv_pending') }}">DD debits JV pending</a>
                     <a class="navbar-item" href="{{ url_for('.direct_debit_bulk_upload') }}">Bulk upload</a>

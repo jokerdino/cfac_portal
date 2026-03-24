@@ -1,0 +1,60 @@
+{% extends "dd_layout.html" %}
+
+{% block content %}
+<div class="container is-fluid">
+    <h1 class="title">DD debits summary</h1>
+    <table class="table is-bordered is-hoverable" id="dd_summary_table">
+        <thead>
+            <tr>
+                <th rowspan="2" class="has-text-centered is-vcentered">RO Code</th>
+                <th rowspan="2" class="has-text-centered is-vcentered">RO Name</th>
+                <th colspan="2" class="has-text-centered">Total transactions</th>
+                <th colspan="2" class="has-text-centered">DD reversed</th>
+                <th colspan="2" class="has-text-centered">DD debited - Updated</th>
+                <th colspan="2" class="has-text-centered">DD debited - Pending for updation</th>
+            </tr>
+            <tr>{% for i in range(4) %}
+                <th class="has-text-centered">No. of transactions</th>
+                <th class="has-text-centered">Amount</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                <td>{{ item.ro_code }}</td>
+                <td>{{ item.ro_name }}</td>
+                <td>{{ item.count }}</td>
+                <td>{{ item.total | indian_number_format }}</td>
+                <td>{{ item.reversed_count }}</td>
+                <td>{{ item.reversed_sum | indian_number_format}}</td>
+                <td>{{ item.updated_count }}</td>
+                <td>{{ item.updated_sum | indian_number_format }}</td>
+                <td>{{ item.pending_count }}</td>
+                <td>{{ item.pending_sum | indian_number_format }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+
+    new DataTable('#dd_summary_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+
+    });
+</script>
+
+{% endblock scripts %}
+{% endblock content %}

@@ -252,3 +252,53 @@ def populate_month(stmt, form, view_all=True):
         form.month.choices = [VIEW_ALL] + month_choices
     else:
         form.month.choices = month_choices
+
+
+@direct_debits_bp.route("/reports/summary/", methods=["POST", "GET"])
+@login_required
+def dd_reports_summary():
+    reversed_sum = db.func.sum(DirectDebit.debit).filter(
+        DirectDebit.status == Status.REVERSED
+    )
+    updated_sum = db.func.sum(DirectDebit.debit).filter(
+        DirectDebit.status == Status.DEBITED,
+        DirectDebit.ro_jv_number.is_not(None),
+    )
+
+    pending_sum = db.func.sum(DirectDebit.debit).filter(
+        DirectDebit.status == Status.DEBITED,
+        DirectDebit.ro_jv_number.is_(None),
+    )
+
+    stmt = (
+        db.select(
+            DirectDebit.ro_code,
+            DirectDebit.ro_name,
+            db.func.count().label("count"),
+            db.func.sum(DirectDebit.debit).label("total"),
+            db.func.count()
+            .filter(DirectDebit.status == Status.REVERSED)
+            .label("reversed_count"),
+            db.func.coalesce(reversed_sum, 0).label("reversed_sum"),
+            db.func.count()
+            .filter(
+                DirectDebit.status == Status.DEBITED,
+                DirectDebit.ro_jv_number.is_not(None),
+            )
+            .label("updated_count"),
+            db.func.coalesce(updated_sum, 0).label("updated_sum"),
+            db.func.count()
+            .filter(
+                DirectDebit.status == Status.DEBITED,
+                DirectDebit.ro_jv_number.is_(None),
+            )
+            .label("pending_count"),
+            db.func.coalesce(pending_sum, 0).label("pending_sum"),
+        )
+        .group_by(DirectDebit.ro_code, DirectDebit.ro_name)
+        .order_by(DirectDebit.ro_code)
+    )
+    if current_user.user_type == "ro_user":
+        stmt = stmt.where(DirectDebit.ro_code == current_user.ro_code)
+    data = db.session.execute(stmt)
+    return render_template("dd_reports_summary.html", data=data)
