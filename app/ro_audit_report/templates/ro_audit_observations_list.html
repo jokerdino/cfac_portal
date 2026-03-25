@@ -1,0 +1,75 @@
+{% extends "ro_audit_layout.html" %}
+{% block content %}
+<div class="container is-fluid">
+    {% if current_user.user_type == "ro_user" %}
+    <div class="has-text-right">
+        <a class="button is-success" href="{{ url_for('.ro_audit_observations_add') }}">Add new
+            audit observation</a>
+    </div>
+    {% endif %}
+    <h1 class="title">{{ title }}</h1>
+
+    <article class="message is-warning">
+        <div class="message-header">
+            <p>Note</p>
+
+        </div>
+        <div class="message-body">
+            All audit observations made by the auditor in the audit report must be entered.
+        </div>
+    </article>
+
+    <table class="table is-bordered is-hoverable" id="audit_observation_table"
+        data-order-col="{{ 1 if current_user.user_type in ['admin','ro_user'] else 0 }}">
+        <thead>
+            <tr>
+                {% if current_user.user_type in ["admin","ro_user"] %}
+                <th class="has-text-centered">Edit</th>
+                {% endif %}
+                <th class="has-text-centered">RO Code</th>
+                <th class="has-text-centered">Period</th>
+                <th class="has-text-centered">Department</th>
+                <th class="has-text-centered">Audit observations</th>
+                <th class="has-text-centered">RO remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in audit_observations %}
+            <tr>
+                {% if current_user.user_type in ["admin","ro_user"] %}
+                <td class="has-text-centered"><a class="button is-small is-link is-outlined"
+                        href="{{ url_for('.ro_audit_observations_edit', id=item.id) }}">Edit</a></td>
+                {% endif %}
+                <td class="has-text-centered">{{ item.regional_office_code }}</td>
+                <td class="has-text-centered">{{ item.period }}</td>
+                <td>{{ item.department }}</td>
+                <td>{{ item.audit_observation }}</td>
+                <td>{{ item.regional_office_remarks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    const table = document.getElementById('audit_observation_table');
+    const orderCol = parseInt(table.dataset.orderCol);
+    new DataTable('#audit_observation_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        order: [[orderCol, 'asc']]
+
+    });
+</script>
+
+{% endblock scripts %}

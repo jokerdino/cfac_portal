@@ -47,6 +47,7 @@
           <li><a href="{{ url_for('pool_credits.identified_entries') }}">HDFC Pool
               - Daily JV and Unidentified entries</a></li>
           <li><a href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO recon</a></li>
+
           {% endif %}
         </ul>
         {% endif %}
@@ -75,7 +76,19 @@
           <li><a href="{{ url_for('direct_debit.direct_debit_list') }}">DD debits</a></li>
         </ul>
         {% endif %}
-
+        {% if current_user.user_type in ["admin", "ro_user","ho_stat_audit"] %}
+        <p class="menu-label">RO Audit</p>
+        <ul class="menu-list">
+          <li><a href="{{ url_for('ro_audit.ro_audit_reports_list') }}">Audit report<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
+          {% if current_user.user_type in ["admin", "ro_user"] %}
+          <li><a href="{{ url_for('ro_audit.ro_audit_observations_list') }}">Audit observations<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
+          {% endif %}
+        </ul>
+        {% endif %}
         <p class="menu-label">Information</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>

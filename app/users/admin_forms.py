@@ -2,7 +2,6 @@ from flask_wtf import FlaskForm
 from wtforms import BooleanField, SelectField, StringField
 from wtforms.validators import Optional
 
-
 user_types = [
     "admin",
     "oo_user",
@@ -13,6 +12,7 @@ user_types = [
     "ri_tech",
     "ri_accounts",
     "ho_technical",
+    "ho_stat_audit",
 ]
 
 

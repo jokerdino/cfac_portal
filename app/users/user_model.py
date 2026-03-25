@@ -18,6 +18,7 @@ UserTypes = Literal[
     "ri_tech",
     "ri_accounts",
     "ho_technical",
+    "ho_stat_audit",
 ]
 
 

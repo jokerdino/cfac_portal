@@ -50,6 +50,9 @@ from app.direct_debits import direct_debits_bp
 from app.auditor_certificate import auditor_certificate_bp
 from app.brs_tieups import brs_tieups_bp
 
+
+from app.ro_audit_report import ro_audit_report_bp
+
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
 
@@ -262,6 +265,7 @@ def create_app(config_class=Config):
     app.register_blueprint(direct_debits_bp, url_prefix="/dd")
     app.register_blueprint(auditor_certificate_bp, url_prefix="/audit_certificate")
     app.register_blueprint(brs_tieups_bp, url_prefix="/brs_tieup")
+    app.register_blueprint(ro_audit_report_bp, url_prefix="/ro_audit")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")

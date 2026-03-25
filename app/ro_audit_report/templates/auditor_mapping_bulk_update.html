@@ -1,0 +1,47 @@
+{% extends "ro_audit_layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="title">{{ title }}</h1>
+
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+    <form method="post">
+        {{ form.csrf_token }}
+        <table class="table is-fullwidth is-hoverable is-bordered is-narrow">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Regional Office</th>
+                    <th class="has-text-centered">Regional Name</th>
+                    <th class="has-text-centered">Period</th>
+                    <th class="has-text-centered">Auditor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in form.mappings %}
+                <tr>
+                    {{ entry.mapping_id() }}
+
+                    <td
+                        class="is-vcentered {% if not entry.user_id.data  %} has-background-warning-light has-text-weight-bold {% endif %}">
+                        {{ entry.regional_office_code.data }}</td>
+                    <td
+                        class="is-vcentered {% if not entry.user_id.data  %} has-background-warning-light has-text-weight-bold {% endif %}">
+                        {{ entry.regional_office_name.data }}</td>
+                    <td
+                        class="is-vcentered {% if not entry.user_id.data  %} has-background-warning-light has-text-weight-bold {% endif %}">
+                        {{ entry.period.data }}</td>
+
+                    <td
+                        class="is-vcentered {% if not entry.user_id.data  %} has-background-warning-light has-text-weight-bold {% endif %}">
+                        <div class="select">{{ entry.user_id }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="has-text-centered">
+            {{ form.submit(class="button is-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock content %}

@@ -177,3 +177,33 @@
 
 </div>
 {% endmacro %}
+
+{% macro render_file_field_with_existing(field, record_id, requirement, existing_filename) %}
+<div class="field is-horizontal">
+    <div class="field-label is-normal">
+        <label class="label">{{ field.label }}</label>
+    </div>
+    <div class="field-body">
+        <div class="field">
+            {{ field(class="file", **kwargs) }}
+
+            {% if existing_filename %}
+
+            <a class="button is-small is-outlined is-link"
+                href="{{ url_for('ro_audit.download_audit_report_document', id=record_id, requirement=requirement) }}"
+                target="_blank">
+                Download existing file
+            </a>
+
+            {% else %}
+            <p class="help has-text-grey">No file uploaded yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% if field.errors %}
+    <div class="notification is-danger is-light">
+        {% for error in field.errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}

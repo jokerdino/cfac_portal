@@ -122,6 +122,12 @@ from app.brs_tieups.models import (
     BankReconTieupShortCredit,
 )
 
+from app.ro_audit_report.models import (
+    RegionalOfficeAuditObservation,
+    RegionalOfficeAuditReport,
+    AuditorRegionalOfficeMapping,
+)
+
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -144,6 +150,7 @@ admin.add_sub_category(name="Leave balance", parent_name="Leave balance")
 admin.add_sub_category(name="Lien", parent_name="Lien")
 admin.add_sub_category(name="PoolCredits", parent_name="PoolCredits")
 admin.add_sub_category(name="Refund - DQR", parent_name="Refund DQR")
+admin.add_sub_category(name="RO Audit reports", parent_name="RO Audit")
 admin.add_sub_category(name="TODO", parent_name="TODO")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Users", parent_name="Users")
@@ -727,6 +734,35 @@ admin.add_view(
         DqrMachines, db.session, endpoint="refund_dqr_machines", category="Refund DQR"
     )
 )
+
+# ro_audit
+admin.add_view(
+    DefaultModelView(
+        RegionalOfficeAuditReport,
+        db.session,
+        endpoint="ro_audit_report_",
+        category="RO Audit",
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        RegionalOfficeAuditObservation,
+        db.session,
+        endpoint="ro_audit_observations_",
+        category="RO Audit",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        AuditorRegionalOfficeMapping,
+        db.session,
+        endpoint="ro_audit_ro_mapping_",
+        category="RO Audit",
+    )
+)
+
+
 # todo
 admin.add_view(ModelView(Task, db.session, endpoint="task_", category="Todo"))
 admin.add_view(ModelView(Notification, db.session, endpoint="notif_", category="Todo"))

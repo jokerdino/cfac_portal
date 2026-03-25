@@ -1,0 +1,89 @@
+{% extends "ro_audit_layout.html" %}
+{% block content %}
+<div class="container is-fluid">
+    <h1 class="title">{{ title }}</h1>
+    <table class="table is-bordered is-hoverable" id="audit_reports_table"
+        data-order-col="{{ 2 if current_user.user_type in ['admin','ro_user'] else 0 }}">
+        <thead>
+            <tr>
+                {% if current_user.user_type in ["admin","ro_user"] %}
+                <th class="has-text-centered">View</th>
+                <th class="has-text-centered">Edit</th>
+                {% endif %}
+                <th class="has-text-centered">RO Code</th>
+                <th class="has-text-centered">RO Name</th>
+                <th class="has-text-centered">Period</th>
+                <th class="has-text-centered">Audit report</th>
+                <th class="has-text-centered">Annexures</th>
+                <th class="has-text-centered">Notes forming part of accounts</th>
+                <th class="has-text-centered">Mode of dispatch</th>
+                <th class="has-text-centered">Date of dispatch</th>
+                <th class="has-text-centered">Tracking number</th>
+                <th class="has-text-centered">Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in audit_report %}
+            <tr>
+                {% if current_user.user_type in ["admin","ro_user"] %}
+                <td class="has-text-centered"><a class="button is-small is-link is-outlined"
+                        href="{{ url_for('.ro_report_view', id=item.id) }}">View</a></td>
+                <td class="has-text-centered"><a class="button is-small is-link is-outlined"
+                        href="{{ url_for('.ro_report_upload', id=item.id) }}">Edit</a></td>
+                {% endif %}
+                <td class="has-text-centered">{{ item.regional_office_code }}</td>
+                <td>{{ item.regional_office_name }}</td>
+                <td class="has-text-centered">{{ item.period }}</td>
+                <td class="has-text-centered">{% if item.audit_report %}
+                    <a class="button is-link is-small"
+                        href="{{ url_for('.download_audit_report_document', id=item.id, requirement='audit_report') }}">Download</a>
+                    {% else %}
+                    Not uploaded
+                    {% endif %}
+                </td>
+                <td class="has-text-centered">{% if item.annexures %}
+                    <a class="button is-link is-small"
+                        href="{{ url_for('.download_audit_report_document', id=item.id, requirement='annexures') }}">Download</a>
+                    {% else %}
+                    Not uploaded
+                    {% endif %}
+                </td>
+                <td class="has-text-centered">{% if item.notes_forming_part_of_accounts %}
+                    <a class="button is-link is-small"
+                        href="{{ url_for('.download_audit_report_document', id=item.id, requirement='notes_forming_part_of_accounts') }}">Download</a>
+                    {% else %}
+                    Not uploaded
+                    {% endif %}
+                </td>
+
+                <td>{{ item.mode_of_dispatch or "" }}</td>
+                <td>{{ item.date_of_dispatch or "" }}</td>
+                <td>{{ item.tracking_number or "" }}</td>
+                <td>{{ item.remarks or "" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    const table = document.getElementById('audit_reports_table');
+    const orderCol = parseInt(table.dataset.orderCol);
+    new DataTable('#audit_reports_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        order: [[orderCol, 'asc']]
+
+    });
+</script>
+
+{% endblock scripts %}

@@ -1,0 +1,200 @@
+{% extends "ro_audit_layout.html" %}
+{% block content %}
+
+<div class="container">
+
+    <!-- Page title -->
+    <div class="level mb-5">
+        <div class="level-left">
+            <div class="level-item">
+                <div>
+                    <h1 class="title is-4">
+                        <span class="icon-text">
+                            <span>Audit Report</span>
+                        </span>
+                    </h1>
+                    <p class="subtitle is-6 ">
+                        {{ report.regional_office_code }} - {{ report.period }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── 1. Dispatch Details ── -->
+    <div class="card mb-5">
+        <header class="card-header">
+            <p class="card-header-title">
+
+                Dispatch Details
+            </p>
+        </header>
+        <div class="card-content">
+            <div class="columns is-multiline">
+
+                <div class="column is-half">
+                    <div class="field">
+                        <label class="label">Regional Office Code</label>
+                        <div class="control">
+                            <p class="is-size-6">{{ report.regional_office_code }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-half">
+                    <div class="field">
+                        <label class="label">Period</label>
+                        <div class="control">
+                            <p class="is-size-6">{{ report.period }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-half">
+                    <div class="field">
+                        <label class="label">Mode of Dispatch</label>
+                        <div class="control">
+                            {% if report.mode_of_dispatch %}
+                            <span class="tag is-warning is-medium">
+
+                                <span>{{ report.mode_of_dispatch }}</span>
+                            </span>
+                            {% else %}
+                            Not specified
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-half">
+                    <div class="field">
+                        <label class="label">Date of Dispatch</label>
+                        <div class="control">
+                            {% if report.date_of_dispatch %}
+                            <p class="is-size-6">
+                                <span>{{ report.date_of_dispatch.strftime('%d %B %Y') }}</span>
+                            </p>
+                            {% else %}
+                            Not dispatched yet
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="column is-full">
+                    <div class="field">
+                        <label class="label">Tracking Number</label>
+                        <div class="control">
+                            {% if report.tracking_number %}
+                            <span class="tag is-success is-medium">
+                                <span>{{ report.tracking_number }}</span>
+                            </span>
+                            {% else %}
+                            No tracking number
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 2. Audit Report ── -->
+    <div class="card mb-5">
+        <header class="card-header">
+            <p class="card-header-title">
+                Audit Report
+            </p>
+        </header>
+        <div class="card-content">
+            {% if report.audit_report %}
+            <div class="content">
+                <a class="button is-link"
+                    href="{{ url_for('.download_audit_report_document', id=report.id, requirement='audit_report') }}">
+                    <span class="icon"><i class="bi bi-download"></i></span>
+                    <span>Download</span></a>
+            </div>
+            {% else %}
+            No audit report content has been recorded.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── 3. Annexures ── -->
+    <div class="card mb-5">
+        <header class="card-header">
+            <p class="card-header-title">
+                Annexures
+            </p>
+        </header>
+        <div class="card-content">
+            {% if report.annexures %}
+            <div class="content">
+                <a class="button is-link"
+                    href="{{ url_for('.download_audit_report_document', id=report.id, requirement='annexures') }}">
+                    <span class="icon"><i class="bi bi-download"></i></span>
+                    <span>Download</span></a>
+            </div>
+            {% else %}
+            No annexures attached.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── 4. Notes Forming Part of Accounts ── -->
+    <div class="card mb-5">
+        <header class="card-header">
+            <p class="card-header-title">
+                Notes Forming Part of Accounts
+            </p>
+        </header>
+        <div class="card-content">
+            {% if report.notes_forming_part_of_accounts %}
+            <div class="content">
+                <a class="button is-link"
+                    href="{{ url_for('.download_audit_report_document', id=report.id, requirement='notes_forming_part_of_accounts') }}">
+                    <span class="icon"><i class="bi bi-download"></i></span>
+                    <span>Download</span></a>
+            </div>
+            {% else %}
+            No notes recorded.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── 5. Remarks ── -->
+    <div class="card mb-5">
+        <header class="card-header">
+            <p class="card-header-title">
+                Remarks
+            </p>
+        </header>
+        <div class="card-content">
+            {% if report.remarks %}
+            <div class="content">
+                <p>{{ report.remarks }}</p>
+            </div>
+            {% else %}
+            No remarks added.
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Action Buttons ── -->
+    <div class="buttons">
+        <a href="{{ url_for('.ro_audit_reports_list') }}" class="button is-light">
+            <span class="icon"><i class="bi bi-arrow-left"></i></span>
+            <span>Back to List</span>
+        </a>
+        <a href="{{ url_for('.ro_report_upload', id=report.id) }}" class="button is-link">
+            <span class="icon"><i class="bi bi-pencil"></i></span>
+            <span>Edit</span>
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock content %}
