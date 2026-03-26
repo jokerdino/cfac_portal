@@ -77,3 +77,20 @@ class DirectDebit(db.Model):
     def require_access(self, user):
         if not self.has_access(user):
             abort(404)
+
+
+class RegionalManagerEmailAddress(db.Model):
+    id: Mapped[IntPK]
+
+    office_code: Mapped[str]
+    office_name: Mapped[str]
+
+    employee_name: Mapped[Optional[str]]
+    employee_number: Mapped[Optional[str]]
+    email_address: Mapped[Optional[str]]
+
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]

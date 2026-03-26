@@ -112,7 +112,7 @@ from app.brs_imprest.models import (
     BankReconImprestUnencashedDetails,
 )
 
-from app.direct_debits.model import DirectDebit
+from app.direct_debits.model import DirectDebit, RegionalManagerEmailAddress
 from app.auditor_certificate.model import AuditorCertificate
 from app.brs_tieups.models import (
     BankReconTieupSummary,
@@ -466,7 +466,17 @@ admin.add_view(
 )
 
 # dd debits
-admin.add_view(ModelView(DirectDebit, db.session, endpoint="dd_debits_"))
+admin.add_view(
+    ModelView(DirectDebit, db.session, endpoint="dd_debits_", category="DD Debits")
+)
+admin.add_view(
+    ModelView(
+        RegionalManagerEmailAddress,
+        db.session,
+        endpoint="dd_debits_rm_email",
+        category="DD Debits",
+    )
+)
 # escalation matrix
 admin.add_view(ModelView(EscalationMatrix, db.session, endpoint="em_"))
 # funds

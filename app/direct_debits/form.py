@@ -50,3 +50,9 @@ class JournalVoucerRemarksForm(FlaskForm):
 class MonthFilterForm(FlaskForm):
     month = SelectField()
     filter = SubmitField("Filter")
+
+
+class EmailUploadForm(FlaskForm):
+    email_file = FileField(
+        "Upload email file", validators=[FileRequired(), FileAllowed(["xlsx"])]
+    )

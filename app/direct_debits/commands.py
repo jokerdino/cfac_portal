@@ -8,7 +8,7 @@ from extensions import db
 from app.users.mail_utils import send_email_async
 from app.contacts.contacts_model import Contacts
 
-from .model import DirectDebit, Status
+from .model import DirectDebit, Status, RegionalManagerEmailAddress
 
 
 def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
@@ -23,8 +23,14 @@ def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
             ),
         )
     ).all()
+    regional_managers = db.session.scalars(
+        db.select(RegionalManagerEmailAddress.email_address).where(
+            RegionalManagerEmailAddress.office_code == ro_code
+        )
+    ).all()
 
-    return regional_accountants
+    recipients = regional_accountants + regional_managers
+    return recipients
 
 
 @click.command("send_dd_emails")

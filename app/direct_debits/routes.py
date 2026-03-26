@@ -10,7 +10,7 @@ from extensions import db
 from set_view_permissions import admin_required
 
 from . import direct_debits_bp
-from .model import DirectDebit, Status
+from .model import DirectDebit, Status, RegionalManagerEmailAddress
 
 from .form import (
     RegionalOfficeForm,
@@ -19,6 +19,7 @@ from .form import (
     JournalVoucerRemarksForm,
     MonthFilterForm,
     HeadOfficeForm,
+    EmailUploadForm,
 )
 
 VIEW_ALL = "View all"
@@ -302,3 +303,40 @@ def dd_reports_summary():
         stmt = stmt.where(DirectDebit.ro_code == current_user.ro_code)
     data = db.session.execute(stmt)
     return render_template("dd_reports_summary.html", data=data)
+
+
+@direct_debits_bp.route("/email_address_upload", methods=["GET", "POST"])
+@login_required
+@admin_required
+def regional_managers_email_upload():
+    form = EmailUploadForm()
+    if form.validate_on_submit():
+        lien_file = form.email_file.data
+
+        try:
+            # delete existing records
+            stmt = db.delete(RegionalManagerEmailAddress)
+            db.session.execute(stmt)
+            db.session.commit()
+
+            df = pd.read_excel(lien_file, dtype={"office_code": str})
+            df["office_code"] = df["office_code"].astype(str).str.zfill(6)
+            df["email_address"] = df["email_address"] + "@uiic.co.in"
+
+            # Insert valid rows
+            records = df.to_dict(orient="records")
+
+            db.session.add_all(RegionalManagerEmailAddress(**row) for row in records)
+            db.session.commit()
+
+            flash(f"Successfully uploaded {len(df)} email addresses.", "success")
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Upload failed. Error: {str(e)}", "danger")
+
+        return redirect(url_for(".regional_managers_email_upload"))
+
+    return render_template(
+        "dd_email_bulk_upload.html", title="Upload RM email address", form=form
+    )
