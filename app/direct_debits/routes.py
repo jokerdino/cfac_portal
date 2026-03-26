@@ -16,7 +16,7 @@ from .form import (
     RegionalOfficeForm,
     BulkDirectDebitForm,
     JournalVoucherUpdateForm,
-    JournalVoucerRemarksForm,
+    JournalVoucherRemarksForm,
     MonthFilterForm,
     HeadOfficeForm,
     EmailUploadForm,
@@ -203,7 +203,7 @@ def mark_jv_passed():
 @login_required
 @admin_required
 def direct_debit_download_jv():
-    form = JournalVoucerRemarksForm()
+    form = JournalVoucherRemarksForm()
     if form.validate_on_submit():
         remarks = form.remarks.data
         credit_query = db.select(
@@ -299,10 +299,22 @@ def dd_reports_summary():
         .group_by(DirectDebit.ro_code, DirectDebit.ro_name)
         .order_by(DirectDebit.ro_code)
     )
+    filter_query = db.select(DirectDebit)
     if current_user.user_type == "ro_user":
         stmt = stmt.where(DirectDebit.ro_code == current_user.ro_code)
+        filter_query = filter_query.where(DirectDebit.ro_code == current_user.ro_code)
+
+    filter_form = MonthFilterForm()
+    populate_month(filter_query, filter_form)
+
+    if filter_form.validate_on_submit():
+        month = filter_form.month.data
+        if month != VIEW_ALL:
+            stmt = stmt.where(DirectDebit.month_string == month)
     data = db.session.execute(stmt)
-    return render_template("dd_reports_summary.html", data=data)
+    return render_template(
+        "dd_reports_summary.html", data=data, filter_form=filter_form
+    )
 
 
 @direct_debits_bp.route("/email_address_upload", methods=["GET", "POST"])

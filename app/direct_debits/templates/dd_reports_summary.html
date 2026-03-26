@@ -1,8 +1,11 @@
 {% extends "dd_layout.html" %}
-
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
 {% block content %}
 <div class="container is-fluid">
     <h1 class="title">DD debits summary</h1>
+    <form method="post">
+        {{ render_dashboard_dropdown(filter_form) }}
+    </form>
     <table class="table is-bordered is-hoverable" id="dd_summary_table">
         <thead>
             <tr>

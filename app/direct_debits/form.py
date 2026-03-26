@@ -43,7 +43,7 @@ class JournalVoucherUpdateForm(FlaskForm):
     ho_iot_jv_date = DateField("HO IOT JV date")
 
 
-class JournalVoucerRemarksForm(FlaskForm):
+class JournalVoucherRemarksForm(FlaskForm):
     remarks = StringField("Enter remarks for JV", default="CC DD DEBITS ")
 
 
