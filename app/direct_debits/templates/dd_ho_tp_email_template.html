@@ -38,11 +38,10 @@
     </p>
 
     <p>
-        This is to inform you that the below DD debit details have not yet been updated in the CFAC portal.
+        This is to inform you that the following ROs have not updated their DD debit details in the CFAC portal.
     </p>
     <p>
-        Kindly update the same at the earliest. If you are facing any issues, please coordinate with the concerned
-        domain department to resolve them.
+        We request you to kindly coordinate with the concerned ROs to ensure that the details are updated promptly.
     </p>
 
     <table border="1" cellpadding="4" cellspacing="0" width="50%">
@@ -51,10 +50,9 @@
                 <th>#</th>
                 <th>RO CODE</th>
                 <th>RO NAME</th>
-                <th>TRANSACTION DATE</th>
-                <th>PARTICULARS</th>
-                <th>AMOUNT</th>
-                <th>NO OF DAYS PENDING</th>
+                <th>NO OF TRANSACTIONS</th>
+                <th>TOTAL AMOUNT</th>
+                <th>PENDING PERIOD</th>
             </tr>
         </thead>
         <tbody>
@@ -63,10 +61,9 @@
                 <td>{{ loop.index }}</td>
                 <td>{{ item.ro_code }}</td>
                 <td>{{ item.ro_name }}</td>
-                <td>{{ item.transaction_date }}</td>
-                <td>{{ item.particulars }}</td>
-                <td class="td_amount">{{ item.amount }}</td>
-                <td>{{ item.no_of_days_pending }}</td>
+                <td class="td_amount">{{ item.count }}</td>
+                <td class="td_amount">{{ item.total_amount }}</td>
+                <td>{{ item.pending_period }}</td>
             </tr>
             {% endfor %}
         </tbody>

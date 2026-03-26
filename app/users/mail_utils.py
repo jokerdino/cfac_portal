@@ -2,6 +2,7 @@ import mimetypes
 import smtplib
 from email.message import EmailMessage
 from pathlib import Path
+from typing import Union
 
 
 from extensions import db
@@ -24,7 +25,7 @@ def send_email(
     bcc: list[str],
     body: str,
     html: str | None = None,
-    attachments: list[str | Path] | None = None,
+    attachments: list[Union[str, Path, dict]] | None = None,
 ):
     config = load_mail_config()
 
@@ -41,24 +42,32 @@ def send_email(
         msg.set_content(body)
 
     if attachments:
-        for file_path in attachments:
-            path = Path(file_path)
+        for attachment in attachments:
+            if isinstance(attachment, (str, Path)):
+                path = Path(attachment)
 
-            if not path.exists():
-                raise FileNotFoundError(f"Attachment not found: {path}")
+                if not path.exists():
+                    raise FileNotFoundError(f"Attachment not found: {path}")
 
-            mime_type, encoding = mimetypes.guess_type(path)
-            if mime_type is None:
-                mime_type = "application/octet-stream"
+                mime_type, encoding = mimetypes.guess_type(path)
+                if mime_type is None:
+                    mime_type = "application/octet-stream"
 
-            maintype, subtype = mime_type.split("/", 1)
+                maintype, subtype = mime_type.split("/", 1)
 
-            with open(path, "rb") as f:
+                with open(path, "rb") as f:
+                    msg.add_attachment(
+                        f.read(),
+                        maintype=maintype,
+                        subtype=subtype,
+                        filename=path.name,
+                    )
+            elif isinstance(attachment, dict):
                 msg.add_attachment(
-                    f.read(),
-                    maintype=maintype,
-                    subtype=subtype,
-                    filename=path.name,
+                    attachment["content"],
+                    maintype=attachment.get("maintype", "application"),
+                    subtype=attachment.get("subtype", "octet-stream"),
+                    filename=attachment["filename"],
                 )
     with smtplib.SMTP(config.smtp_server, config.smtp_port, timeout=30) as server:
         server.ehlo()
