@@ -118,6 +118,10 @@ def send_dd_email_to_ho_tp():
 
 
 def prepare_ro_dd_list():
+    empty_ro_jv_field = db.or_(
+        DirectDebit.ro_jv_number.is_(None), DirectDebit.ro_jv_number == ""
+    )
+
     ro_wise_details = (
         db.select(
             DirectDebit.ro_code,
@@ -131,7 +135,7 @@ def prepare_ro_dd_list():
         )
         .where(
             DirectDebit.status == Status.DEBITED,
-            DirectDebit.ro_jv_number.is_(None),
+            empty_ro_jv_field,
         )
         .order_by(DirectDebit.ro_code, DirectDebit.transaction_date)
     )
@@ -140,6 +144,9 @@ def prepare_ro_dd_list():
 
 
 def prepare_ho_tp_list() -> list:
+    empty_ro_jv_field = db.or_(
+        DirectDebit.ro_jv_number.is_(None), DirectDebit.ro_jv_number == ""
+    )
     agg_query = (
         db.select(
             DirectDebit.ro_code,
@@ -155,7 +162,7 @@ def prepare_ho_tp_list() -> list:
         )
         .where(
             DirectDebit.status == Status.DEBITED,
-            DirectDebit.ro_jv_number.is_(None),
+            empty_ro_jv_field,
         )
         .group_by(
             DirectDebit.ro_code,

@@ -258,17 +258,24 @@ def populate_month(stmt, form, view_all=True):
 @direct_debits_bp.route("/reports/summary/", methods=["POST", "GET"])
 @login_required
 def dd_reports_summary():
+    empty_ro_jv_field = db.or_(
+        DirectDebit.ro_jv_number.is_(None), DirectDebit.ro_jv_number == ""
+    )
+    updated_ro_jv_field = db.and_(
+        DirectDebit.ro_jv_number.is_not(None), DirectDebit.ro_jv_number != ""
+    )
+
     reversed_sum = db.func.sum(DirectDebit.debit).filter(
         DirectDebit.status == Status.REVERSED
     )
     updated_sum = db.func.sum(DirectDebit.debit).filter(
         DirectDebit.status == Status.DEBITED,
-        DirectDebit.ro_jv_number.is_not(None),
+        updated_ro_jv_field,
     )
 
     pending_sum = db.func.sum(DirectDebit.debit).filter(
         DirectDebit.status == Status.DEBITED,
-        DirectDebit.ro_jv_number.is_(None),
+        empty_ro_jv_field,
     )
 
     stmt = (
@@ -284,14 +291,14 @@ def dd_reports_summary():
             db.func.count()
             .filter(
                 DirectDebit.status == Status.DEBITED,
-                DirectDebit.ro_jv_number.is_not(None),
+                updated_ro_jv_field,
             )
             .label("updated_count"),
             db.func.coalesce(updated_sum, 0).label("updated_sum"),
             db.func.count()
             .filter(
                 DirectDebit.status == Status.DEBITED,
-                DirectDebit.ro_jv_number.is_(None),
+                empty_ro_jv_field,
             )
             .label("pending_count"),
             db.func.coalesce(pending_sum, 0).label("pending_sum"),
