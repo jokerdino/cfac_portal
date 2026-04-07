@@ -8,7 +8,7 @@ from wtforms import (
     DecimalField,
 )
 from flask_wtf.file import FileField, FileAllowed, FileRequired
-from wtforms.validators import Optional
+from wtforms.validators import Optional, Length, Regexp
 
 from .model import Status
 
@@ -26,7 +26,14 @@ class HeadOfficeForm(FlaskForm):
 
 
 class RegionalOfficeForm(FlaskForm):
-    ro_jv_number = StringField("Enter JV number", validators=[Optional()])
+    ro_jv_number = StringField(
+        "Enter JV number",
+        validators=[
+            Optional(),
+            Length(min=20),
+            Regexp(r"^\d+$", message="Voucher number field must contain only numbers."),
+        ],
+    )
     ro_jv_date = DateField("Enter JV date", validators=[Optional()])
     remarks = TextAreaField("Enter remarks", validators=[Optional()])
 
