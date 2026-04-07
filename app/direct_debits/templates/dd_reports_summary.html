@@ -33,8 +33,10 @@
                 <td>{{ item.reversed_sum | indian_number_format}}</td>
                 <td>{{ item.updated_count }}</td>
                 <td>{{ item.updated_sum | indian_number_format }}</td>
-                <td>{{ item.pending_count }}</td>
-                <td>{{ item.pending_sum | indian_number_format }}</td>
+                <td {% if item.pending_count %}class="has-text-danger has-text-weight-bold" {% endif %}>
+                    {{ item.pending_count }}</td>
+                <td {% if item.pending_count %}class="has-text-danger has-text-weight-bold" {% endif %}>
+                    {{ item.pending_sum | indian_number_format }}</td>
             </tr>
             {% endfor %}
         </tbody>
