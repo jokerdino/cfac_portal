@@ -906,7 +906,9 @@ def get_schedule_bbc_updated_v2(office_code: str, month: str) -> dict:
             isouter=True,
         )
         .where(
-            BRSMonth.brs_id == filtered_brs.id, BRSMonth.brs_type != "local_collection"
+            BRSMonth.brs_id == filtered_brs.id,
+            BRSMonth.brs_type != "local_collection",
+            BRSMonth.status.is_(None),
         )
     )
 
