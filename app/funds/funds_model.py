@@ -21,6 +21,7 @@ class Designation(StrEnum):
     DGM = "DGM"
     DGM_CFO = "DGM & CFO"
     GENERAL_MANAGER = "General Manager"
+    GM_CFO = "GM & CFO"
     ED = "ED"
     CMD = "CMD"
 
