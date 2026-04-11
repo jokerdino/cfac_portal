@@ -99,6 +99,7 @@ def send_dd_email_to_ho_tp():
             cc=[
                 "shemamalini@uiic.co.in",
                 "pnarun@uiic.co.in",
+                "apusha@uiic.co.in",
                 "gaddamjanakiram@uiic.co.in",
                 "pjagadeeswar@uiic.co.in",
                 "pavithram@uiic.co.in",
