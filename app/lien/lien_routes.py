@@ -144,13 +144,13 @@ def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
             ),
         )
     )
-    tp_email_address = db.session.scalar(
+    tp_email_address = db.session.scalars(
         db.select(LienRegionalOfficeEmailAddress.ro_email_address).where(
             LienRegionalOfficeEmailAddress.ro_code == ro_code
         )
     )
 
-    recipients = [*regional_accountants, tp_email_address]
+    recipients = [*regional_accountants, *tp_email_address]
 
     return recipients
 
