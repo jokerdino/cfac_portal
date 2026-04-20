@@ -201,6 +201,43 @@ def ho_accounts_tracker_home():
     )
 
 
+@ho_accounts_bp.route("/ho_cfac_brs", methods=["POST", "GET"])
+@login_required
+def ho_brs_audit_information():
+    form = FilterPeriodForm()
+    period_list_query_brs = (
+        db.select(HeadOfficeBankReconTracker.str_period)
+        .distinct()
+        .where(HeadOfficeBankReconTracker.date_created_date >= date(2026, 4, 1))
+    )
+
+    period_list_items = db.session.scalars(period_list_query_brs)
+
+    list_period = [datetime.strptime(item, "%b-%y") for item in period_list_items]
+
+    list_period.sort(reverse=True)
+
+    form.period.choices = [
+        (item.strftime("%b-%y"), item.strftime("%B-%Y")) for item in list_period
+    ]
+    period = list_period[0].strftime("%b-%y")
+
+    if form.validate_on_submit():
+        period = form.data["period"]
+    mis_stmt = (
+        db.select(HeadOfficeBankReconTracker)
+        .where(HeadOfficeBankReconTracker.str_period == period)
+        .order_by(HeadOfficeBankReconTracker.id.asc())
+    )
+    mis_tracker = db.session.scalars(mis_stmt)
+    return render_template(
+        "ho_brs_audit_information.html",
+        form=form,
+        period=period,
+        mis_tracker=mis_tracker,
+    )
+
+
 @ho_accounts_bp.route("/view_work/<int:id>/")
 @login_required
 @admin_required
@@ -339,7 +376,6 @@ def upload_mis_documents(form, field_name, model_obj, model_field, folder_name):
 
 @ho_accounts_bp.route("/download_mis_document/<string:requirement>/<int:id>")
 @login_required
-@admin_required
 def download_mis_documents(requirement, id):
     mis = db.get_or_404(HeadOfficeBankReconTracker, id)
     if requirement == "bank_confirmation":

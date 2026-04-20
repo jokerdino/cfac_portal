@@ -1,0 +1,91 @@
+{% extends "ho_accounts_layout.html" %}
+{% block content %}
+
+<div class="container is-fluid mb-5">
+    <form method="post" action="">
+        {{ form.csrf_token }}
+
+        <table class="table">
+            <tr>
+                <th class="is-vcentered">{{ form.period.label }}</th>
+                <td>
+                    <div class="select">{{ form.period }}</div>
+                </td>
+                <td> <button class="button is-success is-outlined">Filter</button></td>
+            </tr>
+        </table>
+    </form>
+    <h1 class="title mt-2">HO CFAC BRS - {{ period }}</h1>
+    <table class="table is-fullwidth is-bordered is-narrow" width="100%" id="brs_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered is-vcentered">Period</th>
+                <th class="has-text-centered is-vcentered">Name of bank</th>
+                <th class="has-text-centered is-vcentered">Purpose</th>
+                <th class="has-text-centered is-vcentered">GL Code</th>
+                <th class="has-text-centered is-vcentered">SL Code</th>
+                <th class="has-text-centered is-vcentered">Bank account number</th>
+                <th class="has-text-centered is-vcentered">BRS</th>
+                <th class="has-text-centered is-vcentered">Bank balance confirmation / Bank statement</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in mis_tracker %}
+
+            <tr>
+
+                <td>{{ item['str_period'] }}</td>
+                <td>{{ item['str_name_of_bank'] }}</td>
+                <td>{{ item['str_purpose'] or "" }}</td>
+
+                <td>{{ item['str_gl_code'] }}</td>
+                <td>{{ item['str_sl_code'] }}</td>
+                <td>{{ item['str_bank_account_number'] }}</td>
+
+                <td class="has-text-centered">
+                    {% if item['str_brs_file_upload'] %}
+                    <a class="button is-small is-success"
+                        href="{{ url_for('ho_accounts.download_mis_documents', requirement='brs', id=item['id']) }}">Download
+                    </a>
+                    {% else %}
+                    ❌
+                    {% endif %}
+                </td>
+
+                <td class="has-text-centered">
+                    {% if item['str_bank_confirmation_file_upload'] %}
+                    <a class="button is-small is-success"
+                        href="{{ url_for('ho_accounts.download_mis_documents', requirement='bank_confirmation', id=item['id']) }}">Download</a>
+                    {% else %} ❌
+                    {% endif %}
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+</div>
+{% block scripts %}
+<script>
+
+    var brs_table = new DataTable('#brs_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        fixedHeader: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[3, 'asc']],
+
+    });
+
+</script>
+
+{% endblock scripts %}
+{% endblock content %}
