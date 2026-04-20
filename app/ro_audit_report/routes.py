@@ -108,10 +108,8 @@ def ro_report_upload(id):
 @login_required
 @ro_user_only
 def ro_report_view(id):
-    # TODO: Pending
     audit_report = db.get_or_404(RegionalOfficeAuditReport, id)
     audit_report.require_access(current_user)
-    # if form.validate_on_submit():
 
     return render_template("ro_audit_report_view.html", report=audit_report)
 
@@ -126,11 +124,15 @@ def download_audit_report_document(id, requirement):
     upload_root = current_app.config.get("UPLOAD_FOLDER_PATH")
     folder_path = upload_root / "ro_audit_report" / requirement
 
+    if requirement == "notes_forming_part_of_accounts":
+        requirement = "notes_forming_part_of_audit_report"
+    download_name = f"{audit_report.regional_office_name}_{requirement}{path.suffix}"
+
     return send_from_directory(
         directory=folder_path,
         path=path.name,
         as_attachment=True,
-        download_name=path.name,
+        download_name=download_name,
     )
 
 
