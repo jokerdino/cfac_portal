@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask_wtf import FlaskForm
 
 from wtforms import (
@@ -13,13 +15,24 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional, ValidationError
 
+# Get current year as integer
+current_full_year = datetime.now().year
+
+# Extract last two digits
+current_year = str(current_full_year)[-2:]
+previous_year = str(current_full_year - 1)[-2:]
+next_year = str(current_full_year + 1)[-2:]
+
+
+year_dropdown = [previous_year, current_year, next_year]
+
 
 class WorkAddForm(FlaskForm):
     str_work = StringField("Enter description of work", validators=[DataRequired()])
     str_month = SelectField(
         "Month", choices=["Mar", "Jun", "Sep", "Dec"], validators=[DataRequired()]
     )
-    str_year = SelectField("Year", choices=["24", "25"], validators=[DataRequired()])
+    str_year = SelectField("Year", choices=year_dropdown, validators=[DataRequired()])
     str_person = SelectField("Assign to", validators=[DataRequired()])
     submit_button = SubmitField("Submit")
 
@@ -42,7 +55,7 @@ class BRSAddForm(FlaskForm):
     str_month = SelectField(
         "Month", choices=["Mar", "Jun", "Sep", "Dec"], validators=[DataRequired()]
     )
-    str_year = SelectField("Year", choices=["24", "25"], validators=[DataRequired()])
+    str_year = SelectField("Year", choices=year_dropdown, validators=[DataRequired()])
 
     str_bank_address = StringField("Enter bank address", validators=[DataRequired()])
     str_gl_code = StringField("Enter GL Code", validators=[DataRequired()])
