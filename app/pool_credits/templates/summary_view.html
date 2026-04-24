@@ -1,8 +1,9 @@
 {% extends "pool_credits_layout.html" %}
 {% block content %}
+
 <div class="container mt-5">
     <h1 class="title is-4">HDFC Pool account - Unidentified credits - summary</h1>
-    <table class="table is-bordered">
+    <table class="table is-bordered is-hoverable">
         <thead>
             <tr>
                 <th class="has-text-centered">Period</th>
@@ -10,6 +11,8 @@
                 <th class="has-text-centered">Confirmed</th>
                 <th class="has-text-centered">JV passed</th>
                 <th class="has-text-centered">Total</th>
+                <th class="has-text-centered">Unidentified count</th>
+                <th class="has-text-centered">Confirmed count</th>
             </tr>
         </thead>
         <tbody>
@@ -21,10 +24,44 @@
                 <td class="has-text-right">{{ item[1] | indian_number_format }}</td>
                 <td class="has-text-right">{{ item[2] | indian_number_format }}</td>
                 <td class="has-text-right">{{ item[3] | indian_number_format }}</td>
-                <td class="has-text-right">{{ (item[1] + item[2] + item[3]) | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[4] | indian_number_format }}</td>
+                <td class="has-text-right">{{ item[5] }}</td>
+                <td class="has-text-right">{{ item[6] }}</td>
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td class="has-text-centered has-text-weight-bold">Total</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query | sum(attribute="unidentified")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query | sum(attribute="confirmed")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query | sum(attribute="jv_passed")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query | sum(attribute="total")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">{{ (query | sum(attribute="unidentified_count")) }}
+                </td>
+                <td class="has-text-right has-text-weight-bold">{{ (query | sum(attribute="confirmed_count")) }}</td>
+            </tr>
+            <tr>
+                <td class="has-text-centered has-text-weight-bold">Total (excl. latest month)</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="unidentified")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="confirmed")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="jv_passed")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="total")) | indian_number_format }}</td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="unidentified_count")) }}
+                </td>
+                <td class="has-text-right has-text-weight-bold">
+                    {{ (query_excl_latest | sum(attribute="confirmed_count")) }}</td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 {% endblock content %}

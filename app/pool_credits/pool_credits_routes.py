@@ -330,7 +330,16 @@ def view_pool_credit_summary():
             ),
             else_=0,
         )
-    ).label("Unidentified")
+    ).label("unidentified")
+    case_unidentified_count = db.func.sum(
+        db.case(
+            (
+                PoolCredits.str_regional_office_code.is_(None),
+                1,
+            ),
+            else_=0,
+        )
+    ).label("unidentified_count")
 
     case_identified = db.func.sum(
         db.case(
@@ -341,7 +350,17 @@ def view_pool_credit_summary():
             ),
             else_=0,
         )
-    ).label("Identified")
+    ).label("confirmed")
+    case_identified_count = db.func.sum(
+        db.case(
+            (
+                (PoolCredits.str_regional_office_code.is_not(None))
+                & (PoolCredits.bool_jv_passed.is_(False)),
+                1,
+            ),
+            else_=0,
+        )
+    ).label("confirmed_count")
 
     case_jv_passed = db.func.sum(
         db.case(
@@ -351,11 +370,19 @@ def view_pool_credit_summary():
             ),
             else_=0,
         )
-    ).label("JV passed")
+    ).label("jv_passed")
 
     START_DATE = datetime(2024, 10, 1)
     stmt = (
-        db.select(PoolCredits.month, case_unidentified, case_identified, case_jv_passed)
+        db.select(
+            PoolCredits.month,
+            case_unidentified,
+            case_identified,
+            case_jv_passed,
+            db.func.sum(PoolCredits.credit).label("total"),
+            case_unidentified_count,
+            case_identified_count,
+        )
         .group_by(
             PoolCredits.month,
         )
@@ -364,8 +391,10 @@ def view_pool_credit_summary():
         )
         .where(PoolCredits.value_date >= START_DATE)
     )
-    summary_query = db.session.execute(stmt)
-    return render_template("summary_view.html", query=summary_query)
+    summary_query = db.session.execute(stmt).all()
+    return render_template(
+        "summary_view.html", query=summary_query, query_excl_latest=summary_query[1:]
+    )
 
 
 @pool_credits_bp.route("/daily_jv/")
