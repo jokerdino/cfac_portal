@@ -89,7 +89,7 @@
           {% endif %}
         </ul>
         {% endif %}
-        {% if current_user.user_type in ["ho_stat_audit"] and "cfac_audit" in current_user.role %}
+        {% if current_user.user_type in ["ho_stat_audit"] and current_user.role and "cfac_audit" in current_user.role %}
         <p class="menu-label">HO CFAC BRS</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('ho_accounts.ho_brs_audit_information') }}">Bank Reconciliation<div
