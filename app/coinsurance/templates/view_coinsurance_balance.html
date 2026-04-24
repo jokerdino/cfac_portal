@@ -36,6 +36,13 @@
         </ul>
     </div>
     {% if coinsurance_balance %}
+
+    {% if last_updated %}<div class="has-text-right">
+        Last updated on:
+        <div class="mb-5 tag is-medium is-success is-hoverable">{{ last_updated }}</div>
+    </div>
+
+    {% endif %}
     <div id="summary" class="container is-fluid">
 
         <table class="mt-5 mb-5 table is-bordered is-hoverable" id="coinsurance_summary_table">

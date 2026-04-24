@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from io import BytesIO
 
 import numpy as np
@@ -86,12 +86,20 @@ def query_view_coinsurance_balance():
         )
     summary_query = db.session.execute(summary)
     coinsurance_balance_query = db.session.scalars(coinsurance_balance)
+
+    last_updated = db.session.scalar(
+        db.select(db.func.date_trunc("second", CoinsuranceBalances.created_on)).where(
+            (CoinsuranceBalances.created_on >= date(2026, 1, 1)),
+            CoinsuranceBalances.period == period,
+        )
+    )
     return render_template(
         "view_coinsurance_balance.html",
         coinsurance_balance=coinsurance_balance_query,
         summary=summary_query,
         form=form,
         period=period,
+        last_updated=last_updated,
     )
 
 
