@@ -1,0 +1,17 @@
+{% extends "work_allocation_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div %}
+<div class="container mt-5">
+    <h1 class="title">{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        {% for field in form if field.widget.input_type != "hidden" %}
+        {{ render_field_div(field) }}
+        {% endfor %}
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

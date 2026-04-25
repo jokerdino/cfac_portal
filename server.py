@@ -9,7 +9,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from app.users.admin_routes import admin_check
 from app.users.user_model import User
 from app.todo.models import Notification
-from config import Config, TestConfig
+from config import Config
 from extensions import admin, db, lm, migrate, toolbar
 
 from app.main import main_bp
@@ -52,6 +52,7 @@ from app.brs_tieups import brs_tieups_bp
 
 
 from app.ro_audit_report import ro_audit_report_bp
+from app.work_allocation import work_allocation_bp
 
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
@@ -266,6 +267,7 @@ def create_app(config_class=Config):
     app.register_blueprint(auditor_certificate_bp, url_prefix="/audit_certificate")
     app.register_blueprint(brs_tieups_bp, url_prefix="/brs_tieup")
     app.register_blueprint(ro_audit_report_bp, url_prefix="/ro_audit")
+    app.register_blueprint(work_allocation_bp, url_prefix="/work_allocation")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")
@@ -280,5 +282,5 @@ if __name__ == "__main__":
         db.create_all()
         admin_check()
     #    app.run(debug=True)
-    serve(app, host="0.0.0.0", port=8080)
+    # serve(app, host="0.0.0.0", port=8080)
     # app.run(debug=True, port=8080)

@@ -1,0 +1,50 @@
+{% extends "work_allocation_layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="title">Work Allocation</h1>
+    <table class="table is-striped is-bordered is-fullwidth" id="wa_table">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Bank</th>
+                <th class="has-text-centered">Mode</th>
+                <th class="has-text-centered">Officer name</th>
+                {% if current_user.user_type == "admin" %}
+                <th class="has-text-centered">Edit</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in work_allocation %}
+            <tr>
+                <td>{{ item.bank_name }}</td>
+                <td>{{ item.mode }}</td>
+                <td>{{ item.officer_name }}</td>
+                {% if current_user.user_type == "admin" %}
+                <td class="has-text-centered"><a class="button is-small is-link"
+                        href="{{ url_for('.work_allocation_edit', id=item.id) }}">Edit</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% block scripts %}
+<script>
+
+    new DataTable('#wa_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+    });
+
+</script>
+{% endblock scripts %}
+{% endblock content %}

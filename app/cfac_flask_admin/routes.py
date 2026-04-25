@@ -127,6 +127,7 @@ from app.ro_audit_report.models import (
     RegionalOfficeAuditReport,
     AuditorRegionalOfficeMapping,
 )
+from app.work_allocation.models import WorkAllocation
 
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
@@ -154,6 +155,7 @@ admin.add_sub_category(name="RO Audit reports", parent_name="RO Audit")
 admin.add_sub_category(name="TODO", parent_name="TODO")
 admin.add_sub_category(name="Tickets", parent_name="Tickets")
 admin.add_sub_category(name="Users", parent_name="Users")
+admin.add_sub_category(name="Work allocation", parent_name="Work allocation")
 
 
 # audit certificate
@@ -785,4 +787,15 @@ admin.add_view(
 )
 admin.add_view(
     DefaultModelView(MailConfig, db.session, endpoint="mail_config_", category="Users")
+)
+
+
+# work allocation
+admin.add_view(
+    DefaultModelView(
+        WorkAllocation,
+        db.session,
+        endpoint="work_allocation_",
+        category="Work allocation",
+    )
 )
