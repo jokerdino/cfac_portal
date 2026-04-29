@@ -159,29 +159,23 @@ admin.add_sub_category(name="Work allocation", parent_name="Work allocation")
 
 
 # audit certificate
-admin.add_view(ModelView(AuditorCertificate, db.session, endpoint="ac_"))
+admin.add_view(ModelView(AuditorCertificate, db, endpoint="ac_"))
 
 # announcements
-admin.add_view(ModelView(Announcements, db.session, endpoint="announcements_"))
+admin.add_view(ModelView(Announcements, db, endpoint="announcements_"))
 
 # bank guarantee
-admin.add_view(ModelView(BankGuarantee, db.session, endpoint="bg_"))
+admin.add_view(ModelView(BankGuarantee, db, endpoint="bg_"))
 
 # BRS models
-admin.add_view(BRSView(BRS, db.session, endpoint="brs_", category="BRS"))
-admin.add_view(
-    DefaultModelView(BRSMonth, db.session, endpoint="brs_month_", category="BRS")
-)
-admin.add_view(
-    ModelView(Outstanding, db.session, endpoint="outstanding_", category="BRS")
-)
-admin.add_view(
-    ModelView(DeleteEntries, db.session, endpoint="delete_entries_", category="BRS")
-)
+admin.add_view(BRSView(BRS, db, endpoint="brs_", category="BRS"))
+admin.add_view(DefaultModelView(BRSMonth, db, endpoint="brs_month_", category="BRS"))
+admin.add_view(ModelView(Outstanding, db, endpoint="outstanding_", category="BRS"))
+admin.add_view(ModelView(DeleteEntries, db, endpoint="delete_entries_", category="BRS"))
 admin.add_view(
     ModelView(
         BankReconExcessCredit,
-        db.session,
+        db,
         endpoint="excess_credit_entries_",
         category="BRS",
     )
@@ -189,34 +183,30 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconShortCredit,
-        db.session,
+        db,
         endpoint="short_credit_entries_",
         category="BRS",
     )
 )
 
 admin.add_view(
-    ModelView(
-        BankReconAccountDetails, db.session, endpoint="bank_account_", category="BRS"
-    )
+    ModelView(BankReconAccountDetails, db, endpoint="bank_account_", category="BRS")
 )
 
 # brs_cc
 
 admin.add_view(
-    ModelView(
-        CentralisedChequeSummary, db.session, endpoint="cc_summary", category="BRS_CC"
-    )
+    ModelView(CentralisedChequeSummary, db, endpoint="cc_summary", category="BRS_CC")
 )
 admin.add_view(
     BRSCCDetailView(
-        CentralisedChequeDetails, db.session, endpoint="cc_details", category="BRS_CC"
+        CentralisedChequeDetails, db, endpoint="cc_details", category="BRS_CC"
     )
 )
 admin.add_view(
     ModelView(
         CentralisedChequeInstrumentStaleDetails,
-        db.session,
+        db,
         endpoint="cc_stale",
         category="BRS_CC",
     )
@@ -224,7 +214,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CentralisedChequeInstrumentUnencashedDetails,
-        db.session,
+        db,
         endpoint="cc_unencashed",
         category="BRS_CC",
     )
@@ -232,7 +222,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CentralisedChequeEnableDelete,
-        db.session,
+        db,
         endpoint="cc_delete",
         category="BRS_CC",
     )
@@ -242,7 +232,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconImprestSummary,
-        db.session,
+        db,
         endpoint="imprest_summary",
         category="BRS_Imprest",
     )
@@ -250,7 +240,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconImprestDetails,
-        db.session,
+        db,
         endpoint="imprest_details",
         category="BRS_Imprest",
     )
@@ -258,7 +248,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconImprestUnencashedDetails,
-        db.session,
+        db,
         endpoint="imprest_unencashed_details",
         category="BRS_Imprest",
     )
@@ -267,7 +257,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconLocalCollectionSummary,
-        db.session,
+        db,
         endpoint="lc_summary",
         category="BRS_LC",
     )
@@ -275,7 +265,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconLocalCollectionDetails,
-        db.session,
+        db,
         endpoint="lc_details",
         category="BRS_LC",
     )
@@ -283,7 +273,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconLocalCollectionOutstanding,
-        db.session,
+        db,
         endpoint="lc_os",
         category="BRS_LC",
     )
@@ -291,7 +281,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconLocalCollectionShortCredit,
-        db.session,
+        db,
         endpoint="lc_sc",
         category="BRS_LC",
     )
@@ -299,7 +289,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconLocalCollectionExcessCredit,
-        db.session,
+        db,
         endpoint="lc_ec",
         category="BRS_LC",
     )
@@ -309,7 +299,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconTieupSummary,
-        db.session,
+        db,
         endpoint="tieup_summary",
         category="BRS_tieup",
     )
@@ -317,7 +307,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconTieupDetails,
-        db.session,
+        db,
         endpoint="tieup_details",
         category="BRS_tieup",
     )
@@ -325,7 +315,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconTieupOutstanding,
-        db.session,
+        db,
         endpoint="tieup_os",
         category="BRS_tieup",
     )
@@ -333,7 +323,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconTieupShortCredit,
-        db.session,
+        db,
         endpoint="tieup_sc",
         category="BRS_tieup",
     )
@@ -341,7 +331,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         BankReconTieupExcessCredit,
-        db.session,
+        db,
         endpoint="tieup_ec",
         category="BRS_tieup",
     )
@@ -352,7 +342,7 @@ admin.add_view(
 admin.add_view(
     BudgetAllocationView(
         BudgetAllocation,
-        db.session,
+        db,
         endpoint="budget_allocation_",
         category="Budget",
     )
@@ -361,36 +351,30 @@ admin.add_view(
 admin.add_view(
     BudgetUtilizationView(
         BudgetUtilization,
-        db.session,
+        db,
         endpoint="budget_utilization_",
         category="Budget",
     )
 )
 
 admin.add_view(
-    ModelView(
-        ChangeInstruction, db.session, endpoint="ci_", category="Change Instruction"
-    )
+    ModelView(ChangeInstruction, db, endpoint="ci_", category="Change Instruction")
 )
 # coinsurance
 admin.add_view(
-    ModelView(Coinsurance, db.session, endpoint="coinsurance_", category="Coinsurance")
+    ModelView(Coinsurance, db, endpoint="coinsurance_", category="Coinsurance")
 )
 admin.add_view(
-    ModelView(Settlement, db.session, endpoint="settlement_", category="Coinsurance")
+    ModelView(Settlement, db, endpoint="settlement_", category="Coinsurance")
 )
+admin.add_view(ModelView(Remarks, db, endpoint="remarks_", category="Coinsurance"))
 admin.add_view(
-    ModelView(Remarks, db.session, endpoint="remarks_", category="Coinsurance")
-)
-admin.add_view(
-    ModelView(
-        CoinsuranceLog, db.session, endpoint="coinsurance_log_", category="Coinsurance"
-    )
+    ModelView(CoinsuranceLog, db, endpoint="coinsurance_log_", category="Coinsurance")
 )
 admin.add_view(
     ModelView(
         CoinsuranceBalances,
-        db.session,
+        db,
         endpoint="coinsurance_balances_",
         category="Coinsurance",
     )
@@ -398,7 +382,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceBalanceGeneralLedgerCodeFlagSheet,
-        db.session,
+        db,
         endpoint="coinsurance_balances_gl_code",
         category="Coinsurance",
     )
@@ -406,7 +390,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceBalanceZoneFlagSheet,
-        db.session,
+        db,
         endpoint="coinsurance_balances_zone",
         category="Coinsurance",
     )
@@ -414,7 +398,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceCashCall,
-        db.session,
+        db,
         endpoint="coinsurance_cashcall",
         category="Coinsurance",
     )
@@ -423,7 +407,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceBankMandate,
-        db.session,
+        db,
         endpoint="coinsurance_bankmandate",
         category="Coinsurance",
     )
@@ -432,7 +416,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceReceipts,
-        db.session,
+        db,
         endpoint="coinsurance_receipts",
         category="Coinsurance",
     )
@@ -440,7 +424,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceReceiptsJournalVoucher,
-        db.session,
+        db,
         endpoint="coinsurance_receipts_jv",
         category="Coinsurance",
     )
@@ -449,50 +433,44 @@ admin.add_view(
 admin.add_view(
     ModelView(
         CoinsuranceTokenRequestId,
-        db.session,
+        db,
         endpoint="coinsurance_token_request_id",
         category="Coinsurance",
     )
 )
 
 # contacts
-admin.add_view(ModelView(Contacts, db.session, endpoint="contacts_"))
+admin.add_view(ModelView(Contacts, db, endpoint="contacts_"))
 
 # contracts
-admin.add_view(ModelView(Contracts, db.session, endpoint="contracts_"))
+admin.add_view(ModelView(Contracts, db, endpoint="contracts_"))
 
 # Correspondence
+admin.add_view(ModelView(Circular, db, endpoint="circular_", category="Correspondence"))
 admin.add_view(
-    ModelView(Circular, db.session, endpoint="circular_", category="Correspondence")
+    ModelView(InwardDocument, db, endpoint="inward_", category="Correspondence")
 )
 admin.add_view(
-    ModelView(InwardDocument, db.session, endpoint="inward_", category="Correspondence")
-)
-admin.add_view(
-    ModelView(
-        OutwardDocument, db.session, endpoint="outward_", category="Correspondence"
-    )
+    ModelView(OutwardDocument, db, endpoint="outward_", category="Correspondence")
 )
 
 # dd debits
-admin.add_view(
-    ModelView(DirectDebit, db.session, endpoint="dd_debits_", category="DD Debits")
-)
+admin.add_view(ModelView(DirectDebit, db, endpoint="dd_debits_", category="DD Debits"))
 admin.add_view(
     ModelView(
         RegionalManagerEmailAddress,
-        db.session,
+        db,
         endpoint="dd_debits_rm_email",
         category="DD Debits",
     )
 )
 # escalation matrix
-admin.add_view(ModelView(EscalationMatrix, db.session, endpoint="em_"))
+admin.add_view(ModelView(EscalationMatrix, db, endpoint="em_"))
 # funds
 admin.add_view(
     DefaultModelView(
         FundAmountGivenToInvestment,
-        db.session,
+        db,
         endpoint="funds_investment",
         category="Funds",
     )
@@ -500,40 +478,34 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         FundBankAccountNumbers,
-        db.session,
+        db,
         endpoint="funds_bankaccountnumbers",
         category="Funds",
     )
 )
 admin.add_view(
     FundBankStatementView(
-        FundBankStatement, db.session, endpoint="funds_bank_statement", category="Funds"
+        FundBankStatement, db, endpoint="funds_bank_statement", category="Funds"
     )
 )
 admin.add_view(
     DefaultModelView(
-        FundDailyOutflow, db.session, endpoint="funds_daily_outflow", category="Funds"
+        FundDailyOutflow, db, endpoint="funds_daily_outflow", category="Funds"
     )
 )
 admin.add_view(
-    DefaultModelView(
-        FundFlagSheet, db.session, endpoint="funds_flag_sheet", category="Funds"
-    )
+    DefaultModelView(FundFlagSheet, db, endpoint="funds_flag_sheet", category="Funds")
 )
 admin.add_view(
-    DefaultModelView(
-        FundMajorOutgo, db.session, endpoint="funds_major_outgo", category="Funds"
-    )
+    DefaultModelView(FundMajorOutgo, db, endpoint="funds_major_outgo", category="Funds")
 )
 admin.add_view(
-    DefaultModelView(
-        FundDailySheet, db.session, endpoint="funds_daily_sheet", category="Funds"
-    )
+    DefaultModelView(FundDailySheet, db, endpoint="funds_daily_sheet", category="Funds")
 )
 admin.add_view(
     DefaultModelView(
         FundJournalVoucherFlagSheet,
-        db.session,
+        db,
         endpoint="funds_jv_flag_sheet",
         category="Funds",
     )
@@ -542,7 +514,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         FundOutflowLabel,
-        db.session,
+        db,
         endpoint="funds_outflow_label",
         category="Funds",
     )
@@ -551,7 +523,7 @@ admin.add_view(
 admin.add_view(
     ModelView(
         FundSignatory,
-        db.session,
+        db,
         endpoint="funds_signatory",
         category="Funds",
     )
@@ -561,7 +533,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         HeadOfficeBankReconTracker,
-        db.session,
+        db,
         endpoint="recon",
         category="HO_checklist",
     )
@@ -569,7 +541,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         HeadOfficeAccountsTracker,
-        db.session,
+        db,
         endpoint="general",
         category="HO_checklist",
     )
@@ -577,25 +549,21 @@ admin.add_view(
 
 # horo recon
 admin.add_view(
-    DefaultModelView(
-        ReconEntries, db.session, endpoint="entries", category="HORO_recon"
-    )
+    DefaultModelView(ReconEntries, db, endpoint="entries", category="HORO_recon")
 )
 admin.add_view(
-    ReconSummaryView(
-        ReconSummary, db.session, endpoint="summary", category="HORO_recon"
-    )
+    ReconSummaryView(ReconSummary, db, endpoint="summary", category="HORO_recon")
 )
 
 # knowledge base
-admin.add_view(ModelView(KnowledgeBase, db.session, endpoint="kb_"))
+admin.add_view(ModelView(KnowledgeBase, db, endpoint="kb_"))
 
 
 # leave management
 admin.add_view(
     DefaultModelView(
         EmployeeData,
-        db.session,
+        db,
         endpoint="employee_data",
         category="Leave management",
     )
@@ -604,7 +572,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         AttendanceRegister,
-        db.session,
+        db,
         endpoint="attendance_register",
         category="Leave management",
     )
@@ -614,7 +582,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         LeaveBalance,
-        db.session,
+        db,
         endpoint="leave_balance",
         category="Leave management",
     )
@@ -623,7 +591,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         LeaveApplication,
-        db.session,
+        db,
         endpoint="leave_application",
         category="Leave management",
     )
@@ -633,7 +601,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         LeaveSubmissionData,
-        db.session,
+        db,
         endpoint="leave_submission",
         category="Leave management",
     )
@@ -642,7 +610,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         PublicHoliday,
-        db.session,
+        db,
         endpoint="public_holiday",
         category="Leave management",
     )
@@ -652,7 +620,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         PrivilegeLeaveBalance,
-        db.session,
+        db,
         endpoint="PL",
         category="Leave balance",
     )
@@ -661,7 +629,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         SickLeaveBalance,
-        db.session,
+        db,
         endpoint="SL",
         category="Leave balance",
     )
@@ -671,7 +639,7 @@ admin.add_view(
 admin.add_view(
     LienView(
         Lien,
-        db.session,
+        db,
         endpoint="lien_",
         category="Lien",
     )
@@ -679,38 +647,36 @@ admin.add_view(
 admin.add_view(
     LienView(
         LienRegionalOfficeEmailAddress,
-        db.session,
+        db,
         endpoint="lien_email",
         category="Lien",
     )
 )
 
 # mis tracker
-admin.add_view(ModelView(MisTracker, db.session, endpoint="mistracker_"))
+admin.add_view(ModelView(MisTracker, db, endpoint="mistracker_"))
 
 # outstanding expenses
-admin.add_view(OSView(OutstandingExpenses, db.session, endpoint="os_"))
+admin.add_view(OSView(OutstandingExpenses, db, endpoint="os_"))
 
 # pg tieup
 admin.add_view(
     DefaultModelView(
         PaymentGatewayTieup,
-        db.session,
+        db,
         endpoint="pg_tieup_",
     )
 )
 
 # pool credits
 admin.add_view(
-    PoolCreditView(
-        PoolCredits, db.session, endpoint="pool_credits_", category="Pool credits"
-    )
+    PoolCreditView(PoolCredits, db, endpoint="pool_credits_", category="Pool credits")
 )
 
 admin.add_view(
     DefaultModelView(
         PoolCreditsPortal,
-        db.session,
+        db,
         endpoint="pool_credits_portal_",
         category="Pool credits",
     )
@@ -719,7 +685,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         PoolCreditsJournalVoucher,
-        db.session,
+        db,
         endpoint="pool_credits_jv_",
         category="Pool credits",
     )
@@ -727,13 +693,11 @@ admin.add_view(
 
 # refund - dqr
 admin.add_view(
-    DefaultModelView(
-        DqrRefund, db.session, endpoint="refund_dqr_", category="Refund DQR"
-    )
+    DefaultModelView(DqrRefund, db, endpoint="refund_dqr_", category="Refund DQR")
 )
 admin.add_view(
     DefaultModelView(
-        DqrMachines, db.session, endpoint="refund_dqr_machines", category="Refund DQR"
+        DqrMachines, db, endpoint="refund_dqr_machines", category="Refund DQR"
     )
 )
 
@@ -741,7 +705,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         RegionalOfficeAuditReport,
-        db.session,
+        db,
         endpoint="ro_audit_report_",
         category="RO Audit",
     )
@@ -749,7 +713,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         RegionalOfficeAuditObservation,
-        db.session,
+        db,
         endpoint="ro_audit_observations_",
         category="RO Audit",
     )
@@ -758,7 +722,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         AuditorRegionalOfficeMapping,
-        db.session,
+        db,
         endpoint="ro_audit_ro_mapping_",
         category="RO Audit",
     )
@@ -766,27 +730,21 @@ admin.add_view(
 
 
 # todo
-admin.add_view(ModelView(Task, db.session, endpoint="task_", category="Todo"))
-admin.add_view(ModelView(Notification, db.session, endpoint="notif_", category="Todo"))
+admin.add_view(ModelView(Task, db, endpoint="task_", category="Todo"))
+admin.add_view(ModelView(Notification, db, endpoint="notif_", category="Todo"))
 
 
 # tickets
+admin.add_view(DefaultModelView(Tickets, db, endpoint="tickets_", category="Tickets"))
 admin.add_view(
-    DefaultModelView(Tickets, db.session, endpoint="tickets_", category="Tickets")
-)
-admin.add_view(
-    DefaultModelView(
-        TicketRemarks, db.session, endpoint="tickets_remarks_", category="Tickets"
-    )
+    DefaultModelView(TicketRemarks, db, endpoint="tickets_remarks_", category="Tickets")
 )
 
 # users
-admin.add_view(UserView(User, db.session, endpoint="user_", category="Users"))
+admin.add_view(UserView(User, db, endpoint="user_", category="Users"))
+admin.add_view(DefaultModelView(LogUser, db, endpoint="log_user_", category="Users"))
 admin.add_view(
-    DefaultModelView(LogUser, db.session, endpoint="log_user_", category="Users")
-)
-admin.add_view(
-    DefaultModelView(MailConfig, db.session, endpoint="mail_config_", category="Users")
+    DefaultModelView(MailConfig, db, endpoint="mail_config_", category="Users")
 )
 
 
