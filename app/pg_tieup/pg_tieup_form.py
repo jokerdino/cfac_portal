@@ -80,6 +80,10 @@ class PaymentGatewayTieupAddForm(FlaskForm):
         "Upload bank mandate file", validators=[Optional()]
     )
 
+    gl_code = StringField("GL Code", validators=[Optional()])
+    bank_code = StringField(validators=[Optional()])
+    bank_branch_code = StringField(validators=[Optional()])
+
 
 class UploadFileForm(FlaskForm):
     file_upload = FileField(
