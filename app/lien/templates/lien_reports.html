@@ -130,8 +130,8 @@
         document.getElementById("count_tab").classList.add("is-active");
 
         // Important: Recalculate columns for the hidden table
-        if ($.fn.DataTable.isDataTable('#lien_count')) {
-            $('#lien_count').DataTable().columns.adjust().draw();
+        if (DataTable.isDataTable('#lien_count')) {
+            new DataTable('#lien_count').columns.adjust().draw();
         }
     }
 
@@ -146,8 +146,8 @@
         document.getElementById("consol_tab").classList.remove("is-active");
         document.getElementById("sum_tab").classList.add("is-active");
 
-        if ($.fn.DataTable.isDataTable('#lien_sum')) {
-            $('#lien_sum').DataTable().columns.adjust().draw();
+        if (DataTable.isDataTable('#lien_sum')) {
+            new DataTable('#lien_sum').columns.adjust().draw();
         }
     }
 
@@ -162,8 +162,8 @@
         document.getElementById("sum_tab").classList.remove("is-active");
         document.getElementById("consol_tab").classList.add("is-active");
 
-        if ($.fn.DataTable.isDataTable('#lien_consol')) {
-            $('#lien_consol').DataTable().columns.adjust().draw();
+        if (DataTable.isDataTable('#lien_consol')) {
+            new DataTable('#lien_consol').columns.adjust().draw();
         }
     }
 
@@ -185,7 +185,7 @@
     };
 
     // Initialize both tables
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         new DataTable('#lien_sum', dtConfig);
         new DataTable('#lien_count', dtConfig);
         new DataTable('#lien_consol', dtConfig);

@@ -45,7 +45,7 @@
     {% endif %}
     <div id="summary" class="container is-fluid">
 
-        <table class="mt-5 mb-5 table is-bordered is-hoverable" id="coinsurance_summary_table">
+        <table class="mt-5 mb-5 table is-bordered is-hoverable is-fullwidth" id="coinsurance_summary_table">
             <thead>
                 <tr>
                     <th class="has-text-centered is-vcentered">Name of company</th>
@@ -144,7 +144,7 @@
             topStart: 'buttons',
         },
         stateSave: true,
-        fixedHeader: true,
+        // fixedHeader: true,
         pageLength: 100,
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
@@ -155,38 +155,18 @@
             var api = this.api();
 
             // Remove the formatting to get integer data for summation
-            var intVal = function (i) {
+            const intVal = function (i) {
                 return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
             };
 
-            // Total over all pages
-            grossDueTo = api
-                .column(1, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            grossDueFrom = api
-                .column(2, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-
-            netDueTo = api
-                .column(3, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            netDueFrom = api
-                .column(4, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-
-
+            const sum = (colIndex) => {
+                return api
+                    .column(colIndex, { page: 'current' })
+                    .data()
+                    .reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+            }
 
             // Update footer
             const formatter = new Intl.NumberFormat('en-IN', {
@@ -196,11 +176,10 @@
                 maximumFractionDigits: 2,
                 //trailingZeroDisplay: 'stripIfInteger'
             });
-            $(api.column(1).footer()).html(formatter.format(grossDueTo));
-            $(api.column(2).footer()).html(formatter.format(grossDueFrom));
 
-            $(api.column(3).footer()).html(formatter.format(netDueTo));
-            $(api.column(4).footer()).html(formatter.format(netDueFrom));
+            for (let col = 1; col <= 4; col++) {
+                api.column(col).footer().textContent = formatter.format(sum(col));
+            }
 
         },
 
@@ -214,7 +193,7 @@
             topStart: 'buttons',
 
         },
-        fixedHeader: true,
+        // fixedHeader: true,
         stateSave: true,
         pageLength: 100,
         buttons: [
@@ -230,55 +209,19 @@
             var api = this.api();
 
             // Remove the formatting to get integer data for summation
-            var intVal = function (i) {
+            const intVal = function (i) {
                 return typeof i === 'string' ? i.replace(/[\$,]/g, '') * 1 : typeof i === 'number' ? i : 0;
             };
-
+            const sum = (colIndex) => {
+                return api
+                    .column(colIndex, { page: 'current' })
+                    .data()
+                    .reduce(function (a, b) {
+                        return intVal(a) + intVal(b);
+                    }, 0);
+            }
             // Total over all pages
 
-            hubDueToPremiumTotal = api
-                .column(5, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            hubDueToClaimsTotal = api
-                .column(6, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            hubDueFromPremiumTotal = api
-                .column(7, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            hubDueFromClaimsTotal = api
-                .column(8, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            ooDueToTotal = api
-                .column(9, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            ooDueFromTotal = api
-                .column(10, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
-            // Total over this page
-            netTotal = api
-                .column(11, { page: 'current' })
-                .data()
-                .reduce(function (a, b) {
-                    return intVal(a) + intVal(b);
-                }, 0);
 
             // Update footer
             const formatter = new Intl.NumberFormat('en-IN', {
@@ -288,14 +231,10 @@
                 maximumFractionDigits: 2,
                 // trailingZeroDisplay: 'stripIfInteger'
             });
-            $(api.column(5).footer()).html(formatter.format(hubDueToPremiumTotal));
-            $(api.column(6).footer()).html(formatter.format(hubDueToClaimsTotal));
-            $(api.column(7).footer()).html(formatter.format(hubDueFromPremiumTotal));
-            $(api.column(8).footer()).html(formatter.format(hubDueFromClaimsTotal));
-            $(api.column(9).footer()).html(formatter.format(ooDueToTotal));
-            $(api.column(10).footer()).html(formatter.format(ooDueFromTotal));
-            $(api.column(11).footer()).html(formatter.format(netTotal));
-            //$(api.column(0).footer()).html('Total: ' + formatter.format(total));
+            for (let col = 5; col <= 11; col++) {
+                api.column(col).footer().textContent = formatter.format(sum(col));
+            }
+
         },
 
     });

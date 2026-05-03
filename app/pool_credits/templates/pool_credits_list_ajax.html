@@ -59,7 +59,7 @@
         const tableEl = document.getElementById("pool_credits_table");
 
         // Prevent reinitialization
-        if ($.fn.dataTable.isDataTable(tableEl)) {
+        if (DataTable.isDataTable(tableEl)) {
             return;
         }
 

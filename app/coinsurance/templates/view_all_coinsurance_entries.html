@@ -62,84 +62,86 @@
     </table>
 
     {% endif %}
-    <table class="table is-striped is-bordered is-hoverable is-fullwidth" id="coinsurance_table">
+    <div class="table-container is-fluid">
+        <table class="table is-striped is-bordered is-hoverable" id="coinsurance_table">
 
-        <thead>
-            <tr>
+            <thead>
+                <tr>
 
-                {% if update_settlement and status == "To be settled" and current_user.user_type in
-                ["admin","coinsurance_hub_user"] %}
-                <th>Select</th>
-                {% endif %}
+                    {% if update_settlement and status == "To be settled" and current_user.user_type in
+                    ["admin","coinsurance_hub_user"] %}
+                    <th>Select</th>
+                    {% endif %}
 
-                <th class="has-text-centered is-vcentered">Entry ID</th>
-                <th class="has-text-centered is-vcentered">Date of entry</th>
-                <th class="has-text-centered is-vcentered"></th>
-                <th class="has-text-centered is-vcentered">RO code</th>
-                <th class="has-text-centered is-vcentered">OO code</th>
-                <th class="has-text-centered is-vcentered">Coinsurer name</th>
-                <th class="has-text-centered is-vcentered">Coinsurer office code</th>
-                <th class="has-text-centered is-vcentered">Leader / follower </th>
-                <th class="has-text-centered is-vcentered">Request ID</th>
-                <th class="has-text-centered is-vcentered">Period</th>
-                <th class="has-text-centered is-vcentered">Name of insured</th>
-                <th class="has-text-centered is-vcentered">Payable amount</th>
-                <th class="has-text-centered is-vcentered">Receivable amount</th>
-                <th class="has-text-centered is-vcentered">Net payable / (Net receivable) (Excluding RI)</th>
-                <th class="has-text-centered is-vcentered">Reinsurance involved</th>
-                <th class="has-text-centered is-vcentered">RI payable amount</th>
-                <th class="has-text-centered is-vcentered">RI receivable amount </th>
-                <th class="has-text-centered is-vcentered">Net payable / (Net receivable) (Including RI) </th>
-                <th class="has-text-centered is-vcentered">Current status</th>
-                <th class="has-text-centered is-vcentered">Zone</th>
+                    <th class="has-text-centered is-vcentered">Entry ID</th>
+                    <th class="has-text-centered is-vcentered">Date of entry</th>
+                    <th class="has-text-centered is-vcentered"></th>
+                    <th class="has-text-centered is-vcentered">RO code</th>
+                    <th class="has-text-centered is-vcentered">OO code</th>
+                    <th class="has-text-centered is-vcentered">Coinsurer name</th>
+                    <th class="has-text-centered is-vcentered">Coinsurer office code</th>
+                    <th class="has-text-centered is-vcentered">Leader / follower </th>
+                    <th class="has-text-centered is-vcentered">Request ID</th>
+                    <th class="has-text-centered is-vcentered">Period</th>
+                    <th class="has-text-centered is-vcentered">Name of insured</th>
+                    <th class="has-text-centered is-vcentered">Payable amount</th>
+                    <th class="has-text-centered is-vcentered">Receivable amount</th>
+                    <th class="has-text-centered is-vcentered">Net payable / (Net receivable) (Excluding RI)</th>
+                    <th class="has-text-centered is-vcentered">Reinsurance involved</th>
+                    <th class="has-text-centered is-vcentered">RI payable amount</th>
+                    <th class="has-text-centered is-vcentered">RI receivable amount </th>
+                    <th class="has-text-centered is-vcentered">Net payable / (Net receivable) (Including RI) </th>
+                    <th class="has-text-centered is-vcentered">Current status</th>
+                    <th class="has-text-centered is-vcentered">Zone</th>
 
-            </tr>
-        </thead>
-        <tbody>
-            {% for entry in coinsurance_entries %}
-            <tr>
-                {% if update_settlement and status == "To be settled" and current_user.user_type in
-                ["admin","coinsurance_hub_user"] %}
-                <td>
-                    <label class="checkbox">
-                        <input type="checkbox" name="coinsurance_keys" value="{{ entry.id }}" />
-                    </label>
-                </td>
-                {% endif %}
-                <td class="has-text-right"> {{ entry.id }}</td>
-                <td data-sort="{{ entry.date_created_date }}">{{ entry.date_created_date.strftime('%d/%m/%Y') if
-                    entry.date_created_date }}</td>
-                <td>
-                    <a class="button is-small is-info"
-                        href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">
-                        View</a>
-                </td>
-                <td> {{ entry.uiic_regional_code }}</td>
-                <td> {{ entry.uiic_office_code | replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.follower_company_name }}</td>
-                <td> {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.type_of_transaction }}</td>
-                <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
-                <td> {{ entry.str_period or "" }}</td>
-                <td> {{ entry.insured_name }}</td>
-                <td class="has-text-right">{{ (entry.payable_amount or 0)| indian_number_format }}</td>
-                <td class="has-text-right">{{ (entry.receivable_amount or 0)| indian_number_format }}</td>
-                <td class="has-text-right">{{ ((entry.payable_amount or 0)- (entry.receivable_amount or 0)) |
-                    indian_number_format
-                    }}
-                </td>
-                <td> {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
-                <td class="has-text-right">{{ (entry.int_ri_payable_amount or 0)|indian_number_format }}</td>
-                <td class="has-text-right">{{ (entry.int_ri_receivable_amount or 0)|indian_number_format }}</td>
-                <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
-                <td>{{ entry.current_status or '' }}</td>
-                <td>{{ entry.zone }}</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in coinsurance_entries %}
+                <tr>
+                    {% if update_settlement and status == "To be settled" and current_user.user_type in
+                    ["admin","coinsurance_hub_user"] %}
+                    <td>
+                        <label class="checkbox">
+                            <input type="checkbox" name="coinsurance_keys" value="{{ entry.id }}" />
+                        </label>
+                    </td>
+                    {% endif %}
+                    <td class="has-text-right"> {{ entry.id }}</td>
+                    <td data-sort="{{ entry.date_created_date }}">{{ entry.date_created_date.strftime('%d/%m/%Y') if
+                        entry.date_created_date }}</td>
+                    <td>
+                        <a class="button is-small is-info"
+                            href="{{ url_for ('coinsurance.view_coinsurance_entry', coinsurance_id = entry.id) }}">
+                            View</a>
+                    </td>
+                    <td> {{ entry.uiic_regional_code }}</td>
+                    <td> {{ entry.uiic_office_code | replace(",",", ") | replace("/","/ ") }}</td>
+                    <td> {{ entry.follower_company_name }}</td>
+                    <td> {{ entry.follower_office_code | replace(",",", ") | replace("/","/ ") }}</td>
+                    <td> {{ entry.type_of_transaction }}</td>
+                    <td> {{ entry.request_id| replace(",",", ") | replace("/","/ ") }}</td>
+                    <td> {{ entry.str_period or "" }}</td>
+                    <td> {{ entry.insured_name }}</td>
+                    <td class="has-text-right">{{ (entry.payable_amount or 0)| indian_number_format }}</td>
+                    <td class="has-text-right">{{ (entry.receivable_amount or 0)| indian_number_format }}</td>
+                    <td class="has-text-right">{{ ((entry.payable_amount or 0)- (entry.receivable_amount or 0)) |
+                        indian_number_format
+                        }}
+                    </td>
+                    <td> {{ "Yes" if entry.boolean_reinsurance_involved else "No" }}</td>
+                    <td class="has-text-right">{{ (entry.int_ri_payable_amount or 0)|indian_number_format }}</td>
+                    <td class="has-text-right">{{ (entry.int_ri_receivable_amount or 0)|indian_number_format }}</td>
+                    <td class="has-text-right">{{ entry.net_amount|indian_number_format }}</td>
+                    <td>{{ entry.current_status or '' }}</td>
+                    <td>{{ entry.zone }}</td>
 
-            </tr>
-            {% endfor %}
-        </tbody>
+                </tr>
+                {% endfor %}
+            </tbody>
 
-    </table>
+        </table>
+    </div>
 </form>
 <div class="table-container mt-5">
     <div class="is-pulled-right">
@@ -174,8 +176,8 @@
             //bottomStart: 'info',
             //bottomEnd: 'paging',
         },
-        fixedHeader: true,
-        scrollY: true,
+        // fixedHeader: true,
+        // scrollX: true,
         columnDefs: [
             {
                 target: [column_number, column_number + 1],

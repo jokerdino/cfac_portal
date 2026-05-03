@@ -28,36 +28,36 @@
 </div>
 {% block scripts %}
 <script>
-    $(document).ready(function () {
-        new DataTable('#pool_credits_table', {
-            ajax: "{{ url_for('pool_credits.daily_jv_entries_v2') }}",
-            serverSide: true,
-            //stateSave: true,
-            processing: true,
-            ordering: false,
-            layout: {
-                topStart: 'pageLength',
-                top2Start: {
-                    buttons: [
-                        { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
-                        { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
-                        { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
-                }
-            },
-            columns: [
-                { data: 'book_date', className: 'dt-body-center', },
-                { data: 'description' },
-                { data: 'credit', className: 'dt-body-right', },
-                { data: 'value_date', className: 'dt-body-center', },
-                { data: 'reference_no' },
-                { data: 'txt_description' },
-                { data: 'txt_flag' },
-                { data: 'txt_gl_code' },
-                { data: 'txt_sl_code' },
-            ],
-            order: [[1, 'asc']]
-        });
+
+    new DataTable('#pool_credits_table', {
+        ajax: "{{ url_for('pool_credits.daily_jv_entries_v2') }}",
+        serverSide: true,
+        //stateSave: true,
+        processing: true,
+        ordering: false,
+        layout: {
+            topStart: 'pageLength',
+            top2Start: {
+                buttons: [
+                    { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+                    { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+                    { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+            }
+        },
+        columns: [
+            { data: 'book_date', className: 'dt-body-center', },
+            { data: 'description' },
+            { data: 'credit', className: 'dt-body-right', },
+            { data: 'value_date', className: 'dt-body-center', },
+            { data: 'reference_no' },
+            { data: 'txt_description' },
+            { data: 'txt_flag' },
+            { data: 'txt_gl_code' },
+            { data: 'txt_sl_code' },
+        ],
+        order: [[1, 'asc']]
     });
+
 </script>
 
 {% endblock scripts %}
