@@ -645,7 +645,7 @@ admin.add_view(
     )
 )
 admin.add_view(
-    LienView(
+    ModelView(
         LienRegionalOfficeEmailAddress,
         db,
         endpoint="lien_email",

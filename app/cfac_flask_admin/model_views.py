@@ -3,6 +3,7 @@ from flask_admin_models import DefaultModelView
 
 class LienView(DefaultModelView):
     can_export = True
+    column_filters = ["ro_code", "lien_amount", "bank_name"]
 
 
 class UserView(DefaultModelView):
