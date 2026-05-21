@@ -97,6 +97,7 @@ def send_dd_email_to_ho_tp():
             subject=subject,
             recipients=ho_motor_tp_officers,
             cc=[
+                "jaishreenair@uiic.co.in",
                 "shemamalini@uiic.co.in",
                 "pnarun@uiic.co.in",
                 "apusha@uiic.co.in",
