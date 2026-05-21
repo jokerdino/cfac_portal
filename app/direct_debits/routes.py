@@ -318,7 +318,7 @@ def dd_reports_summary():
         month = filter_form.month.data
         if month != VIEW_ALL:
             stmt = stmt.where(DirectDebit.month_string == month)
-    data = db.session.execute(stmt)
+    data = db.session.execute(stmt).all()
     return render_template(
         "dd_reports_summary.html", data=data, filter_form=filter_form
     )

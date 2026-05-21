@@ -40,6 +40,22 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr class="has-text-weight-bold">
+                <td></td>
+                <td></td>
+                <td>{{ data | sum(attribute="count") }}</td>
+                <td>{{ data | sum(attribute="total") | indian_number_format }}</td>
+                <td>{{ data | sum(attribute="reversed_count") }}</td>
+                <td>{{ data | sum(attribute="reversed_sum") | indian_number_format }}</td>
+                <td>{{ data | sum(attribute="updated_count") }}</td>
+                <td>{{ data | sum(attribute="updated_sum") | indian_number_format }}</td>
+                <td {% if data | sum(attribute="pending_count") %}class="has-text-danger" {% endif %}>
+                    {{ data | sum(attribute="pending_count") }}</td>
+                <td {% if data | sum(attribute="pending_count") %}class="has-text-danger" {% endif %}>
+                    {{ data | sum(attribute="pending_sum") | indian_number_format }}</td>
+            </tr>
+        </tfoot>
     </table>
 </div>
 {% block scripts %}
