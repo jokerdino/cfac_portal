@@ -44,7 +44,7 @@ def auditor_certificate_view(id):
 @admin_required
 def auditor_certificate_edit(id):
     ac = db.get_or_404(AuditorCertificate, id)
-    form = AuditorCertificateForm(obj=ac)
+    form = AuditorCertificateForm(obj=ac, obj_id=id)
 
     if form.validate_on_submit():
         form.populate_obj(ac)
@@ -64,13 +64,16 @@ def auditor_certificate_edit(id):
 def auditor_certificate_list():
     ac_list = db.session.scalars(db.select(AuditorCertificate))
     column_names = [
+        "id",
         "ro_code",
         "ro_name",
         "purpose",
+        "tender_number",
         "date_of_request",
         "bid_closing_date",
         "certificate_issued_date",
         "invoice_received_date",
+        "invoice_number",
         "invoice_date",
         "disbursement_date",
         "request_id",

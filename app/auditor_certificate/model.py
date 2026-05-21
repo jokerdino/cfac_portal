@@ -13,10 +13,12 @@ class AuditorCertificate(db.Model):
     ro_name: Mapped[str]
 
     purpose: Mapped[str] = mapped_column(db.Text)
+    tender_number: Mapped[Optional[str]] = mapped_column(unique=True)
     date_of_request: Mapped[date]
     bid_closing_date: Mapped[Optional[date]]
     certificate_issued_date: Mapped[Optional[date]]
     invoice_received_date: Mapped[Optional[date]]
+    invoice_number: Mapped[Optional[str]] = mapped_column(unique=True)
     invoice_date: Mapped[Optional[date]]
 
     remarks: Mapped[Optional[str]] = mapped_column(db.Text)
