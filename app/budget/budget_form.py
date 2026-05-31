@@ -1,3 +1,6 @@
+from datetime import date
+
+
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from wtforms import (
@@ -10,7 +13,19 @@ from wtforms import (
 from wtforms.validators import DataRequired
 from wtforms.widgets import CheckboxInput, ListWidget
 
-fy_choice_list = ["FY24-25", "FY25-26"]
+
+def get_fy_choice_list(start_year=2024) -> list[str]:
+    today = date.today()
+
+    current_fy_start = today.year if today.month >= 4 else today.year - 1
+
+    return [
+        f"FY{year % 100:02d}-{(year + 1) % 100:02d}"
+        for year in range(start_year, current_fy_start + 1)
+    ]
+
+
+fy_choice_list: list[str] = get_fy_choice_list()
 
 
 class BudgetAllocationForm(FlaskForm):
