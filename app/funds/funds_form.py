@@ -165,11 +165,11 @@ JVFlagAddForm = model_form(
     ],
     field_args={
         "txt_description": {
-            "filters": [lambda x: x.strip().upper() if x else None],
+            "filters": [lambda x: x.strip() if x else None],
             "validators": [DataRequired()],
         },
         "txt_flag": {
-            "filters": [lambda x: x.strip() if x else None],
+            "filters": [lambda x: x.strip().upper() if x else None],
             "validators": [DataRequired()],
         },
         "txt_gl_code": {
