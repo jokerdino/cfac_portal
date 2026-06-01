@@ -4,7 +4,6 @@ from io import BytesIO
 
 
 from flask import (
-    abort,
     flash,
     redirect,
     render_template,
@@ -426,10 +425,10 @@ def daily_jv_entries_v2():
                 "value_date"
             ),
             FundBankStatement.reference_no,
-            FundJournalVoucherFlagSheet.txt_description,
-            FundJournalVoucherFlagSheet.txt_flag,
-            FundJournalVoucherFlagSheet.txt_gl_code,
-            FundJournalVoucherFlagSheet.txt_sl_code,
+            FundJournalVoucherFlagSheet.pattern,
+            FundJournalVoucherFlagSheet.pattern_name,
+            FundJournalVoucherFlagSheet.gl_code,
+            FundJournalVoucherFlagSheet.sl_code,
         )
         .join(
             FundBankStatement.flag,
@@ -458,12 +457,12 @@ def daily_jv_entries_v2():
                     db.cast(FundBankStatement.credit, db.String).like(f"%{term}%"),
                     db.cast(FundBankStatement.value_date, db.String).like(f"%{term}%"),
                     FundBankStatement.reference_no.ilike(f"%{term}%"),
-                    FundJournalVoucherFlagSheet.txt_description.ilike(f"%{term}%"),
-                    FundJournalVoucherFlagSheet.txt_flag.ilike(f"%{term}%"),
-                    db.cast(FundJournalVoucherFlagSheet.txt_gl_code, db.String).like(
+                    FundJournalVoucherFlagSheet.pattern.ilike(f"%{term}%"),
+                    FundJournalVoucherFlagSheet.pattern_name.ilike(f"%{term}%"),
+                    db.cast(FundJournalVoucherFlagSheet.gl_code, db.String).like(
                         f"%{term}%"
                     ),
-                    db.cast(FundJournalVoucherFlagSheet.txt_sl_code, db.String).like(
+                    db.cast(FundJournalVoucherFlagSheet.sl_code, db.String).like(
                         f"%{term}%"
                     ),
                 )
@@ -509,10 +508,10 @@ def download_monthly():
                 "value_date"
             ),
             FundBankStatement.reference_no,
-            FundJournalVoucherFlagSheet.txt_description.label("pattern"),
-            FundJournalVoucherFlagSheet.txt_flag.label("flag"),
-            FundJournalVoucherFlagSheet.txt_gl_code.label("gl_code"),
-            FundJournalVoucherFlagSheet.txt_sl_code.label("sl_code"),
+            FundJournalVoucherFlagSheet.pattern.label("pattern"),
+            FundJournalVoucherFlagSheet.pattern_name.label("flag"),
+            FundJournalVoucherFlagSheet.gl_code.label("gl_code"),
+            FundJournalVoucherFlagSheet.sl_code.label("sl_code"),
         )
         .join(
             FundBankStatement.flag,

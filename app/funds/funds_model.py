@@ -216,10 +216,10 @@ class FundBankAccountNumbers(db.Model):
 
 class FundJournalVoucherFlagSheet(db.Model):
     id: Mapped[IntPK]
-    txt_description: Mapped[str]
-    txt_flag: Mapped[str]
-    txt_gl_code: Mapped[str]
-    txt_sl_code: Mapped[str]
+    pattern: Mapped[str]
+    pattern_name: Mapped[str]
+    gl_code: Mapped[str]
+    sl_code: Mapped[str]
 
     current_status: Mapped[Optional[str]]
 

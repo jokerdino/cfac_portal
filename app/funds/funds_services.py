@@ -133,7 +133,7 @@ class BankStatementServiceCBX:
                     FundBankStatement.flag_id.is_(None),
                     FundBankStatement.batch_id == batch_id,
                     FundBankStatement.description.contains(
-                        FundJournalVoucherFlagSheet.txt_description
+                        FundJournalVoucherFlagSheet.pattern
                     ),
                 )
             )
@@ -361,7 +361,7 @@ class BankStatementService:
                     FundBankStatement.flag_id.is_(None),
                     FundBankStatement.batch_id == batch_id,
                     FundBankStatement.description.contains(
-                        FundJournalVoucherFlagSheet.txt_description
+                        FundJournalVoucherFlagSheet.pattern
                     ),
                 )
             )

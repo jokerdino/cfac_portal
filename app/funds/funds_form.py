@@ -158,25 +158,25 @@ class FundsModifyDatesForm(FlaskForm):
 JVFlagAddForm = model_form(
     FundJournalVoucherFlagSheet,
     only=[
-        "txt_description",
-        "txt_flag",
-        "txt_gl_code",
-        "txt_sl_code",
+        "pattern",
+        "pattern_name",
+        "gl_code",
+        "sl_code",
     ],
     field_args={
-        "txt_description": {
+        "pattern": {
             "filters": [lambda x: x.strip() if x else None],
             "validators": [DataRequired()],
         },
-        "txt_flag": {
+        "pattern_name": {
             "filters": [lambda x: x.strip().upper() if x else None],
             "validators": [DataRequired()],
         },
-        "txt_gl_code": {
+        "gl_code": {
             "filters": [lambda x: x.strip() if x else None],
             "validators": [DataRequired()],
         },
-        "txt_sl_code": {
+        "sl_code": {
             "filters": [lambda x: x.strip() if x else None],
             "validators": [DataRequired()],
         },

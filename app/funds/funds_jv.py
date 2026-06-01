@@ -268,15 +268,15 @@ def filter_unidentified_credits(df_inflow: pd.DataFrame) -> pd.DataFrame:
 def prepare_jv_flag() -> tuple[pd.DataFrame, list[str]]:
     df_flags = pd.read_sql("fund_journal_voucher_flag_sheet", db.engine)
 
-    df_flags = df_flags[["txt_description", "txt_flag", "txt_gl_code", "txt_sl_code"]]
+    df_flags = df_flags[["pattern", "pattern_name", "gl_code", "sl_code"]]
     df_flags = df_flags.drop_duplicates()
 
     df_flags = df_flags.rename(
         columns={
-            "txt_description": "DESCRIPTION",
-            "txt_flag": "FLAG",
-            "txt_gl_code": "GL Code",
-            "txt_sl_code": "SL Code",
+            "pattern": "DESCRIPTION",
+            "pattern_name": "FLAG",
+            "gl_code": "GL Code",
+            "sl_code": "SL Code",
         }
     )
 
@@ -391,19 +391,17 @@ def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
     inflow_credit_query = (
         db.select(
             db.literal("000100").label("Office Location"),
-            db.func.coalesce(
-                FundJournalVoucherFlagSheet.txt_gl_code, "5131405950"
-            ).label("GL Code"),
-            db.func.coalesce(FundJournalVoucherFlagSheet.txt_sl_code, "0").label(
-                "SL Code"
+            db.func.coalesce(FundJournalVoucherFlagSheet.gl_code, "5131405950").label(
+                "GL Code"
             ),
+            db.func.coalesce(FundJournalVoucherFlagSheet.sl_code, "0").label("SL Code"),
             db.case((FundBankStatement.credit > 0, "CR"), else_="DR").label("DR/CR"),
             db.case(
                 (FundBankStatement.credit < 0, -FundBankStatement.credit),
                 else_=FundBankStatement.credit,
             ).label("Amount"),
             db.func.concat(
-                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+                db.func.coalesce(FundJournalVoucherFlagSheet.pattern_name, "OTHERS"),
                 " ",
                 db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
             ).label("Remarks"),
@@ -429,7 +427,7 @@ def prepare_inflow_jv_new(start_date, end_date) -> list[Any]:
                 else_=FundBankStatement.credit,
             ).label("Amount"),
             db.func.concat(
-                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+                db.func.coalesce(FundJournalVoucherFlagSheet.pattern_name, "OTHERS"),
                 " ",
                 db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
             ).label("Remarks"),
@@ -455,25 +453,23 @@ def prepare_inflow_details(start_date, end_date):
             ),
             FundBankStatement.description.label("Bank Description"),
             FundBankStatement.reference_no.label("Reference No"),
-            db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS").label(
+            db.func.coalesce(FundJournalVoucherFlagSheet.pattern_name, "OTHERS").label(
                 "Flag name"
             ),
-            db.func.coalesce(
-                FundJournalVoucherFlagSheet.txt_description, "OTHERS"
-            ).label("Flag pattern"),
-            db.func.coalesce(
-                FundJournalVoucherFlagSheet.txt_gl_code, "5131405950"
-            ).label("GL Code"),
-            db.func.coalesce(FundJournalVoucherFlagSheet.txt_sl_code, "0").label(
-                "SL Code"
+            db.func.coalesce(FundJournalVoucherFlagSheet.pattern, "OTHERS").label(
+                "Flag pattern"
             ),
+            db.func.coalesce(FundJournalVoucherFlagSheet.gl_code, "5131405950").label(
+                "GL Code"
+            ),
+            db.func.coalesce(FundJournalVoucherFlagSheet.sl_code, "0").label("SL Code"),
             db.case((FundBankStatement.credit > 0, "CR"), else_="DR").label("DR/CR"),
             db.case(
                 (FundBankStatement.credit < 0, -FundBankStatement.credit),
                 else_=FundBankStatement.credit,
             ).label("Amount"),
             db.func.concat(
-                db.func.coalesce(FundJournalVoucherFlagSheet.txt_flag, "OTHERS"),
+                db.func.coalesce(FundJournalVoucherFlagSheet.pattern_name, "OTHERS"),
                 " ",
                 db.func.to_char(FundBankStatement.value_date, "DD/MM/YYYY"),
             ).label("Remarks"),
@@ -539,7 +535,7 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
             db.func.concat(
                 FundDailyOutflow.normalized_description,
                 " ",
-                FundJournalVoucherFlagSheet.txt_flag,
+                FundJournalVoucherFlagSheet.pattern_name,
                 " ",
                 db.func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
             ).label("Remarks"),
@@ -547,7 +543,7 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
         .join(
             FundJournalVoucherFlagSheet,
             FundDailyOutflow.normalized_description.contains(
-                FundJournalVoucherFlagSheet.txt_description
+                FundJournalVoucherFlagSheet.pattern
             ),
         )
         .where(
@@ -560,14 +556,14 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
     outflow_debit_query = (
         db.select(
             db.literal("000100").label("Office Location"),
-            FundJournalVoucherFlagSheet.txt_gl_code.label("GL Code"),
-            FundJournalVoucherFlagSheet.txt_sl_code.label("SL Code"),
+            FundJournalVoucherFlagSheet.gl_code.label("GL Code"),
+            FundJournalVoucherFlagSheet.sl_code.label("SL Code"),
             db.literal("DR").label("DR/CR"),
             FundDailyOutflow.outflow_amount.label("Amount"),
             db.func.concat(
                 FundDailyOutflow.normalized_description,
                 " ",
-                FundJournalVoucherFlagSheet.txt_flag,
+                FundJournalVoucherFlagSheet.pattern_name,
                 " ",
                 db.func.to_char(FundDailyOutflow.outflow_date, "DD/MM/YYYY"),
             ).label("Remarks"),
@@ -575,7 +571,7 @@ def prepare_outflow_jv_new(start_date, end_date) -> list[Any]:
         .join(
             FundJournalVoucherFlagSheet,
             FundDailyOutflow.normalized_description.contains(
-                FundJournalVoucherFlagSheet.txt_description
+                FundJournalVoucherFlagSheet.pattern
             ),
         )
         .where(
@@ -596,7 +592,7 @@ def view_jv_flags():
         db.select(FundJournalVoucherFlagSheet).order_by(FundJournalVoucherFlagSheet.id)
     )
 
-    column_names = [col.key for col in FundJournalVoucherFlagSheet.__table__.columns]
+    column_names = ["pattern", "pattern_name", "gl_code", "sl_code"]
 
     return render_template("jv_view_flags.html", list=list, column_names=column_names)
 
