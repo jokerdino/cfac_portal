@@ -10,10 +10,7 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import (
-    func,
-    and_,
-)
+from sqlalchemy import func, and_, or_
 
 # from sqlalchemy.dialects.postgresql import insert
 
@@ -443,7 +440,8 @@ def ibt(date_string, pdf="False"):
     )
 
     flags = db.select(
-        FundFlagSheet.flag_description.distinct().label("flag_description")
+        FundFlagSheet.flag_description.distinct().label("flag_description"),
+        FundFlagSheet.current_status,
     ).subquery()
     inflow = db.session.execute(
         db.select(
@@ -464,6 +462,13 @@ def ibt(date_string, pdf="False"):
         .where(
             flags.c.flag_description.not_in(
                 ["Drawn from investment", "HDFC CLOSING BAL", "HDFC OPENING BAL"]
+            ),
+            or_(
+                flags.c.current_status == "Active",
+                and_(
+                    flags.c.current_status == "Deleted",
+                    FundBankStatement.credit.is_not(None),
+                ),
             ),
         )
         .group_by(flags.c.flag_description)
@@ -552,7 +557,8 @@ def daily_summary(date_string, pdf="False"):
         .order_by(FundDailySheet.date_current_date.desc())
     )
     flags = db.select(
-        FundFlagSheet.flag_description.distinct().label("flag_description")
+        FundFlagSheet.flag_description.distinct().label("flag_description"),
+        FundFlagSheet.current_status,
     ).subquery()
     inflow = db.session.execute(
         db.select(
@@ -570,6 +576,13 @@ def daily_summary(date_string, pdf="False"):
         .where(
             flags.c.flag_description.not_in(
                 ["Drawn from investment", "HDFC CLOSING BAL", "HDFC OPENING BAL"]
+            ),
+            or_(
+                flags.c.current_status == "Active",
+                and_(
+                    flags.c.current_status == "Deleted",
+                    FundBankStatement.credit.is_not(None),
+                ),
             ),
         )
         .group_by(flags.c.flag_description)

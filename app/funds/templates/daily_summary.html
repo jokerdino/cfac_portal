@@ -53,6 +53,13 @@
                             indian_number_format }}
                         </td>
                     </tr>
+                    {% set filler_length = (outflow | length) - (inflow | length) -1 %}
+                    {% for number in range(filler_length) %}
+                    <tr>
+                        <td></td>
+                        <td class="is-invisible">text</td>
+                    </tr>
+                    {% endfor %}
 
                     <tr>
                         <td class="has-text-weight-bold">Total</td>
@@ -83,9 +90,10 @@
                         </td>
                     </tr>
                     {% endfor %}
+
+                    {% set filler_length = (inflow | length) + 1 - (outflow | length) %}
+                    {% for number in range(filler_length) %}
                     <tr>
-                        {% set filler_length = (inflow |length) + 1 - (outflow | length) %}
-                        {% for number in range(filler_length) %}
                         <td></td>
                         <td class="is-invisible">text</td>
                     </tr>
