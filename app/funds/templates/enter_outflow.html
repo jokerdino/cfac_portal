@@ -104,6 +104,10 @@
                 <td class="has-text-right is-vcentered"><label id="label_given_to_investment"></label></td>
                 <td>{{ form.given_to_investment(class="input amount-input",
                     onkeyup="displayincrores()") }}</td>
+                <td>
+                    <input type="number" step="0.01" placeholder="+incremental" class="input incremental-input"
+                        data-target="given_to_investment" onkeyup="applyIncremental(this); displayincrores()" />
+                </td>
             </tr>
             <tr>
 
@@ -112,6 +116,10 @@
                 <td class="is-vcentered has-text-weight-bold"> {{ item.label }} </td>
                 <td class="has-text-right is-vcentered"><label id="label_{{ item.id }}"></label></td>
                 <td>{{ item(class="input amount-input", onkeyup="displayincrores()") }}
+                </td>
+                <td>
+                    <input type="number" step="0.01" placeholder="+incremental" class="input incremental-input"
+                        data-target="{{ item.id }}" onkeyup="applyIncremental(this); displayincrores()" />
                 </td>
             </tr>
 
@@ -191,6 +199,30 @@
             document.getElementById("submit").disabled = false;
         }
     }
+    function applyIncremental(incrementalInput) {
+        const targetId = incrementalInput.dataset.target;
+        const mainInput = document.getElementById(targetId);
+        if (!mainInput) return;
+
+        if (mainInput.dataset.baseValue === undefined) {
+            mainInput.dataset.baseValue = mainInput.value || "0";
+        }
+
+        const base = parseFloat(mainInput.dataset.baseValue) || 0;
+        const inc = parseFloat(incrementalInput.value) || 0;
+        mainInput.value = (base + inc).toFixed(2);
+    }
+
+    // Reset base when user types directly into the main field
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".amount-input").forEach(function (mainInput) {
+            mainInput.addEventListener("keyup", function () {
+                this.dataset.baseValue = this.value || "0";
+                const inc = document.querySelector(`[data-target="${this.id}"]`);
+                if (inc) inc.value = "";
+            });
+        });
+    });
 
 </script>
 
