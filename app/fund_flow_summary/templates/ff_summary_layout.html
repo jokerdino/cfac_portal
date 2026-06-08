@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | Fund flow summary</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+</head>
+
+<body {% block body_attrs %}{% endblock body_attrs %}>
+    <header>
+        <nav class="navbar is-warning has-shadow" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+
+                    <a class="navbar-item" href="{{ url_for('.fundflow_summary_homepage') }}">Fundflow summary home</a>
+                    <a class="navbar-item" href="{{ url_for('.inflow_monthly_summary_list') }}">Enter collection
+                        details</a>
+                    <a class="navbar-item" href="{{ url_for('.outflow_monthly_summary_list') }}">Enter payment
+                        details</a>
+                    <a class="navbar-item" href="{{ url_for('.bank_charges_monthly_summary_list') }}">Enter bank charges
+                        details</a>
+
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Bulk upload</a>
+                        <div class="navbar-dropdown">
+
+                            <a class="navbar-item" href="{{ url_for('.bulk_upload_inflow_summary') }}">Enable inflow
+                                summary</a>
+                            <a class="navbar-item" href="{{ url_for('.bulk_upload_outflow_summary') }}">Enable outflow
+                                summary</a>
+                            <a class="navbar-item" href="{{ url_for('.bulk_upload_bank_charges_summary') }}">Enable bank
+                                charges summary</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% include "partials/navbar_user_details.html" %}
+
+        </nav>
+    </header>
+
+    <div class="container is-fluid mt-5">
+
+        {% block content %}{% endblock content %}
+
+    </div>
+    <script type="text/javascript" charset="utf8"
+        src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

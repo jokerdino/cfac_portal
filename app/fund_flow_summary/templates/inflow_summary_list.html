@@ -1,0 +1,36 @@
+{% extends "ff_summary_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
+<div class="container mb-5">
+
+    <h1 class="title">Enter collection details</h1>
+    <form class="mb-5" method="post">
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
+
+    <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Month</th>
+                <th class="has-text-centered">Type of collection</th>
+
+                <th class="has-text-centered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data_list %}
+            <tr>
+                <td>{{ item.month }}</td>
+                <td>{{ item.type_of_collection }}</td>
+
+                <td><a href="{{ url_for('.monthly_summary', month=item.month, type=item.type_of_collection) }}">Edit</a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock content %}

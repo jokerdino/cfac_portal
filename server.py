@@ -54,6 +54,8 @@ from app.brs_tieups import brs_tieups_bp
 from app.ro_audit_report import ro_audit_report_bp
 from app.work_allocation import work_allocation_bp
 
+from app.fund_flow_summary import ff_summary_bp
+
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
 
@@ -268,6 +270,7 @@ def create_app(config_class=Config):
     app.register_blueprint(brs_tieups_bp, url_prefix="/brs_tieup")
     app.register_blueprint(ro_audit_report_bp, url_prefix="/ro_audit")
     app.register_blueprint(work_allocation_bp, url_prefix="/work_allocation")
+    app.register_blueprint(ff_summary_bp, url_prefix="/ff_summary")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")

@@ -1,0 +1,42 @@
+{% extends "ff_summary_layout.html" %}
+{% block content %}
+
+<div class="container">
+
+    <h1 class="title">Enter collection details</h1>
+
+    <form method="post">
+
+        {{ form.csrf_token }}
+
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Month</th>
+                    <th class="has-text-centered">Type of collection</th>
+                    <th class="has-text-centered">Bank / vendor name</th>
+                    <th class="has-text-centered">Mode of collection</th>
+                    <th class="has-text-centered">Number of transactions</th>
+                    <th class="has-text-centered">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in form.summary %}
+                <tr>
+                    <td class="is-vcentered has-text-centered">{{ row.month.data }}</td>
+                    <td class="is-vcentered">{{ row.type_of_collection.data }}</td>
+                    <td class="is-vcentered">{{ row.bank_vendor_name.data }}</td>
+                    <td class="is-vcentered">{{ row.mode_of_collection.data }}</td>
+                    <td> {{ row.number_of_transactions }} </td>
+                    <td> {{ row.amount }} </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,42 @@
+{% extends "ff_summary_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
+<div class="container mb-5">
+
+    <h1 class="title">Enter bank charges details</h1>
+    <form class="mb-5" method="post">
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
+
+    <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered">
+        <thead>
+            <tr>
+                <th class="has-text-centered">Month</th>
+                <th class="has-text-centered">Bank name</th>
+                <th class="has-text-centered">Fixed charges</th>
+                <th class="has-text-centered">Variable charges</th>
+                <th class="has-text-centered">Total charges</th>
+
+                <th class="has-text-centered">Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data_list %}
+            <tr>
+                <td>{{ item.month }}</td>
+                <td>{{ item.bank_name }}</td>
+                <td>{{ item.fixed_charges or "" }}</td>
+                <td>{{ item.variable_charges or "" }}</td>
+                <td>{{ item.total_charges or "" }}</td>
+
+                <td><a href="{{ url_for('.bank_charges_data_entry', id=item.id) }}">Edit</a>
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock content %}

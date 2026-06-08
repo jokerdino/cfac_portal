@@ -1,0 +1,177 @@
+{% extends "ff_summary_layout.html" %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_dashboard_dropdown %}
+<div class="container mb-5">
+
+    <form class="mb-5" method="post">
+        {{ render_dashboard_dropdown(form) }}
+
+    </form>
+    <div class="tabs is-boxed mt-5">
+        <ul>
+            <li id="collection_tab" class="is-active">
+                <a onclick="show_collections()">Collections</a>
+            </li>
+            <li id="payment_tab">
+                <a onclick="show_payments()">Payments</a>
+            </li>
+            <li id="bank_charges_tab">
+                <a onclick="show_bank_charges()">Bank charges</a>
+            </li>
+        </ul>
+    </div>
+    <div class="container is-fluid" id="collection_table">
+        <h1 class="title">Collections</h1>
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered" id="inflow_table">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Month</th>
+                    <th class="has-text-centered">Type of collection</th>
+                    <th class="has-text-centered">Bank / Vendor name</th>
+                    <th class="has-text-centered">Mode of collection</th>
+                    <th class="has-text-centered">Number of transactions</th>
+                    <th class="has-text-centered">Amount</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in inflow_data %}
+                <tr>
+                    <td>{{ item.month }}</td>
+                    <td>{{ item.type_of_collection }}</td>
+                    <td>{{ item.bank_vendor_name }}</td>
+                    <td>{{ item.mode_of_collection }}</td>
+                    <td class="has-text-right">{{ item.number_of_transactions or "" }}</td>
+                    <td class="has-text-right">{{ (item.amount or 0 ) | indian_number_format }}</td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="is-hidden container is-fluid" id="payment_table">
+        <h1 class="title">Payments</h1>
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered" id="outflow_table">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Month</th>
+                    <th class="has-text-centered">Bank name</th>
+                    <th class="has-text-centered">Mode of payment</th>
+                    <th class="has-text-centered">Number of transactions</th>
+                    <th class="has-text-centered">Amount</th>
+                </tr>
+            </thead>
+            <tbody>{% for item in outflow_data %}
+                <tr>
+                    <td>{{ item.month }}</td>
+                    <td>{{ item.bank_name}} </td>
+                    <td>{{ item.mode_of_payment }}</td>
+                    <td>{{ item.number_of_transactions or "" }}</td>
+                    <td class="has-text-right">{{ (item.amount or 0 ) | indian_number_format }}</td>
+
+                </tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="is-hidden container is-fluid" id="bank_charges_table">
+        <h1 class="title">Bank charges</h1>
+        <table class="table is-fullwidth is-hoverable is-striped is-narrow is-bordered" id="table_bank_charges_table">
+            <thead>
+                <tr>
+                    <th class="has-text-centered">Month</th>
+                    <th class="has-text-centered">Bank name</th>
+                    <th class="has-text-centered">Fixed charges</th>
+                    <th class="has-text-centered">Variable charges</th>
+                    <th class="has-text-centered">Total charges</th>
+                </tr>
+            </thead>
+            <tbody>{% for item in bank_charges_data %}
+                <tr>
+                    <td>{{ item.month }}</td>
+                    <td> {{ item.bank_name }} </td>
+                    <td class="has-text-right">{{ (item.fixed_charges or 0 ) | indian_number_format }}</td>
+                    <td class="has-text-right">{{ (item.variable_charges or 0 ) | indian_number_format }}</td>
+                    <td class="has-text-right">
+                        {{ ((item.fixed_charges or 0 ) + (item.variable_charges or 0 )) | indian_number_format }}</td>
+                </tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    function show_payments() {
+        // Toggle Tables
+        document.getElementById("collection_table").classList.add("is-hidden");
+        document.getElementById("bank_charges_table").classList.add("is-hidden");
+        document.getElementById("payment_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("collection_tab").classList.remove("is-active");
+        document.getElementById("bank_charges_tab").classList.remove("is-active");
+        document.getElementById("payment_tab").classList.add("is-active");
+
+        // Important: Recalculate columns for the hidden table
+        if (DataTable.isDataTable('#inflow_table')) {
+            new DataTable('#inflow_table').columns.adjust().draw();
+        }
+    }
+
+    function show_collections() {
+        // Toggle Tables
+        document.getElementById("payment_table").classList.add("is-hidden");
+        document.getElementById("bank_charges_table").classList.add("is-hidden");
+        document.getElementById("collection_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("payment_tab").classList.remove("is-active");
+        document.getElementById("bank_charges_tab").classList.remove("is-active");
+        document.getElementById("collection_tab").classList.add("is-active");
+
+        if (DataTable.isDataTable('#outflow_table')) {
+            new DataTable('#outflow_table').columns.adjust().draw();
+        }
+    }
+
+    function show_bank_charges() {
+        // Toggle Tables
+        document.getElementById("payment_table").classList.add("is-hidden");
+        document.getElementById("collection_table").classList.add("is-hidden");
+        document.getElementById("bank_charges_table").classList.remove("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("payment_tab").classList.remove("is-active");
+        document.getElementById("collection_tab").classList.remove("is-active");
+        document.getElementById("bank_charges_tab").classList.add("is-active");
+
+        if (DataTable.isDataTable('#table_bank_charges_table')) {
+            new DataTable('#table_bank_charges_table').columns.adjust().draw();
+        }
+    }
+
+    // DataTable Configuration
+    const dtConfig = {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+        },
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }
+        ],
+        order: [],
+        pagingType: 'full_numbers',
+        pageLength: 50,
+        lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']]
+    };
+
+    // Initialize both tables
+    document.addEventListener('DOMContentLoaded', function () {
+        new DataTable('#inflow_table', dtConfig);
+        new DataTable('#outflow_table', dtConfig);
+        new DataTable('#table_bank_charges_table', dtConfig);
+    });
+</script>
+{% endblock scripts %}

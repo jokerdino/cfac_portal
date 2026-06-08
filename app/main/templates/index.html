@@ -57,9 +57,7 @@
           <li><a href="{{ url_for('brs.brs_home_page') }}">BRS - General</a></li>
           <li><a href="{{ url_for('brs_local.brs_local_collection_dashboard') }}">BRS - Local collection</a></li>
           <li><a href="{{ url_for('brs_imprest.brs_imprest_dashboard') }}">BRS - Imprest</a></li>
-          <li><a href="{{ url_for('brs_tieups.brs_tieup_dashboard') }}">BRS - Tieups<div
-                class="ml-2 tag is-warning is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('brs_tieups.brs_tieup_dashboard') }}">BRS - Tieups</a></li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
           <li><a href="{{ url_for('brs_cc.brs_cc_dashboard') }}">BRS - Centralised cheque</a></li>
           {% endif %}
@@ -79,13 +77,9 @@
         {% if current_user.user_type in ["admin", "ro_user","ho_stat_audit"] %}
         <p class="menu-label">RO Audit</p>
         <ul class="menu-list">
-          <li><a href="{{ url_for('ro_audit.ro_audit_reports_list') }}">Audit report<div
-                class="ml-2 tag is-warning is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('ro_audit.ro_audit_reports_list') }}">Audit report</a></li>
           {% if current_user.user_type in ["admin", "ro_user"] %}
-          <li><a href="{{ url_for('ro_audit.ro_audit_observations_list') }}">Audit observations<div
-                class="ml-2 tag is-warning is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('ro_audit.ro_audit_observations_list') }}">Audit observations</a></li>
           {% endif %}
         </ul>
         {% endif %}
@@ -129,6 +123,9 @@
           <li><a href="{{ url_for('leave_management.leave_home') }}">Leave management</a></li>
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
               checklist</a></li>
+          <li><a href="{{ url_for('ff_summary_bp.fundflow_summary_homepage') }}">Fund flow summary<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
           {% if current_user.role and "fund_manager" in current_user.role %}
           <li><a href="{{ url_for('funds.funds_home_api') }}">Funds</a></li>
           {% else %}

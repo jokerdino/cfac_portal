@@ -128,6 +128,11 @@ from app.ro_audit_report.models import (
     AuditorRegionalOfficeMapping,
 )
 from app.work_allocation.models import WorkAllocation
+from app.fund_flow_summary.models import (
+    FundInflowSummary,
+    FundOutflowSummary,
+    FundFlowBankCharges,
+)
 
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
@@ -144,6 +149,7 @@ admin.add_sub_category(name="Coinsurance", parent_name="Coinsurance")
 admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
 admin.add_sub_category(name="DD debits", parent_name="DD debits")
 admin.add_sub_category(name="Funds", parent_name="Funds")
+admin.add_sub_category(name="Fund flow summary", parent_name="Fund flow summary")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="Leave management", parent_name="Leave management")
@@ -528,6 +534,34 @@ admin.add_view(
         category="Funds",
     )
 )
+
+# fund flow summary
+admin.add_view(
+    DefaultModelView(
+        FundInflowSummary,
+        db,
+        endpoint="inflow_summary_",
+        category="Fund flow summary",
+    )
+)
+admin.add_view(
+    DefaultModelView(
+        FundOutflowSummary,
+        db,
+        endpoint="outflow_summary_",
+        category="Fund flow summary",
+    )
+)
+
+admin.add_view(
+    DefaultModelView(
+        FundFlowBankCharges,
+        db,
+        endpoint="ff_bank_charges_summary_",
+        category="Fund flow summary",
+    )
+)
+
 
 # ho checklist
 admin.add_view(
