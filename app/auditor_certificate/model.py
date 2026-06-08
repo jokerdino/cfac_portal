@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
 from extensions import db, IntPK, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn
 
@@ -33,3 +33,7 @@ class AuditorCertificate(db.Model):
 
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
+
+    @validates("tender_number", "invoice_number")
+    def empty_string_to_none(self, key, value):
+        return None if value == "" else value
