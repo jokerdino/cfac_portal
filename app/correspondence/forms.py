@@ -56,4 +56,4 @@ class OutwardForm(FlaskForm):
     dispatched_by = StringField("Dispatched by", validators=[DataRequired()])
 
     remarks = TextAreaField()
-    upload_document_file = FileField(validators=[FileAllowed(["pdf"])])
+    upload_document_file = FileField(validators=[FileAllowed(["pdf", "zip"])])
