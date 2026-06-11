@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Lien" />
+    <meta name="description" content="Lien" />
+    <title>Lien marked cases</title>
+    <style>
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .header {
+            margin-bottom: 15px;
+        }
+
+        body {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: small;
+        }
+
+        .td_amount {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <p>
+        Dear Sir/Madam,
+    </p>
+
+    <p>
+        This is to inform you that the following ROs have not yet updated Lien reversal order in the CFAC portal.</p>
+    <p>
+        We request you to kindly coordinate with the concerned ROs to ensure that the details are updated promptly.
+    </p>
+
+    <h2>Amount</h2>
+
+    <h4>Amounts are presented in lakhs</h4>
+
+    <table border="1" cellpadding="4" cellspacing="0" width="50%">
+        <thead>
+            <tr>
+                <th>RO CODE</th>
+                <th>RO NAME</th>
+                {% for bank in bank_names %}
+                <th>{{ bank }}</th>
+                {% endfor %}
+                <th class="td_amount">Total Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in lien_data %}
+            <tr>
+                <td>{{ row.ro_code }}</td>
+                <td>{{ row.ro_name }}</td>
+
+                {% for bank in bank_names %}
+                {% set safe_bank = bank_labels[bank] %}
+                <td class="td_amount">{{ (row['sum_' ~ safe_bank] or 0) | indian_number_format }}</td>
+                {% endfor %}
+                <td class="td_amount">{{ (row.total_amount or 0 )| indian_number_format }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <h2>Number of liens</h2>
+    <table border="1" cellpadding="4" cellspacing="0" width="50%">
+        <thead>
+            <tr>
+                <th>RO CODE</th>
+                <th>RO NAME</th>
+                {% for bank in bank_names %}
+                <th>{{ bank }}</th>
+                {% endfor %}
+                <th>Total Count</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in lien_data %}
+            <tr>
+                <td>{{ row.ro_code }}</td>
+                <td>{{ row.ro_name }}</td>
+
+                {% for bank in bank_names %}
+                {% set safe_bank = bank_labels[bank] %}
+                <td class="td_amount">{{ (row['count_' ~ safe_bank] or 0) }}</td>
+                {% endfor %}
+                <td class="td_amount">{{ (row.total_count or 0 ) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <p>Regards,</p>
+    <p>Team CFAC.</p>
+
+    <strong>
+        <p>All the case-related details have already been uploaded to the CFAC portal. </p>
+        <p>
+            Further, due to the lack of timely action by the concerned offices, the lien amount continues to increase,
+            resulting in our funds remaining blocked. On many cases, our account gets freeze, causing significant
+            disruption to our business operations and adversely affecting our reputation. </p>
+        <p>
+            We therefore request that the necessary steps be taken at the earliest to remove the lien without further
+            delay.
+
+        </p>
+    </strong>
+</body>
+
+</html>

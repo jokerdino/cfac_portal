@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Lien" />
+    <meta name="description" content="Lien" />
+    <title>Lien marked cases</title>
+    <style>
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .header {
+            margin-bottom: 15px;
+        }
+
+        body {
+            font-family: Verdana, Arial, Helvetica, sans-serif;
+            font-size: small;
+        }
+
+        .td_amount {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+
+    <p>
+        Dear Sir/Madam,
+    </p>
+
+    <p>
+        This is to inform you that following Lien exist cases have not yet been updated in the CFAC portal. </p>
+    <p>
+        Kindly arrange the Lien reversal order where the case has been settled from our end or appeal had been filed in
+        higher court.
+    </p>
+
+    <table border="1" cellpadding="4" cellspacing="0" width="50%">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>RO CODE</th>
+                <th>RO NAME</th>
+                <th>BANK NAME</th>
+                <th>BANK ACCOUNT NUMBER</th>
+                <th>LIEN AMOUNT</th>
+                <th>LIEN DATE</th>
+                <th>LIEN STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in lien_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.ro_code }}</td>
+                <td>{{ item.ro_name }}</td>
+                <td>{{ item.bank_name }}</td>
+                <td>{{ item.account_number }}</td>
+                <td class="td_amount">{{ item.lien_amount }}</td>
+                <td>{{ item.lien_date or "" }}</td>
+                <td>{{ item.lien_status }}</td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>Regards,</p>
+    <p>Team CFAC.</p>
+    <strong>
+        <p>All the case-related details have already been uploaded to the CFAC portal. </p>
+        <p>
+            Further, due to the lack of timely action by the concerned offices, the lien amount continues to increase,
+            resulting in our funds remaining blocked. On many cases, our account gets freeze, causing significant
+            disruption to our business operations and adversely affecting our reputation. </p>
+        <p>
+            We therefore request that the necessary steps be taken at the earliest to remove the lien without further
+            delay.
+
+        </p>
+    </strong>
+</body>
+
+</html>

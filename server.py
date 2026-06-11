@@ -62,6 +62,7 @@ from app.cfac_flask_admin import flask_admin_bp
 from utils import datetime_format, humanize_datetime, indian_number_format
 from reset_table_id import reset_id
 from app.direct_debits.commands import send_dd_emails, send_dd_email_to_ho_tp
+from app.lien.lien_commands import send_ro_lien_emails, send_ho_tp_lien_email
 
 
 dictConfig(
@@ -232,6 +233,9 @@ def create_app(config_class=Config):
     app.cli.add_command(reset_id)
     app.cli.add_command(send_dd_emails)
     app.cli.add_command(send_dd_email_to_ho_tp)
+
+    app.cli.add_command(send_ro_lien_emails)
+    app.cli.add_command(send_ho_tp_lien_email)
     # Register blueprints here
 
     app.register_blueprint(main_bp, url_prefix="/")
