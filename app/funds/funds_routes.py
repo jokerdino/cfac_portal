@@ -51,6 +51,7 @@ from .funds_utils import (
     fetch_inflow,
     fetch_outflow_labels,
     fetch_prev_daily_sheet,
+    fetch_outflow_labels_merging_with_axis_neft,
 )
 from .funds_services import BankStatementService
 
@@ -474,6 +475,7 @@ def ibt(date_string, pdf="False"):
         .group_by(flags.c.flag_description)
     ).all()
 
+    labels_merging_with_axis_neft = fetch_outflow_labels_merging_with_axis_neft()
     outflow_other_than_axis_neft = (
         db.select(
             FundDailyOutflow.normalized_description.label("normalized_description"),
@@ -493,7 +495,7 @@ def ibt(date_string, pdf="False"):
             and_(
                 FundDailyOutflow.outflow_date == param_date,
                 FundDailyOutflow.normalized_description.not_in(
-                    ["AXIS NEFT", "MRO1 HEALTH", "TNCMCHIS"]
+                    labels_merging_with_axis_neft
                 ),
             )
         )
@@ -517,9 +519,7 @@ def ibt(date_string, pdf="False"):
     ).where(
         and_(
             FundDailyOutflow.outflow_date == param_date,
-            FundDailyOutflow.normalized_description.in_(
-                ["AXIS NEFT", "MRO1 HEALTH", "TNCMCHIS"]
-            ),
+            FundDailyOutflow.normalized_description.in_(labels_merging_with_axis_neft),
         )
     )
     outflow = db.session.execute(

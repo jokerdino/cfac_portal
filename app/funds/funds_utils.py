@@ -306,6 +306,13 @@ def fetch_outflow_labels():
     return db.session.scalars(db.select(FundOutflowLabel.outflow_label)).all()
 
 
+def fetch_outflow_labels_merging_with_axis_neft():
+    outflow_labels_merging_with_axis_neft = db.select(
+        FundOutflowLabel.outflow_label
+    ).where(FundOutflowLabel.merge_with_axis_neft)
+    return db.session.scalars(outflow_labels_merging_with_axis_neft).all()
+
+
 def fetch_prev_daily_sheet(param_date):
     return db.session.scalar(
         db.select(FundDailySheet)

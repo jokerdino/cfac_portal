@@ -238,6 +238,7 @@ class FundJournalVoucherFlagSheet(db.Model):
 class FundOutflowLabel(db.Model):
     id: Mapped[IntPK]
     outflow_label: Mapped[str] = mapped_column(unique=True)
+    merge_with_axis_neft: Mapped[Optional[bool]] = mapped_column(default=False)
 
     date_created_date: Mapped[CreatedOn]
     date_updated_date: Mapped[UpdatedOn]
