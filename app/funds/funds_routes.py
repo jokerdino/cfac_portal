@@ -53,7 +53,7 @@ from .funds_utils import (
     fetch_prev_daily_sheet,
     fetch_outflow_labels_merging_with_axis_neft,
 )
-from .funds_services import BankStatementService
+from .funds_services import BankStatementServiceCBX
 
 from app.coinsurance.coinsurance_model import CoinsuranceReceipts
 from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
@@ -235,7 +235,7 @@ def upload_bank_statement():
             form=form,
             title="Upload bank statement (in .xlsx file format)",
         )
-    service = BankStatementService(db.session)
+    service = BankStatementServiceCBX(db.session)
     try:
         service.process(
             form.data["file_upload"],
