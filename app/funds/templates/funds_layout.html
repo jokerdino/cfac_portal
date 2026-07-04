@@ -71,7 +71,13 @@
 
                     </div>
                     {% endif %}
-                    <a class="navbar-item" href="{{ url_for('funds.funds_reports') }}">Funds - Reports</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Reports</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('funds.funds_reports') }}">Transactions</a>
+                            <a class="navbar-item" href="{{ url_for('funds.funds_reports_summary') }}">Summary</a>
+                        </div>
+                    </div>
                     {% if current_user.role and "fund_admin" in current_user.role %}
                     <a class="navbar-item" href="{{ url_for('funds.modify_dates') }}">Modify dates</a>
                     {% endif %}

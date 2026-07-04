@@ -5,7 +5,7 @@ from flask_login import login_required
 
 
 from . import funds_bp
-from .funds_form import ReportsForm
+from .funds_form import ReportsForm, ReportsSummaryForm
 from .funds_model import FundBankStatement, FundDailyOutflow, FundDailySheet
 
 from set_view_permissions import admin_required
@@ -122,3 +122,88 @@ def funds_reports():
         return render_template("reports_output.html", query=query)
 
     return render_template("funds_form.html", form=form, title="Funds - Reports")
+
+
+@funds_bp.route("/reports/summary", methods=["POST", "GET"])
+@login_required
+@admin_required
+def funds_reports_summary():
+    form = ReportsSummaryForm()
+    if form.validate_on_submit():
+        start_date = form.data["start_date"] or date(2024, 4, 1)
+        end_date = form.data["end_date"] or date.today()
+
+        inflow = form.data["check_inflow"]
+        outflow = form.data["check_outflow"]
+        investments = form.data["check_investments"]
+
+        all_queries = []
+
+        # --- Helper: standard date filter ---
+        def date_filter(column):
+            return (column >= start_date) & (column <= end_date)
+
+        if inflow:
+            inflow_query = (
+                db.select(
+                    db.literal("Inflow"),
+                    FundBankStatement.flag_description,
+                    db.func.sum(FundBankStatement.credit),
+                )
+                .where(
+                    date_filter(FundBankStatement.value_date)
+                    & (FundBankStatement.credit != 0)
+                    & (FundBankStatement.flag_description != "Drawn from investment")
+                )
+                .group_by(FundBankStatement.flag_description)
+            )
+            all_queries.append(inflow_query)
+
+        if outflow:
+            outflow_query = (
+                db.select(
+                    db.literal("Outflow"),
+                    FundDailyOutflow.normalized_description,
+                    db.func.sum(FundDailyOutflow.outflow_amount),
+                )
+                .where(
+                    date_filter(FundDailyOutflow.outflow_date)
+                    & (FundDailyOutflow.outflow_amount > 0)
+                )
+                .group_by(FundDailyOutflow.normalized_description)
+            )
+            all_queries.append(outflow_query)
+
+        if investments:
+            investment_given_query = db.select(
+                db.literal("Given to investment"),
+                db.literal("Given to investment"),
+                db.func.sum(FundDailySheet.float_amount_given_to_investments),
+            ).where(
+                date_filter(FundDailySheet.date_current_date)
+                & (FundDailySheet.float_amount_given_to_investments > 0)
+            )
+            investment_taken_query = db.select(
+                db.literal("Taken from investments"),
+                db.literal("Taken from investments"),
+                db.func.sum(FundDailySheet.float_amount_taken_from_investments),
+            ).where(
+                date_filter(FundDailySheet.date_current_date)
+                & (FundDailySheet.float_amount_taken_from_investments > 0)
+            )
+            all_queries.append(investment_given_query)
+            all_queries.append(investment_taken_query)
+
+        if not all_queries:
+            flash("Please select at least one report type.")
+            return render_template(
+                "reports_output_summary.html", form=form, title="Funds - Summary"
+            )
+
+        query_set = db.union_all(*all_queries)
+        query = db.session.execute(query_set)
+        return render_template("reports_output_summary.html", query=query, form=form)
+
+    return render_template(
+        "reports_output_summary.html", form=form, title="Funds - Summary"
+    )

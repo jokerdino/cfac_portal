@@ -44,6 +44,18 @@ class ReportsForm(FlaskForm):
     )
 
 
+class ReportsSummaryForm(FlaskForm):
+    start_date = DateField(validators=[DataRequired()])
+    end_date = DateField(validators=[DataRequired()])
+    check_inflow = BooleanField("Include inflow", validators=[Optional()], default=True)
+    check_outflow = BooleanField(
+        "Include outflow", validators=[Optional()], default=True
+    )
+    check_investments = BooleanField(
+        "Include investments", validators=[Optional()], default=True
+    )
+
+
 class FundsJVForm(FlaskForm):
     start_date = DateField(validators=[DataRequired()])
     end_date = DateField(validators=[DataRequired()])
