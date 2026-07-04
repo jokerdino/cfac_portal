@@ -118,7 +118,9 @@
         {% if current_user.user_type in ["admin"] %}
         <p class="menu-label">Head Office only</p>
         <ul class="menu-list">
-          <li><a href="{{ url_for('todo.board') }}">TODO list </a></li>
+          <li><a href="https://docs.google.com/spreadsheets/d/1dhdsLXlki10FUWas6I5GJZ8muPA93zP0/"
+              target="_blank">Estates - Conference room booking</a></li>
+          <li><a href="{{ url_for('todo.board') }}">TODO list</a></li>
           <li><a href="{{ url_for('ci.ci_list') }}">CI Tracker</a></li>
           <li><a href="{{ url_for('leave_management.leave_home') }}">Leave management</a></li>
           <li><a href="{{ url_for('ho_accounts.ho_accounts_tracker_home') }}">Accounts closing
