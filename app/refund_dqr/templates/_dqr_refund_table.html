@@ -1,0 +1,25 @@
+<table class="table is-bordered is-fullwidth" id="{{ table_id }}">
+    <thead>
+        <th class="has-text-centered is-vcentered">VIEW</th>
+        <th class="has-text-centered is-vcentered">EDIT</th>
+        {% for col in column_names %}
+        <th class="has-text-centered is-vcentered">{{ col | upper | replace("_", " " ) }}</th>
+        {% endfor %}
+
+    </thead>
+    <tbody>
+        {% for item in data %}
+        <tr>
+            <td><a class="button is-link is-outlined is-small"
+                    href="{{ url_for('.dqr_refund_view', id=item.id) }} ">View</a></td>
+            <td><a class="button is-link is-outlined is-small"
+                    href="{{ url_for('.dqr_refund_edit', id=item.id) }} ">Edit</a></td>
+
+            {% for col in column_names %}
+            <td>{{ item[col] or "" }}</td>
+            {% endfor %}
+
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

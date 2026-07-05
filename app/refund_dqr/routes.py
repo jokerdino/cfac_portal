@@ -1,15 +1,12 @@
 import pandas as pd
 from flask import redirect, render_template, url_for, flash, request
 from flask_login import login_required, current_user
-from markupsafe import Markup
 
 from . import refund_dqr_bp
 from .models import DqrRefund, DqrMachines
 from .forms import UploadFileForm, DQRMachineEditForm, DQRRefundEditForm
 from set_view_permissions import admin_required, oo_user_only
 from extensions import db
-
-from app.main.table_helper import Table, Column
 
 
 @refund_dqr_bp.route("/add", methods=["GET", "POST"])
@@ -152,103 +149,20 @@ def dqr_refund_list():
         "ro_remarks",
         "refund_status",
     ]
-    all_table = Table(
-        query,
-        classes="table table-striped table-bordered",
-        id="dqr_refund_table",
-        paginate=False,
-        only=column_names,
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_view', id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_edit', id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
-    )
 
-    pending_table = Table(
-        pending,
-        classes="table table-striped table-bordered",
-        id="dqr_pending_refund_table",
-        paginate=False,
-        only=column_names,
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_view', id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_edit', id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
-    )
-    completed_table = Table(
-        completed,
-        classes="table table-striped table-bordered",
-        id="dqr_completed_table",
-        paginate=False,
-        only=column_names,
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_view', id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_refund_edit', id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
-    )
+    all_query = db.session.scalars(query)
+    pending_query = db.session.scalars(pending)
+    completed_query = db.session.scalars(completed)
 
     return render_template(
         "dqr_refund_list.html",
-        all_table=all_table,
-        pending_table=pending_table,
-        completed_table=completed_table,
+        all_items=all_query,
+        pending=pending_query,
+        completed=completed_query,
         title="All DQR refunds",
         pending_title="Pending DQR refunds",
         completed_title="Completed DQR refunds",
+        column_names=column_names,
     )
 
 
@@ -331,47 +245,37 @@ def dqr_machines_edit(id):
 @login_required
 @admin_required
 def dqr_machines_list():
-    table = Table(
-        DqrMachines,
-        classes="table table-striped table-bordered",
-        id="dqr_refund_table",
-        paginate=False,
-        only=[
-            "ro_code",
-            "merchant_name",
-            "merchant_dba_name",
-            "mid",
-            "tid",
-            "mcc_code",
-            "office_code",
-            "address",
-            "city",
-            "pincode",
-            "state",
-            "name",
-            "login",
-            "user_id",
-            "password",
-            "device_name",
-            "status",
-            "device_serial_number",
-            "installation_date",
-        ],
-        extra_columns=[
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_machines_edit', id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
+    dqr_machines = db.session.scalars(
+        db.select(DqrMachines).order_by(DqrMachines.id.asc())
     )
+    col_names = [
+        "ro_code",
+        "merchant_name",
+        "merchant_dba_name",
+        "mid",
+        "tid",
+        "mcc_code",
+        "office_code",
+        "address",
+        "city",
+        "pincode",
+        "state",
+        "name",
+        "login",
+        "user_id",
+        "password",
+        "device_name",
+        "status",
+        "device_serial_number",
+        "installation_date",
+    ]
 
-    return render_template("dqr_machines_list.html", table=table, title="DQR machines")
+    return render_template(
+        "dqr_machines_list.html",
+        dqr_machines=dqr_machines,
+        title="DQR machines",
+        col_names=col_names,
+    )
 
 
 @refund_dqr_bp.route("/dqr_machines/upload", methods=["GET", "POST"])

@@ -1,8 +1,8 @@
 {% extends "dqr_refund_layout.html" %}
 {% block content %}
 
-<div class="d-flex justify-content-center w-100 my-4">
-    <table class="table table-bordered table-striped" id="refundTable">
+<div class="is-flex is-justify-content-center is-fullwidth my-5">
+    <table class="table is-bordered is-striped is-hoverable is-fullwidth" id="refundTable">
         <thead>
             <tr>
                 <th>Organisation</th>
@@ -50,16 +50,19 @@
     </table>
 </div>
 <div class="container my-4">
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Refund Details</h5>
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered table-striped">
+    <div class="card">
+        <header class="card-header has-background-primary">
+            <p class="card-header-title has-text-black">
+                Refund Details
+            </p>
+        </header>
+
+        <div class="card-content">
+            <table class="table is-fullwidth is-hoverable is-bordered">
                 <tbody>
                     <!-- 1. organisation -->
                     <tr>
-                        <th class="col-25">Organisation</th>
+                        <th>Organisation</th>
                         <td>{{ refund.organisation }}</td>
                     </tr>
                     <!-- 2. ro_code -->
@@ -134,7 +137,8 @@
                     </tr>
                     <tr>
                         <th>Date of email sent to bank for refund</th>
-                        <td>{{ refund.date_of_email_sent_to_bank.strftime("%d-%m-%Y") if refund.date_of_email_sent_to_bank else "" }}
+                        <td>{{ refund.date_of_email_sent_to_bank.strftime("%d-%m-%Y") if
+                            refund.date_of_email_sent_to_bank else "" }}
                         </td>
                     </tr>
                     <!-- 16. refund_ref_no -->
@@ -157,19 +161,28 @@
                         <th>Refund Status</th>
                         <td>
                             {% if refund.refund_status == "Refund pending" %}
-                            <span class="badge bg-warning text-dark">{{ refund.refund_status }}</span>
+                            <span class="tag is-warning is-medium">
+                                {{ refund.refund_status }}
+                            </span>
                             {% else %}
-                            <span class="badge bg-success">{{ refund.refund_status }}</span>
+                            <span class="tag is-success is-medium">
+                                {{ refund.refund_status }}
+                            </span>
                             {% endif %}
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="card-footer text-end">
-            <a href="{{ url_for('.dqr_refund_edit', id=refund.id) }}" class="btn btn-primary btn-sm">Edit</a>
-            <a href="{{ url_for('.dqr_refund_list') }}" class="btn btn-secondary btn-sm">Back to List</a>
-        </div>
+        <footer class="card-footer is-justify-content-flex-end p-4">
+            <a href="{{ url_for('.dqr_refund_edit', id=refund.id) }}" class="button is-primary">
+                Edit
+            </a>
+
+            <a href="{{ url_for('.dqr_refund_list') }}" class="button is-light ml-2">
+                Back to List
+            </a>
+        </footer>
     </div>
 </div>
 {% endblock content %}

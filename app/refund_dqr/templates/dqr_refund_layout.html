@@ -9,53 +9,52 @@
     <title>CFAC Portal | {% block title %}DQR Refund{% endblock title %}</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-    <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
 
 </head>
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom" data-bs-theme="light">
-            <div class="container-fluid">
+        <nav class="navbar has-background-link-light has-shadow" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
 
-                <div class="navbar-nav me-auto">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
-                    <a class="nav-link" href="{{ url_for('.dqr_refund_list') }}">DQR refund home</a>
-                    <a class="nav-link" href="{{ url_for('.dqr_refund_add') }}">Add new DQR refund entry</a>
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <a class="navbar-item" href="{{ url_for('.dqr_refund_list') }}">DQR refund home</a>
+                    <a class="navbar-item" href="{{ url_for('.dqr_refund_add') }}">Add new DQR refund entry</a>
 
                     {% if current_user.user_type == "admin" %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">
                             DQR machines data
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_list') }}">List of DQR
-                                    machines</a></li>
 
-                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_add') }}">Add new DQR
-                                    machine</a></li>
-                            <li>
-                                <hr class="dropdown-divider" />
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('.dqr_machines_bulk_upload') }}">Bulk Upload
-                                    DQR
-                                    machines</a>
-                            </li>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('.dqr_machines_list') }}">List of DQR
+                                machines</a>
 
-                        </ul>
-                    </li>
+                            <a class="navbar-item" href="{{ url_for('.dqr_machines_add') }}">Add new DQR
+                                machine</a>
 
-                    {% endif %}
+                            <hr class="navbar-divider" />
+
+                            <a class="navbar-item" href="{{ url_for('.dqr_machines_bulk_upload') }}">Bulk
+                                Upload
+                                DQR
+                                machines</a>
+
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                {% include "partials/bootstrap_user_details.html" %}
             </div>
+            {% include "partials/navbar_user_details.html" %}
+
         </nav>
     </header>
 
-    <div class="container-fluid mt-5">
+    <div class="container is-fluid">
 
         {% if current_user.is_authenticated %}
         {% block content %}{% endblock content %}
@@ -63,10 +62,7 @@
     </div>
 
     <script type="text/javascript" charset="utf8"
-        src="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.js') }}"></script>
-
-    <script type="text/javascript" charset="utf8"
-        src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+        src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
 
     {% block scripts %}
 

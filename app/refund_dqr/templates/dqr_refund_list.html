@@ -1,57 +1,96 @@
 {% extends "dqr_refund_layout.html" %}
 
 {% block content %}
-<div class="container-fluid">
-
+<div class="container is-fluid">
     <!-- Tabs -->
-    <ul class="nav nav-tabs" id="myTab" role="tablist">
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending"
-                type="button" role="tab">
-                Pending Refunds
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button"
-                role="tab">
-                Completed Refunds
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="main-tab" data-bs-toggle="tab" data-bs-target="#main" type="button" role="tab">
-                All entries
-            </button>
-        </li>
-    </ul>
-    <!-- Tab Content -->
-    <div class="tab-content mt-3">
-
-        <!-- First Tab -->
-        <div class="tab-pane fade show active" id="pending" role="tabpanel">
-            <h1>{{ pending_title }}</h1>
-            {{ pending_table }}
-        </div>
-        <!-- Second Tab -->
-        <div class="tab-pane fade" id="completed" role="tabpanel">
-            <h1>{{ completed_title }}</h1>
-            {{ completed_table }}
-        </div>
-        <!-- Third Tab -->
-        <div class="tab-pane fade" id="main" role="tabpanel">
-            <h1>{{ title }}</h1>
-            {{ all_table }}
-        </div>
-
+    <div class="tabs is-boxed mt-5">
+        <ul>
+            <li id="pending_tab" class="is-active">
+                <a onclick="show_pending()">Pending Refunds</a>
+            </li>
+            <li id="completed_tab">
+                <a onclick="show_completed()">Completed Refunds</a>
+            </li>
+            <li id="all_tab">
+                <a onclick="show_all()">All entries</a>
+            </li>
+        </ul>
     </div>
 
+    <!-- Tab Content -->
+    <div id="pending_tab_content" class="container is-fluid">
+        <h1 class="title">{{ pending_title }}</h1>
+        {% with table_id = "pending_table", data = pending %}
+        {% include "_dqr_refund_table.html" with context %}
+        {% endwith %}
+    </div>
+    <div id="completed_tab_content" class="is-hidden container is-fluid">
+        <h1 class="title">{{ completed_title }}</h1>
+        {% with table_id = "completed_table", data = completed %}
+        {% include "_dqr_refund_table.html" with context %}
+        {% endwith %}
+    </div>
+    <div id="all_tab_content" class="is-hidden container is-fluid">
+        <h1 class="title">{{ title }}</h1>
+        {% with table_id = "all_table", data = all_items %}
+        {% include "_dqr_refund_table.html" with context %}
+        {% endwith %}
+    </div>
 </div>
 {% endblock content %}
 
 {% block scripts %}
 
 <script>
-    new DataTable('#{{ all_table.id }}', {
+    function show_pending() {
+        // Toggle Tables
+        document.getElementById("pending_tab_content").classList.remove("is-hidden");
+        document.getElementById("completed_tab_content").classList.add("is-hidden");
+        document.getElementById("all_tab_content").classList.add("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("pending_tab").classList.add("is-active");
+        document.getElementById("completed_tab").classList.remove("is-active");
+        document.getElementById("all_tab").classList.remove("is-active");
+
+        // // Important: Recalculate columns for the hidden table
+        // if (DataTable.isDataTable('#lien_count')) {
+        //     new DataTable('#lien_count').columns.adjust().draw();
+        // }
+    }
+
+    function show_completed() {
+        // Toggle Tables
+        document.getElementById("all_tab_content").classList.add("is-hidden");
+        document.getElementById("completed_tab_content").classList.remove("is-hidden");
+        document.getElementById("pending_tab_content").classList.add("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("all_tab").classList.remove("is-active");
+        document.getElementById("completed_tab").classList.add("is-active");
+        document.getElementById("pending_tab").classList.remove("is-active");
+
+        // if (DataTable.isDataTable('#lien_sum')) {
+        //     new DataTable('#lien_sum').columns.adjust().draw();
+        // }
+    }
+
+    function show_all() {
+        // Toggle Tables
+        document.getElementById("all_tab_content").classList.remove("is-hidden");
+        document.getElementById("pending_tab_content").classList.add("is-hidden");
+        document.getElementById("completed_tab_content").classList.add("is-hidden");
+
+        // Toggle Tabs
+        document.getElementById("all_tab").classList.add("is-active");
+        document.getElementById("pending_tab").classList.remove("is-active");
+        document.getElementById("completed_tab").classList.remove("is-active");
+
+        // if (DataTable.isDataTable('#lien_consol')) {
+        //     new DataTable('#lien_consol').columns.adjust().draw();
+        // }
+    }
+    new DataTable('#all_table', {
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
@@ -63,11 +102,12 @@
         ],
         order: [[0, 'desc']],
         pageLength: 50,
+        scrollX: true
     });
 </script>
 
 <script>
-    new DataTable('#{{ pending_table.id }}', {
+    new DataTable('#pending_table', {
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
@@ -79,11 +119,12 @@
         ],
         order: [[0, 'desc']],
         pageLength: 50,
+        scrollX: true
     });
 </script>
 
 <script>
-    new DataTable('#{{ completed_table.id }}', {
+    new DataTable('#completed_table', {
         layout: {
             top1start: 'pageLength',
             topStart: 'buttons',
@@ -95,6 +136,7 @@
         ],
         order: [[0, 'desc']],
         pageLength: 50,
+        scrollX: true
     });
 </script>
 {% endblock scripts %}
