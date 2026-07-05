@@ -331,47 +331,77 @@ def dqr_machines_edit(id):
 @login_required
 @admin_required
 def dqr_machines_list():
-    table = Table(
-        DqrMachines,
-        classes="table table-striped table-bordered",
-        id="dqr_refund_table",
-        paginate=False,
-        only=[
-            "ro_code",
-            "merchant_name",
-            "merchant_dba_name",
-            "mid",
-            "tid",
-            "mcc_code",
-            "office_code",
-            "address",
-            "city",
-            "pincode",
-            "state",
-            "name",
-            "login",
-            "user_id",
-            "password",
-            "device_name",
-            "status",
-            "device_serial_number",
-            "installation_date",
-        ],
-        extra_columns=[
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.dqr_machines_edit', id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
+    dqr_machines = db.session.scalars(
+        db.select(DqrMachines).order_by(DqrMachines.id.asc())
     )
+    col_names = [
+        "ro_code",
+        "merchant_name",
+        "merchant_dba_name",
+        "mid",
+        "tid",
+        "mcc_code",
+        "office_code",
+        "address",
+        "city",
+        "pincode",
+        "state",
+        "name",
+        "login",
+        "user_id",
+        "password",
+        "device_name",
+        "status",
+        "device_serial_number",
+        "installation_date",
+    ]
 
-    return render_template("dqr_machines_list.html", table=table, title="DQR machines")
+    #    table = Table(
+    #        DqrMachines,
+    #        classes="table table-striped table-bordered",
+    #        id="dqr_refund_table",
+    #        paginate=False,
+    #        only=[
+    #            "ro_code",
+    #            "merchant_name",
+    #            "merchant_dba_name",
+    #            "mid",
+    #            "tid",
+    #            "mcc_code",
+    #            "office_code",
+    #            "address",
+    #            "city",
+    #            "pincode",
+    #            "state",
+    #            "name",
+    #            "login",
+    #            "user_id",
+    #            "password",
+    #            "device_name",
+    #            "status",
+    #            "device_serial_number",
+    #            "installation_date",
+    #        ],
+    #        extra_columns=[
+    #            (
+    #                "edit",
+    #                Column(
+    #                    "Edit",
+    #                    formatter=lambda u: Markup(
+    #                        f"<a href='{url_for('.dqr_machines_edit', id=u.id)}'>Edit</a>"
+    #                    ),
+    #                    is_html=True,
+    #                ),
+    #            ),
+    #        ],
+    #    )
+    #
+    return render_template(
+        "dqr_machines_list.html",
+        dqr_machines=dqr_machines,
+        title="DQR machines",
+        col_names=col_names,
+    )
 
 
 @refund_dqr_bp.route("/dqr_machines/upload", methods=["GET", "POST"])

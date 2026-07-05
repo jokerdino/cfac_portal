@@ -1,27 +1,19 @@
 {% extends "dqr_refund_layout.html" %}
 {% block content %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 
-{% include "partials/bootstrap_alerts.html" %}
-{% include "partials/bootstrap_errors.html" %}
+{% include "partials/errors.html" %}
+{% include "partials/messages.html" %}
 <div class="container">
-    <h1 class="title mb-3">{{ title }}</h1>
+    <h1 class="title mb-3 mt-5">{{ title }}</h1>
     {% from "bootstrap_macros.html" import render_field_horizontal %}
     <form method="post" class="form-horizontal" enctype="multipart/form-data">
         {{ form.csrf_token }}
         {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
-        {% if field.name == "office_code" %}
-        <div id="office_code_container">
-            {{ render_field_horizontal(field) }}
-        </div>
-        {% else %}
-        {{ render_field_horizontal(field) }}
-        {% endif %}
+        {{ render_field_div_horizontal(field, is_narrow=False) }}
         {% endfor %}
-        <div class="row mb-3">
-            <div class="col-sm-9 offset-sm-3">
-                <button type="submit" class="btn btn-primary">Submit</button>
-                <button type="reset" class="btn btn-secondary">Cancel</button>
-            </div>
+        <div class="has-text-centered">
+            <button class="button is-success">Submit</button>
         </div>
     </form>
 
