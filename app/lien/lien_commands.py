@@ -69,9 +69,14 @@ def prepare_ho_tp_lien_data():
         .group_by(subq.c.ro_name, subq.c.ro_code)
         .order_by(subq.c.ro_code)
     )
-    lien_data = db.session.execute(report_query).all()
 
-    return lien_data, bank_names, bank_labels
+    lien_data = db.session.execute(report_query).all()
+    summable_keys = [col.name for col in bank_columns] + ["total_count", "total_amount"]
+    total_row = {
+        key: sum((getattr(row, key) or 0) for row in lien_data) for key in summable_keys
+    }
+
+    return lien_data, bank_names, bank_labels, total_row
 
 
 def fetch_recipient_email_addresses(ro_code: str) -> list[str]:
@@ -137,13 +142,14 @@ def send_ro_lien_emails():
 def send_ho_tp_lien_email():
     app = current_app._get_current_object()
     with app.test_request_context():
-        lien_list, bank_names, bank_labels = prepare_ho_tp_lien_data()
+        lien_list, bank_names, bank_labels, total_row = prepare_ho_tp_lien_data()
 
         html_body = render_template(
             "lien_ho_tp_email_template.html",
             lien_data=lien_list,
             bank_names=bank_names,
             bank_labels=bank_labels,
+            total_row=total_row,
         )
         subject = "Active Liens Across All Banks - RO Wise Summary"
         ho_motor_tp_officers = ["hotp@uiic.co.in"]

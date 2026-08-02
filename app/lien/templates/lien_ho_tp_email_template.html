@@ -72,7 +72,19 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <th></th>
+                <th>Total</th>
 
+                {% for bank in bank_names %}
+                {% set safe_bank = bank_labels[bank] %}
+                <th class="td_amount">{{ (total_row['sum_' ~ safe_bank] or 0) | indian_number_format }}</th>
+                {% endfor %}
+
+                <th class="td_amount">{{ (total_row.total_amount or 0 )| indian_number_format }}</th>
+            </tr>
+        </tfoot>
     </table>
 
     <h2>Number of liens</h2>
@@ -101,7 +113,19 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <th></th>
+                <th>Total</th>
 
+                {% for bank in bank_names %}
+                {% set safe_bank = bank_labels[bank] %}
+                <th class="td_amount">{{ (total_row['count_' ~ safe_bank] or 0) }}</th>
+                {% endfor %}
+
+                <th class="td_amount">{{ (total_row.total_count or 0 ) }}</th>
+            </tr>
+        </tfoot>
     </table>
 
     <p>Regards,</p>
