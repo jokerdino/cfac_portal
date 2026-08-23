@@ -91,7 +91,7 @@
                 New</div></a></li>
         </ul>
         {% endif %}
-
+        {% if current_user.user_type not in ["ho_stat_audit"] %}
         <p class="menu-label">Information</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('knowledge_base.knowledge_base_home_page') }}">Knowledge Base</a></li>
@@ -103,10 +103,13 @@
                 class="ml-2 tag is-warning is-rounded">
                 New</div></a></li>
         </ul>
+        {% endif %}
+        {% if current_user.user_type not in ["ho_stat_audit"] %}
         <p class="menu-label">Useful links</p>
         <ul class="menu-list">
           <li><a href="{{ url_for('main.pos_dashboard') }}">POS Dashboard</a></li>
         </ul>
+        {% endif %}
         {% if current_user.user_type in ["admin","oo_user","ro_user"] %}
         <p class="menu-label">Data collection</p>
         <ul class="menu-list">
@@ -157,6 +160,7 @@
         {% endif %}
       </aside>
     </div>
+    {% if current_user.user_type not in ["ho_stat_audit"] %}
     <div class="column mt-5 mr-5">
 
       <h1 class="title is-size-3">Latest announcements</h1>
@@ -214,6 +218,7 @@
       </table>
       <a class="button is-link is-outlined" href="{{ url_for('mis.view_mis_tracker') }}">View all MIS tracker→</a>
     </div>
+    {% endif %}
   </div>
 
 </body>
