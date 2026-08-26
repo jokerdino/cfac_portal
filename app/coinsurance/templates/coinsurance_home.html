@@ -83,6 +83,7 @@
     new DataTable('#coinsurance_credits_table', {
         ajax: "{{ url_for('coinsurance.get_coinsurance_receipts') }}",
         serverSide: true,
+        autoWidth: false,
         //stateSave: true,
         processing: true,
         ordering: false,
