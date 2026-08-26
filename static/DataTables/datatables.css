@@ -4,33 +4,39 @@
  *
  * To rebuild or modify this file with the latest versions of the included
  * software please visit:
- *   https://datatables.net/download/#bm/jq-3.7.0/jszip-3.10.1/dt-2.3.1/b-3.2.3/b-html5-3.2.3/fc-5.0.4/fh-4.0.2
+ *   https://datatables.net/download/#bm/jszip-3.10.1/dt-3.0.2/b-4.0.2/fc-6.0.0/fh-5.0.0
  *
  * Included libraries:
- *   jQuery 3.7.0, JSZip 3.10.1, DataTables 2.3.1, Buttons 3.2.3, HTML5 export 3.2.3, FixedColumns 5.0.4, FixedHeader 4.0.2
+ *   JSZip 3.10.1, DataTables 3.0.2, Buttons 4.0.2, FixedColumns 6.0.0, FixedHeader 5.0.0
  */
 
 /*! DataTables Bulma integration
  * © SpryMedia Ltd - datatables.net/license
  */
 :root {
-  --dt-row-selected: 13, 110, 253;
-  --dt-row-selected-text: 255, 255, 255;
-  --dt-row-selected-link: 9, 10, 11;
-  --dt-row-stripe: 0, 0, 0;
-  --dt-row-hover: 0, 0, 0;
-  --dt-column-ordering: 0, 0, 0;
-  --dt-html-background: white;
+  --dt_background-selected: 13, 110, 253;
+  --dt_color-selected: 255, 255, 255;
+  --dt_link_color-selected: 228, 228, 228;
+  --dt-row_background: transparent;
+  --dt-row_background-selected: var(--dt_background-selected);
+  --dt-row-text_color-selected: var(--dt_color-selected);
+  --dt-row-link_color-selected: var(--dt_link_color-selected);
+  --dt-row_background-stripe: 0, 0, 0;
+  --dt-row_background-hover: 0, 0, 0;
+  --dt-column-ordering_background: 0, 0, 0;
+  --dt-header-cell_align-items: center;
+  --dt-header-cell_vertical-align: middle;
+  --dt-html_background: white;
 }
 :root.dark {
-  --dt-html-background: rgb(33, 37, 41);
+  --dt-html_background: rgb(33, 37, 41);
 }
 
-table.dataTable td.dt-control {
+table.dataTable tbody td.dt-control {
   text-align: center;
   cursor: pointer;
 }
-table.dataTable td.dt-control:before {
+table.dataTable tbody td.dt-control:before {
   display: inline-block;
   box-sizing: border-box;
   content: "";
@@ -39,22 +45,19 @@ table.dataTable td.dt-control:before {
   border-bottom: 5px solid transparent;
   border-right: 0px solid transparent;
 }
-table.dataTable tr.dt-hasChild td.dt-control:before {
+table.dataTable tbody tr.dt-hasChild td.dt-control:before {
   border-top: 10px solid rgba(0, 0, 0, 0.5);
   border-left: 5px solid transparent;
   border-bottom: 0px solid transparent;
   border-right: 5px solid transparent;
 }
-table.dataTable tfoot:empty {
-  display: none;
-}
 
-html.dark table.dataTable td.dt-control:before,
+:root.dark table.dataTable td.dt-control:before,
 :root[data-bs-theme=dark] table.dataTable td.dt-control:before,
 :root[data-theme=dark] table.dataTable td.dt-control:before {
   border-left-color: rgba(255, 255, 255, 0.5);
 }
-html.dark table.dataTable tr.dt-hasChild td.dt-control:before,
+:root.dark table.dataTable tr.dt-hasChild td.dt-control:before,
 :root[data-bs-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before,
 :root[data-theme=dark] table.dataTable tr.dt-hasChild td.dt-control:before {
   border-top-color: rgba(255, 255, 255, 0.5);
@@ -85,50 +88,71 @@ div.dt-scroll-body tfoot tr td div.dt-scroll-sizing {
   overflow: hidden !important;
 }
 
+/*! DataTables Bulma integration
+ * © SpryMedia Ltd - datatables.net/license
+ */
+:root {
+  --dt-order-arrow_color: rgb(51, 51, 51);
+  --dt-order-arrow_color-current: rgb(51, 51, 51);
+  --dt-order-arrow-height: 7px;
+  --dt-order-arrow_opacity: 0.125;
+  --dt-order-arrow_opacity-current: 0.65;
+  --dt-order-arrow-width: 8px;
+  --dt-order-arrow-gap: 1px;
+  --dt-order-header_outline-hover: 2px solid rgba(0, 0, 0, 0.05);
+}
+:root.dark, :root[data-bs-theme=dark], :root[data-theme=dark] {
+  --dt-order-arrow_color: rgb(229, 233, 238);
+  --dt-order-arrow_color-current: rgb(229, 233, 238);
+  --dt-order-header_outline-hover: 2px solid rgba(255, 255, 255, 0.05);
+}
+
 table.dataTable thead > tr > th:active,
 table.dataTable thead > tr > td:active {
   outline: none;
 }
-table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before {
-  position: absolute;
-  display: block;
-  bottom: 50%;
-  content: "\25B2";
-  content: "\25B2"/"";
+table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before {
+  bottom: calc(50% + var(--dt-order-arrow-gap));
+  border-bottom: var(--dt-order-arrow-height) solid var(--dt-order-arrow_color);
+  border-left: calc(var(--dt-order-arrow-width) / 2) solid transparent;
+  border-right: calc(var(--dt-order-arrow-width) / 2) solid transparent;
 }
-table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
-  position: absolute;
-  display: block;
-  top: 50%;
-  content: "\25BC";
-  content: "\25BC"/"";
+table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  top: calc(50% + 1px);
+  border-top: var(--dt-order-arrow-height) solid var(--dt-order-arrow_color);
+  border-left: calc(var(--dt-order-arrow-width) / 2) solid transparent;
+  border-right: calc(var(--dt-order-arrow-width) / 2) solid transparent;
 }
-table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order,
-table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order,
-table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order,
-table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order,
-table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order {
+table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order,
+table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order,
+table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order,
+table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order,
+table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order {
   position: relative;
-  width: 12px;
-  height: 20px;
+  width: var(--dt-order-arrow-width);
+  align-self: stretch;
 }
-table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-asc span.dt-column-order:after, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-desc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-asc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-orderable-desc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
+table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-asc .dt-column-order:after, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:before, table.dataTable thead > tr > th.dt-orderable-desc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:after, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-asc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-desc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  position: absolute;
+  display: block;
+  content: " ";
+  height: 0;
+  width: 0;
   left: 0;
-  opacity: 0.125;
-  line-height: 9px;
-  font-size: 0.8em;
+  color: var(--dt-order-arrow_color);
+  opacity: var(--dt-order-arrow_opacity);
 }
 table.dataTable thead > tr > th.dt-orderable-asc, table.dataTable thead > tr > th.dt-orderable-desc,
 table.dataTable thead > tr > td.dt-orderable-asc,
@@ -138,17 +162,23 @@ table.dataTable thead > tr > td.dt-orderable-desc {
 table.dataTable thead > tr > th.dt-orderable-asc:hover, table.dataTable thead > tr > th.dt-orderable-desc:hover,
 table.dataTable thead > tr > td.dt-orderable-asc:hover,
 table.dataTable thead > tr > td.dt-orderable-desc:hover {
-  outline: 2px solid rgba(0, 0, 0, 0.05);
+  outline: var(--dt-order-header_outline-hover);
   outline-offset: -2px;
 }
-table.dataTable thead > tr > th.dt-ordering-asc span.dt-column-order:before, table.dataTable thead > tr > th.dt-ordering-desc span.dt-column-order:after,
-table.dataTable thead > tr > td.dt-ordering-asc span.dt-column-order:before,
-table.dataTable thead > tr > td.dt-ordering-desc span.dt-column-order:after {
-  opacity: 0.6;
+table.dataTable thead > tr > th.dt-ordering-asc .dt-column-order:before,
+table.dataTable thead > tr > td.dt-ordering-asc .dt-column-order:before {
+  border-bottom-color: var(--dt-order-arrow_color-current);
+  opacity: var(--dt-order-arrow_opacity-current);
 }
-table.dataTable thead > tr > th.sorting_desc_disabled span.dt-column-order:after, table.dataTable thead > tr > th.sorting_asc_disabled span.dt-column-order:before,
-table.dataTable thead > tr > td.sorting_desc_disabled span.dt-column-order:after,
-table.dataTable thead > tr > td.sorting_asc_disabled span.dt-column-order:before {
+table.dataTable thead > tr > th.dt-ordering-desc .dt-column-order:after,
+table.dataTable thead > tr > td.dt-ordering-desc .dt-column-order:after {
+  border-top-color: var(--dt-order-arrow_color-current);
+  opacity: var(--dt-order-arrow_opacity-current);
+}
+table.dataTable thead > tr > th.dt-orderable-none:not(.dt-ordering-asc, .dt-ordering-desc) .dt-column-order:empty, table.dataTable thead > tr > th.sorting_desc_disabled .dt-column-order:after, table.dataTable thead > tr > th.sorting_asc_disabled .dt-column-order:before,
+table.dataTable thead > tr > td.dt-orderable-none:not(.dt-ordering-asc, .dt-ordering-desc) .dt-column-order:empty,
+table.dataTable thead > tr > td.sorting_desc_disabled .dt-column-order:after,
+table.dataTable thead > tr > td.sorting_asc_disabled .dt-column-order:before {
   display: none;
 }
 table.dataTable thead > tr > th:active,
@@ -166,27 +196,27 @@ table.dataTable tfoot > tr > td div.dt-column-header,
 table.dataTable tfoot > tr > td div.dt-column-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: var(--dt-header-cell_align-items);
   gap: 4px;
 }
-table.dataTable thead > tr > th div.dt-column-header span.dt-column-title,
-table.dataTable thead > tr > th div.dt-column-footer span.dt-column-title,
-table.dataTable thead > tr > td div.dt-column-header span.dt-column-title,
-table.dataTable thead > tr > td div.dt-column-footer span.dt-column-title,
-table.dataTable tfoot > tr > th div.dt-column-header span.dt-column-title,
-table.dataTable tfoot > tr > th div.dt-column-footer span.dt-column-title,
-table.dataTable tfoot > tr > td div.dt-column-header span.dt-column-title,
-table.dataTable tfoot > tr > td div.dt-column-footer span.dt-column-title {
+table.dataTable thead > tr > th div.dt-column-header .dt-column-title,
+table.dataTable thead > tr > th div.dt-column-footer .dt-column-title,
+table.dataTable thead > tr > td div.dt-column-header .dt-column-title,
+table.dataTable thead > tr > td div.dt-column-footer .dt-column-title,
+table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title,
+table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title,
+table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title,
+table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title {
   flex-grow: 1;
 }
-table.dataTable thead > tr > th div.dt-column-header span.dt-column-title:empty,
-table.dataTable thead > tr > th div.dt-column-footer span.dt-column-title:empty,
-table.dataTable thead > tr > td div.dt-column-header span.dt-column-title:empty,
-table.dataTable thead > tr > td div.dt-column-footer span.dt-column-title:empty,
-table.dataTable tfoot > tr > th div.dt-column-header span.dt-column-title:empty,
-table.dataTable tfoot > tr > th div.dt-column-footer span.dt-column-title:empty,
-table.dataTable tfoot > tr > td div.dt-column-header span.dt-column-title:empty,
-table.dataTable tfoot > tr > td div.dt-column-footer span.dt-column-title:empty {
+table.dataTable thead > tr > th div.dt-column-header .dt-column-title:empty,
+table.dataTable thead > tr > th div.dt-column-footer .dt-column-title:empty,
+table.dataTable thead > tr > td div.dt-column-header .dt-column-title:empty,
+table.dataTable thead > tr > td div.dt-column-footer .dt-column-title:empty,
+table.dataTable tfoot > tr > th div.dt-column-header .dt-column-title:empty,
+table.dataTable tfoot > tr > th div.dt-column-footer .dt-column-title:empty,
+table.dataTable tfoot > tr > td div.dt-column-header .dt-column-title:empty,
+table.dataTable tfoot > tr > td div.dt-column-footer .dt-column-title:empty {
   display: none;
 }
 
@@ -202,7 +232,14 @@ div.dt-scroll-body > table.dataTable > thead > tr > td {
 :root[data-bs-theme=dark] table.dataTable thead > tr > th.dt-orderable-desc:hover,
 :root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-asc:hover,
 :root[data-bs-theme=dark] table.dataTable thead > tr > td.dt-orderable-desc:hover {
-  outline: 2px solid rgba(255, 255, 255, 0.05);
+  outline: var(--dt-order-header_outline-hover);
+}
+
+/*! DataTables Bulma integration
+ * © SpryMedia Ltd - datatables.net/license
+ */
+:root {
+  --dt-processing-circle_background: var(--dt_background-selected);
 }
 
 div.dt-processing {
@@ -228,8 +265,7 @@ div.dt-processing > div:last-child > div {
   width: 13px;
   height: 13px;
   border-radius: 50%;
-  background: rgb(13, 110, 253);
-  background: rgb(var(--dt-row-selected));
+  background: rgb(var(--dt-processing-circle_background));
   animation-timing-function: cubic-bezier(0, 1, 1, 0);
 }
 div.dt-processing > div:last-child > div:nth-child(1) {
@@ -342,6 +378,7 @@ table.dataTable thead td,
 table.dataTable tfoot th,
 table.dataTable tfoot td {
   text-align: left;
+  vertical-align: var(--dt-header-cell_vertical-align);
 }
 table.dataTable thead th.dt-head-left,
 table.dataTable thead td.dt-head-left,
@@ -425,11 +462,11 @@ table.dataTable tbody td.dt-body-nowrap {
 }
 
 :root {
-  --dt-row-selected: 0, 209, 178;
-  --dt-row-selected-text: 46, 51, 61;
+  --dt_background-selected: 0, 209, 178;
+  --dt_color-selected: 46, 51, 61;
 }
 :root[data-theme=dark] {
-  --dt-row-selected-text: 0, 31, 26;
+  --dt_color-selected: 0, 31, 26;
 }
 
 table.dataTable {
@@ -443,31 +480,26 @@ table.dataTable.table.is-striped > tbody > tr:nth-child(2n) {
   background-color: transparent;
 }
 table.dataTable > tbody > tr {
-  background-color: transparent;
+  background-color: var(--dt-row_background);
 }
 table.dataTable > tbody > tr.selected > * {
-  box-shadow: inset 0 0 0 9999px rgb(13, 110, 253);
-  box-shadow: inset 0 0 0 9999px rgb(var(--dt-row-selected));
-  color: rgb(255, 255, 255);
-  color: rgb(var(--dt-row-selected-text));
+  box-shadow: inset 0 0 0 9999px rgb(var(--dt-row_background-selected));
+  color: rgb(var(--dt-row-text_color-selected));
 }
 table.dataTable > tbody > tr.selected a {
-  color: rgb(9, 10, 11);
-  color: rgb(var(--dt-row-selected-link));
+  color: rgb(var(--dt-row-link_color-selected));
 }
 table.dataTable.is-striped > tbody > tr:nth-child(2n) > * {
-  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-stripe), 0.019);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row_background-stripe), 0.019);
 }
 table.dataTable.is-striped > tbody > tr:nth-child(2n).selected > * {
-  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.919);
-  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.919);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row_background-selected), 0.919);
 }
 table.dataTable.is-hoverable > tbody > tr:hover > * {
-  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-hover), 0.075);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row_background-hover), 0.075);
 }
 table.dataTable.is-hoverable > tbody > tr.selected:hover > * {
-  box-shadow: inset 0 0 0 9999px rgba(13, 110, 253, 0.975);
-  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row-selected), 0.975);
+  box-shadow: inset 0 0 0 9999px rgba(var(--dt-row_background-selected), 0.975);
 }
 
 div.dt-container div.dt-layout-start > *:not(:last-child) {
@@ -616,8 +648,9 @@ div.dt-scroll-foot > .dt-scroll-footInner > table {
     transform: rotate(360deg);
   }
 }
-div.dataTables_wrapper {
-  position: relative;
+:root {
+  --dtb-processing_border: 2px solid rgb(40, 40, 40);
+  --dtb-processing_filter: drop-shadow(0px 0px 3px white);
 }
 
 div.dt-buttons {
@@ -637,8 +670,9 @@ div.dt-button-info {
   margin-top: -100px;
   margin-left: -200px;
   background-color: white;
-  border-radius: 0.75em;
-  box-shadow: 3px 4px 10px 1px rgba(0, 0, 0, 0.8);
+  border-radius: 5px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   text-align: center;
   z-index: 2003;
   overflow: hidden;
@@ -760,6 +794,11 @@ div.dt-button-collection span.dt-button-spacer.bar {
     box-shadow: none !important;
   }
 }
+:root[data-theme=dark] {
+  --dtb-processing_border: 2px solid rgb(224, 224, 224);
+  --dtb-processing_filter: drop-shadow(0px 0px 3px black);
+}
+
 .dt-button {
   position: relative;
 }
@@ -779,6 +818,9 @@ div.dt-button-collection a.dt-button {
   justify-content: space-between;
   align-items: center;
   padding-right: 0.5rem;
+}
+div.dt-button-collection a.dt-button:focus {
+  outline-offset: -2px;
 }
 div.dt-button-collection div.dt-button-split {
   display: flex;
@@ -959,15 +1001,16 @@ div.dt-button-background {
 }
 div.dt-buttons.field.is-grouped {
   display: block;
+  margin-bottom: 0;
 }
-div.dt-buttons.field.is-grouped button.btn.processing,
-div.dt-buttons.field.is-grouped div.btn.processing,
-div.dt-buttons.field.is-grouped a.btn.processing {
+div.dt-buttons.field.is-grouped button.button.processing,
+div.dt-buttons.field.is-grouped div.button.processing,
+div.dt-buttons.field.is-grouped a.button.processing {
   color: rgba(0, 0, 0, 0.2);
 }
-div.dt-buttons.field.is-grouped button.btn.processing:after,
-div.dt-buttons.field.is-grouped div.btn.processing:after,
-div.dt-buttons.field.is-grouped a.btn.processing:after {
+div.dt-buttons.field.is-grouped button.button.processing:after,
+div.dt-buttons.field.is-grouped div.button.processing:after,
+div.dt-buttons.field.is-grouped a.button.processing:after {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -977,7 +1020,7 @@ div.dt-buttons.field.is-grouped a.btn.processing:after {
   box-sizing: border-box;
   display: block;
   content: " ";
-  border: 2px solid rgb(40, 40, 40);
+  border: var(--dtb-processing_border);
   border-radius: 50%;
   border-left-color: transparent;
   border-right-color: transparent;
@@ -986,6 +1029,7 @@ div.dt-buttons.field.is-grouped a.btn.processing:after {
   -ms-animation: dtb-spinner 1500ms infinite linear;
   -webkit-animation: dtb-spinner 1500ms infinite linear;
   -moz-animation: dtb-spinner 1500ms infinite linear;
+  filter: var(--dtb-processing_filter);
 }
 
 span.dt-button-spacer {
@@ -999,6 +1043,11 @@ span.dt-button-spacer.bar:empty {
   height: inherit;
 }
 
+@layer fallback {
+  .fa-angle-down::before {
+    content: "▼";
+  }
+}
 div.dt-button-collection .is-disabled {
   cursor: default;
   opacity: 0.4;
@@ -1049,6 +1098,16 @@ div.dt-button-split:active:not(.disabled) button:hover, div.dt-button-split.acti
 }
 
 
+:root {
+  --dtfc_background: white;
+  --dtfc-thead-cell_background: var(--dtfc_background);
+  --dtfc-tbody-cell_background: var(--dtfc_background);
+}
+
+:root.dark {
+  --dtfc_background: rgb(33, 37, 41);
+}
+
 table.dataTable thead tr > .dtfc-fixed-start,
 table.dataTable thead tr > .dtfc-fixed-end,
 table.dataTable tfoot tr > .dtfc-fixed-start,
@@ -1056,12 +1115,12 @@ table.dataTable tfoot tr > .dtfc-fixed-end {
   top: 0;
   bottom: 0;
   z-index: 3;
-  background-color: white;
+  background-color: var(--dtfc-thead-cell_background);
 }
 table.dataTable tbody tr > .dtfc-fixed-start,
 table.dataTable tbody tr > .dtfc-fixed-end {
   z-index: 1;
-  background-color: white;
+  background-color: var(--dtfc-tbody-cell_background);
 }
 table.dataTable tr > .dtfc-fixed-left::after,
 table.dataTable tr > .dtfc-fixed-right::after {
@@ -1100,19 +1159,9 @@ div.dt-scroll div.dtfc-bottom-blocker,
 div.dtfh-floatingparent div.dtfc-top-blocker,
 div.dtfh-floatingparent div.dtfc-bottom-blocker {
   position: absolute;
-  background-color: white;
+  background-color: var(--dtfc-thead-cell_background);
 }
 
-html.dark table.dataTable thead tr > .dtfc-fixed-start,
-html.dark table.dataTable thead tr > .dtfc-fixed-end,
-html.dark table.dataTable tfoot tr > .dtfc-fixed-start,
-html.dark table.dataTable tfoot tr > .dtfc-fixed-end {
-  background-color: var(--dt-html-background);
-}
-html.dark table.dataTable tbody tr > .dtfc-fixed-start,
-html.dark table.dataTable tbody tr > .dtfc-fixed-end {
-  background-color: var(--dt-html-background);
-}
 html.dark table.dataTable.dtfc-scrolling-left tbody > tr > .dtfc-fixed-left::after {
   box-shadow: inset 10px 0 8px -8px rgba(0, 0, 0, 0.3);
 }
@@ -1121,10 +1170,6 @@ html.dark table.dataTable.dtfc-scrolling-right tbody > tr > .dtfc-fixed-right::a
 }
 html.dark table.dataTable.dtfc-scrolling-right tbody > tr > .dtfc-fixed-right + .dtfc-fixed-right::after {
   box-shadow: none;
-}
-html.dark div.dtfc-top-blocker,
-html.dark div.dtfc-bottom-blocker {
-  background-color: var(--dt-html-background);
 }
 
 table.dataTable {
@@ -1165,7 +1210,8 @@ table.dataTable.fixedHeader-locked {
 }
 
 @media print {
-  table.fixedHeader-floating {
+  table.fixedHeader-floating,
+  table.fixedHeader-locked {
     display: none;
   }
 }
