@@ -6,4 +6,5 @@ from app.coinsurance import (
     coinsurance_routes,
     coinsurance_balances,
     coinsurance_receipts,
+    coinsurance_wowb_routes,
 )
