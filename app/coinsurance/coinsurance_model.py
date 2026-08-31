@@ -377,3 +377,41 @@ class CoinsuranceTokenRequestId(db.Model):
 
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
+
+
+class CoinsuranceWriteOffWriteBackEntry(db.Model):
+    id: Mapped[IntPK]
+
+    month_of_write_back_write_off: Mapped[str]
+    ro_code: Mapped[str]
+    oo_code: Mapped[str]
+    nature_of_transaction: Mapped[str]  # due to / due from
+    gl_code: Mapped[str]
+    coinsurer_name: Mapped[str]
+    coinsurer_office_code: Mapped[Optional[str]]
+    accounting_month: Mapped[int]
+    accounting_year: Mapped[int]
+
+    policy_number: Mapped[Optional[str]]
+    name_of_insured: Mapped[Optional[str]]
+    type_of_transaction: Mapped[Optional[str]]  # leader / follower
+    type_of_entry: Mapped[Optional[str]]  # premium / claims
+
+    premium_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    admin_charges_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    tpa_charges_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    brokerage_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    claim_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    claim_cost_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    total_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    current_status: Mapped[str]  # unreconciled / unconfirmed
+    reversal_date: Mapped[Optional[date]]
+    reversal_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    remaining_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+
+    # 24 columns
+    created_by: Mapped[CreatedBy]
+    created_on: Mapped[CreatedOn]
+
+    updated_by: Mapped[UpdatedBy]
+    updated_on: Mapped[UpdatedOn]
