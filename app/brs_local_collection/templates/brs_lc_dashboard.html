@@ -1,6 +1,6 @@
 {% extends "brs_lc_layout.html" %}
 {% block content %}
-{% from "bootstrap_macros.html" import  render_dashboard_dropdown %}
+{% from "bootstrap_macros.html" import render_dashboard_dropdown %}
 {% if current_user.user_type in ["admin","ro_user"] %}
 <div class="container">
     <form class="mb-5" method="post">
@@ -52,7 +52,7 @@
         //     fixedHeader: true,
         fixedHeader: true,
         pageLength: 36,
-        scrollY: true,
+        // scrollY: true,
         scrollX: true,
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
