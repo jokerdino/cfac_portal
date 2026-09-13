@@ -195,7 +195,7 @@
 {% endblock content %}
 {% block scripts %}
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         calculateSum();
         calculateClosingBalance();
     });
