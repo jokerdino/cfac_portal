@@ -1,7 +1,7 @@
-import datetime  # , date
-from flask_wtf import FlaskForm, Form
-from flask_wtf.file import FileRequired, FileAllowed, FileField
+from datetime import date
 
+from flask_wtf import FlaskForm, Form
+from flask_wtf.file import FileAllowed, FileField, FileRequired
 from wtforms import (
     DateField,
     DecimalField,
@@ -21,6 +21,15 @@ from wtforms.validators import (
 )
 
 from .leave_model import EmployeeData
+
+
+def get_calendar_choice_list() -> list[str]:
+    current_year = date.today().year
+
+    return [str(year) for year in range(current_year - 1, current_year + 2)]
+
+
+calendar_year_choice_list: list[str] = get_calendar_choice_list()
 
 
 class UpdateLeaveTypeForm(FlaskForm):
@@ -45,7 +54,9 @@ class UpdateLeaveTypeForm(FlaskForm):
 
 
 class AddEmployeeLeaveBalanceForm(FlaskForm):
-    calendar_year = SelectField(choices=[2024, 2025], validators=[DataRequired()])
+    calendar_year = SelectField(
+        choices=calendar_year_choice_list, validators=[DataRequired()]
+    )
     employee_name = StringField(validators=[DataRequired()])
     employee_number = IntegerField(validators=[DataRequired()])
 
@@ -128,7 +139,7 @@ class LeaveEncashmentForm(FlaskForm):
     date_of_leave_encashment = DateField(validators=[DataRequired()])
 
     def validate_date_of_leave_encashment(form, field):
-        if field.data > datetime.date.today():
+        if field.data > date.today():
             raise ValidationError("The date cannot be in the future!")
 
 
