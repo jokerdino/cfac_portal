@@ -133,6 +133,7 @@ from app.fund_flow_summary.models import (
     FundOutflowSummary,
     FundFlowBankCharges,
 )
+from app.fund_intimation.models import FundIntimation
 
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
@@ -150,6 +151,7 @@ admin.add_sub_category(name="Correspondence", parent_name="Correspondence")
 admin.add_sub_category(name="DD debits", parent_name="DD debits")
 admin.add_sub_category(name="Funds", parent_name="Funds")
 admin.add_sub_category(name="Fund flow summary", parent_name="Fund flow summary")
+admin.add_sub_category(name="Fund intimation", parent_name="Fund intimation")
 admin.add_sub_category(name="HO_checklist", parent_name="HO_checklist")
 admin.add_sub_category(name="HORO_recon", parent_name="HORORecon")
 admin.add_sub_category(name="Leave management", parent_name="Leave management")
@@ -562,6 +564,15 @@ admin.add_view(
     )
 )
 
+# fund intimation
+admin.add_view(
+    ModelView(
+        FundIntimation,
+        db,
+        endpoint="fund_intimation_",
+        category="Fund intimation",
+    )
+)
 
 # ho checklist
 admin.add_view(

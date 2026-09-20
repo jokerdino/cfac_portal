@@ -8,9 +8,9 @@
   <meta name="description" content="CFAC portal" />
   <title>CFAC Portal | Home</title>
   <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
-  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='payments.css') }}" />
 
 </head>
 
@@ -47,8 +47,10 @@
           <li><a href="{{ url_for('pool_credits.identified_entries') }}">HDFC Pool
               - Daily JV and Unidentified entries</a></li>
           <li><a href="{{ url_for('ho_ro_recon.recon_home') }}">HO RO recon</a></li>
-
           {% endif %}
+          <li><a href="{{ url_for('fund_intimation.fund_intimation_list', status='pending') }}">Fund intimation<div
+                class="ml-2 tag is-warning is-rounded">
+                New</div></a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type in ["admin", "ro_user", "oo_user"] %}
@@ -99,9 +101,7 @@
           <li><a href="{{ url_for('escalation_matrix.list_escalation_matrix') }}">Escalation Matrix</a></li>
           <li><a href="{{ url_for('announcements.view_announcements') }}">Announcements</a></li>
           <li><a href="{{ url_for('mis.view_mis_tracker') }}">MIS status</a></li>
-          <li><a href="{{ url_for('work_allocation.work_allocation_home') }}">CFAC banking - Work allocation<div
-                class="ml-2 tag is-warning is-rounded">
-                New</div></a></li>
+          <li><a href="{{ url_for('work_allocation.work_allocation_home') }}">CFAC banking - Work allocation</a></li>
         </ul>
         {% endif %}
         {% if current_user.user_type not in ["ho_stat_audit"] %}

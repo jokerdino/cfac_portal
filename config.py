@@ -17,6 +17,7 @@ class Config:
     FLASK_ADMIN_SWATCH = "united"
     SERVER_NAME = os.environ.get("SERVER_NAME")
     PREFERRED_URL_SCHEME = "https"
+    CFAC_FLASK_DASHBOARD_URL = os.environ.get("CFAC_FLASK_DASHBOARD_URL")
 
 
 class TestConfig(Config):

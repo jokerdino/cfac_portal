@@ -1,0 +1,111 @@
+{% extends "fund_intimation_layout.html" %}
+{% block content %}
+
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<div class="container">
+    <h1 class="title is-size-4">{{ title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {{ form.csrf_token }}
+        <div class="columns">
+            <div class="column">
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Office details</legend>
+
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.regional_office_code) }}
+                        {{ render_field_table(form.operating_office_code) }}
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Recipient Details</legend>
+
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.type_of_disbursement) }}
+                        {{ render_field_table(form.nature_of_recipient) }}
+                        {{ render_field_table(form.name_of_recipient) }}
+                        {{ render_field_table(form.purpose_of_disbursement) }}
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Transaction Details</legend>
+
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.transaction_amount) }}
+                        {{ render_field_table(form.expected_date_of_disbursement) }}
+
+                        {{ render_field_table(form.transaction_id) }}
+                        {{ render_field_table(form.transaction_date) }}
+
+                    </table>
+                </fieldset>
+            </div>
+
+            <div class="column">
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Claim Details</legend>
+
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.claim_number) }}
+                        {{ render_field_table(form.coinsurance_involved) }}
+                        {{ render_field_table(form.coinsurance_details) }}
+
+                    </table>
+                </fieldset>
+                <fieldset class="box">
+                    <legend class="has-text-weight-semibold">Remarks</legend>
+
+                    <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.regional_office_remarks) }}
+
+                    </table>
+                </fieldset>
+            </div>
+
+        </div>
+        <div class="has-text-centered">
+            <button class="button is-success" type="submit">Submit</button>
+        </div>
+
+    </form>
+
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+</div>
+
+{% endblock content %}
+{% block scripts %}
+<script>
+    function toggleClaimDetails() {
+        let disbursementType = document.getElementById('type_of_disbursement').value;
+        let claimNumberInput = document.getElementById('claim_number');
+        let coinsuranceBoolean = document.getElementById('coinsurance_involved');
+        //   let coinsuranceDetailsText = document.getElementById('coinsurance_details');
+        if (disbursementType === 'Claim disbursement') {
+            claimNumberInput.disabled = false;
+            coinsuranceBoolean.disabled = false;
+            //   coinsuranceDetailsText.disabled = false;
+
+        } else {
+            claimNumberInput.disabled = true;
+            claimNumberInput.value = '';
+            coinsuranceBoolean.disabled = true;
+            coinsuranceBoolean.checked = false;
+            // coinsuranceDetailsText.disabled = true;
+            //coinsuranceDetailsText.value = '';
+        }
+    }
+    function toggleCoinsuranceDetails() {
+        let coinsuranceBoolean = document.getElementById('coinsurance_involved');
+        let coinsuranceDetailsText = document.getElementById('coinsurance_details');
+        if (coinsuranceBoolean.checked) {
+            coinsuranceDetailsText.disabled = false;
+        } else {
+            coinsuranceDetailsText.disabled = true;
+            coinsuranceDetailsText.value = '';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', toggleClaimDetails);
+    document.addEventListener('DOMContentLoaded', toggleCoinsuranceDetails);
+</script>
+{% endblock scripts %}

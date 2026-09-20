@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="keywords" content="Accounts" />
+    <meta name="description" content="Accounts" />
+    <title>CFAC Portal | Fund intimation</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='payments.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar is-black has-shadow" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Fund intimation list</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('.fund_intimation_list', status='pending') }}">
+                                Pending
+                                transactions</a>
+                            <a class="navbar-item"
+                                href="{{ url_for('.fund_intimation_list', status='completed') }}">Completed
+                                transactions</a>
+                            <a class="navbar-item" href="{{ url_for('.fund_intimation_list', status='all') }}">All
+                                transactions</a>
+
+                        </div>
+                    </div>
+
+                    <a class="navbar-item" href="{{ url_for('.fund_intimation_add') }}">Add new fund intimation</a>
+
+                </div>
+            </div>
+
+            {% include "partials/navbar_user_details.html" %}
+        </nav>
+    </header>
+
+    <div class="container is-fluid mt-5">
+
+        {% block content %}{% endblock content %}
+
+    </div>
+    <script charset="utf8" src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
+    {% block scripts %}
+
+    {% endblock scripts %}
+
+</body>
+
+</html>

@@ -1,0 +1,192 @@
+{% extends "fund_intimation_layout.html" %}
+{% block content %}
+<div class="container">
+    <h1 class="title is-size-4">{{ title }}</h1>
+    <div class="columns">
+        <div class="column">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Office details</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Regional office
+                        </div>
+                        <div class="column">
+                            {{ fi.regional_office_code }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Operating office
+                        </div>
+                        <div class="column">
+                            {{ fi.operating_office_code }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Recipient details</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Type of disbursement
+                        </div>
+
+                        <div class="column">
+                            {{ fi.type_of_disbursement }}
+
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Nature of recipient
+                        </div>
+
+                        <div class="column">
+                            {{ fi.nature_of_recipient }}
+
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Name of recipient
+                        </div>
+
+                        <div class="column">
+                            {{ fi.name_of_recipient }}
+
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold is-multiline">
+                            Purpose of disbursement
+                        </div>
+
+                        <div class="column">
+                            {{ fi.purpose_of_disbursement }}
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Transaction details</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Transaction amount
+                        </div>
+                        <div class="column">
+                            {{ fi.transaction_amount }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Expected date of disbursement
+                        </div>
+                        <div class="column">
+                            {{ fi.expected_date_of_disbursement }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Transaction ID
+                        </div>
+                        <div class="column">
+                            {{ fi.transaction_id }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Transaction Date
+                        </div>
+                        <div class="column">
+                            {{ fi.transaction_date }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="column">
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Claim details</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Claim number
+                        </div>
+                        <div class="column">
+                            {{ fi.claim_number }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Coinsurance involved
+                        </div>
+                        <div class="column">
+                            {{ fi.coinsurance_involved }}
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Coinsurance details
+                        </div>
+                        <div class="column">
+                            {{ fi.coinsurance_details }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">Remarks</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            Regional office remarks
+                        </div>
+                        <div class="column">
+                            {{ fi.regional_office_remarks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <header class="card-header">
+                    <p class="card-header-title">UTR details</p>
+                </header>
+                <div class="card-content">
+                    <div class="columns">
+                        <div class="column has-text-weight-semibold">
+                            UTR number
+                        </div>
+                        <div class="column">
+                            {{ fi.utr_number }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="buttons is-centered">
+        <a class="button" href="{{ url_for('.fund_intimation_list', status='pending') }}">Back to list</a>
+
+        <a class="button is-link" {% if fi.check_status() %}disabled="disabled"
+            {% else %}href="{{ url_for('.fund_intimation_edit', id=fi.id) }}" {% endif %}>Edit intimation</a>
+    </div>
+</div>
+
+{% endblock content %}

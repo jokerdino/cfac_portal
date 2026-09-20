@@ -1,0 +1,72 @@
+{% extends "fund_intimation_layout.html" %}
+{% block content %}
+<div class="table-container is-fluid">
+    <h1 class="title">{{ title }}</h1>
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+    {% if intimation_list %}
+
+    {% if current_user.user_type == "admin" and status == "pending" %}
+    <div class="buttons is-right"><a class="button is-success"
+            href="{{ url_for('.fund_intimation_utr_number_update') }}" type="submit">Update UTR</a></div>
+    {% endif %}
+
+    <table class="table is-fullwidth is-bordered" id="fund_intimation_table">
+        <thead>
+            <tr>
+                <th>View</th>
+                <th>Edit</th>
+                {% for column in column_names %}
+                <th class="has-text-centered">{{ column | upper | replace("_", " ") }}</th>
+                {% endfor %}
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for item in intimation_list %}
+
+                <td><a class="button is-link is-outlined is-small"
+                        href="{{ url_for('.fund_intimation_view', id=item['id'] ) }}">View</a>
+                </td>
+                <td><a class="button is-link is-outlined is-small" {% if item.check_status() %}disabled="disabled"
+                        title="Fund intimation cannot be edited after UTR number has been generated." {% else %}
+                        href="{{ url_for('.fund_intimation_edit', id=item['id'] ) }}" {% endif %}>Edit</a>
+                </td>
+
+                {% for column in column_names %}
+
+                <td>{{ item[column] or "" }}</td>
+                {% endfor %}
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>
+    {% else %}
+    <p>No fund intimations found</p>
+    {% endif %}
+</div>
+
+{% block scripts %}
+<script>
+    new DataTable('#fund_intimation_table', {
+        layout: {
+            top1start: 'pageLength',
+            topStart: 'buttons',
+
+        },
+        // stateSave: true,
+        pageLength: 100,
+        buttons: [
+            { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
+            { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
+            { extend: 'excelHtml5', className: 'has-background-primary-light is-rounded', title: '' }],
+        order: [[2, 'desc']],
+        pagingType: 'full_numbers',
+
+    });
+</script>
+{% endblock scripts %}
+{% endblock content %}

@@ -55,6 +55,7 @@ from app.ro_audit_report import ro_audit_report_bp
 from app.work_allocation import work_allocation_bp
 
 from app.fund_flow_summary import ff_summary_bp
+from app.fund_intimation import fund_intimation_bp
 
 from app.errors import errors_bp
 from app.cfac_flask_admin import flask_admin_bp
@@ -116,7 +117,7 @@ def create_app(config_class=Config):
                     storage.stream.seek(0, 2)  # Go to end of file
                     size = storage.stream.tell()
                     storage.stream.seek(pos)  # Reset the cursor
-                except Exception:
+                except Exception:  # noqa: BLE001
                     size = None
 
                 files_info.append(
@@ -185,7 +186,7 @@ def create_app(config_class=Config):
                     storage.stream.seek(0, 2)  # move to end
                     size_bytes = storage.stream.tell()
                     storage.stream.seek(pos)  # reset cursor
-                except Exception:
+                except Exception:  # noqa: BLE001
                     size_bytes = None
 
                 files_info.append(
@@ -275,6 +276,7 @@ def create_app(config_class=Config):
     app.register_blueprint(ro_audit_report_bp, url_prefix="/ro_audit")
     app.register_blueprint(work_allocation_bp, url_prefix="/work_allocation")
     app.register_blueprint(ff_summary_bp, url_prefix="/ff_summary")
+    app.register_blueprint(fund_intimation_bp, url_prefix="/fund_intimation")
 
     app.register_blueprint(errors_bp, url_prefix="/error")
     app.register_blueprint(flask_admin_bp, url_prefix="/admin")
