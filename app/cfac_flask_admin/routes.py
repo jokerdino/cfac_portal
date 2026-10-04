@@ -2,6 +2,7 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 
 from app.announcements.announcements_model import Announcements
+from app.auditor_certificate.model import AuditorCertificate
 from app.bank_guarantee.bg_models import BankGuarantee
 from app.brs.models import (
     BRS,
@@ -12,36 +13,72 @@ from app.brs.models import (
     DeleteEntries,
     Outstanding,
 )
+from app.brs_centralised_cheque.models import (
+    CentralisedChequeDetails,
+    CentralisedChequeEnableDelete,
+    CentralisedChequeInstrumentStaleDetails,
+    CentralisedChequeInstrumentUnencashedDetails,
+    CentralisedChequeSummary,
+)
+from app.brs_imprest.models import (
+    BankReconImprestDetails,
+    BankReconImprestSummary,
+    BankReconImprestUnencashedDetails,
+)
+from app.brs_local_collection.models import (
+    BankReconLocalCollectionDetails,
+    BankReconLocalCollectionExcessCredit,
+    BankReconLocalCollectionOutstanding,
+    BankReconLocalCollectionShortCredit,
+    BankReconLocalCollectionSummary,
+)
+from app.brs_tieups.models import (
+    BankReconTieupDetails,
+    BankReconTieupExcessCredit,
+    BankReconTieupOutstanding,
+    BankReconTieupShortCredit,
+    BankReconTieupSummary,
+)
+from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from app.cfac_flask_admin.model_views import (
+    BRSCCDetailView,
     BRSView,
-    FundBankStatementView,
-    OSView,
-    ReconSummaryView,
-    UserView,
-    PoolCreditView,
     BudgetAllocationView,
     BudgetUtilizationView,
+    FundBankStatementView,
     LienView,
-    BRSCCDetailView,
+    OSView,
+    PoolCreditView,
+    ReconSummaryView,
+    UserView,
 )
+from app.ci_changes.models import ChangeInstruction
 from app.coinsurance.coinsurance_model import (
     Coinsurance,
-    CoinsuranceLog,
-    CoinsuranceBalances,
     CoinsuranceBalanceGeneralLedgerCodeFlagSheet,
+    CoinsuranceBalances,
     CoinsuranceBalanceZoneFlagSheet,
-    CoinsuranceCashCall,
-    Remarks,
-    Settlement,
     CoinsuranceBankMandate,
+    CoinsuranceCashCall,
+    CoinsuranceLog,
     CoinsuranceReceipts,
     CoinsuranceReceiptsJournalVoucher,
     CoinsuranceTokenRequestId,
+    Remarks,
+    Settlement,
 )
 from app.contacts.contacts_model import Contacts
 from app.contracts.contracts_model import Contracts
-from app.correspondence.models import Circular, OutwardDocument, InwardDocument
+from app.correspondence.models import Circular, InwardDocument, OutwardDocument
+from app.direct_debits.model import DirectDebit, RegionalManagerEmailAddress
+from app.employee_leave_balance.model import PrivilegeLeaveBalance, SickLeaveBalance
 from app.escalation_matrix.models import EscalationMatrix
+from app.fund_flow_summary.models import (
+    FundFlowBankCharges,
+    FundInflowSummary,
+    FundOutflowSummary,
+)
+from app.fund_intimation.models import FundIntimation
 from app.funds.funds_model import (
     FundAmountGivenToInvestment,
     FundBankAccountNumbers,
@@ -60,81 +97,33 @@ from app.ho_accounts.ho_accounts_model import (
 )
 from app.ho_ro_recon.ho_ro_recon_model import ReconEntries, ReconSummary
 from app.knowledge_base.knowledge_base_model import KnowledgeBase
-from app.mis_tracker.mis_model import MisTracker
-from app.outstanding_expenses.os_model import OutstandingExpenses
-from app.pool_credits.pool_credits_model import (
-    PoolCredits,
-    PoolCreditsPortal,
-    PoolCreditsJournalVoucher,
-)
-from app.tickets.tickets_model import TicketRemarks, Tickets
-from app.users.user_model import LogUser, User, MailConfig
-from app.budget.budget_model import BudgetAllocation, BudgetUtilization
-from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
-
-
 from app.leave_management.leave_model import (
-    EmployeeData,
-    LeaveBalance,
-    LeaveApplication,
     AttendanceRegister,
+    EmployeeData,
+    LeaveApplication,
+    LeaveBalance,
     LeaveSubmissionData,
     PublicHoliday,
 )
 from app.lien.lien_model import Lien, LienRegionalOfficeEmailAddress
-
-from app.employee_leave_balance.model import PrivilegeLeaveBalance, SickLeaveBalance
-from app.brs_centralised_cheque.models import (
-    CentralisedChequeSummary,
-    CentralisedChequeDetails,
-    CentralisedChequeInstrumentStaleDetails,
-    CentralisedChequeInstrumentUnencashedDetails,
-    CentralisedChequeEnableDelete,
+from app.mis_tracker.mis_model import MisTracker
+from app.outstanding_expenses.os_model import OutstandingExpenses
+from app.pg_tieup.pg_tieup_model import PaymentGatewayTieup
+from app.pool_credits.pool_credits_model import (
+    PoolCredits,
+    PoolCreditsJournalVoucher,
+    PoolCreditsPortal,
 )
-
-from app.refund_dqr.models import DqrRefund, DqrMachines
-from app.todo.models import Task, Notification
-
-
-from app.ci_changes.models import ChangeInstruction
-
-from app.brs_local_collection.models import (
-    BankReconLocalCollectionSummary,
-    BankReconLocalCollectionDetails,
-    BankReconLocalCollectionOutstanding,
-    BankReconLocalCollectionShortCredit,
-    BankReconLocalCollectionExcessCredit,
-)
-
-from app.brs_imprest.models import (
-    BankReconImprestSummary,
-    BankReconImprestDetails,
-    BankReconImprestUnencashedDetails,
-)
-
-from app.direct_debits.model import DirectDebit, RegionalManagerEmailAddress
-from app.auditor_certificate.model import AuditorCertificate
-from app.brs_tieups.models import (
-    BankReconTieupSummary,
-    BankReconTieupDetails,
-    BankReconTieupOutstanding,
-    BankReconTieupExcessCredit,
-    BankReconTieupShortCredit,
-)
-
+from app.refund_dqr.models import DqrMachines, DqrRefund
 from app.ro_audit_report.models import (
+    AuditorRegionalOfficeMapping,
     RegionalOfficeAuditObservation,
     RegionalOfficeAuditReport,
-    AuditorRegionalOfficeMapping,
 )
+from app.tickets.tickets_model import TicketRemarks, Tickets
+from app.todo.models import Notification, Task
+from app.users.user_model import LogUser, MailConfig, User
 from app.work_allocation.models import WorkAllocation
-from app.fund_flow_summary.models import (
-    FundInflowSummary,
-    FundOutflowSummary,
-    FundFlowBankCharges,
-)
-from app.fund_intimation.models import FundIntimation
-
 from extensions import admin, db
 from flask_admin_models import DefaultModelView
 
@@ -797,7 +786,7 @@ admin.add_view(
 admin.add_view(
     DefaultModelView(
         WorkAllocation,
-        db.session,
+        db,
         endpoint="work_allocation_",
         category="Work allocation",
     )
