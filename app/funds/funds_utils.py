@@ -1,20 +1,18 @@
-from datetime import date, datetime
+from datetime import date
+
 # from typing import TYPE_CHECKING
-
-
 from extensions import db
 
 from .funds_model import (
-    FundDailySheet,
     FundAmountGivenToInvestment,
-    FundMajorOutgo,
     FundBankAccountNumbers,
     FundBankStatement,
     FundDailyOutflow,
-    FundOutflowLabel,
+    FundDailySheet,
     FundFlagSheet,
+    FundMajorOutgo,
+    FundOutflowLabel,
 )
-
 
 # if TYPE_CHECKING:
 #     from datetime import datetime
@@ -81,7 +79,7 @@ def get_inflow(input_date, inflow_description=None):
         query = query.where(FundBankStatement.flag_description == inflow_description)
 
     results = db.session.execute(query).first()
-    total_credit, total_debit, total_ledger = results
+    total_credit, _total_debit, total_ledger = results
 
     # Special handling for balances
     if inflow_description in ("HDFC OPENING BAL", "HDFC CLOSING BAL"):
@@ -251,8 +249,8 @@ def populate_outflow_form_data(form, param_date, daily_sheet):
         form.expected_date_of_return.data = entry.date_expected_date_of_return
 
 
-def enable_update(input_date: datetime) -> bool:
-    return date.today() == input_date.date()
+def enable_update(input_date: date) -> bool:
+    return date.today() == input_date  # .date()
 
 
 def create_or_update_outflow(outflow_date, outflow_description, outflow_amount):

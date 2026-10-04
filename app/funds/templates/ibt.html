@@ -1,29 +1,14 @@
-{% if pdf == "False" %}
 {% extends "funds_layout.html" %}
-{% else %}
-<style>
-    @page {
-        size: portrait;
-        margin: 1cm;
-    }
-</style>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bulma/css/bulma.css') }}" />
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
-{% endif %}
 
 {% block content %}
 {% set outflow_total = outflow | sum(attribute="amount") %}
 {% set inflow_total = (inflow | sum(attribute='amount') | float) + ((prev_daily_sheet.float_amount_hdfc_closing_balance
 or 0 )| float ) + ((daily_sheet.float_amount_taken_from_investments or 0) | float) %}
 
-<div class="container">
-    {% if pdf == "False" %}
+<div class="container mb-5 mt-5">
     <div class="has-text-right no-print">
-        <a class="button is-link is-outlined" target="_blank" href="{{ url_for('funds.ibt',
-            date_string=display_date.strftime('%d%m%Y'), pdf='True' ) }}">Print to PDF</a>
+        <button class="button is-link is-outlined" type="button" onclick="window.print()">Print</button>
     </div>
-    {% endif %}
-
     <h1 class="title has-text-centered">UNITED INDIA INSURANCE COMPANY LIMITED</h1>
     <h1 class="is-size-4 title">INTER BANK TRANSFER OF FUNDS for {{ display_date.strftime("%d/%m/%Y (%A)") }}</h1>
     <h3 class="is-size-4 has-text-weight-bold has-text-centered">Collections</h3>
@@ -159,16 +144,13 @@ or 0 )| float ) + ((daily_sheet.float_amount_taken_from_investments or 0) | floa
         </tbody>
     </table>
     <div class="mb-5 mt-5"></div>
-    {% if pdf == "False" %}
+
     <div class="has-text-centered no-print">
         <a class="button" href="{{ url_for('funds.add_remarks',
             date_string=display_date.strftime('%d%m%Y')) }}">Go to remarks</a>
         <a class="button is-link is-outlined" href="{{ url_for('funds.daily_summary',
-            date_string=display_date.strftime('%d%m%Y'), pdf='False' ) }}">Go to daily summary</a>
+            date_string=display_date.strftime('%d%m%Y')) }}">Go to daily summary</a>
     </div>
 </div>
 
-<div class="mb-5 mt-5"></div>
-
-{% endif %}
 {% endblock content %}

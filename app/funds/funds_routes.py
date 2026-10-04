@@ -1,7 +1,6 @@
 import datetime
+
 from dateutil.relativedelta import relativedelta
-
-
 from flask import (
     flash,
     redirect,
@@ -10,20 +9,18 @@ from flask import (
     url_for,
 )
 from flask_login import current_user, login_required
-from sqlalchemy import func, and_, or_
+from sqlalchemy import and_, func, or_
 
-# from sqlalchemy.dialects.postgresql import insert
-
-
+from app.coinsurance.coinsurance_model import CoinsuranceReceipts
 from app.funds import funds_bp
 from app.funds.funds_form import (
     AmountGivenToInvestmentForm,
     DailySummaryForm,
     FlagForm,
+    FundsDeleteForm,
     FundsModifyDatesForm,
     MajorOutgoForm,
     UploadFileForm,
-    FundsDeleteForm,
     generate_outflow_form,
 )
 from app.funds.funds_model import (
@@ -35,32 +32,28 @@ from app.funds.funds_model import (
     FundFlagSheet,
     FundMajorOutgo,
 )
+from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
+from extensions import db
+from set_view_permissions import fund_managers
 
+from .funds_services import BankStatementServiceCBX
 from .funds_utils import (
-    get_daily_sheet,
-    get_outflow_data,
-    get_inflow,
-    get_previous_day_closing_balance_refactored,
-    get_outflow,
-    get_inflow_total,
-    get_daily_summary_refactored,
-    get_ibt_details,
-    populate_outflow_form_data,
-    handle_outflow_form_submission,
     enable_update,
     fetch_inflow,
     fetch_outflow_labels,
-    fetch_prev_daily_sheet,
     fetch_outflow_labels_merging_with_axis_neft,
+    fetch_prev_daily_sheet,
+    get_daily_sheet,
+    get_daily_summary_refactored,
+    get_ibt_details,
+    get_inflow,
+    get_inflow_total,
+    get_outflow,
+    get_outflow_data,
+    get_previous_day_closing_balance_refactored,
+    handle_outflow_form_submission,
+    populate_outflow_form_data,
 )
-from .funds_services import BankStatementServiceCBX
-
-from app.coinsurance.coinsurance_model import CoinsuranceReceipts
-from app.pool_credits.pool_credits_model import PoolCredits, PoolCreditsPortal
-
-from extensions import db
-
-from set_view_permissions import fund_managers
 
 # outflow_labels_old = [
 #     "CITI HEALTH",
@@ -249,8 +242,8 @@ def upload_bank_statement():
             )
         )
 
-    except Exception as e:
-        flash(f"Error processing bank statement: {str(e)}")
+    except Exception as e:  # noqa: BLE001
+        flash(f"Error processing bank statement: {e!s}")
         return render_template(
             "funds_form.html",
             form=form,
@@ -262,7 +255,7 @@ def upload_bank_statement():
 @login_required
 @fund_managers
 def view_bank_statement(date_string):
-    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y").date()
     query = db.session.scalars(
         db.select(FundBankStatement)
         .where(FundBankStatement.date_uploaded_date == param_date)
@@ -335,7 +328,7 @@ def edit_flag_entry(flag_id):
 @login_required
 @fund_managers
 def enter_outflow(date_string):
-    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y").date()
 
     inflow = fetch_inflow(param_date)
     daily_sheet, investment_list, list_outgo = get_outflow_data(param_date)
@@ -367,7 +360,7 @@ def enter_outflow(date_string):
 @login_required
 @fund_managers
 def add_remarks(date_string):
-    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y").date()
     flags = db.select(
         FundFlagSheet.flag_description.distinct().label("flag_description")
     ).subquery()
@@ -427,11 +420,11 @@ def add_remarks(date_string):
     )
 
 
-@funds_bp.route("/ibt/<string:date_string>/<string:pdf>", methods=["GET"])
+@funds_bp.route("/ibt/<string:date_string>/", methods=["GET"])
 @login_required
 @fund_managers
-def ibt(date_string, pdf="False"):
-    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+def ibt(date_string):
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y").date()
 
     daily_sheet = get_daily_sheet(param_date)
     prev_daily_sheet = db.session.scalar(
@@ -532,17 +525,16 @@ def ibt(date_string, pdf="False"):
         datetime=datetime,
         daily_sheet=daily_sheet,
         prev_daily_sheet=prev_daily_sheet,
-        pdf=pdf,
         inflow=inflow,
         outflow=outflow,
     )
 
 
-@funds_bp.route("/daily_summary/<string:date_string>/<string:pdf>", methods=["GET"])
+@funds_bp.route("/daily_summary/<string:date_string>/", methods=["GET"])
 @login_required
 @fund_managers
-def daily_summary(date_string, pdf="False"):
-    param_date = datetime.datetime.strptime(date_string, "%d%m%Y")
+def daily_summary(date_string):
+    param_date = datetime.datetime.strptime(date_string, "%d%m%Y").date()
     daily_sheet = get_daily_sheet(param_date)
     prev_daily_sheet = db.session.scalar(
         db.select(FundDailySheet)
@@ -603,7 +595,6 @@ def daily_summary(date_string, pdf="False"):
         datetime=datetime,
         daily_sheet=daily_sheet,
         prev_daily_sheet=prev_daily_sheet,
-        pdf=pdf,
         inflow=inflow,
         outflow=outflow,
         prev_year_daily_sheet=prev_year_daily_sheet,
@@ -857,17 +848,17 @@ def delete_date():
 
 @funds_bp.context_processor
 def funds_context():
-    return dict(
-        display_inflow=get_inflow,
-        display_outflow=get_outflow,
-        enable_update=enable_update,
-        get_inflow_total=get_inflow_total,
-        get_daily_summary=get_daily_summary_refactored,
-        return_prev_day_closing_balance=get_previous_day_closing_balance_refactored,
-        get_ibt_details=get_ibt_details,
-        timedelta=datetime.timedelta,
-        relativedelta=relativedelta,
-    )
+    return {
+        "display_inflow": get_inflow,
+        "display_outflow": get_outflow,
+        "enable_update": enable_update,
+        "get_inflow_total": get_inflow_total,
+        "get_daily_summary": get_daily_summary_refactored,
+        "return_prev_day_closing_balance": get_previous_day_closing_balance_refactored,
+        "get_ibt_details": get_ibt_details,
+        "timedelta": datetime.timedelta,
+        "relativedelta": relativedelta,
+    }
 
 
 # @funds_bp.route("/remarks/signatories")
