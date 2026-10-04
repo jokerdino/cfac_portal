@@ -8,90 +8,58 @@
     <meta name="description" content="Accounts" />
     <title>CFAC Portal | {% block title %}Correspondence{% endblock title %}</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='payments.css') }}" />
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}" />
-    <link rel="stylesheet" type="text/css"
-        href="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='payments.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='bulma/css/bulma.min.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='DataTables/datatables.min.css') }}" />
 
 </head>
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-lg navbar-custom" data-bs-theme="light">
-            <div class="container-fluid">
-
-                <div class="navbar-nav me-auto">
-                    <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Circulars
-                        </a>
-
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('.circular_list') }}">Circulars</a></li>
-                            <li>
-                                <hr class="dropdown-divider" />
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('.circular_add') }}">Add new circular</a>
-                            </li>
-
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Inward documents
-                        </a>
-
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('.inward_list') }}">Inward documents</a></li>
-                            <li>
-                                <hr class="dropdown-divider" />
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('.inward_add') }}">Add new inward document</a>
-                            </li>
-
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Outward documents
-                        </a>
-
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('.outward_list') }}">Outward documents</a>
-                            </li>
-                            <li>
-                                <hr class="dropdown-divider" />
-                            </li>
-                            <li><a class="dropdown-item" href="{{ url_for('.outward_add') }}">Add new outward
-                                    document</a>
-                            </li>
-
-                        </ul>
-                    </li>
-
+        <nav class="navbar is-dark" aria-label="main navigation">
+            <div class="navbar-brand">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="{{ url_for('main.index') }}">Home</a>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Circulars</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('.circular_list') }}">Circulars</a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="{{ url_for('.circular_add') }}">Add new circular</a>
+                        </div>
+                    </div>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Inward documents</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('.inward_list') }}">Inward documents</a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="{{ url_for('.inward_add') }}">Add new inward document</a>
+                        </div>
+                    </div>
+                    <div class="navbar-item has-dropdown is-hoverable">
+                        <a class="navbar-link">Outward documents</a>
+                        <div class="navbar-dropdown">
+                            <a class="navbar-item" href="{{ url_for('.outward_list') }}">Outward documents</a>
+                            <hr class="navbar-divider">
+                            <a class="navbar-item" href="{{ url_for('.outward_add') }}">Add new outward
+                                document</a>
+                        </div>
+                    </div>
                 </div>
-                {% include "partials/bootstrap_user_details.html" %}
+
             </div>
+            {% include "partials/navbar_user_details.html" %}
         </nav>
     </header>
 
-    <div class="container-fluid mt-5">
+    <div class="container is-fluid mt-5">
 
         {% if current_user.is_authenticated %}
         {% block content %}{% endblock content %}
         {% endif %}
     </div>
 
-    <script type="text/javascript" charset="utf8"
-        src="{{ url_for('static', filename='DataTables_bootstrap/datatables.min.js') }}"></script>
-
-    <script type="text/javascript" charset="utf8"
-        src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script charset="utf8" src="{{ url_for('static', filename='DataTables/datatables.min.js') }}"></script>
 
     {% block scripts %}
 

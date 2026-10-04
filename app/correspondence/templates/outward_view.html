@@ -2,15 +2,15 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow rounded-3">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Outward number: {{ outward.reference_number }}</h4>
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered table-striped">
+    <div class="card">
+        <header class="card-header has-background-link">
+            <p class="card-header-title has-text-white">Outward number: {{ outward.reference_number }}</p>
+        </header>
+        <div class="card-content">
+            <table class="table is-bordered is-striped is-fullwidth">
                 <tbody>
                     <tr>
-                        <th scope="row" class="col-25">Date of dispatch</th>
+                        <th class="col-25">Date of dispatch</th>
                         <td>{{ outward.date_of_dispatch }}</td>
                     </tr>
                     <tr>
@@ -50,21 +50,21 @@
                         <td>
                             {% if outward.upload_document %}
                             <a href="{{ url_for('.download_document', document_type='outward', document_id=outward.id) }}"
-                                target="_blank" class="btn btn-sm btn-outline-primary">
+                                target="_blank" class="button is-small is-outlined is-link">
                                 View Document
                             </a>
                             {% else %}
-                            <span class="text-muted">No document uploaded</span>
+                            No document uploaded
                             {% endif %}
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        <div class="card-footer text-end">
-            <a href="{{ url_for('correspondence.outward_list') }}" class="btn btn-secondary">Back to list</a>
-            <a href="{{ url_for('correspondence.outward_edit', outward_id=outward.id) }}"
-                class="btn btn-warning">Edit</a>
+        <div class="card-footer is-justify-content-end">
+            <a href="{{ url_for('correspondence.outward_list') }}" class="button has-background-grey-light m-2">Back to
+                list</a>
+            <a href="{{ url_for('correspondence.outward_edit', id=outward.id) }}" class="button is-warning m-2">Edit</a>
         </div>
     </div>
 </div>

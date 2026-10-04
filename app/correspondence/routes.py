@@ -1,24 +1,23 @@
-from pathlib import Path
 import re
+from pathlib import Path
 
 from flask import (
     abort,
-    render_template,
-    redirect,
-    url_for,
     current_app,
+    redirect,
+    render_template,
     send_from_directory,
+    url_for,
 )
 from flask_login import login_required
-from markupsafe import Markup
 
-from . import correspondence_bp
-from .models import Circular, InwardDocument, OutwardDocument
-from .forms import CircularForm, InwardForm, OutwardForm
-from .utils import get_last_number, upload_document_to_folder
 from extensions import db
 from set_view_permissions import admin_required
-from app.main.table_helper import Table, Column
+
+from . import correspondence_bp
+from .forms import CircularForm, InwardForm, OutwardForm
+from .models import Circular, InwardDocument, OutwardDocument
+from .utils import get_last_number, upload_document_to_folder
 
 
 @correspondence_bp.route("/circular/add", methods=["GET", "POST"])
@@ -51,27 +50,25 @@ def circular_add():
             "circular",
         )
         db.session.commit()
-        return redirect(
-            url_for("correspondence.circular_view", circular_id=circular.id)
-        )
+        return redirect(url_for("correspondence.circular_view", id=circular.id))
     return render_template(
         "correspondence_edit.html", form=form, title="Add new circular"
     )
 
 
-@correspondence_bp.route("/circular/<int:circular_id>/", methods=["GET"])
+@correspondence_bp.route("/circular/<int:id>/", methods=["GET"])
 @login_required
 @admin_required
-def circular_view(circular_id):
-    circular = db.get_or_404(Circular, circular_id)
+def circular_view(id):
+    circular = db.get_or_404(Circular, id)
     return render_template("circular_view.html", circular=circular)
 
 
-@correspondence_bp.route("/circular/<int:circular_id>/edit", methods=["GET", "POST"])
+@correspondence_bp.route("/circular/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 @admin_required
-def circular_edit(circular_id):
-    circular = db.get_or_404(Circular, circular_id)
+def circular_edit(id):
+    circular = db.get_or_404(Circular, id)
     form = CircularForm(obj=circular)
     if form.validate_on_submit():
         form.populate_obj(circular)
@@ -84,9 +81,7 @@ def circular_edit(circular_id):
             "circular",
         )
         db.session.commit()
-        return redirect(
-            url_for("correspondence.circular_view", circular_id=circular.id)
-        )
+        return redirect(url_for("correspondence.circular_view", id=circular.id))
     return render_template("correspondence_edit.html", form=form, title="Edit circular")
 
 
@@ -94,44 +89,26 @@ def circular_edit(circular_id):
 @login_required
 @admin_required
 def circular_list():
-    table = Table(
-        Circular,
-        classes="table table-striped table-bordered",
-        id="circular_table",
-        paginate=False,
-        only=[
-            "date_of_issue",
-            "reference_number",
-            "circular_title",
-            "issued_by_name",
-            "issued_by_designation",
-            "recipients",
-            "remarks",
-        ],
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.circular_view', circular_id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.circular_edit', circular_id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
+    query = db.select(Circular).order_by(Circular.date_of_issue.desc())
+    correspondence_list = db.session.scalars(query).all()
+    column_names = [
+        "date_of_issue",
+        "reference_number",
+        "circular_title",
+        "issued_by_name",
+        "issued_by_designation",
+        "recipients",
+        "remarks",
+    ]
+
+    return render_template(
+        "correspondence_list.html",
+        title="Circulars",
+        correspondence_list=correspondence_list,
+        column_names=column_names,
+        edit_url=".circular_edit",
+        view_url=".circular_view",
     )
-    return render_template("correspondence_list.html", table=table, title="Circulars")
 
 
 @correspondence_bp.get("/<string:document_type>/download/<int:document_id>/")
@@ -205,7 +182,7 @@ def inward_add():
             "inward",
         )
         db.session.commit()
-        return redirect(url_for("correspondence.inward_view", inward_id=inward.id))
+        return redirect(url_for("correspondence.inward_view", id=inward.id))
     return render_template(
         "correspondence_edit.html", form=form, title="Add new inward document"
     )
@@ -215,61 +192,43 @@ def inward_add():
 @login_required
 @admin_required
 def inward_list():
-    table = Table(
-        InwardDocument,
-        classes="table table-striped table-bordered",
-        id="inward_table",
-        paginate=False,
-        only=[
-            "reference_number",
-            "date_of_receipt",
-            "time_of_receipt",
-            "sender_name",
-            "letter_reference_number",
-            "description_of_item",
-            "recipient_name",
-            "received_by",
-            "remarks",
-        ],
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.inward_view', inward_id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.inward_edit', inward_id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
+    query = db.select(InwardDocument).order_by(InwardDocument.date_of_receipt.desc())
+    correspondence_list = db.session.scalars(query).all()
+    column_names = [
+        "reference_number",
+        "date_of_receipt",
+        "time_of_receipt",
+        "sender_name",
+        "letter_reference_number",
+        "description_of_item",
+        "recipient_name",
+        "received_by",
+        "remarks",
+    ]
+
+    return render_template(
+        "correspondence_list.html",
+        title="Inwards",
+        correspondence_list=correspondence_list,
+        column_names=column_names,
+        edit_url=".inward_edit",
+        view_url=".inward_view",
     )
-    return render_template("correspondence_list.html", table=table, title="Inwards")
 
 
-@correspondence_bp.route("/inward/<int:inward_id>/", methods=["GET"])
+@correspondence_bp.route("/inward/<int:id>/", methods=["GET"])
 @login_required
 @admin_required
-def inward_view(inward_id):
-    inward = db.get_or_404(InwardDocument, inward_id)
+def inward_view(id):
+    inward = db.get_or_404(InwardDocument, id)
     return render_template("inward_view.html", inward=inward)
 
 
-@correspondence_bp.route("/inward/<int:inward_id>/edit", methods=["GET", "POST"])
+@correspondence_bp.route("/inward/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 @admin_required
-def inward_edit(inward_id):
-    inward = db.get_or_404(InwardDocument, inward_id)
+def inward_edit(id):
+    inward = db.get_or_404(InwardDocument, id)
     form = InwardForm(obj=inward)
     if form.validate_on_submit():
         form.populate_obj(inward)
@@ -282,7 +241,7 @@ def inward_edit(inward_id):
             "inward",
         )
         db.session.commit()
-        return redirect(url_for("correspondence.inward_view", inward_id=inward.id))
+        return redirect(url_for("correspondence.inward_view", id=inward.id))
     return render_template("correspondence_edit.html", form=form, title="Edit inward")
 
 
@@ -316,7 +275,7 @@ def outward_add():
             "outward",
         )
         db.session.commit()
-        return redirect(url_for("correspondence.outward_view", outward_id=outward.id))
+        return redirect(url_for("correspondence.outward_view", id=outward.id))
     return render_template(
         "correspondence_edit.html", form=form, title="Add new outward document"
     )
@@ -326,60 +285,41 @@ def outward_add():
 @login_required
 @admin_required
 def outward_list():
-    table = Table(
-        OutwardDocument,
-        classes="table table-striped table-bordered",
-        id="inward_table",
-        paginate=False,
-        only=[
-            "reference_number",
-            "date_of_dispatch",
-            "time_of_dispatch",
-            "description_of_item",
-            "recipient_name",
-            "sender_name",
-            "dispatched_by",
-            "remarks",
-        ],
-        extra_columns=[
-            (
-                "view",
-                Column(
-                    "View",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.outward_view', outward_id=u.id)}'>View</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-            (
-                "edit",
-                Column(
-                    "Edit",
-                    formatter=lambda u: Markup(
-                        f"<a href='{url_for('.outward_edit', outward_id=u.id)}'>Edit</a>"
-                    ),
-                    is_html=True,
-                ),
-            ),
-        ],
+    query = db.select(OutwardDocument).order_by(OutwardDocument.date_of_dispatch.desc())
+    correspondence_list = db.session.scalars(query).all()
+    column_names = [
+        "reference_number",
+        "date_of_dispatch",
+        "time_of_dispatch",
+        "description_of_item",
+        "recipient_name",
+        "sender_name",
+        "dispatched_by",
+        "remarks",
+    ]
+    return render_template(
+        "correspondence_list.html",
+        title="Outwards",
+        correspondence_list=correspondence_list,
+        column_names=column_names,
+        edit_url=".outward_edit",
+        view_url=".outward_view",
     )
-    return render_template("correspondence_list.html", table=table, title="Outwards")
 
 
-@correspondence_bp.route("/outward/<int:outward_id>/", methods=["GET"])
+@correspondence_bp.route("/outward/<int:id>/", methods=["GET"])
 @login_required
 @admin_required
-def outward_view(outward_id):
-    outward = db.get_or_404(OutwardDocument, outward_id)
+def outward_view(id):
+    outward = db.get_or_404(OutwardDocument, id)
     return render_template("outward_view.html", outward=outward)
 
 
-@correspondence_bp.route("/outward/<int:outward_id>/edit", methods=["GET", "POST"])
+@correspondence_bp.route("/outward/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 @admin_required
-def outward_edit(outward_id):
-    outward = db.get_or_404(OutwardDocument, outward_id)
+def outward_edit(id):
+    outward = db.get_or_404(OutwardDocument, id)
     form = OutwardForm(obj=outward)
     if form.validate_on_submit():
         form.populate_obj(outward)
@@ -392,5 +332,5 @@ def outward_edit(outward_id):
             "outward",
         )
         db.session.commit()
-        return redirect(url_for("correspondence.outward_view", outward_id=outward.id))
+        return redirect(url_for("correspondence.outward_view", id=outward.id))
     return render_template("correspondence_edit.html", form=form, title="Edit outward")
