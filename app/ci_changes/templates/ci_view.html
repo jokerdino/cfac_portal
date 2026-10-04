@@ -1,107 +1,243 @@
 {% extends "ci_layout.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="title">{{ ci.title }}</h1>
-        <a href="{{ url_for('.ci_edit', id=ci.id) }}" class="btn btn-warning">
-            <i class="bi bi-pencil-square"></i> Edit CI
-        </a>
+
+<div class="container mt-5">
+
+    <!-- Page Header -->
+    <div class="level mb-5">
+        <div class="level-left">
+            <div class="level-item">
+                <h1 class="title mb-0">{{ ci.title }}</h1>
+            </div>
+        </div>
+
+        <div class="level-right">
+            <div class="level-item">
+                <a href="{{ url_for('.ci_edit', id=ci.id) }}" class="button is-warning">
+                    <span class="icon">
+                        <i class="bi bi-pencil-square"></i>
+                    </span>
+                    <span>Edit CI</span>
+                </a>
+            </div>
+        </div>
     </div>
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">General Details</h5>
-        </div>
-        <div class="card-body">
-            <dl class="row mb-0">
-                <dt class="col-sm-3">CI Number</dt>
-                <dd class="col-sm-9">{{ ci.ci_number or "N/A" }}</dd>
+    <!-- General Details -->
+    <div class="card mb-5">
+        <header class="card-header has-background-primary">
+            <p class="card-header-title has-text-white">
+                General Details
+            </p>
+        </header>
 
-                <dt class="col-sm-3">Current Status</dt>
-                <dd class="col-sm-9"><span class="badge bg-info text-dark">{{ ci.current_status }}</span></dd>
+        <div class="card-content">
+            <dl>
 
-                <dt class="col-sm-3">Ticket Number</dt>
-                <dd class="col-sm-9">{{ ci.ticket_number }}</dd>
+                <div class="columns mb-2">
+                    <dt class="column is-3 has-text-weight-semibold">
+                        CI Number
+                    </dt>
+                    <dd class="column is-9">
+                        {{ ci.ci_number or "N/A" }}
+                    </dd>
+                </div>
 
-                <dt class="col-sm-3">Date of ticket raised</dt>
-                <dd class="col-sm-9">{{ ci.ticket_date or "N/A" }}</dd>
+                <div class="columns mb-2">
+                    <dt class="column is-3 has-text-weight-semibold">
+                        Current Status
+                    </dt>
+                    <dd class="column is-9">
+                        <span class="tag is-info">
+                            {{ ci.current_status }}
+                        </span>
+                    </dd>
+                </div>
 
-                <dt class="col-sm-3">Description</dt>
-                <dd class="col-sm-9 word-wrap">{{ ci.description or "No description provided." }}</dd>
+                <div class="columns mb-2">
+                    <dt class="column is-3 has-text-weight-semibold">
+                        Ticket Number
+                    </dt>
+                    <dd class="column is-9">
+                        {{ ci.ticket_number or "N/A" }}
+                    </dd>
+                </div>
+
+                <div class="columns mb-2">
+                    <dt class="column is-3 has-text-weight-semibold">
+                        Date of ticket raised
+                    </dt>
+                    <dd class="column is-9">
+                        {{ ci.ticket_date or "N/A" }}
+                    </dd>
+                </div>
+
+                <div class="columns">
+                    <dt class="column is-3 has-text-weight-semibold">
+                        Description
+                    </dt>
+                    <dd class="column is-9 is-multiline">
+                        {{ ci.description or "No description provided." }}
+                    </dd>
+                </div>
+
             </dl>
         </div>
     </div>
 
-    <div class="row">
+    <!-- Documentation / Testing -->
+    <div class="columns">
 
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Documentation</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-6">CI Document</dt>
-                        <dd class="col-sm-6">
-                            {% if ci.ci_document %}
-                            <a href="{{ url_for('.download_ci_document', id=ci.id, document_type='ci_document') }}"
-                                class="btn btn-sm btn-outline-primary" target="_blank">Download</a>
-                            {% else %}
-                            N/A
-                            {% endif %}
-                        </dd>
+        <!-- Documentation -->
+        <div class="column is-6">
+            <div class="card is-fullheight">
 
-                        <dt class="col-sm-6">Approach Note Date</dt>
-                        <dd class="col-sm-6">{{ ci.approach_note_date or "N/A" }}</dd>
+                <header class="card-header has-background-grey">
+                    <p class="card-header-title has-text-white">
+                        Documentation
+                    </p>
+                </header>
 
-                        <dt class="col-sm-6">Approach Note Document</dt>
-                        <dd class="col-sm-6">
-                            {% if ci.approach_note_document %}
-                            <a href="{{ url_for('.download_ci_document', id=ci.id, document_type='approach_note_document') }}"
-                                class="btn btn-sm btn-outline-primary" target="_blank">Download</a>
-                            {% else %}
-                            N/A
-                            {% endif %}
-                        </dd>
+                <div class="card-content">
+                    <dl>
 
-                        <dt class="col-sm-6">Approach Note Approval Date</dt>
-                        <dd class="col-sm-6">{{ ci.approach_note_approval_date or "N/A" }}</dd>
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                CI Document
+                            </dt>
+
+                            <dd class="column is-6">
+                                {% if ci.ci_document %}
+                                <a href="{{ url_for(
+                                        '.download_ci_document',
+                                        id=ci.id,
+                                        document_type='ci_document'
+                                    ) }}" class="button is-small is-outlined is-link" target="_blank">
+                                    Download
+                                </a>
+                                {% else %}
+                                <span class="has-text-grey">N/A</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                Approach Note Date
+                            </dt>
+
+                            <dd class="column is-6">
+                                {{ ci.approach_note_date or "N/A" }}
+                            </dd>
+                        </div>
+
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                Approach Note Document
+                            </dt>
+
+                            <dd class="column is-6">
+                                {% if ci.approach_note_document %}
+                                <a href="{{ url_for(
+                                        '.download_ci_document',
+                                        id=ci.id,
+                                        document_type='approach_note_document'
+                                    ) }}" class="button is-small is-outlined is-link" target="_blank">
+                                    Download
+                                </a>
+                                {% else %}
+                                <span class="has-text-grey">N/A</span>
+                                {% endif %}
+                            </dd>
+                        </div>
+
+                        <div class="columns">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                Approach Note Approval Date
+                            </dt>
+
+                            <dd class="column is-6">
+                                {{ ci.approach_note_approval_date or "N/A" }}
+                            </dd>
+                        </div>
+
                     </dl>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0">Testing & Deployment</h5>
-                </div>
-                <div class="card-body">
-                    <dl class="row">
-                        <dt class="col-sm-6">UAT Testing Date</dt>
-                        <dd class="col-sm-6">{{ ci.uat_testing_date or "N/A" }}</dd>
+        <!-- Testing & Deployment -->
+        <div class="column is-6">
+            <div class="card is-fullheight">
 
-                        <dt class="col-sm-6">UAT Remarks</dt>
-                        <dd class="col-sm-6 word-wrap">{{ ci.uat_remarks or "No remarks." }}
-                        </dd>
+                <header class="card-header has-background-success">
+                    <p class="card-header-title has-text-white">
+                        Testing & Deployment
+                    </p>
+                </header>
 
-                        <dt class="col-sm-6">Pilot Deployment Date</dt>
-                        <dd class="col-sm-6">{{ ci.pilot_deployment_date or "N/A" }}</dd>
+                <div class="card-content">
+                    <dl>
 
-                        <dt class="col-sm-6">Production Deployment Date</dt>
-                        <dd class="col-sm-6">{{ ci.production_deployment_date or "N/A" }}</dd>
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                UAT Testing Date
+                            </dt>
+
+                            <dd class="column is-6">
+                                {{ ci.uat_testing_date or "N/A" }}
+                            </dd>
+                        </div>
+
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                UAT Remarks
+                            </dt>
+
+                            <dd class="column is-6 is-multiline">
+                                {{ ci.uat_remarks or "No remarks." }}
+                            </dd>
+                        </div>
+
+                        <div class="columns mb-3">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                Pilot Deployment Date
+                            </dt>
+
+                            <dd class="column is-6">
+                                {{ ci.pilot_deployment_date or "N/A" }}
+                            </dd>
+                        </div>
+
+                        <div class="columns">
+                            <dt class="column is-6 has-text-weight-semibold">
+                                Production Deployment Date
+                            </dt>
+
+                            <dd class="column is-6">
+                                {{ ci.production_deployment_date or "N/A" }}
+                            </dd>
+                        </div>
+
                     </dl>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="mb-4">
-        <a href="{{ url_for('.ci_list') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
+    <!-- Back Button -->
+    <div class="mt-5 mb-5">
+        <a href="{{ url_for('.ci_list') }}" class="button is-outlined is-link">
+
+            <span class="icon">
+                <i class="bi bi-arrow-left"></i>
+            </span>
+
+            <span>Back to List</span>
         </a>
     </div>
 
 </div>
+
 {% endblock content %}
