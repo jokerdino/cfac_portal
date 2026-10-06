@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
 from wtforms import (
-    StringField,
-    TextAreaField,
-    SelectField,
     DateField,
-    SubmitField,
+    SelectField,
     SelectMultipleField,
+    StringField,
+    SubmitField,
+    TextAreaField,
 )
 from wtforms.validators import DataRequired, Optional
 from wtforms.widgets import CheckboxInput, ListWidget
@@ -27,10 +27,10 @@ class TaskForm(FlaskForm):
         coerce=int,  # Ensure the submitted IDs are converted to integers
         option_widget=CheckboxInput(),  # Renders each option as a checkbox input
         widget=ListWidget(prefix_label=False),  # Renders the options in a list (ul/ol)
-        render_kw={
-            "style": "max-height: 200px; overflow-y: auto;",
-            "class": "list-unstyled",
-        },
+        # render_kw={
+        #     "class": "subscriber-list",
+        #     # "style": "max-height: 180px; overflow-y: auto;",
+        # },
     )
 
     submit = SubmitField("Save")

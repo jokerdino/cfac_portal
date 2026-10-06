@@ -1,15 +1,15 @@
-{% from "bootstrap_macros.html" import render_field_horizontal %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 
-<form method="post" class="form-horizontal" enctype="multipart/form-data"
-    action="{{ action_url | default(url_for('todo.task_add')) }}">
+<form method="post" enctype="multipart/form-data" action="{{ action_url | default(url_for('todo.task_add')) }}">
     {{ form.csrf_token }}
     {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
-    {{ render_field_horizontal(field) }}
+    {{ render_field_div_horizontal(field, is_narrow=False) }}
     {% endfor %}
-    <div class="row mb-3">
-        <div class="col-sm-9 offset-sm-3">
-            <button type="submit" class="btn btn-primary">Submit</button>
-            <button type="reset" class="btn btn-secondary">Cancel</button>
-        </div>
+    <div class="buttons is-centered">
+
+        <button type="submit" class="button is-success">Submit</button>
+        <button type="reset" class="button is-warning is-outlined"
+            onclick="closeTaskEditModal();closeTaskModal();">Cancel</button>
+
     </div>
 </form>

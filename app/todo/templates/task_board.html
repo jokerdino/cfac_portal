@@ -1,92 +1,146 @@
 {% extends "task_layout.html" %}
 {% block content %}
+<div class="columns is-vcentered mb-5 mt-5">
 
-<div class="row mb-4 align-items-center">
-    <div class="col-md-6">
-        <h1 class="h2 fw-bold mb-0">Task Board</h1>
+    <!-- Title -->
+    <div class="column is-6">
+        <h1 class="title is-2 mb-0">Task Board</h1>
     </div>
-    <div class="col-md-4">
-        <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="bi bi-search"></i> </span>
-            <input type="text" id="taskSearchInput" class="form-control border-start-0"
-                placeholder="Search by title, assignee..." />
+
+    <!-- Search -->
+    <div class="column is-4">
+        <div class="field has-addons mb-0">
+            <div class="control">
+                <span class="button is-static">
+                    <span class="icon">
+                        <i class="bi bi-search"></i>
+                    </span>
+                </span>
+            </div>
+
+            <div class="control is-expanded">
+                <input type="text" id="taskSearchInput" class="input" placeholder="Search by title, assignee...">
+            </div>
         </div>
     </div>
-    <div class="col-md-2 text-end">
-        <button class="btn btn-primary w-75" data-bs-toggle="modal" data-bs-target="#taskAddModal">
+
+    <!-- Add Task -->
+    <div class="column is-2 has-text-right">
+        <button class="button is-link" type="button" onclick="openTaskModal()">
             + Add Task
         </button>
     </div>
+
 </div>
 
-<div class="row">
+<div class="columns is-multiline">
 
     {% for status, items in grouped.items() %}
-    <div class="col-md-4">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header text-center fw-bold">
-                {{ status.replace('-', ' ').title() }}
-            </div>
-            <div id="{{ status }}" class="kanban-column card-body min-h-200">
+
+    <div class="column is-4">
+
+        <div class="card mb-5">
+
+            <!-- Column Header -->
+            <header class="card-header">
+                <p class="card-header-title is-justify-content-center">
+                    {{ status.replace('-', ' ').title() }}
+                </p>
+            </header>
+
+            <!-- Kanban Items -->
+            <div id="{{ status }}" class="card-content kanban-column">
+
                 {% for t in items %}
-                <div class="kanban-item card mb-2" data-id="{{ t.Task.id }}">
-                    <div class="card-body p-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="fw-semibold">{{ t.Task.title }} <span
-                                    class="badge {{ t.Task.priority_badge_class }}">{{
-                                    t.Task.get_priority_display }}</span>
 
+                <div class="kanban-item card mb-3" data-id="{{ t.Task.id }}">
+                    <div class="card-content p-3">
+
+                        <!-- Title / Due Date -->
+                        <div class="is-flex is-justify-content-space-between is-align-items-start">
+
+                            <div class="has-text-weight-semibold">
+                                {{ t.Task.title }}
+
+                                <span class="tag {{ t.Task.priority_badge_class }} ml-1">
+                                    {{ t.Task.get_priority_display }}
+                                </span>
                             </div>
-                            <div class="text-end"> {% if t.Task.due_date %}
 
-                                Due: {{ t.Task.due_date.strftime("%d/%m/%Y") }}
-
-                                {% endif %}
+                            {% if t.Task.due_date %}
+                            <div class="has-text-grey is-size-7 has-text-right ml-2">
+                                Due:
+                                {{ t.Task.due_date.strftime("%d/%m/%Y") }}
                             </div>
+                            {% endif %}
+
                         </div>
-                        <small class="text-muted">
-                            {{ t.display_name if t.Task.assigned_to_id else '' }}
-                        </small>
+
+                        <!-- Assignee -->
+                        {% if t.Task.assigned_to_id %}
+                        <p class="has-text-grey is-size-7 mt-2">
+                            {{ t.display_name }}
+                        </p>
+                        {% endif %}
+
                     </div>
                 </div>
+
                 {% endfor %}
+
             </div>
         </div>
+
     </div>
+
     {% endfor %}
 
 </div>
-
 <!-- Modal -->
-<div class="modal fade" id="taskAddModal" tabindex="-1" aria-labelledby="taskAddModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
+<div id="taskAddModal" class="modal">
 
-            <div class="modal-header">
-                <h5 class="modal-title">Add Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+    <!-- Overlay -->
+    <div class="modal-background" onclick="closeTaskModal()"></div>
 
-            <div class="modal-body">
-                {% include "partials/task_edit.html" %}
-            </div>
+    <!-- Modal -->
+    <div class="modal-card modal-lg">
 
-        </div>
+        <!-- Header -->
+        <header class="modal-card-head">
+            <p class="modal-card-title">Add Task</p>
+
+            <button type="button" class="delete" aria-label="close" onclick="closeTaskModal()"></button>
+        </header>
+
+        <!-- Body -->
+        <section class="modal-card-body">
+            {% include "partials/task_edit.html" %}
+        </section>
+
     </div>
 </div>
-<div class="modal fade" id="taskEditModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Task</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="taskEditModalBody">
-            </div>
-        </div>
+<div id="taskEditModal" class="modal">
+
+    <!-- Background -->
+    <div class="modal-background" onclick="closeTaskEditModal()"></div>
+
+    <!-- Modal -->
+    <div class="modal-card modal-lg">
+
+        <!-- Header -->
+        <header class="modal-card-head">
+            <p class="modal-card-title">Edit Task</p>
+
+            <button type="button" class="delete" aria-label="close" onclick="closeTaskEditModal()"></button>
+        </header>
+
+        <!-- Body -->
+        <section class="modal-card-body" id="taskEditModalBody">
+        </section>
+
     </div>
 </div>
+
 <script>
     ["pending", "in-progress", "done"].forEach(column => {
         new Sortable(document.getElementById(column), {
@@ -108,44 +162,65 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const editModalEl = document.getElementById('taskEditModal');
-        const editModal = new bootstrap.Modal(editModalEl);
+        const editModal = document.getElementById('taskEditModal');
         const modalBody = document.getElementById('taskEditModalBody');
 
         // Add click event to all cards
         document.querySelectorAll('.kanban-item').forEach(card => {
+
             card.addEventListener('click', function (e) {
-                // Prevent opening if we are selecting text or dragging
-                if (window.getSelection().toString().length > 0) return;
+
+                // Prevent opening if text is being selected
+                if (window.getSelection().toString().length > 0) {
+                    return;
+                }
 
                 const taskId = this.dataset.id;
 
-                // 1. Show Spinner
-                modalBody.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary"></div></div>';
-                editModal.show();
+                // 1. Show spinner
+                modalBody.innerHTML = `
+                <div class="has-text-centered p-5">
+                    <button class="button is-loading is-white">
+                        Loading
+                    </button>
+                </div>
+            `;
 
-                // 2. Fetch Form
-                fetch(`{{ url_for('todo.task_edit', id='0') }}`.replace('0', taskId), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                    .then(response => response.text())
+                // 2. Open Bulma modal
+                editModal.classList.add('is-active');
+
+                // 3. Fetch form
+                fetch(
+                    `{{ url_for('todo.task_edit', id='0') }}`.replace('0', taskId),
+                    {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    }
+                )
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        return response.text();
+                    })
                     .then(html => {
                         modalBody.innerHTML = html;
                     })
                     .catch(err => {
                         console.error(err);
-                        modalBody.innerHTML = '<p class="text-danger">Error loading task details.</p>';
+
+                        modalBody.innerHTML = `
+                    <div class="notification is-danger is-light">
+                        Error loading task details.
+                    </div>
+                `;
                     });
             });
         });
     });
-
-    // // Optional: Add CSS to show the card is clickable
-    // const style = document.createElement('style');
-    // style.innerHTML = '.kanban-item { cursor: pointer; transition: transform 0.1s; } .kanban-item:hover { transform: scale(1.02); }';
-    // document.head.appendChild(style);
 </script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById('taskSearchInput');
@@ -165,6 +240,37 @@
                     card.style.display = "none"; // Hide element
                 }
             });
+        });
+    });
+</script>
+<script>
+    function openTaskModal() {
+        document
+            .getElementById('taskAddModal')
+            .classList.add('is-active');
+    }
+
+    function closeTaskModal() {
+        document
+            .getElementById('taskAddModal')
+            .classList.remove('is-active');
+    }
+</script>
+<script>
+    function closeTaskEditModal() {
+        document
+            .getElementById('taskEditModal')
+            .classList.remove('is-active');
+    }
+</script>
+<script>
+    document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") {
+            return;
+        }
+
+        document.querySelectorAll(".modal.is-active").forEach(modal => {
+            modal.classList.remove("is-active");
         });
     });
 </script>

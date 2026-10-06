@@ -1,16 +1,16 @@
-from typing import Optional
 from datetime import date
+
 from sqlalchemy.orm import Mapped, mapped_column
 
 from extensions import (
-    db,
-    IntPK,
     CreatedBy,
-    CreatedOn,
-    UpdatedBy,
-    UpdatedOn,
     CreatedById,
+    CreatedOn,
+    IntPK,
+    UpdatedBy,
     UpdatedById,
+    UpdatedOn,
+    db,
 )
 
 
@@ -23,7 +23,7 @@ class Task(db.Model):
     due_date: Mapped[date | None]
     assigned_to_id: Mapped[int | None]
 
-    subscribers: Mapped[Optional[list[int]]] = mapped_column(db.ARRAY(db.Integer))
+    subscribers: Mapped[list[int] | None] = mapped_column(db.ARRAY(db.Integer))
 
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
@@ -52,8 +52,8 @@ class Task(db.Model):
     @property
     def priority_badge_class(self):
         return {
-            3: "text-bg-warning",  # High
-            2: "text-bg-info",  # Medium
+            3: "is-warning",  # High
+            2: "is-info",  # Medium
             1: "",  # Low
         }.get(self.priority, "")
 
