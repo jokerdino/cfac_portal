@@ -4,17 +4,17 @@
 <div class="container">
     {% if query %}
 
-    <table class="table table-bordered" id="brs_table">
+    <table class="table is-bordered" id="brs_table">
         <thead>
-            <tr class="text-center">
-                <th>Regional Code</th>
-                <th>Operating Office</th>
-                <th>Period</th>
-                <th>Purpose of bank account</th>
-                <th>Bank name</th>
-                <th>Branch name</th>
-                <th>Account number</th>
-                <th>Imprest BRS status</th>
+            <tr>
+                <th class="has-text-centered">Regional Code</th>
+                <th class="has-text-centered">Operating Office</th>
+                <th class="has-text-centered">Period</th>
+                <th class="has-text-centered">Purpose of bank account</th>
+                <th class="has-text-centered">Bank name</th>
+                <th class="has-text-centered">Branch name</th>
+                <th class="has-text-centered">Account number</th>
+                <th class="has-text-centered">Imprest BRS status</th>
                 <th></th>
             </tr>
         </thead>
@@ -30,7 +30,7 @@
                 <td>{{ entry.imprest_bank_account_number }}</td>
 
                 <td>{{ "Completed" if entry.imprest_brs_month_id else "Pending" }}</td>
-                <td><a class="btn btn-sm btn-outline-primary"
+                <td><a class="button is-small is-outlined is-link"
                         href="{{ url_for('.brs_imprest_view_status', key = entry.id) }}">Open</a></td>
             </tr>
 
@@ -44,12 +44,10 @@
 </div>
 {% block scripts %}
 <script>
-
     new DataTable('#brs_table', {
         // dom: 'lfBrtip',
         layout: { top1Start: 'pageLength', topStart: 'buttons' },
-
-        fixedHeader: true,
+        //        fixedHeader: true,
         pageLength: 50,
         // scrollY: true,
         buttons: [

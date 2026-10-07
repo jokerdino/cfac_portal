@@ -7,9 +7,9 @@
 {% block content %}
 
 <div class="container mb-5">
-    {% include "partials/bootstrap_alerts.html" %}
-    {% include "partials/bootstrap_errors.html" %}
-    <h1 class="title">BRS - Imprest </h1>
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+    <h1 class="title">BRS - Imprest</h1>
     {{ render_brs_summary_table(brs_entry) }}
     <form action="" method="post" enctype="multipart/form-data"
         onsubmit="return confirm('Are you sure you want to submit?') && validateForm();">
@@ -17,121 +17,125 @@
 
         {% include "partials/bootstrap_alerts.html" %}
 
-        <table class="table table-bordered table-hover">
+        <table class="table is-bordered is-hoverable is-fullwidth">
             <thead>
-                <tr class="text-center">
-                    <th class="align-middle" width="50%;">Particulars</th>
-                    <th class="align-middle" width="25%;">Month/Period</th>
-                    <th class="align-middle" width="25%;">Amount (Rs.)</th>
+                <tr>
+                    <th class="has-text-centered" width="50%;">Particulars</th>
+                    <th class="has-text-centered" width="25%;">Month/Period</th>
+                    <th class="has-text-centered" width="25%;">Amount (Rs.)</th>
                 </tr>
             </thead>
             <tbody>
                 {# Prepared By #}
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.prepared_by_employee_name.label }}</th>
+                    <th class="is-vcentered">{{ form.prepared_by_employee_name.label }}</th>
                     <td></td>
-                    <td>{{ form.prepared_by_employee_name(class="form-control form-control-sm") }}</td>
+                    <td>{{ form.prepared_by_employee_name(class="input") }}</td>
                 </tr>
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.prepared_by_employee_number.label }}</th>
+                    <th class="is-vcentered">{{ form.prepared_by_employee_number.label }}</th>
                     <td></td>
-                    <td>{{ form.prepared_by_employee_number(class="form-control form-control-sm") }}</td>
+                    <td>{{ form.prepared_by_employee_number(class="input") }}</td>
                 </tr>
                 {# GL Entries #}
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.opening_balance.label }}</th>
-                    <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
-                    <td>{{ form.opening_balance(class='form-control form-control-sm text-right',
+                    <th class="is-vcentered">{{ form.opening_balance.label }}</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "previous")
+                        }}</td>
+                    <td>{{ form.opening_balance(class='input has-text-right',
                         onfocus="calculateSum()", onkeyup="calculateSum()", readonly="readonly") }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.fund_transfer.label }}</th>
-                    <td class="align-middle">{{ brs_entry.month | datetime_format("%B-%Y", "previous") }}</td>
-                    <td>{{ form.fund_transfer(class='form-control form-control-sm text-right',
+                    <th class="is-vcentered">{{ form.fund_transfer.label }}</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "previous")
+                        }}</td>
+                    <td>{{ form.fund_transfer(class='input has-text-right',
                         onfocus="calculateSum()", onkeyup="calculateSum()") }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.cheques_issued.label }}</th>
-                    <td class="align-middle">{{ brs_entry.month }}</td>
-                    <td>{{ form.cheques_issued(class='form-control form-control-sm text-right',
+                    <th class="is-vcentered">{{ form.cheques_issued.label }}</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month }}</td>
+                    <td>{{ form.cheques_issued(class='input has-text-right',
                         onfocus="calculateSum()",
                         onkeyup="calculateSum()") }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.cheques_cancelled.label }}</th>
-                    <td class="align-middle">{{ brs_entry.month }}</td>
-                    <td>{{ form.cheques_cancelled(class='form-control form-control-sm text-right',
+                    <th class="is-vcentered">{{ form.cheques_cancelled.label }}</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month }}</td>
+                    <td>{{ form.cheques_cancelled(class='input has-text-right',
                         onfocus="calculateSum()",
                         onkeyup="calculateSum()") }}
                     </td>
                 </tr>
 
                 <tr>
-                    <th class="ps-3 align-middle">{{ form.bank_charges.label }}</th>
-                    <td class="align-middle">{{ brs_entry.month }}</td>
-                    <td>{{ form.bank_charges(class='form-control form-control-sm text-right', onfocus="calculateSum()",
+                    <th class="is-vcentered">{{ form.bank_charges.label }}</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month }}</td>
+                    <td>{{ form.bank_charges(class='input has-text-right', onfocus="calculateSum()",
                         onkeyup="calculateSum()") }}
                     </td>
                 </tr>
 
                 <tr>
-                    <th class="ps-3 align-middle font-weight-bold text-success">Closing balance as per GL</th>
-                    <td class="align-middle text-success">{{ brs_entry.month | datetime_format("%B-%Y", "current") }}
+                    <th class="is-vcentered has-text-weight-bold has-text-success">Closing balance as per GL</th>
+                    <td class="has-text-centered is-vcentered">{{ brs_entry.month | datetime_format("%B-%Y", "current")
+                        }}
                     </td>
-                    <td class="text-right text-success font-weight-bold"><label id="cal_closing_balance">0.00</label>
+                    <td class="has-text-right has-text-success has-text-weight-bold"><label
+                            id="cal_closing_balance">0.00</label>
                     </td>
                 </tr>
                 <tr>
-                    <th class="ps-3 align-middle">Remarks</th>
-                    <td colspan="2">{{ form.remarks(class='form-control', rows=3) }}</td>
+                    <th class="is-vcentered">Remarks</th>
+                    <td colspan="2">{{ form.remarks(class='textarea', rows=3) }}</td>
                 </tr>
             </tbody>
         </table>
         <div id="closing_balance_breakup" class="mt-4">
-            <h4 class="title is-size-5 text-center my-3">Provide Breakup of Closing Balance (Reconciliation Items)</h4>
-            <table class="table table-bordered table-hover">
+            <h4 class="title is-size-5 m-3">Provide Breakup of Closing Balance (Reconciliation Items)</h4>
+            <table class="table is-bordered is-hoverable">
                 <thead>
-                    <tr class="text-center">
-                        <th class="align-middle" width="40%">Particulars</th>
-                        <th class="align-middle" width="20%">Upload Format</th>
-                        <th class="align-middle" width="20%">Amount (Rs.)</th>
-                        <th class=" align-middle" width="20%">Supporting Document</th>
+                    <tr>
+                        <th class="has-text-centered" width="40%">Particulars</th>
+                        <th class="has-text-centered" width="20%">Upload Format</th>
+                        <th class="has-text-centered" width="20%">Amount (Rs.)</th>
+                        <th class="has-text-centered" width="20%">Supporting Document</th>
                     </tr>
                 </thead>
                 <tbody>
 
                     <tr>
-                        <th class="ps-3 align-middle">{{ form.closing_balance_bank.label }}</th>
-                        <td class="align-middle">Upload bank statement</td>
+                        <th class="is-vcentered">{{ form.closing_balance_bank.label }}</th>
+                        <td class="has-text-centered is-vcentered">Upload bank statement</td>
                         <td>
 
-                            {{ form.closing_balance_bank(class="form-control text-right",
+                            {{ form.closing_balance_bank(class="input has-text-right",
                             onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
 
                         </td>
-                        <td>{{ form.file_bank_statement(class="form-control form-control-sm") }}</td>
+                        <td>{{ form.file_bank_statement }}</td>
                     </tr>
                     <tr>
-                        <th class="ps-3 align-middle">{{ form.cheques_unencashed.label }}</th>
-                        <td class="align-middle"><a href="{{ url_for('.download_format') }}"
-                                class="btn btn-sm btn-outline-info">Download Format</a></td>
-                        <td>{{ form.cheques_unencashed(class="form-control form-control-sm text-right",
+                        <th class="is-vcentered">{{ form.cheques_unencashed.label }}</th>
+                        <td class="has-text-centered is-vcentered"><a href="{{ url_for('.download_format') }}"
+                                class="button is-small is-outlined is-link">Download Format</a></td>
+                        <td>{{ form.cheques_unencashed(class="input has-text-right",
                             onfocus="calculateClosingBalance()", onkeyup="calculateClosingBalance()") }}
                         </td>
-                        <td class="align-middle">{{ form.file_unencashed_entries(class="form-control form-control-sm",
+                        <td class="has-text-centered">{{ form.file_unencashed_entries(
                             disabled=disabled,
                             accept=".xlsx") }}
 
                         </td>
                     </tr>
                     <tr>
-                        <th colspan="2" class="ps-3 font-weight-bold text-success">Total (Must Tally with GL Closing
-                            Balance)
+                        <th colspan="2" class="is-vcentered has-text-weight-bold has-text-success">
+                            Total (Must Tally with GL Closing Balance)
                         </th>
-                        <td class="text-right text-success font-weight-bold"><label
+                        <td class="has-text-right has-text-success has-text-weight-bold"><label
                                 id="cal_closing_bal_breakup">0.00</label></td>
                         <td></td>
                     </tr>
@@ -139,12 +143,13 @@
             </table>
         </div>
 
-        <div class="text-center">
+        <div class="has-text-centered m-5">
 
-            <button class="btn btn-success">Submit</button>
+            <button class="button is-success" type="submit">Submit</button>
         </div>
+
+    </form>
 </div>
-</form>
 
 {% endblock content %}
 {% block scripts %}

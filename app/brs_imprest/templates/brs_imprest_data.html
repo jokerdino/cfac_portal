@@ -2,31 +2,31 @@
 {% block content %}
 
 <div class="table-container">
-        <table class="table table-bordered table-hover" id="brs_table">
+        <table class="table is-bordered is-hoverable is-fullwidth" id="brs_table">
                 <thead>
-                        <tr class="has-text-centered">
-                                <th class="is-vcentered">Regional Code</th>
-                                <th class="is-vcentered">Operating Office</th>
+                        <tr>
+                                <th class="is-vcentered has-text-centered">Regional Code</th>
+                                <th class="is-vcentered has-text-centered">Operating Office</th>
 
-                                <th class="is-vcentered">Period</th>
-                                <th class="is-vcentered">BRS type</th>
-                                <th class="is-vcentered">Bank</th>
-                                <th class="is-vcentered">Account number</th>
-                                <th class="is-vcentered">Opening balance</th>
-                                <th class="is-vcentered">Fund transfer</th>
-                                <th class="is-vcentered">Cheques issued</th>
-                                <th class="is-vcentered">Cheques cancelled</th>
-                                <th class="is-vcentered">Bank charges</th>
+                                <th class="is-vcentered has-text-centered">Period</th>
+                                <th class="is-vcentered has-text-centered">BRS type</th>
+                                <th class="is-vcentered has-text-centered">Bank</th>
+                                <th class="is-vcentered has-text-centered">Account number</th>
+                                <th class="is-vcentered has-text-centered">Opening balance</th>
+                                <th class="is-vcentered has-text-centered">Fund transfer</th>
+                                <th class="is-vcentered has-text-centered">Cheques issued</th>
+                                <th class="is-vcentered has-text-centered">Cheques cancelled</th>
+                                <th class="is-vcentered has-text-centered">Bank charges</th>
 
-                                <th class="is-vcentered">Closing balance GL</th>
-                                <th class="is-vcentered">Cheques unencashed</th>
-                                <th class="is-vcentered">Bank balance</th>
+                                <th class="is-vcentered has-text-centered">Closing balance GL</th>
+                                <th class="is-vcentered has-text-centered">Cheques unencashed</th>
+                                <th class="is-vcentered has-text-centered">Bank balance</th>
 
-                                <th class="is-vcentered">Bank statement</th>
+                                <th class="is-vcentered has-text-centered">Bank statement</th>
 
-                                <th class="is-vcentered">Remarks</th>
-                                <th class="is-vcentered">Time stamp</th>
-                                <th class="is-vcentered">Status</th>
+                                <th class="is-vcentered has-text-centered">Remarks</th>
+                                <th class="is-vcentered has-text-centered">Time stamp</th>
+                                <th class="is-vcentered has-text-centered">Status</th>
 
                         </tr>
                 </thead>
@@ -51,7 +51,7 @@
                                 <td class="has-text-right">{{ entry.cheques_unencashed }}</td>
                                 <td class="has-text-right">{{ entry.closing_balance_bank }}</td>
 
-                                <td>{% if entry.bank_statement %}<a class="btn btn-primary btn-sm"
+                                <td>{% if entry.bank_statement %}<a class="button is-success is-small"
                                                 href="{{ url_for('.download_bank_statement', id=entry.id) }}">Download</a>
                                         {% else %}
                                         Not uploaded

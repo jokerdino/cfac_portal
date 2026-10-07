@@ -1,31 +1,31 @@
 {% macro render_brs_table(condition, title, items_list) %}
 {% if condition != 0 %}
 <h3 class="title is-size-6">{{ title }}</h3>
-<table class="table table-bordered">
+<table class="table is-bordered">
     <thead>
-        <tr class="text-center">
-            <th>Payee name</th>
-            <th>Date of instrument</th>
-            <th>Instrument number</th>
-            <th>Instrument amount</th>
-            <th>Remarks</th>
+        <tr>
+            <th class="has-text-centered">Payee name</th>
+            <th class="has-text-centered">Date of instrument</th>
+            <th class="has-text-centered">Instrument number</th>
+            <th class="has-text-centered">Instrument amount</th>
+            <th class="has-text-centered">Remarks</th>
         </tr>
     </thead>
     <tbody>
         {% for item in items_list %}
         <tr>
-            <td class="text-center">{{ item.payee_name }}</td>
-            <td class="text-center">{{ item.instrument_date.strftime("%d/%m/%Y") }}</td>
-            <td class="text-center">{{ item.instrument_number }}</td>
-            <td class="text-end">{{ item.instrument_amount | indian_number_format }}</td>
+            <td class="has-text-centered">{{ item.payee_name }}</td>
+            <td class="has-text-centered">{{ item.instrument_date.strftime("%d/%m/%Y") }}</td>
+            <td class="has-text-centered">{{ item.instrument_number }}</td>
+            <td class="has-text-right">{{ item.instrument_amount | indian_number_format }}</td>
             <td>{{ item.remarks }}</td>
         </tr>
         {% endfor %}
     </tbody>
     <tfoot>
         <tr>
-            <td class="text-center fw-bold" colspan="3">Total</td>
-            <td class="text-end fw-bold">
+            <td class="has-text-centered has-text-weight-bold" colspan="3">Total</td>
+            <td class="has-text-right has-text-weight-bold">
                 {{ (items_list | sum(attribute="instrument_amount")) | indian_number_format }}
             </td>
             <td></td>
@@ -37,29 +37,29 @@
 {% endmacro %}
 
 {% macro render_brs_summary_table(brs) %}
-<table class="table table-bordered table-hover">
-    <tr class="text-center">
-        <th>Regional office code</th>
-        <th>Operating office code</th>
+<table class="table is-bordered is-hoverable">
+    <tr>
+        <th class="has-text-centered">Regional office code</th>
+        <th class="has-text-centered">Operating office code</th>
 
-        <th>Month</th>
-        <th>Purpose of bank account</th>
-        <th>Bank name</th>
-        <th>Bank branch name</th>
+        <th class="has-text-centered">Month</th>
+        <th class="has-text-centered">Purpose of bank account</th>
+        <th class="has-text-centered">Bank name</th>
+        <th class="has-text-centered">Bank branch name</th>
 
-        <th>Account number</th>
-        <th>IFSC code</th>
+        <th class="has-text-centered">Account number</th>
+        <th class="has-text-centered">IFSC code</th>
     </tr>
-    <tr class="text-center">
-        <td>{{ brs.regional_office }}</td>
-        <td>{{ brs.operating_office }}</td>
-        <td>{{ brs.month }}</td>
-        <td>{{ brs.purpose_of_bank_account }}</td>
-        <td>{{ brs.imprest_bank_name }}</td>
-        <td>{{ brs.imprest_bank_branch_name }}</td>
+    <tr>
+        <td class="has-text-centered">{{ brs.regional_office }}</td>
+        <td class="has-text-centered">{{ brs.operating_office }}</td>
+        <td class="has-text-centered">{{ brs.month }}</td>
+        <td class="has-text-centered">{{ brs.purpose_of_bank_account }}</td>
+        <td class="has-text-centered">{{ brs.imprest_bank_name }}</td>
+        <td class="has-text-centered">{{ brs.imprest_bank_branch_name }}</td>
 
-        <td>{{ brs.imprest_bank_account_number }}</td>
-        <td>{{ brs.imprest_bank_ifsc_code }}</td>
+        <td class="has-text-centered">{{ brs.imprest_bank_account_number }}</td>
+        <td class="has-text-centered">{{ brs.imprest_bank_ifsc_code }}</td>
     </tr>
 </table>
 {% endmacro %}
