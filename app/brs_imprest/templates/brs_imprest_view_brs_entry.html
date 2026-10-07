@@ -9,37 +9,37 @@
     {{ render_brs_summary_table(brs_entry.summary) }}
 
     <strong>Summary of General Ledger</strong>
-    <table class="mt-3 table table-bordered table-hover">
+    <table class="mt-3 table is-bordered is-hoverable is-fullwidth">
 
         {% for key, (label, extra, bold) in gl_column_labels.items() %}
 
-        <tr {% if bold %} class="fw-bold" {% endif %}>
+        <tr {% if bold %} class="has-text-weight-bold" {% endif %}>
 
-            <td width="75%" class="ps-3">{{ label }}</td>
+            <td width="75%" class="p-3">{{ label }}</td>
             <td width="10%">{{ extra }}</td>
-            <td class="text-end">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
+            <td class="has-text-right">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
         </tr>
 
         {% endfor %}
     </table>
     <strong> Bank reconciliation statement</strong>
 
-    <table class="mt-3 table table-bordered table-hover">
+    <table class="mt-3 table is-bordered is-hoverable is-fullwidth">
 
         {% for key, (label, extra, bold) in bank_recon_column_labels.items() %}
 
-        <tr {% if bold %} class=" fw-bold" {% endif %}>
+        <tr {% if bold %} class="has-text-weight-bold" {% endif %}>
 
-            <td width="75%" class="ps-3">{{ label }}</td>
+            <td width="75%" class="p-3">{{ label }}</td>
             <td width="10%">{{ extra }}</td>
-            <td class="text-end">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
+            <td class="has-text-right">{{ (brs_entry[key] or 0) | indian_number_format }}</td>
         </tr>
 
         {% endfor %}
         <tr>
-            <th class="ps-3">Bank statement</th>
+            <th class="p-3">Bank statement</th>
             <td></td>
-            <td class="text-center">{% if brs_entry.bank_statement %}<a class="btn btn-info btn-sm"
+            <td class="has-text-centered">{% if brs_entry.bank_statement %}<a class="button is-info is-small"
                     href="{{ url_for('.download_bank_statement', id=brs_entry.id) }}">Download</a>
                 {% else %}
                 Not uploaded
@@ -58,7 +58,7 @@
         brs_entry.created_on.strftime("%d/%m/%Y %H:%M") }}.
     </div>
 
-    <a class="btn btn-primary no-print mb-5"
+    <a class="button is-primary no-print mb-5"
         href="{{ url_for('.brs_imprest_view_status', key = brs_entry.summary_id) }}">Go
         back</a>
 

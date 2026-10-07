@@ -1,26 +1,27 @@
 {% extends "brs_imprest_layout.html" %}
 {% block content %}
 
-{% from "bootstrap_macros.html" import render_field_horizontal %}
+{% from "form_field_helpers_macro.html" import render_field_div_horizontal %}
 
 <div class="container">
     <h1 class="title mb-3">{{ title }}</h1>
-    <form method="post" class="form-horizontal" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data">
         {{ form.csrf_token }}
         {% for field in form if field.widget.input_type not in ["hidden","submit"] %}
 
-        {{ render_field_horizontal(field) }}
+        {{ render_field_div_horizontal(field) }}
 
         {% endfor %}
-        <div class="row mb-3">
-            <div class="col-sm-9 offset-sm-3">
 
-                <button type="submit" class="btn btn-success">Submit</button>
-                <button type="reset" class="btn btn-secondary">Cancel</button>
+        <div class="buttons is-grouped is-centered">
 
-            </div>
+            <button type="submit" class="button is-success">Submit</button>
+            <button type="reset" class="button is-warning">Cancel</button>
+
         </div>
     </form>
-    {% include "partials/bootstrap_alerts.html" %}
+    {% include "partials/errors.html" %}
+    {% include "partials/messages.html" %}
+
 </div>
 {% endblock content %}
