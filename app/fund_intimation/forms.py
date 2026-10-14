@@ -62,6 +62,9 @@ class FundIntimationForm(FlaskForm):
         },
     )
     coinsurance_details = TextAreaField()
+    date_of_email = DateField(
+        "Date of email sent to HO_funds@UIIC", validators=[Optional()]
+    )
 
     transaction_id = StringField(
         "Transaction ID",

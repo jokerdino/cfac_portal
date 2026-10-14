@@ -99,6 +99,7 @@ def fund_intimation_list(status="pending"):
         "name_of_recipient",
         "purpose_of_disbursement",
         "expected_date_of_disbursement",
+        "date_of_email",
         "transaction_id",
         "transaction_amount",
         "utr_number",

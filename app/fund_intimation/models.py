@@ -38,6 +38,7 @@ class FundIntimation(db.Model):
     coinsurance_details: Mapped[str | None] = mapped_column(db.Text)
 
     date_of_intimation: Mapped[date] = mapped_column(default=date.today)
+    date_of_email: Mapped[date | None]
 
     transaction_id: Mapped[str | None]
     transaction_date: Mapped[date | None]

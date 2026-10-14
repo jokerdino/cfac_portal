@@ -31,6 +31,7 @@
                     <legend class="has-text-weight-semibold">Transaction Details</legend>
 
                     <table class="table is-fullwidth is-narrow">
+                        {{ render_field_table(form.date_of_email) }}
                         {{ render_field_table(form.transaction_amount) }}
                         {{ render_field_table(form.expected_date_of_disbursement) }}
 
