@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from io import BytesIO
 
 import pandas as pd
@@ -6,12 +6,10 @@ from flask import (
     flash,
     redirect,
     render_template,
-    url_for,
     send_file,
+    url_for,
 )
 from flask_login import login_required
-
-
 from sqlalchemy.exc import IntegrityError
 
 from extensions import db
@@ -19,7 +17,7 @@ from set_view_permissions import admin_required
 
 from . import pool_credits_bp
 from .pool_credits_form import PoolCreditsJVForm
-from .pool_credits_model import PoolCreditsJournalVoucher, PoolCredits
+from .pool_credits_model import PoolCredits, PoolCreditsJournalVoucher
 
 
 @pool_credits_bp.route("/jv/")
@@ -158,11 +156,19 @@ def jv_edit(jv_id):
 #     return send_file(output, as_attachment=True, download_name=filename)
 
 
+def get_end_of_prev_month() -> date:
+    today = date.today()
+    end_of_prev_month = today.replace(day=1) - timedelta(days=1)
+
+    return end_of_prev_month
+
+
 @pool_credits_bp.route("/download_jv_v2/")
 @login_required
 @admin_required
 def download_jv_confirmed_entries_v2():
     START_DATE = datetime(2024, 10, 1)
+    end_of_prev_month = get_end_of_prev_month()
     credit_query = (
         db.select(
             db.literal("000100").label("Office Location"),
@@ -191,6 +197,7 @@ def download_jv_confirmed_entries_v2():
     )
 
     credit_query = credit_query.where(PoolCredits.value_date >= START_DATE)
+    credit_query = credit_query.where(PoolCredits.value_date <= end_of_prev_month)
     debit_query = (
         db.select(
             db.literal("000100").label("Office Location"),
@@ -218,6 +225,7 @@ def download_jv_confirmed_entries_v2():
         )
     )
     debit_query = debit_query.where(PoolCredits.value_date >= START_DATE)
+    debit_query = debit_query.where(PoolCredits.value_date <= end_of_prev_month)
 
     union_query = db.union_all(credit_query, debit_query)
 
