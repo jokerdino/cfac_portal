@@ -405,7 +405,6 @@ def add_remarks(date_string):
             url_for(
                 "funds.ibt",
                 date_string=date_string,
-                pdf="False",
             )
         )
 
