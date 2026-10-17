@@ -2,18 +2,18 @@ from datetime import datetime
 from math import fabs
 
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileAllowed, FileRequired
+from flask_wtf.file import FileAllowed, FileField, FileRequired
 from wtforms import (
     BooleanField,
     DecimalField,
-    IntegerField,
     HiddenField,
-    TextAreaField,
+    IntegerField,
     SelectField,
     StringField,
     SubmitField,
+    TextAreaField,
 )
-from wtforms.validators import DataRequired, Optional, NumberRange, ValidationError
+from wtforms.validators import DataRequired, NumberRange, Optional, ValidationError
 
 from .forms_custom_validator import ExcelFileValidator
 
@@ -106,19 +106,16 @@ class BankReconEntryForm(FlaskForm):
     )
 
     def validate_deposited_not_credited(form, field):
-        if field.data:
-            if not form.file_outstanding_entries.data:
-                raise ValidationError("Details of outstanding entries are required.")
+        if field.data and not form.file_outstanding_entries.data:
+            raise ValidationError("Details of outstanding entries are required.")
 
     def validate_short_credited(form, field):
-        if field.data:
-            if not form.file_short_credit_entries.data:
-                raise ValidationError("Details of short credit entries are required.")
+        if field.data and not form.file_short_credit_entries.data:
+            raise ValidationError("Details of short credit entries are required.")
 
     def validate_excess_credited(form, field):
-        if field.data:
-            if not form.file_excess_credit_entries.data:
-                raise ValidationError("Details of excess credit entries are required.")
+        if field.data and not form.file_excess_credit_entries.data:
+            raise ValidationError("Details of excess credit entries are required.")
 
     def validate(self, extra_validators=None):
         """Custom validation to check if the arithmetic condition holds"""
@@ -167,7 +164,7 @@ class BankReconEntryForm(FlaskForm):
 class AddBankReconLocalCollectionSummaryForm(FlaskForm):
     regional_office = StringField(validators=[DataRequired()])
     operating_office = StringField(validators=[DataRequired()])
-    month = StringField()
+    month = StringField(validators=[DataRequired()])
     purpose_of_bank_account = SelectField(choices=["Local collection", "PMSBY"])
     local_collection_bank_name = StringField()
     local_collection_bank_branch_name = StringField()
