@@ -24,7 +24,7 @@
                     <a class="navbar-item" href="{{ url_for('.brs_local_collection_dashboard') }}">BRS Local
                         collection</a>
                     {% if current_user.user_type in ["admin", "ro_user"] %}
-                    <div class="navbar-item has-navbar is-hoverable">
+                    <div class="navbar-item has-dropdown is-hoverable">
                         <a class="navbar-link">View data</a>
                         <div class="navbar-dropdown">
                             <a class="navbar-item" href="{{ url_for('.list_brs_entries') }}">BRS data</a>

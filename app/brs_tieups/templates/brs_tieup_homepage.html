@@ -4,15 +4,15 @@
 <div class="container">
     {% if query %}
 
-    <table class="table table-bordered" id="brs_table">
+    <table class="table is-bordered" id="brs_table">
         <thead>
-            <tr class="text-center">
-                <th>Regional Code</th>
-                <th>Operating Office</th>
-                <th>Period</th>
-                <th>Tieup partner name</th>
-                <th>GL identifier</th>
-                <th>Tieup BRS status</th>
+            <tr>
+                <th class="has-text-centered">Regional Code</th>
+                <th class="has-text-centered">Operating Office</th>
+                <th class="has-text-centered">Period</th>
+                <th class="has-text-centered">Tieup partner name</th>
+                <th class="has-text-centered">GL identifier</th>
+                <th class="has-text-centered">Tieup BRS status</th>
                 <th></th>
             </tr>
         </thead>
@@ -25,7 +25,7 @@
                 <td>{{ entry.tieup_partner_name }}</td>
                 <td>{{ entry.gl_identifier }}</td>
                 <td>{{ "Completed" if entry.tieup_brs_month_id else "Pending" }}</td>
-                <td><a class="btn btn-sm btn-outline-primary"
+                <td><a class="button is-small is-outlined is-link"
                         href="{{ url_for('.brs_tieup_view_status', key = entry.id) }}">Open</a></td>
             </tr>
 
@@ -41,12 +41,8 @@
 <script>
 
     new DataTable('#brs_table', {
-        // dom: 'lfBrtip',
         layout: { top1Start: 'pageLength', topStart: 'buttons' },
-
-        fixedHeader: true,
         pageLength: 50,
-        scrollY: true,
         buttons: [
             { extend: 'copyHtml5', className: 'has-background-danger-light is-rounded', title: '' },
             { extend: 'csvHtml5', className: 'has-background-info-light is-rounded', title: '' },
