@@ -1,8 +1,6 @@
 {% extends "brs_tieup_layout.html" %}
 {% block body_attrs %} "onload=calculateSum(); calculateClosingBalance();" {% endblock body_attrs %}
-{% from "form_field_helpers_macro.html" import render_field_table %}
 
-{% from "bootstrap_macros.html" import render_field_horizontal %}
 {% from "brs_tieup_macros.html" import render_brs_summary_table %}
 {% block content %}
 
