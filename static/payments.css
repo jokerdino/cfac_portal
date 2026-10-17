@@ -107,3 +107,13 @@ legend {
         filter: grayscale(100%);
     }
 }
+.min-h-200 {
+    min-height: 200px;
+}
+
+.kanban-item {
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.kanban-item:hover { transform: scale(1.02); }
