@@ -353,26 +353,24 @@ def add_coinsurance_entry():
 
 
 def enable_button(current_user, coinsurance_entry) -> bool:
-    bool_enable_button: bool = False
-    settlement = db.session.scalar(
-        db.select(Settlement).where(
-            Settlement.utr_number == coinsurance_entry.utr_number
-        )
-    )
-
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
+        settlement = db.session.scalar(
+            db.select(Settlement).where(
+                Settlement.utr_number == coinsurance_entry.utr_number
+            )
+        )
         if (
             coinsurance_entry.current_status != CoinsuranceStatus.SETTLED
-            or not settlement
+            or settlement is None
         ):
-            bool_enable_button = True
+            return True
 
     elif (
         current_user.user_type in ["ro_user", "oo_user"]
         and coinsurance_entry.current_status == CoinsuranceStatus.CLARIFICATION
     ):
-        bool_enable_button = True
-    return bool_enable_button
+        return True
+    return False
 
 
 @coinsurance_bp.route("/view/<int:coinsurance_id>/")
@@ -471,11 +469,11 @@ def edit_coinsurance_entry(coinsurance_id):
     coinsurance.require_access(current_user)
     form = CoinsuranceForm(obj=coinsurance)
 
-    if form.data["boolean_reinsurance_involved"]:
-        from wtforms.validators import Optional
+    # if form.data["boolean_reinsurance_involved"]:
+    #     from wtforms.validators import Optional
 
-        if coinsurance.ri_confirmation:
-            form.ri_confirmation_file.validators = [Optional()]
+    #     if coinsurance.ri_confirmation:
+    #         form.ri_confirmation_file.validators = [Optional()]
 
     if not enable_button(current_user, coinsurance):
         flash("Unable to submit data. Please try again later.")
@@ -522,13 +520,6 @@ def edit_coinsurance_entry(coinsurance_id):
             db.session.add(remarks)
         db.session.commit()
 
-        # coinsurance_log = CoinsuranceLog(
-        #     **asdict(coinsurance),
-        #     coinsurance_id=coinsurance.id,
-        # )
-        # db.session.add(coinsurance_log)
-        # db.session.commit()
-
         return redirect(
             url_for("coinsurance.view_coinsurance_entry", coinsurance_id=coinsurance_id)
         )
@@ -540,15 +531,15 @@ def edit_coinsurance_entry(coinsurance_id):
 
     change_status = current_user.user_type in ["admin", "coinsurance_hub_user"]
 
-    update_settlement = False
-
-    enable_save_button = enable_button(current_user, coinsurance)
-    if (
-        current_user.user_type in ["admin", "coinsurance_hub_user"]
+    update_settlement = (
+        change_status
         and coinsurance.current_status == CoinsuranceStatus.SETTLED
         and not coinsurance.utr_number
-    ):
-        update_settlement = True
+    )
+
+    enable_save_button = enable_button(current_user, coinsurance)
+
+    if update_settlement:
         update_utr_choices(coinsurance, form)
 
     return render_template(
@@ -559,25 +550,8 @@ def edit_coinsurance_entry(coinsurance_id):
         change_status=change_status,
         enable_save_button=enable_save_button,
         update_settlement=update_settlement,
-        # edit=True,
         ro_list=ro_list,
     )
-
-
-# def select_coinsurers(query, form):
-#     """Obsolete function. Use select_coinsurers_v2 instead."""
-#     coinsurer_choices = query.order_by(
-#         Coinsurance.follower_company_name.asc()
-#     ).distinct(Coinsurance.follower_company_name)
-#     form.coinsurer_name.choices = ["View all"] + [
-#         x.follower_company_name for x in coinsurer_choices
-#     ]
-
-#     if form.validate_on_submit() and form.filter_coinsurer.data:
-#         coinsurer_choice: str = form.data["coinsurer_name"]
-#         if coinsurer_choice != "View all":
-#             query = query.filter(Coinsurance.follower_company_name == coinsurer_choice)
-#     return query
 
 
 def select_coinsurers_v2(stmt, form):
@@ -724,12 +698,13 @@ def list_coinsurance_entries_by_status(status):
 
     stmt = select_coinsurers_v2(stmt, form_select_coinsurer)
     query = db.session.scalars(stmt).all()
-    update_settlement = False
-    if (
+
+    update_settlement = (
         current_user.user_type in ["admin", "coinsurance_hub_user"]
-        and status == "To be settled"
-    ):
-        update_settlement = True
+        and status == CoinsuranceStatus.TO_BE_SETTLED
+    )
+
+    if update_settlement:
         subq = stmt.subquery()
         coinsurer_choices = db.session.scalars(
             db.select(subq.c.follower_company_name).distinct().select_from(subq)
