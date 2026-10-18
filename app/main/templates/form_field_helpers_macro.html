@@ -35,12 +35,12 @@
 {% macro render_field_table_lien(field, lien=None) %}
 {% if field.widget.input_type != "hidden" %}
 <tr>
-    <th class="is-vcentered">{{ field.label }}
+    <th class="is-vcentered" width="40%">{{ field.label }}
         {% if field.flags.required %}
         <span class="has-text-danger">*</span>
         {% endif %}
     </th>
-    <td>
+    <td class="is-vcentered">
         {% if field.type == "TextAreaField" %}
         {{ field(class="textarea", **kwargs) }}
         {% elif field.type == "SelectField" %}
