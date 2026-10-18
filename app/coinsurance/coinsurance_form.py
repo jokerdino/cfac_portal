@@ -16,6 +16,8 @@ from wtforms import (
 )
 from wtforms.validators import DataRequired, Optional, Regexp, ValidationError
 
+from .coinsurance_model import CoinsuranceStatus
+
 coinsurer_list = [
     "National",
     "New India",
@@ -113,7 +115,10 @@ class CoinsuranceForm(FlaskForm):
 
     remarks = TextAreaField("Add remarks")
     current_status = SelectField(
-        "Current status", choices=status_list, validators=[Optional()]
+        "Current status",
+        coerce=CoinsuranceStatus,
+        choices=[(status, status.value) for status in CoinsuranceStatus],
+        validators=[Optional()],
     )
     utr_number = SelectField(
         "Update settlement details",

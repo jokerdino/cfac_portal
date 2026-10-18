@@ -43,6 +43,7 @@ from .coinsurance_model import (
     CoinsuranceCashCall,
     CoinsuranceLog,
     CoinsuranceReceipts,
+    CoinsuranceStatus,
     CoinsuranceTokenRequestId,
     Remarks,
     Settlement,
@@ -322,9 +323,9 @@ def add_coinsurance_entry():
                 "ri_confirmations",
             )
         if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-            coinsurance.current_status = "To be settled"
+            coinsurance.current_status = CoinsuranceStatus.TO_BE_SETTLED
         else:
-            coinsurance.current_status = "To be reviewed by coinsurance hub"
+            coinsurance.current_status = CoinsuranceStatus.REVIEW
         form_remarks = form.data["remarks"]
         db.session.add(coinsurance)
 
@@ -360,12 +361,15 @@ def enable_button(current_user, coinsurance_entry) -> bool:
     )
 
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        if coinsurance_entry.current_status != "Settled" or not settlement:
+        if (
+            coinsurance_entry.current_status != CoinsuranceStatus.SETTLED
+            or not settlement
+        ):
             bool_enable_button = True
 
     elif (
         current_user.user_type in ["ro_user", "oo_user"]
-        and coinsurance_entry.current_status == "Needs clarification from RO or OO"
+        and coinsurance_entry.current_status == CoinsuranceStatus.CLARIFICATION
     ):
         bool_enable_button = True
     return bool_enable_button
@@ -479,11 +483,11 @@ def edit_coinsurance_entry(coinsurance_id):
         form.populate_obj(coinsurance)
 
         if current_user.user_type in ["oo_user", "ro_user"]:
-            coinsurance.current_status = "To be reviewed by coinsurance hub"
+            coinsurance.current_status = CoinsuranceStatus.REVIEW
         if current_user.user_type in ["coinsurance_hub_user", "admin"]:
             coinsurance.current_status = form.data["current_status"]
 
-        if coinsurance.current_status != "Settled":
+        if coinsurance.current_status != CoinsuranceStatus.SETTLED:
             coinsurance.utr_number = None
 
         if form.data["statement_file"]:
@@ -541,7 +545,7 @@ def edit_coinsurance_entry(coinsurance_id):
     enable_save_button = enable_button(current_user, coinsurance)
     if (
         current_user.user_type in ["admin", "coinsurance_hub_user"]
-        and coinsurance.current_status == "Settled"
+        and coinsurance.current_status == CoinsuranceStatus.SETTLED
         and not coinsurance.utr_number
     ):
         update_settlement = True
@@ -600,7 +604,7 @@ def list_settled_entries_without_utr():
     stmt = (
         db.select(Coinsurance)
         .where(Coinsurance.utr_number.is_(None))
-        .where(Coinsurance.current_status == "Settled")
+        .where(Coinsurance.current_status == CoinsuranceStatus.SETTLED)
     ).order_by(Coinsurance.follower_company_name.desc())
 
     stmt = select_coinsurers_v2(stmt, form_select_coinsurer)
@@ -624,7 +628,7 @@ def list_coinsurance_entries_by_coinsurer_name(coinsurer_name):
         .where(
             db.and_(
                 Coinsurance.follower_company_name == coinsurer_name,
-                Coinsurance.current_status != "No longer valid",
+                Coinsurance.current_status != CoinsuranceStatus.NO_LONGER_VALID,
             )
         )
         .order_by(Coinsurance.follower_company_name)
@@ -665,7 +669,7 @@ def list_coinsurance_entries():
     form_select_coinsurer = CoinsurerSelectForm()
     stmt = (
         db.select(Coinsurance)
-        .where(Coinsurance.current_status != "No longer valid")
+        .where(Coinsurance.current_status != CoinsuranceStatus.NO_LONGER_VALID)
         .order_by(Coinsurance.follower_company_name.asc())
     )
 
@@ -762,7 +766,7 @@ def list_coinsurance_entries_by_status(status):
 
             for row in db.session.scalars(stmt):
                 row.utr_number = form_utr_number
-                row.current_status = "Settled"
+                row.current_status = CoinsuranceStatus.SETTLED
 
             db.session.commit()
 
@@ -1300,7 +1304,7 @@ def company_wise_to_be_settled_summary():
         )
         .where(
             Coinsurance.date_created_date >= START_DATE,
-            Coinsurance.current_status == "To be settled",
+            Coinsurance.current_status == CoinsuranceStatus.TO_BE_SETTLED,
         )
         .group_by(Coinsurance.follower_company_name)
     )
@@ -1332,7 +1336,7 @@ def to_be_settled_company_wise_details(company):
         .where(
             Coinsurance.follower_company_name == company,
             Coinsurance.date_created_date >= START_DATE,
-            Coinsurance.current_status == "To be settled",
+            Coinsurance.current_status == CoinsuranceStatus.TO_BE_SETTLED,
         )
         .order_by(Coinsurance.date_created_date)
     )
@@ -1362,7 +1366,7 @@ def to_be_settled_company_wise_details(company):
             .where(Coinsurance.id.in_(selected_ids))
             .values(
                 {
-                    Coinsurance.current_status: "Settled",
+                    Coinsurance.current_status: CoinsuranceStatus.SETTLED,
                     Coinsurance.utr_number: form_utr_number,
                 }
             )

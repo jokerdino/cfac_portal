@@ -1,5 +1,6 @@
 from datetime import date
-from typing import Optional
+from enum import StrEnum
+from typing import Any, ClassVar
 
 from flask import abort
 from sqlalchemy.orm import Mapped, column_property, mapped_column
@@ -12,8 +13,17 @@ from utils import indian_number_format
 make_versioned(plugins=[FlaskPlugin()])
 
 
+class CoinsuranceStatus(StrEnum):
+    REVIEW = "To be reviewed by coinsurance hub"
+    CLARIFICATION = "Needs clarification from RO or OO"
+    TO_BE_APPROVED = "To be approved in GC Core"
+    TO_BE_SETTLED = "To be settled"
+    SETTLED = "Settled"
+    NO_LONGER_VALID = "No longer valid"
+
+
 class Coinsurance(db.Model):
-    __versioned__ = {}
+    __versioned__: ClassVar[dict[str, Any]] = {}
 
     id: Mapped[IntPK]
     uiic_regional_code: Mapped[str]
@@ -21,24 +31,32 @@ class Coinsurance(db.Model):
     follower_company_name: Mapped[str]
     follower_office_code: Mapped[str]
 
-    str_period: Mapped[Optional[str]]
+    str_period: Mapped[str | None]
     type_of_transaction: Mapped[str]
-    request_id: Mapped[Optional[str]]
-    payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    insured_name: Mapped[Optional[str]]
+    request_id: Mapped[str | None]
+    payable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    receivable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    insured_name: Mapped[str | None]
 
-    boolean_reinsurance_involved: Mapped[Optional[bool]]
-    int_ri_payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    int_ri_receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    boolean_reinsurance_involved: Mapped[bool | None]
+    int_ri_payable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    int_ri_receivable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
 
-    statement: Mapped[Optional[str]]
-    confirmation: Mapped[Optional[str]]
-    ri_confirmation: Mapped[Optional[str]]
+    statement: Mapped[str | None]
+    confirmation: Mapped[str | None]
+    ri_confirmation: Mapped[str | None]
 
-    current_status: Mapped[str]
+    current_status: Mapped[str] = mapped_column(
+        db.Enum(
+            CoinsuranceStatus,
+            native_enum=False,
+            values_callable=lambda x: [e.value for e in x],
+            default=CoinsuranceStatus.REVIEW,
+        ),
+        nullable=False,
+    )
 
-    utr_number: Mapped[Optional[str]]
+    utr_number: Mapped[str | None]
 
     created_by: Mapped[CreatedBy]
     date_created_date: Mapped[CreatedOn]
@@ -144,7 +162,7 @@ class Settlement(db.Model):
     date_of_settlement: Mapped[date] = mapped_column(db.Date)
     settled_amount: Mapped[float] = mapped_column(db.Numeric(15, 2))
     utr_number: Mapped[str]
-    file_settlement_file: Mapped[Optional[str]]
+    file_settlement_file: Mapped[str | None]
     type_of_transaction: Mapped[str]
     notes: Mapped[str] = mapped_column(db.Text)
 
@@ -191,25 +209,25 @@ class CoinsuranceLog(db.Model):
     follower_company_name: Mapped[str]
     follower_office_code: Mapped[str]
 
-    str_period: Mapped[Optional[str]]
+    str_period: Mapped[str | None]
     type_of_transaction: Mapped[str]
-    request_id: Mapped[Optional[str]]
-    payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    insured_name: Mapped[Optional[str]]
+    request_id: Mapped[str | None]
+    payable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    receivable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    insured_name: Mapped[str | None]
 
-    boolean_reinsurance_involved: Mapped[Optional[bool]]
-    int_ri_payable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
-    int_ri_receivable_amount: Mapped[Optional[float]] = mapped_column(db.Numeric(15, 2))
+    boolean_reinsurance_involved: Mapped[bool | None]
+    int_ri_payable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
+    int_ri_receivable_amount: Mapped[float | None] = mapped_column(db.Numeric(15, 2))
 
     # net_amount : Mapped[int]
 
-    statement: Mapped[Optional[str]]
-    confirmation: Mapped[Optional[str]]
-    ri_confirmation: Mapped[Optional[str]]
+    statement: Mapped[str | None]
+    confirmation: Mapped[str | None]
+    ri_confirmation: Mapped[str | None]
 
     current_status: Mapped[str]
-    utr_number: Mapped[Optional[str]]
+    utr_number: Mapped[str | None]
 
 
 class CoinsuranceBalances(db.Model):
@@ -219,7 +237,7 @@ class CoinsuranceBalances(db.Model):
 
     office_code: Mapped[str]
     company_name: Mapped[str]
-    period: Mapped[Optional[str]]
+    period: Mapped[str | None]
     hub_due_to_claims: Mapped[float]
     hub_due_to_premium: Mapped[float]
     hub_due_from_claims: Mapped[float]
@@ -240,7 +258,7 @@ class CoinsuranceBalanceGeneralLedgerCodeFlagSheet(db.Model):
 
     gl_code: Mapped[str]
     description: Mapped[str]
-    company_name: Mapped[Optional[str]]
+    company_name: Mapped[str | None]
 
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
@@ -276,7 +294,7 @@ class CoinsuranceCashCall(db.Model):
 
     amount_total_paid: Mapped[float] = mapped_column(db.Numeric(15, 2))
     txt_remarks: Mapped[str] = mapped_column(db.Text)
-    date_claim_payment: Mapped[Optional[date]]
+    date_claim_payment: Mapped[date | None]
 
     txt_coinsurer_name: Mapped[str]
     percent_share: Mapped[float] = mapped_column(db.Numeric(5, 2))
@@ -287,8 +305,8 @@ class CoinsuranceCashCall(db.Model):
     txt_current_status: Mapped[str]
 
     txt_utr_number: Mapped[str]
-    date_of_cash_call_settlement: Mapped[Optional[date]]
-    amount_settlement: Mapped[Optional[date]] = mapped_column(db.Numeric(15, 2))
+    date_of_cash_call_settlement: Mapped[date | None]
+    amount_settlement: Mapped[date | None] = mapped_column(db.Numeric(15, 2))
 
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
@@ -319,17 +337,17 @@ class CoinsuranceBankMandate(db.Model):
 class CoinsuranceReceipts(db.Model):
     id: Mapped[IntPK]
 
-    book_date: Mapped[Optional[date]]
+    book_date: Mapped[date | None]
     description: Mapped[str]
     company_name: Mapped[str]
     credit: Mapped[float]
     value_date: Mapped[date] = mapped_column(db.Date)
     reference_no: Mapped[str]
     transaction_code: Mapped[str]
-    remarks: Mapped[Optional[str]] = mapped_column(db.Text)
+    remarks: Mapped[str | None] = mapped_column(db.Text)
     status: Mapped[str]
-    receipting_office: Mapped[Optional[str]]
-    date_of_receipt: Mapped[Optional[date]]
+    receipting_office: Mapped[str | None]
+    date_of_receipt: Mapped[date | None]
 
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
@@ -343,8 +361,8 @@ class CoinsuranceReceipts(db.Model):
 class CoinsuranceReceiptsJournalVoucher(db.Model):
     id: Mapped[IntPK]
 
-    pattern: Mapped[Optional[str]]
-    company_name: Mapped[Optional[str]]
+    pattern: Mapped[str | None]
+    company_name: Mapped[str | None]
     gl_code: Mapped[str]
 
     created_by: Mapped[CreatedBy]
@@ -366,11 +384,11 @@ class CoinsuranceTokenRequestId(db.Model):
     type_of_amount: Mapped[str]
     gl_code: Mapped[str]
     remarks: Mapped[str] = mapped_column(db.Text)
-    upload_document: Mapped[Optional[str]]
+    upload_document: Mapped[str | None]
 
-    jv_gl_code: Mapped[Optional[str]]
-    jv_sl_code: Mapped[Optional[str]]
-    jv_passed: Mapped[Optional[bool]] = mapped_column(default=False)
+    jv_gl_code: Mapped[str | None]
+    jv_sl_code: Mapped[str | None]
+    jv_passed: Mapped[bool | None] = mapped_column(default=False)
 
     created_by: Mapped[CreatedBy]
     created_on: Mapped[CreatedOn]
