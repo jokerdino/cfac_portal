@@ -111,9 +111,7 @@ def home_page():
             & (Coinsurance.uiic_regional_code == current_user.ro_code)
         )
 
-    elif current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        stmt = stmt
-    else:
+    elif current_user.user_type not in ["admin", "coinsurance_hub_user"]:
         abort(404)
 
     query = db.session.execute(stmt)
@@ -346,7 +344,7 @@ def add_coinsurance_entry():
         )
 
     return render_template(
-        "edit_coinsurance_entry.html",
+        "edit_coinsurance_entry_legend.html",
         form=form,
         enable_save_button=True,
         ro_list=ro_list,
@@ -362,14 +360,14 @@ def enable_button(current_user, coinsurance_entry) -> bool:
     )
 
     if current_user.user_type in ["admin", "coinsurance_hub_user"]:
-        if not coinsurance_entry.current_status == "Settled":
-            bool_enable_button = True
-        elif not settlement:
+        if coinsurance_entry.current_status != "Settled" or not settlement:
             bool_enable_button = True
 
-    elif current_user.user_type in ["ro_user", "oo_user"]:
-        if coinsurance_entry.current_status == "Needs clarification from RO or OO":
-            bool_enable_button = True
+    elif (
+        current_user.user_type in ["ro_user", "oo_user"]
+        and coinsurance_entry.current_status == "Needs clarification from RO or OO"
+    ):
+        bool_enable_button = True
     return bool_enable_button
 
 
@@ -536,26 +534,21 @@ def edit_coinsurance_entry(coinsurance_id):
         .order_by(Remarks.time_of_remark.asc())
     ).all()
 
-    change_status = (
-        True if current_user.user_type in ["admin", "coinsurance_hub_user"] else False
-    )
+    change_status = current_user.user_type in ["admin", "coinsurance_hub_user"]
+
     update_settlement = False
 
     enable_save_button = enable_button(current_user, coinsurance)
     if (
         current_user.user_type in ["admin", "coinsurance_hub_user"]
         and coinsurance.current_status == "Settled"
+        and not coinsurance.utr_number
     ):
-        # if coinsurance.current_status == "Settled":
-        if not coinsurance.utr_number:
-            # if not Settlement.query.filter(
-            #     Settlement.utr_number == coinsurance.utr_number
-            # ).first():
-            update_settlement = True
-            update_utr_choices(coinsurance, form)
+        update_settlement = True
+        update_utr_choices(coinsurance, form)
 
     return render_template(
-        "edit_coinsurance_entry.html",
+        "edit_coinsurance_entry_legend.html",
         form=form,
         coinsurance=coinsurance,
         remarks=remarks,

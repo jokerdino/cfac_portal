@@ -1,0 +1,233 @@
+{% extends "coinsurance_layout.html" %}
+{% block body_attrs %} "onload=calculateSum();" {% endblock body_attrs %}
+{% block content %}
+{% from "form_field_helpers_macro.html" import render_field_table %}
+
+<h1 class="title">Enter coinsurance confirmation details</h1>
+{% include "partials/errors.html" %}
+{% include "partials/messages.html" %}
+<form action="" method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+    <div class="columns">
+        <div class="column">
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">UIIC Office Details</legend>
+                <table class="table is-fullwidth is-narrow">
+                    <tr>
+                        <th class="is-vcentered" width="25%"> {{ form.uiic_regional_code.label }} </th>
+                        <td>
+                            {% if current_user.user_type in ["admin","coinsurance_hub_user"] %}
+                            {{ form.uiic_regional_code(class='input', list="ro_list", witdh="25%") }}
+                            <datalist id="ro_list">
+                                {% for ro_code in ro_list %}
+                                <option value="{{ ro_code }}"></option>
+                                {% endfor %}
+                            </datalist>
+                            {% else %}
+                            {{ form.uiic_regional_code.data }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="is-vcentered">{{ form.uiic_office_code.label }}</th>
+                        <td>
+                            {% if current_user.user_type == "oo_user" %} {{ form.uiic_office_code.data }} {% else %}
+                            {{ form.uiic_office_code(class='input') }} {% endif %} </td>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Coinsurer details</legend>
+                <table class="table is-fullwidth is-narrow">
+                    {{ render_field_table(form.type_of_transaction, width="25%") }}
+                    {{ render_field_table(form.follower_company_name) }}
+                    {{ render_field_table(form.follower_office_code) }}
+                </table>
+            </fieldset>
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Transaction details</legend>
+                <table class="table is-fullwidth is-narrow">
+                    {{ render_field_table(form.str_period, width="25%") }}
+                    {{ render_field_table(form.insured_name) }}
+                    {{ render_field_table(form.payable_amount, class="input has-text-right") }}
+                    {{ render_field_table(form.receivable_amount, class="input has-text-right") }}
+                    <tr>
+                        <th><label id="label_before_ri">Net payable (excluding RI)</label></th>
+                        <td class="has-text-right pr-4"><label id="cal_direct_amount"></label></td>
+                    </tr>
+                </table>
+            </fieldset>
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Supporting documents</legend>
+                <table class="table is-fullwidth is-narrow">
+                    {{ render_field_table(form.request_id, width="25%") }}
+                    <tr>
+                        <th>{{ form.statement_file.label }}</th>
+                        <td>{{ form.statement_file }}
+
+                            {% if coinsurance and coinsurance.statement %}
+                            <a class="button is-link is-small is-outlined"
+                                href='{{ url_for("coinsurance.download_document", requirement="statement", coinsurance_id = coinsurance.id ) }}'>Download
+                                statement</a>
+                            {% elif coinsurance %} Statement not uploaded {% endif %}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th>{{ form.confirmation_file.label }}</th>
+                        <td>{{ form.confirmation_file }}
+
+                            {% if coinsurance and coinsurance.confirmation %}
+                            <a class="button is-link is-small is-outlined"
+                                href='{{ url_for("coinsurance.download_document", requirement="confirmation", coinsurance_id = coinsurance.id ) }}'>Download
+                                confirmation</a>
+                            {% elif coinsurance %} Confirmation not uploaded {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+        </div>
+        <div class="column">
+
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Reinsurance details</legend>
+                <table class="table is-fullwidth is-narrow">
+
+                    {{ render_field_table(form.boolean_reinsurance_involved, width="25%") }}
+                    {% if form.boolean_reinsurance_involved.data %}
+
+                    {{ render_field_table(form.int_ri_payable_amount, class="input has-text-right") }}
+                    {{ render_field_table(form.int_ri_receivable_amount, class="input has-text-right") }}
+
+                    <tr>
+                        <th><label id="label_after_ri">Net payable (including RI)</label></th>
+                        <td class="has-text-right pr-4"><label id="cal_ri_amount"> </label></td>
+                    </tr>
+
+                    <tr>
+                        <th>{{ form.ri_confirmation_file.label }}</th>
+                        <td>{{ form.ri_confirmation_file }}
+                            {% if coinsurance and coinsurance.ri_confirmation %}
+                            <a class="button is-link is-small is-outlined"
+                                href='{{ url_for("coinsurance.download_document", requirement="ri_confirmation", coinsurance_id = coinsurance.id ) }}'>Download
+                                RI confirmation</a>
+                            {% elif coinsurance %} Reinsurance confirmation not uploaded {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    {{ render_field_table(form.int_ri_payable_amount, disabled=disabled) }}
+                    {{ render_field_table(form.int_ri_receivable_amount, disabled=disabled) }}
+
+                    <tr>
+                        <th><label id="label_after_ri">Net payable (including RI)</label></th>
+                        <td class="has-text-right pr-4"><label id="cal_ri_amount" disabled></label></td>
+                    </tr>
+                    {{ render_field_table(form.ri_confirmation_file, disabled=disabled) }}
+
+                    {% endif %}
+                </table>
+            </fieldset>
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Remarks</legend>
+                {% if remarks %}
+                {% if remarks | length > 0 %}
+
+                <table class="table is-bordered is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th class="has-text-centered" width="25%">Time of remarks</th>
+                            <th class="has-text-centered" width="20%">User</th>
+                            <th class="has-text-centered">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for remark in remarks %}
+                        <tr>
+                            <td title="{{ remark.time_of_remark }}">
+                                {{ remark.time_of_remark |humanize_datetime }}
+                            </td>
+                            <td>{{ remark.user }}</td>
+                            <td>{{ remark.remarks }}</td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% endif %}
+                {% endif %}
+                <table class="table is-fullwidth is-narrow">
+
+                    {{ render_field_table(form.remarks, width="25%") }}
+                </table>
+            </fieldset>
+
+            {% if change_status or update_settlement %}
+            <fieldset class="box">
+                <legend class="has-text-weight-semibold">Status and settlement details</legend>
+                <table class="table is-fullwidth is-narrow">
+                    {% if change_status %}
+                    {{ render_field_table(form.current_status, width="25%") }}
+
+                    {% endif %}
+                    {% if update_settlement %}
+                    {{ render_field_table(form.utr_number, width="25%") }}
+                    {% endif %}
+                </table>
+            </fieldset>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-5 has-text-centered">
+        {% if enable_save_button %}
+        <button class="button is-primary is-large" type="submit">Save</button>
+        {% else %}
+        <a class="button is-primary is-large" disabled>Save</a>
+        {% endif %}
+    </div>
+</form>
+
+{% block scripts %}
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        calculateSum();
+    });
+
+    function calculateSum() {
+        var direct_payable = parseInt(document.getElementById("payable_amount").value === "" ? 0 : document.getElementById("payable_amount").value);
+        var direct_receivable = parseInt(document.getElementById("receivable_amount").value === "" ? 0 : document.getElementById("receivable_amount").value);
+        sum_direct = direct_payable - direct_receivable;
+
+        if (sum_direct > 0) {
+            document.getElementById("label_before_ri").innerText = "Net payable (excluding RI)";
+            document.getElementById("cal_direct_amount").innerText = sum_direct;
+        } else {
+            document.getElementById("label_before_ri").innerText = "Net receivable (excluding RI)";
+            document.getElementById("cal_direct_amount").innerText = sum_direct * -1;
+        }
+        var ri_payable = parseInt(document.getElementById("int_ri_payable_amount").value === "" ? 0 : document.getElementById("int_ri_payable_amount").value);
+        var ri_receivable = parseInt(document.getElementById("int_ri_receivable_amount").value === "" ? 0 : document.getElementById("int_ri_receivable_amount").value);
+        sum_ri = sum_direct + ri_payable - ri_receivable
+
+        if (sum_ri > 0) {
+            document.getElementById("label_after_ri").innerText = "Net payable (including RI)";
+            document.getElementById("cal_ri_amount").innerText = sum_ri;
+        } else {
+            document.getElementById("label_after_ri").innerText = "Net receivable (including RI)";
+            document.getElementById("cal_ri_amount").innerText = sum_ri * -1;
+        }
+    }
+    // enable or disable RI related things
+    document.getElementById('boolean_reinsurance_involved').onchange = function () {
+        document.getElementById('int_ri_payable_amount').disabled = !this.checked;
+        document.getElementById('int_ri_receivable_amount').disabled = !this.checked;
+        document.getElementById('cal_ri_amount').disabled = !this.checked;
+        document.getElementById('ri_confirmation_file').disabled = !this.checked;
+    };
+
+</script>
+{% endblock scripts %}
+{% endblock content %}
