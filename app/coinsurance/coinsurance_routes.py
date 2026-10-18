@@ -388,7 +388,7 @@ def view_coinsurance_entry(coinsurance_id):
     enable_edit_button = enable_button(current_user, coinsurance)
 
     return render_template(
-        "view_coinsurance_entry.html",
+        "view_coinsurance_entry_card.html",
         coinsurance=coinsurance,
         remarks=remarks,
         settlement=settlement,
