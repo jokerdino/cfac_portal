@@ -37,6 +37,22 @@ class BRSCCDetailView(DefaultModelView):
     form_excluded_columns = ("unencashed_cheques", "stale_cheques")
 
 
+class BRSCCSummaryView(DefaultModelView):
+    column_filters = ["operating_office_code", "date_of_month"]
+
+
+class BRSTieupSummaryView(DefaultModelView):
+    column_filters = ["operating_office", "month"]
+
+
+class BRSLCSummaryView(DefaultModelView):
+    column_filters = ["operating_office", "month"]
+
+
+class BRSImprestSummaryView(DefaultModelView):
+    column_filters = ["operating_office", "month"]
+
+
 class OSView(DefaultModelView):
     column_searchable_list = ["str_operating_office_code"]
     column_filters = ["str_operating_office_code"]

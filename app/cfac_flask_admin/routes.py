@@ -42,6 +42,10 @@ from app.brs_tieups.models import (
 from app.budget.budget_model import BudgetAllocation, BudgetUtilization
 from app.cfac_flask_admin.model_views import (
     BRSCCDetailView,
+    BRSCCSummaryView,
+    BRSImprestSummaryView,
+    BRSLCSummaryView,
+    BRSTieupSummaryView,
     BRSView,
     BudgetAllocationView,
     BudgetUtilizationView,
@@ -193,7 +197,9 @@ admin.add_view(
 # brs_cc
 
 admin.add_view(
-    ModelView(CentralisedChequeSummary, db, endpoint="cc_summary", category="BRS_CC")
+    BRSCCSummaryView(
+        CentralisedChequeSummary, db, endpoint="cc_summary", category="BRS_CC"
+    )
 )
 admin.add_view(
     BRSCCDetailView(
@@ -227,7 +233,7 @@ admin.add_view(
 
 # brs_imprest
 admin.add_view(
-    ModelView(
+    BRSImprestSummaryView(
         BankReconImprestSummary,
         db,
         endpoint="imprest_summary",
@@ -252,7 +258,7 @@ admin.add_view(
 )
 # brs_lc
 admin.add_view(
-    ModelView(
+    BRSLCSummaryView(
         BankReconLocalCollectionSummary,
         db,
         endpoint="lc_summary",
@@ -294,7 +300,7 @@ admin.add_view(
 
 # brs_tieups
 admin.add_view(
-    ModelView(
+    BRSTieupSummaryView(
         BankReconTieupSummary,
         db,
         endpoint="tieup_summary",
