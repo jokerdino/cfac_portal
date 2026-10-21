@@ -1,64 +1,110 @@
 {% extends "leave_layout.html" %}
 {% block content %}
 
-<div class="container">
+<div class="container mb-5">
 
     {% include "leave_balance.html" %}
 
     <h1 class="title">Leave applications</h1>
-    <table class="table is-fullwidth is-bordered">
-        <thead>
-            <tr>
-                <th class="has-text-centered is-vcentered">Employee name</th>
-                <th class="has-text-centered is-vcentered">Employee number</th>
-                <th class="has-text-centered is-vcentered">Employee designation</th>
-                <th class="has-text-centered is-vcentered">Type of leave</th>
-                <th class="has-text-centered is-vcentered">Start date</th>
-                <th class="has-text-centered is-vcentered">End date</th>
-                <th class="has-text-centered is-vcentered">Number of days leave</th>
-                <th class="has-text-centered is-vcentered">Purpose of leave</th>
-                <th class="has-text-centered is-vcentered">Leave approved by</th>
-                <th class="has-text-centered is-vcentered">Leave approver designation</th>
-                <th class="has-text-centered is-vcentered">Current status</th>
-                <th class="has-text-centered is-vcentered">Edit</th>
-                <th class="has-text-centered is-vcentered">View</th>
-                <th class="has-text-centered is-vcentered">Print</th>
 
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in list %}
-            <tr>
-                <td>{{ item.employee_name }}</td>
-                <td>{{ item.employee_number }}</td>
-                <td>{{ item.employee_designation }}</td>
-                <td>{{ item.type_of_leave }}</td>
-                <td>{{ item.start_date.strftime("%d/%m/%Y") }}</td>
-                <td>{{ item.end_date.strftime("%d/%m/%Y") }}</td>
-                <td>{{ item.number_of_days_leave }}</td>
-                <td>{{ item.purpose_of_leave }}</td>
-                <td>{{ item.leave_approved_by }}</td>
-                <td>{{ item.leave_approver_designation }}</td>
-                <td>{{ item.current_status }}</td>
-                <td><a class="button is-small is-link" {% if item.current_status=="Pending" %}
-                        href="{{ url_for('.leave_application_edit', id=item.id) }}" {% else %} disabled
-                        title="Leave application cannot be edited after submission." {% endif %}>
-                        Edit
-                    </a></td>
-                <td><a class="button is-small is-link"
-                        href="{{ url_for('.leave_application_view', id=item.id) }}">View</a>
-                </td>
-                <td><a class="button is-small is-link" {% if item.current_status=="Submitted" %}
-                        href="{{ url_for('.leave_application_print', id=item.id) }}" target="_blank" {% else %} disabled
-                        title="Leave application cannot be printed without submission." {% endif %}>
-                        Print
-                    </a>
-                </td>
-            </tr>
+    <div class="tabs is-boxed">
+        <ul>
+            {% for year in grouped_data.keys() %}
 
+            <li class="{% if loop.first %}is-active{% endif %}" data-tab="year-{{ year }}">
+                <a>{{ year }}</a>
+            </li>
             {% endfor %}
-        </tbody>
-    </table>
+
+        </ul>
+    </div>
+
+    {% for year, applications in grouped_data.items() %}
+
+    <div class="tab-content {% if not loop.first %}is-hidden{% endif %}" id="year-{{ year }}">
+
+        <table class="table is-fullwidth is-bordered">
+            <thead>
+                <tr>
+                    <th class="has-text-centered is-vcentered">Employee name</th>
+                    <th class="has-text-centered is-vcentered">Employee number</th>
+                    <th class="has-text-centered is-vcentered">Employee designation</th>
+                    <th class="has-text-centered is-vcentered">Type of leave</th>
+                    <th class="has-text-centered is-vcentered">Start date</th>
+                    <th class="has-text-centered is-vcentered">End date</th>
+                    <th class="has-text-centered is-vcentered">Number of days leave</th>
+                    <th class="has-text-centered is-vcentered">Purpose of leave</th>
+                    <th class="has-text-centered is-vcentered">Leave approved by</th>
+                    <th class="has-text-centered is-vcentered">Leave approver designation</th>
+                    <th class="has-text-centered is-vcentered">Current status</th>
+                    <th class="has-text-centered is-vcentered">Edit</th>
+                    <th class="has-text-centered is-vcentered">View</th>
+                    <th class="has-text-centered is-vcentered">Print</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in applications %}
+                <tr>
+                    <td>{{ item.employee_name }}</td>
+                    <td>{{ item.employee_number }}</td>
+                    <td>{{ item.employee_designation }}</td>
+                    <td>{{ item.type_of_leave }}</td>
+                    <td>{{ item.start_date.strftime("%d/%m/%Y") }}</td>
+                    <td>{{ item.end_date.strftime("%d/%m/%Y") }}</td>
+                    <td>{{ item.number_of_days_leave }}</td>
+                    <td>{{ item.purpose_of_leave }}</td>
+                    <td>{{ item.leave_approved_by }}</td>
+                    <td>{{ item.leave_approver_designation }}</td>
+                    <td>{{ item.current_status }}</td>
+                    <td><a class="button is-small is-link" {% if item.current_status=="Pending" %}
+                            href="{{ url_for('.leave_application_edit', id=item.id) }}" {% else %} disabled
+                            title="Leave application cannot be edited after submission." {% endif %}>
+                            Edit
+                        </a></td>
+                    <td><a class="button is-small is-link"
+                            href="{{ url_for('.leave_application_view', id=item.id) }}">View</a>
+                    </td>
+                    <td><a class="button is-small is-link" {% if item.current_status=="Submitted" %}
+                            href="{{ url_for('.leave_application_print', id=item.id) }}" target="_blank" {% else %}
+                            disabled title="Leave application cannot be printed without submission." {% endif %}>
+                            Print
+                        </a>
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+
 </div>
 
 {% endblock content %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tabs = document.querySelectorAll(".tabs.is-boxed li");
+        const panes = document.querySelectorAll(".tab-content");
+
+        tabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                const target = tab.dataset.tab;
+                const yearPane = document.getElementById(target);
+
+                if (!yearPane) return;
+
+                // Activate the selected tab
+                tabs.forEach(item => item.classList.remove("is-active"));
+                tab.classList.add("is-active");
+
+                // Display the selected year's applications
+                panes.forEach(pane => pane.classList.add("is-hidden"));
+                yearPane.classList.remove("is-hidden");
+
+            });
+        });
+    });
+</script>
+{% endblock scripts %}

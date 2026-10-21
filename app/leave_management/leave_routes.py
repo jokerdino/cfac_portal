@@ -1,11 +1,17 @@
-from collections import defaultdict
-from datetime import datetime, date, timedelta
-from math import floor
 import decimal
-from itertools import chain
 import io
+from collections import defaultdict
+from datetime import date, datetime, timedelta
+from itertools import chain
+from math import floor
 
+import calplot
+import matplotlib
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+import pandas as pd
 from flask import (
+    Response,
     abort,
     # current_app,
     flash,
@@ -13,23 +19,16 @@ from flask import (
     render_template,
     request,
     url_for,
-    Response,
 )
 from flask_login import current_user, login_required
-import pandas as pd
-from sqlalchemy import case, func, and_  # , create_engine
+from sqlalchemy import and_, case, func  # , create_engine
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.exc import IntegrityError
-
-import calplot
-import matplotlib
-import matplotlib.patches as mpatches
-import matplotlib.pyplot as plt
 
 matplotlib.use("agg")
 
 from extensions import db
-from set_view_permissions import leave_managers, admin_required
+from set_view_permissions import admin_required, leave_managers
 
 from . import leave_mgmt_bp
 from .leave_forms import (
@@ -37,10 +36,10 @@ from .leave_forms import (
     EmployeeDataForm,
     LeaveApplicationForm,
     LeaveAttendanceRegisterForm,
-    UpdateLeaveTypeForm,
-    LeaveSubmittedDateForm,
-    LeaveEncashmentForm,
     LeaveBalanceCloseForm,
+    LeaveEncashmentForm,
+    LeaveSubmittedDateForm,
+    UpdateLeaveTypeForm,
     UploadFileForm,
 )
 from .leave_model import (
@@ -268,9 +267,9 @@ def get_employee_number(employee_number: int) -> int:
     Return the employee number, defaulting to the last 5 characters of the current_user's username
     if the current_user is not a leave_manager and no employee_number is given.
     """
-    if current_user.role and "leave_manager" not in current_user.role:
-        return int(current_user.username[-5:])
-    elif employee_number is None:
+    if (
+        current_user.role and "leave_manager" not in current_user.role
+    ) or employee_number is None:
         return int(current_user.username[-5:])
     else:
         return int(employee_number)
@@ -293,12 +292,17 @@ def leave_application_list(employee_number):
             )
         )
         .order_by(LeaveApplication.start_date.desc())
-    )
+    ).all()
 
+    grouped_data = defaultdict(list)
+    for leave_application in leave_application_list_days:
+        grouped_data[leave_application.start_date.year].append(leave_application)
+    grouped_data = dict(sorted(grouped_data.items(), reverse=True))
     #   get_leave_days_list(leave_application_list_days)
     return render_template(
         "leave_application_list.html",
-        list=leave_application_list_days,
+        # list=leave_application_list_days,
+        grouped_data=grouped_data,
         leave_balance=leave_balance,
     )
 
@@ -416,7 +420,7 @@ def order_by_designation(model):
 
     case_designation = case(
         *[
-            (getattr(model, "employee_designation") == value, index)
+            (model.employee_designation == value, index)
             for index, value in enumerate(designation_list)
         ],
         else_=len(designation_list),  # Fallback for values not in the list
@@ -503,7 +507,7 @@ def add_employee_leave_balance():
 @leave_managers
 def edit_employee_leave_balance(id):
     employee = db.get_or_404(LeaveBalance, id)
-    if not employee.current_status == "Open":
+    if employee.current_status != "Open":
         abort(404)
     form = AddEmployeeLeaveBalanceForm(obj=employee)
     if form.validate_on_submit():
@@ -979,12 +983,12 @@ def last_leave_submitted_date(leave_date) -> bool:
 
 @leave_mgmt_bp.context_processor
 def get_leave_submission():
-    return dict(
-        leave_submitted=last_leave_submitted_date,
-        calculate_earned_leave=calculate_earned_leave,
-        to_mixed_fraction_11=to_mixed_fraction_11,
-        today_date=date.today(),
-    )
+    return {
+        "leave_submitted": last_leave_submitted_date,
+        "calculate_earned_leave": calculate_earned_leave,
+        "to_mixed_fraction_11": to_mixed_fraction_11,
+        "today_date": date.today(),
+    }
 
 
 def get_days_off_duty(employee_number, opening_balance_date, end_date):
@@ -1049,9 +1053,11 @@ def get_earned_leave_taken(
 
 
 def get_leave_encashment_days(leave_balance, calculation_date):
-    if leave_balance.date_of_leave_encashment:
-        if leave_balance.date_of_leave_encashment <= calculation_date:
-            return leave_balance.leave_encashment_days
+    if (
+        leave_balance.date_of_leave_encashment
+        and leave_balance.date_of_leave_encashment <= calculation_date
+    ):
+        return leave_balance.leave_encashment_days
     return 0
 
 
@@ -1251,7 +1257,7 @@ def draw_holiday_plot(dataframe: pd.DataFrame):
 
         # Return as Flask response
         return Response(buf.getvalue(), mimetype="image/png")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(e)
 
 
