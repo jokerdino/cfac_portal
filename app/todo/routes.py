@@ -1,17 +1,15 @@
 from datetime import datetime
 
-from flask import render_template, redirect, url_for, request, flash
-from flask_login import login_required, current_user
+from flask import redirect, render_template, request, url_for
+from flask_login import current_user, login_required
 
+from app.users.user_model import User
+from extensions import db
+from set_view_permissions import admin_required
 
 from . import todo_bp
 from .forms import TaskForm
-from .models import Task, Notification
-
-from extensions import db
-from app.users.user_model import User
-
-from set_view_permissions import admin_required
+from .models import Notification, Task
 
 
 @todo_bp.route("/", methods=["GET", "POST"])
@@ -85,21 +83,37 @@ def task_edit(id):
         return render_template(
             "partials/task_edit.html",
             form=form,
+            task=task,
             action_url=url_for("todo.task_edit", id=id),
         )
 
     return render_template("task_edit.html", form=form, title="Edit Task")
 
 
-@todo_bp.get("/delete/<int:id>/")
+@todo_bp.post("/delete/<int:id>/")
 @login_required
 @admin_required
 def task_delete(id):
     task = db.get_or_404(Task, id)
-    db.session.delete(task)
+    task.deleted_by = current_user.username
+    task.deleted_on = datetime.now()
+
     db.session.commit()
-    flash("Task deleted!", "warning")
-    return redirect(url_for(".index"))
+
+    return redirect(url_for(".board"))
+
+
+@todo_bp.post("/archive/<int:id>/")
+@login_required
+@admin_required
+def task_archive(id):
+    task = db.get_or_404(Task, id)
+    task.is_archived = True
+    task.archived_by = current_user.username
+
+    db.session.commit()
+
+    return redirect(url_for(".board"))
 
 
 def set_assignment_choices(form):
@@ -173,7 +187,9 @@ def board():
                 Task.assigned_to_id == current_user.id,
                 Task.created_by_id == current_user.id,
                 Task.subscribers.any(current_user.id),
-            )
+            ),
+            db.or_(Task.is_archived.is_(False), Task.is_archived.is_(None)),
+            Task.deleted_on.is_(None),
         )
         .order_by(Task.priority.desc(), Task.due_date.asc(), Task.created_on.asc())
     )

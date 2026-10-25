@@ -27,10 +27,10 @@ class TaskForm(FlaskForm):
         coerce=int,  # Ensure the submitted IDs are converted to integers
         option_widget=CheckboxInput(),  # Renders each option as a checkbox input
         widget=ListWidget(prefix_label=False),  # Renders the options in a list (ul/ol)
-        # render_kw={
-        #     "class": "subscriber-list",
-        #     # "style": "max-height: 180px; overflow-y: auto;",
-        # },
+        render_kw={
+            # "class": "subscriber-list",
+            "style": "max-height: 150px; overflow-y: auto;",
+        },
     )
 
     submit = SubmitField("Save")

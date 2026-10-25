@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -29,6 +29,11 @@ class Task(db.Model):
     created_on: Mapped[CreatedOn]
     updated_by: Mapped[UpdatedBy]
     updated_on: Mapped[UpdatedOn]
+
+    is_archived: Mapped[bool | None] = mapped_column(default=False)
+    archived_by: Mapped[str | None]
+    deleted_by: Mapped[str | None]
+    deleted_on: Mapped[datetime | None]
 
     created_by_id: Mapped[CreatedById]
     updated_by_id: Mapped[UpdatedById]
