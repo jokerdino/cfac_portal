@@ -2,8 +2,6 @@ import mimetypes
 import smtplib
 from email.message import EmailMessage
 from pathlib import Path
-from typing import Union
-
 
 from extensions import db
 
@@ -25,7 +23,7 @@ def send_email(
     bcc: list[str],
     body: str,
     html: str | None = None,
-    attachments: list[Union[str, Path, dict]] | None = None,
+    attachments: list[str | Path | dict] | None = None,
 ):
     config = load_mail_config()
 
@@ -35,6 +33,7 @@ def send_email(
     msg["To"] = ", ".join(recipients)
     msg["Cc"] = cc
     msg["bcc"] = bcc
+    msg["reply-to"] = "cfac@uiic.co.in"
 
     if html:
         msg.add_alternative(html, subtype="html")
@@ -49,7 +48,7 @@ def send_email(
                 if not path.exists():
                     raise FileNotFoundError(f"Attachment not found: {path}")
 
-                mime_type, encoding = mimetypes.guess_type(path)
+                mime_type, _encoding = mimetypes.guess_type(path)
                 if mime_type is None:
                     mime_type = "application/octet-stream"
 
